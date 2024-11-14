@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Goa</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mapbox GL JS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js'></script>
+    
+    <style>
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gray-900 text-white p-4">
+        <h1 class="text-2xl font-bold">3D Goa</h1>
+    </header>
+
+    <!-- Map Container -->
+    <main class="flex-grow relative">
+        <div id="map" class="absolute inset-0"></div>
+    </main>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A'; // Replace with your Mapbox access token
+        
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/planemad/cm3gyibd3004x01qz08rohcsg',
+            center: [73.8278, 15.4989], // Goa coordinates
+            zoom: 11,
+            pitch: 60, // 3D view
+            bearing: -30,
+            hash: true
+        });
+
+        // Add 3D terrain
+        map.on('load', () => {
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+            
+            map.setTerrain({
+                'source': 'mapbox-dem',
+                'exaggeration': 1.5
+            });
+
+            // Add navigation controls
+            map.addControl(new mapboxgl.NavigationControl());
+        });
+    </script>
+</body>
+</html> 
