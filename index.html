@@ -151,6 +151,18 @@
             });
             map.addControl(geolocate);
 
+            // Add event listener for geolocate events
+            geolocate.on('geolocate', (event) => {
+                console.log('A geolocate event has occurred.');
+                // Update map bearing to match device heading
+                if (event.coords && event.coords.heading) {
+                    map.easeTo({
+                        bearing: event.coords.heading,
+                        duration: 300
+                    });
+                }
+            });
+
             // Trigger geolocation after 30 seconds
             setTimeout(() => {
                 geolocate.trigger();
