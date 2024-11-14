@@ -41,6 +41,7 @@ class GeolocationManager {
         // Original geolocate event listener (keep this as backup)
         this.geolocate.on('geolocate', (event) => {
             console.log('A geolocate event has occurred.');
+            console.log(event)
             if (event.coords && event.coords.heading) {
                 this.map.easeTo({
                     bearing: event.coords.heading,
