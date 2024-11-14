@@ -162,14 +162,28 @@
                     enableHighAccuracy: true
                 },
                 trackUserLocation: true,
-                showUserHeading: true  // Enable compass heading tracking
+                showUserHeading: true
             });
             map.addControl(geolocate);
 
-            // Add event listener for geolocate events
+            // Track user's heading changes
+            geolocate.on('trackuserlocationstart', () => {
+                // When tracking starts, watch for heading changes
+                window.addEventListener('deviceorientationabsolute', (event) => {
+                    if (event.alpha) {  // alpha represents compass heading
+                        // Convert device orientation to map bearing
+                        const bearing = 360 - event.alpha;
+                        map.easeTo({
+                            bearing: bearing,
+                            duration: 100  // Smooth transition duration in milliseconds
+                        });
+                    }
+                });
+            });
+
+            // Original geolocate event listener (keep this as backup)
             geolocate.on('geolocate', (event) => {
                 console.log('A geolocate event has occurred.');
-                // Update map bearing to match device heading
                 if (event.coords && event.coords.heading) {
                     map.easeTo({
                         bearing: event.coords.heading,
