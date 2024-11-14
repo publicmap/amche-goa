@@ -16,6 +16,10 @@
         #map {
             width: 100%;
             height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            z-index: 1;
         }
         
         /* Add new styles for the opacity control */
@@ -75,6 +79,8 @@
             background: white;
             border-radius: 4px;
             box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+            max-height: calc(50vh - 60px);
+            overflow-y: auto;
         }
         
         /* Add margin between the two controls */
@@ -90,12 +96,21 @@
             overflow: hidden;
         }
         
+        /* Update the map container positioning */
         #map {
             width: 100%;
             height: 100%;
             position: absolute;
             top: 0;
             bottom: 0;
+            z-index: 1;
+        }
+        
+        
+        /* Ensure attribution is visible */
+        .mapboxgl-ctrl-bottom-right {
+            bottom: 0 !important;
+            z-index: 2;
         }
     </style>
 </head>
