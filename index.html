@@ -17,6 +17,24 @@
             width: 100%;
             height: 100%;
         }
+        
+        /* Add new styles for the opacity control */
+        .opacity-control {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .opacity-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .opacity-control input {
+            width: 200px;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -71,6 +89,42 @@
 
             // Trigger geolocation on load
             geolocate.trigger();
+
+            // Add custom opacity control
+            class OpacityControl {
+                onAdd(map) {
+                    this._map = map;
+                    this._container = document.createElement('div');
+                    this._container.className = 'mapboxgl-ctrl opacity-control';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = 'ISRO Slope Opacity';
+                    
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = 0;
+                    slider.max = 100;
+                    slider.value = 100;
+                    
+                    slider.addEventListener('input', (e) => {
+                        const opacity = parseInt(e.target.value, 10) / 100;
+                        map.setPaintProperty('isro slope', 'raster-opacity', opacity);
+                    });
+                    
+                    this._container.appendChild(label);
+                    this._container.appendChild(slider);
+                    
+                    return this._container;
+                }
+                
+                onRemove() {
+                    this._container.parentNode.removeChild(this._container);
+                    this._map = undefined;
+                }
+            }
+            
+            // Add the custom control to the map
+            map.addControl(new OpacityControl(), 'bottom-left');
         });
     </script>
 </body>
