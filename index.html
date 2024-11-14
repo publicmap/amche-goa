@@ -164,6 +164,7 @@
         }
     </style>
     <script src="layer-control.js"></script>
+    <script src="geolocation-control.js"></script>
 </head>
 <body class="flex flex-col">
     <!-- Header -->
@@ -207,48 +208,8 @@
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl());
 
-            // Add geolocate control with bearing tracking
-            const geolocate = new mapboxgl.GeolocateControl({
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
-                trackUserLocation: true,
-                showUserHeading: true
-            });
-            map.addControl(geolocate);
-
-            // Track user's heading changes
-            geolocate.on('trackuserlocationstart', () => {
-                // When tracking starts, watch for heading changes
-                window.addEventListener('deviceorientationabsolute', (event) => {
-                    if (event.alpha) {  // alpha represents compass heading
-                        // Convert device orientation to map bearing
-                        const bearing = 360 - event.alpha;
-                        map.easeTo({
-                            bearing: bearing,
-                            duration: 100  // Smooth transition duration in milliseconds
-                        });
-                    }
-                });
-            });
-
-            // Trigger geolocation once after map load
-            map.once('load', () => {
-                setTimeout(() => {
-                    geolocate.trigger();
-                }, 10000);
-            });
-
-            // Original geolocate event listener (keep this as backup)
-            geolocate.on('geolocate', (event) => {
-                console.log('A geolocate event has occurred.');
-                if (event.coords && event.coords.heading) {
-                    map.easeTo({
-                        bearing: event.coords.heading,
-                        duration: 300
-                    });
-                }
-            });
+            // Initialize geolocation
+            new GeolocationManager(map);
 
             // Example usage with new configuration structure
             map.addControl(new LayerControl({
