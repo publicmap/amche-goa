@@ -21,19 +21,52 @@
         /* Add new styles for the opacity control */
         .opacity-control {
             background: white;
-            padding: 10px;
             border-radius: 4px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
         }
         
-        .opacity-control label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
+        .opacity-control button {
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
         }
         
-        .opacity-control input {
-            width: 200px;
+        .opacity-control button:hover {
+            background: #f0f0f0;
+        }
+        
+        .source-control {
+            border-top: 1px solid #e5e5e5;
+            padding: 8px 12px;
+        }
+        
+        .source-control .title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .radio-label input[type="radio"] {
+            margin: 0;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -97,23 +130,63 @@
                     this._container = document.createElement('div');
                     this._container.className = 'mapboxgl-ctrl opacity-control';
                     
-                    const label = document.createElement('label');
-                    label.textContent = 'ISRO Slope Opacity';
+                    // Create main toggle button
+                    const toggleButton = document.createElement('button');
+                    toggleButton.textContent = 'Hide Slopes';
                     
-                    const slider = document.createElement('input');
-                    slider.type = 'range';
-                    slider.min = 0;
-                    slider.max = 100;
-                    slider.value = 100;
+                    // Create source selection div
+                    const sourceDiv = document.createElement('div');
+                    sourceDiv.className = 'source-control';
+                    sourceDiv.innerHTML = `
+                        <div class="title">Source</div>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="slopeSource" value="isro" checked>
+                                ISRO
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="slopeSource" value="aster">
+                                Aster
+                            </label>
+                        </div>
+                    `;
                     
-                    slider.addEventListener('input', (e) => {
-                        const opacity = parseInt(e.target.value, 10) / 100;
-                        map.setPaintProperty('isro slope', 'raster-opacity', opacity);
+                    // Set initial state
+                    let isVisible = true;
+                    map.setLayoutProperty('isro slope', 'visibility', 'visible');
+                    map.setLayoutProperty('aster slope', 'visibility', 'none');
+                    map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
+                    
+                    // Handle button click
+                    toggleButton.addEventListener('click', () => {
+                        isVisible = !isVisible;
+                        toggleButton.textContent = isVisible ? 'Hide Slopes' : 'Highlight Slopes';
+                        
+                        if (!isVisible) {
+                            map.setLayoutProperty('isro slope', 'visibility', 'none');
+                            map.setLayoutProperty('aster slope', 'visibility', 'none');
+                            sourceDiv.style.display = 'none';
+                        } else {
+                            sourceDiv.style.display = 'block';
+                            // Show the currently selected source
+                            const selectedSource = sourceDiv.querySelector('input[name="slopeSource"]:checked').value;
+                            map.setLayoutProperty('isro slope', 'visibility', selectedSource === 'isro' ? 'visible' : 'none');
+                            map.setLayoutProperty('aster slope', 'visibility', selectedSource === 'aster' ? 'visible' : 'none');
+                        }
                     });
                     
-                    this._container.appendChild(label);
-                    this._container.appendChild(slider);
+                    // Handle radio button changes
+                    sourceDiv.querySelectorAll('input[name="slopeSource"]').forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            if (isVisible) {
+                                map.setLayoutProperty('isro slope', 'visibility', e.target.value === 'isro' ? 'visible' : 'none');
+                                map.setLayoutProperty('aster slope', 'visibility', e.target.value === 'aster' ? 'visible' : 'none');
+                            }
+                        });
+                    });
                     
+                    this._container.appendChild(toggleButton);
+                    this._container.appendChild(sourceDiv);
                     return this._container;
                 }
                 
@@ -125,6 +198,68 @@
             
             // Add the custom control to the map
             map.addControl(new OpacityControl(), 'bottom-left');
+
+            // First, create a new control class
+            class RDPControl {
+                onAdd(map) {
+                    this._map = map;
+                    this._container = document.createElement('div');
+                    this._container.className = 'mapboxgl-ctrl opacity-control';
+                    
+                    // Create main toggle button
+                    const toggleButton = document.createElement('button');
+                    toggleButton.textContent = 'Hide RDP';
+                    
+                    // Create source selection div
+                    const sourceDiv = document.createElement('div');
+                    sourceDiv.className = 'source-control';
+                    sourceDiv.innerHTML = `
+                        <div class="title">Layer</div>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="rdpSource" value="rdp" checked>
+                                Anjuna RDP
+                            </label>
+                        </div>
+                    `;
+                    
+                    // Set initial state
+                    let isVisible = true;
+                    map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
+                    
+                    // Handle button click
+                    toggleButton.addEventListener('click', () => {
+                        isVisible = !isVisible;
+                        toggleButton.textContent = isVisible ? 'Hide RDP' : 'Show RDP';
+                        
+                        if (!isVisible) {
+                            map.setLayoutProperty('Anjuna RDP', 'visibility', 'none');
+                            sourceDiv.style.display = 'none';
+                        } else {
+                            sourceDiv.style.display = 'block';
+                            map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
+                        }
+                    });
+                    
+                    this._container.appendChild(toggleButton);
+                    this._container.appendChild(sourceDiv);
+                    return this._container;
+                }
+                
+                onRemove() {
+                    this._container.parentNode.removeChild(this._container);
+                    this._map = undefined;
+                }
+            }
+
+            // Then update your map initialization to add both controls
+            map.addControl(new RDPControl(), 'top-right');
+
+            // Update the load event handler to click both buttons
+            setTimeout(() => {
+                const controls = document.querySelectorAll('.opacity-control button');
+                controls.forEach(button => button.click());
+            }, 500);
         });
     </script>
     <!-- Google tag (gtag.js) -->
