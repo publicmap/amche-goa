@@ -108,10 +108,12 @@
         
         /* Add these styles to fix mobile viewport height */
         html, body {
-            height: 100%;
+            height: 100vh;
             margin: 0;
             padding: 0;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
         
         /* Update the map container positioning */
@@ -134,12 +136,23 @@
         
         /* Update these styles */
         html, body {
-            height: 100%;
+            height: 100vh;
             margin: 0;
             padding: 0;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
+        /* Update main container */
+        main {
+            height: calc(100vh - 56px);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Update map container */
         #map {
             width: 100%;
             height: 100%;
@@ -149,16 +162,10 @@
             right: 0;
             bottom: 0;
         }
-
-        /* Add this new style for main container */
-        main {
-            height: calc(100% - 56px); /* 56px is the header height (p-4 = 16px * 2 = 32px + some content height) */
-            position: relative;
-        }
     </style>
     <script src="layer-control.js"></script>
 </head>
-<body class="h-screen flex flex-col">
+<body class="flex flex-col">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <h1 class="text-l" style="font-family: Helvetica">आमचे 3D Goa</h1>
