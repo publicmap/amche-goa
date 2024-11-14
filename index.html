@@ -9,8 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Mapbox GL JS -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js'></script>
     
     <style>
         #map {
@@ -37,6 +37,8 @@
             padding: 6px 12px;
             border-radius: 4px;
             transition: all 0.2s ease;
+            width:100%;
+            text-align: left;
         }
         
         .opacity-control button:hover {
@@ -46,6 +48,18 @@
         .source-control {
             border-top: 1px solid #e5e5e5;
             padding: 8px 12px;
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 1;
+            margin-top: 0;
+        }
+        
+        .source-control.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0;
+            border-top: none;
         }
         
         .source-control .title {
@@ -75,17 +89,21 @@
         
         /* Add padding to prevent controls from sticking to the edge */
         .mapboxgl-ctrl.opacity-control {
-            margin: 0 0 10px 10px;  /* Bottom, Left margin */
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-            max-height: calc(50vh - 60px);
-            overflow-y: auto;
+            margin: 0 0 0 10px;  /* Remove bottom margin */
+            width: 200px; /* Set fixed width for consistency */
         }
         
-        /* Add margin between the two controls */
+        /* Update the margin between controls */
         .mapboxgl-ctrl.opacity-control + .mapboxgl-ctrl.opacity-control {
-            margin-top: 10px;
+            margin-top: 1px; /* Reduce gap between controls */
+            border-top: 1px solid #e5e5e5; /* Add separator */
+            border-radius: 0 0 4px 4px; /* Round only bottom corners */
+        }
+        
+        /* Style first control's bottom corners when second control is present */
+        .mapboxgl-ctrl.opacity-control:has(+ .mapboxgl-ctrl.opacity-control) {
+            border-radius: 4px 4px 0 0; /* Round only top corners */
+            margin-bottom: 0;
         }
         
         /* Add these styles to fix mobile viewport height */
@@ -113,6 +131,7 @@
             z-index: 2;
         }
     </style>
+    <script src="layer-control.js"></script>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
     <!-- Header -->
@@ -181,6 +200,13 @@
                 });
             });
 
+            // Trigger geolocation once after map load
+            map.once('load', () => {
+                setTimeout(() => {
+                    geolocate.trigger();
+                }, 10000);
+            });
+
             // Original geolocate event listener (keep this as backup)
             geolocate.on('geolocate', (event) => {
                 console.log('A geolocate event has occurred.');
@@ -192,159 +218,9 @@
                 }
             });
 
-            // Trigger geolocation after 30 seconds
-            setTimeout(() => {
-                geolocate.trigger();
-            }, 30000);
-
-            // Generic Layer Control class
-            class LayerControl {
-                constructor(options) {
-                    this.config = {
-                        title: options.title || 'Toggle Layers',
-                        groupTitle: options.groupTitle || 'Layers',
-                        layers: options.layers.map(layer => ({
-                            id: layer.id,
-                            label: layer.label || layer.id,
-                            sourceUrl: layer.sourceUrl
-                        }))
-                    };
-                }
-
-                onAdd(map) {
-                    this._map = map;
-                    this._container = document.createElement('div');
-                    this._container.className = 'mapboxgl-ctrl opacity-control';
-                    
-                    // Create main toggle button
-                    const toggleButton = document.createElement('button');
-                    toggleButton.textContent = this.config.title;
-                    
-                    // Create source selection div
-                    const sourceDiv = document.createElement('div');
-                    sourceDiv.className = 'source-control';
-                    
-                    // Generate radio buttons and source links HTML
-                    const radioHTML = this.config.layers.map((layer, index) => `
-                        <div class="layer-control-item">
-                            <label class="radio-label">
-                                <input type="radio" name="layerSource" value="${layer.id}" ${index === 0 ? 'checked' : ''}>
-                                ${layer.label}
-                            </label>
-                            ${layer.sourceUrl ? `
-                            <div class="source-link ${index === 0 ? '' : 'hidden'}" data-for="${layer.id}">
-                                <a href="${layer.sourceUrl}" target="_blank" class="text-xs text-blue-600 hover:underline">
-                                    View Source
-                                </a>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `).join('');
-
-                    sourceDiv.innerHTML = `
-                        <div class="title">${this.config.groupTitle}</div>
-                        <div class="radio-group">
-                            ${radioHTML}
-                        </div>
-                    `;
-                    
-                    // Add styles for the source link
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        .layer-control-item {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 4px;
-                        }
-                        .source-link {
-                            margin-left: 20px;
-                            margin-bottom: 4px;
-                        }
-                        .source-link.hidden {
-                            display: none;
-                        }
-                    `;
-                    document.head.appendChild(style);
-                    
-                    // Set initial state - ensure first layer and its source link are visible
-                    let isVisible = true;
-                    this.config.layers.forEach((layer, index) => {
-                        map.setLayoutProperty(layer.id, 'visibility', index === 0 ? 'visible' : 'none');
-                    });
-                    
-                    // Handle button click
-                    toggleButton.addEventListener('click', () => {
-                        isVisible = !isVisible;
-                        
-                        if (!isVisible) {
-                            this.config.layers.forEach(layer => {
-                                map.setLayoutProperty(layer.id, 'visibility', 'none');
-                            });
-                            sourceDiv.style.display = 'none';
-                        } else {
-                            sourceDiv.style.display = 'block';
-                            if (this.config.layers.length > 1) {
-                                // Ensure first radio button is selected
-                                const firstRadio = sourceDiv.querySelector('input[name="layerSource"]');
-                                if (firstRadio) {
-                                    firstRadio.checked = true;
-                                }
-                                
-                                // Show first layer
-                                this.config.layers.forEach((layer, index) => {
-                                    map.setLayoutProperty(layer.id, 'visibility', index === 0 ? 'visible' : 'none');
-                                });
-                                
-                                // Show first source link
-                                sourceDiv.querySelectorAll('.source-link').forEach((link, index) => {
-                                    if (index === 0) {
-                                        link.classList.remove('hidden');
-                                    } else {
-                                        link.classList.add('hidden');
-                                    }
-                                });
-                            } else {
-                                map.setLayoutProperty(this.config.layers[0].id, 'visibility', 'visible');
-                            }
-                        }
-                    });
-                    
-                    // Handle radio button changes
-                    if (this.config.layers.length > 1) {
-                        sourceDiv.querySelectorAll('input[name="layerSource"]').forEach(radio => {
-                            radio.addEventListener('change', (e) => {
-                                if (isVisible) {
-                                    // Update layer visibility
-                                    this.config.layers.forEach(layer => {
-                                        map.setLayoutProperty(layer.id, 'visibility', layer.id === e.target.value ? 'visible' : 'none');
-                                    });
-                                    
-                                    // Update source link visibility
-                                    sourceDiv.querySelectorAll('.source-link').forEach(link => {
-                                        link.classList.add('hidden');
-                                        if (link.dataset.for === e.target.value) {
-                                            link.classList.remove('hidden');
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    }
-                    
-                    this._container.appendChild(toggleButton);
-                    this._container.appendChild(sourceDiv);
-                    return this._container;
-                }
-                
-                onRemove() {
-                    this._container.parentNode.removeChild(this._container);
-                    this._map = undefined;
-                }
-            }
-
             // Example usage with new configuration structure
             map.addControl(new LayerControl({
-                title: 'Slopes Zones',
+                title: 'Protected Slopes',
                 groupTitle: 'Source:',
                 layers: [
                     {
