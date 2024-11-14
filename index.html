@@ -45,20 +45,32 @@
 
         // Add 3D terrain
         map.on('load', () => {
-            map.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                'tileSize': 512,
-                'maxzoom': 14
-            });
+            // map.addSource('mapbox-dem', {
+            //     'type': 'raster-dem',
+            //     'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            //     'tileSize': 512,
+            //     'maxzoom': 14
+            // });
             
-            map.setTerrain({
-                'source': 'mapbox-dem',
-                'exaggeration': 1.5
-            });
+            // map.setTerrain({
+            //     'source': 'mapbox-dem',
+            //     'exaggeration': 1.5
+            // });
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl());
+
+            // Add geolocate control
+            const geolocate = new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true
+            });
+            map.addControl(geolocate);
+
+            // Trigger geolocation on load
+            geolocate.trigger();
         });
     </script>
 </body>
