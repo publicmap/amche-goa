@@ -81,9 +81,25 @@
         .mapboxgl-ctrl.opacity-control + .mapboxgl-ctrl.opacity-control {
             margin-top: 10px;
         }
+        
+        /* Add these styles to fix mobile viewport height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col overflow-hidden">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4">
         <h1 class="text-2xl font-bold">3D Goa</h1>
@@ -124,20 +140,35 @@
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl());
 
-            // Add geolocate control
+            // Add geolocate control with bearing tracking
             const geolocate = new mapboxgl.GeolocateControl({
                 positionOptions: {
                     enableHighAccuracy: true
                 },
-                trackUserLocation: true
+                trackUserLocation: true,
+                showUserHeading: true  // Enable compass heading tracking
             });
             map.addControl(geolocate);
 
-            // Trigger geolocation on load
-            geolocate.trigger();
+            // Trigger geolocation after 30 seconds
+            setTimeout(() => {
+                geolocate.trigger();
+            }, 30000);
 
-            // Add custom opacity control
-            class OpacityControl {
+            // Generic Layer Control class
+            class LayerControl {
+                constructor(options) {
+                    this.config = {
+                        title: options.title || 'Toggle Layers',
+                        groupTitle: options.groupTitle || 'Layers',
+                        layers: options.layers.map(layer => ({
+                            id: layer.id,
+                            label: layer.label || layer.id,
+                            sourceUrl: layer.sourceUrl
+                        }))
+                    };
+                }
+
                 onAdd(map) {
                     this._map = map;
                     this._container = document.createElement('div');
@@ -145,114 +176,118 @@
                     
                     // Create main toggle button
                     const toggleButton = document.createElement('button');
-                    toggleButton.textContent = 'Hide Slopes';
+                    toggleButton.textContent = this.config.title;
                     
                     // Create source selection div
                     const sourceDiv = document.createElement('div');
                     sourceDiv.className = 'source-control';
+                    
+                    // Generate radio buttons and source links HTML
+                    const radioHTML = this.config.layers.map((layer, index) => `
+                        <div class="layer-control-item">
+                            <label class="radio-label">
+                                <input type="radio" name="layerSource" value="${layer.id}" ${index === 0 ? 'checked' : ''}>
+                                ${layer.label}
+                            </label>
+                            ${layer.sourceUrl ? `
+                            <div class="source-link ${index === 0 ? '' : 'hidden'}" data-for="${layer.id}">
+                                <a href="${layer.sourceUrl}" target="_blank" class="text-xs text-blue-600 hover:underline">
+                                    View Source
+                                </a>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+
                     sourceDiv.innerHTML = `
-                        <div class="title">Source</div>
+                        <div class="title">${this.config.groupTitle}</div>
                         <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="slopeSource" value="isro" checked>
-                                ISRO
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="slopeSource" value="aster">
-                                Aster
-                            </label>
+                            ${radioHTML}
                         </div>
                     `;
                     
-                    // Set initial state
+                    // Add styles for the source link
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .layer-control-item {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 4px;
+                        }
+                        .source-link {
+                            margin-left: 20px;
+                            margin-bottom: 4px;
+                        }
+                        .source-link.hidden {
+                            display: none;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                    // Set initial state - ensure first layer and its source link are visible
                     let isVisible = true;
-                    map.setLayoutProperty('isro slope', 'visibility', 'visible');
-                    map.setLayoutProperty('aster slope', 'visibility', 'none');
-                    map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
+                    this.config.layers.forEach((layer, index) => {
+                        map.setLayoutProperty(layer.id, 'visibility', index === 0 ? 'visible' : 'none');
+                    });
                     
                     // Handle button click
                     toggleButton.addEventListener('click', () => {
                         isVisible = !isVisible;
-                        toggleButton.textContent = isVisible ? 'Hide Slopes' : 'Highlight Slopes';
                         
                         if (!isVisible) {
-                            map.setLayoutProperty('isro slope', 'visibility', 'none');
-                            map.setLayoutProperty('aster slope', 'visibility', 'none');
+                            this.config.layers.forEach(layer => {
+                                map.setLayoutProperty(layer.id, 'visibility', 'none');
+                            });
                             sourceDiv.style.display = 'none';
                         } else {
                             sourceDiv.style.display = 'block';
-                            // Show the currently selected source
-                            const selectedSource = sourceDiv.querySelector('input[name="slopeSource"]:checked').value;
-                            map.setLayoutProperty('isro slope', 'visibility', selectedSource === 'isro' ? 'visible' : 'none');
-                            map.setLayoutProperty('aster slope', 'visibility', selectedSource === 'aster' ? 'visible' : 'none');
+                            if (this.config.layers.length > 1) {
+                                // Ensure first radio button is selected
+                                const firstRadio = sourceDiv.querySelector('input[name="layerSource"]');
+                                if (firstRadio) {
+                                    firstRadio.checked = true;
+                                }
+                                
+                                // Show first layer
+                                this.config.layers.forEach((layer, index) => {
+                                    map.setLayoutProperty(layer.id, 'visibility', index === 0 ? 'visible' : 'none');
+                                });
+                                
+                                // Show first source link
+                                sourceDiv.querySelectorAll('.source-link').forEach((link, index) => {
+                                    if (index === 0) {
+                                        link.classList.remove('hidden');
+                                    } else {
+                                        link.classList.add('hidden');
+                                    }
+                                });
+                            } else {
+                                map.setLayoutProperty(this.config.layers[0].id, 'visibility', 'visible');
+                            }
                         }
                     });
                     
                     // Handle radio button changes
-                    sourceDiv.querySelectorAll('input[name="slopeSource"]').forEach(radio => {
-                        radio.addEventListener('change', (e) => {
-                            if (isVisible) {
-                                map.setLayoutProperty('isro slope', 'visibility', e.target.value === 'isro' ? 'visible' : 'none');
-                                map.setLayoutProperty('aster slope', 'visibility', e.target.value === 'aster' ? 'visible' : 'none');
-                            }
+                    if (this.config.layers.length > 1) {
+                        sourceDiv.querySelectorAll('input[name="layerSource"]').forEach(radio => {
+                            radio.addEventListener('change', (e) => {
+                                if (isVisible) {
+                                    // Update layer visibility
+                                    this.config.layers.forEach(layer => {
+                                        map.setLayoutProperty(layer.id, 'visibility', layer.id === e.target.value ? 'visible' : 'none');
+                                    });
+                                    
+                                    // Update source link visibility
+                                    sourceDiv.querySelectorAll('.source-link').forEach(link => {
+                                        link.classList.add('hidden');
+                                        if (link.dataset.for === e.target.value) {
+                                            link.classList.remove('hidden');
+                                        }
+                                    });
+                                }
+                            });
                         });
-                    });
-                    
-                    this._container.appendChild(toggleButton);
-                    this._container.appendChild(sourceDiv);
-                    return this._container;
-                }
-                
-                onRemove() {
-                    this._container.parentNode.removeChild(this._container);
-                    this._map = undefined;
-                }
-            }
-            
-            // Add the custom control to the map
-            map.addControl(new OpacityControl(), 'bottom-left');
-
-            // First, create a new control class
-            class RDPControl {
-                onAdd(map) {
-                    this._map = map;
-                    this._container = document.createElement('div');
-                    this._container.className = 'mapboxgl-ctrl opacity-control';
-                    
-                    // Create main toggle button
-                    const toggleButton = document.createElement('button');
-                    toggleButton.textContent = 'Hide RDP';
-                    
-                    // Create source selection div
-                    const sourceDiv = document.createElement('div');
-                    sourceDiv.className = 'source-control';
-                    sourceDiv.innerHTML = `
-                        <div class="title">Layer</div>
-                        <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="rdpSource" value="rdp" checked>
-                                Anjuna RDP
-                            </label>
-                        </div>
-                    `;
-                    
-                    // Set initial state
-                    let isVisible = true;
-                    map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
-                    
-                    // Handle button click
-                    toggleButton.addEventListener('click', () => {
-                        isVisible = !isVisible;
-                        toggleButton.textContent = isVisible ? 'Hide RDP' : 'Show RDP';
-                        
-                        if (!isVisible) {
-                            map.setLayoutProperty('Anjuna RDP', 'visibility', 'none');
-                            sourceDiv.style.display = 'none';
-                        } else {
-                            sourceDiv.style.display = 'block';
-                            map.setLayoutProperty('Anjuna RDP', 'visibility', 'visible');
-                        }
-                    });
+                    }
                     
                     this._container.appendChild(toggleButton);
                     this._container.appendChild(sourceDiv);
@@ -265,8 +300,35 @@
                 }
             }
 
-            // Then update your map initialization to add both controls
-            map.addControl(new RDPControl(), 'bottom-left');
+            // Example usage with new configuration structure
+            map.addControl(new LayerControl({
+                title: 'Slopes Zones',
+                groupTitle: 'Source:',
+                layers: [
+                    {
+                        id: 'isro slope',
+                        label: 'ISRO 2.5m (Bardez)',
+                        sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/'
+                    },
+                    {
+                        id: 'aster slope',
+                        label: 'Aster 30m (Goa)',
+                        sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html'
+                    }
+                ]
+            }), 'bottom-left');
+
+            map.addControl(new LayerControl({
+                title: '2021 Development Plans',
+                groupTitle: 'Village:',
+                layers: [
+                    {
+                        id: 'Anjuna RDP',
+                        label: 'Anjuna RDP',
+                        sourceUrl: 'https://tcp.goa.gov.in/'
+                    }
+                ]
+            }), 'bottom-left');
 
             // Update the load event handler to click both buttons
             setTimeout(() => {
