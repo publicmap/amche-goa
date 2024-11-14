@@ -68,6 +68,19 @@
             margin: 0;
             cursor: pointer;
         }
+        
+        /* Add padding to prevent controls from sticking to the edge */
+        .mapboxgl-ctrl.opacity-control {
+            margin: 0 0 10px 10px;  /* Bottom, Left margin */
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Add margin between the two controls */
+        .mapboxgl-ctrl.opacity-control + .mapboxgl-ctrl.opacity-control {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -253,7 +266,7 @@
             }
 
             // Then update your map initialization to add both controls
-            map.addControl(new RDPControl(), 'top-right');
+            map.addControl(new RDPControl(), 'bottom-left');
 
             // Update the load event handler to click both buttons
             setTimeout(() => {
