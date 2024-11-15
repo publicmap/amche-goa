@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Goa</title>
-    
+
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Mapbox GL JS -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css' rel='stylesheet' />
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js'></script>
-    
+
     <!-- Add Mapbox Geocoder CSS and JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
-    
+    <script
+        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet"
+        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+        type="text/css">
+
     <style>
         #map {
             width: 100%;
@@ -25,15 +29,15 @@
             bottom: 0;
             z-index: 1;
         }
-        
+
         /* Add new styles for the opacity control */
         .opacity-control {
             background: white;
             border-radius: 4px;
-            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-            margin-bottom: 1px!important;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1px !important;
         }
-        
+
         .opacity-control button {
             background: white;
             border: none;
@@ -42,14 +46,14 @@
             padding: 6px 12px;
             border-radius: 4px;
             transition: all 0.2s ease;
-            width:100%;
+            width: 100%;
             text-align: left;
         }
-        
+
         .opacity-control button:hover {
             background: #f0f0f0;
         }
-        
+
         .source-control {
             border-top: 1px solid #e5e5e5;
             padding: 8px 12px;
@@ -59,25 +63,25 @@
             opacity: 1;
             margin-top: 0;
         }
-        
+
         .source-control.collapsed {
             max-height: 0;
             opacity: 0;
             padding: 0;
             border-top: none;
         }
-        
+
         .source-control .title {
             font-size: 12px;
             color: #666;
             margin-bottom: 4px;
         }
-        
+
         .radio-group {
             display: flex;
             gap: 12px;
         }
-        
+
         .radio-label {
             display: flex;
             align-items: center;
@@ -86,33 +90,40 @@
             color: #333;
             cursor: pointer;
         }
-        
+
         .radio-label input[type="radio"] {
             margin: 0;
             cursor: pointer;
         }
-        
+
         /* Add padding to prevent controls from sticking to the edge */
         .mapboxgl-ctrl.opacity-control {
-            margin: 0 0 0 10px;  /* Remove bottom margin */
-            width: 200px; /* Set fixed width for consistency */
+            margin: 0 0 0 10px;
+            /* Remove bottom margin */
+            width: 200px;
+            /* Set fixed width for consistency */
         }
-        
+
         /* Update the margin between controls */
-        .mapboxgl-ctrl.opacity-control + .mapboxgl-ctrl.opacity-control {
-            margin-top: 1px; /* Reduce gap between controls */
-            border-top: 1px solid #e5e5e5; /* Add separator */
-            border-radius: 0 0 4px 4px; /* Round only bottom corners */
+        .mapboxgl-ctrl.opacity-control+.mapboxgl-ctrl.opacity-control {
+            margin-top: 1px;
+            /* Reduce gap between controls */
+            border-top: 1px solid #e5e5e5;
+            /* Add separator */
+            border-radius: 0 0 4px 4px;
+            /* Round only bottom corners */
         }
-        
+
         /* Style first control's bottom corners when second control is present */
         .mapboxgl-ctrl.opacity-control:has(+ .mapboxgl-ctrl.opacity-control) {
-            border-radius: 4px 4px 0 0; /* Round only top corners */
+            border-radius: 4px 4px 0 0;
+            /* Round only top corners */
             margin-bottom: 0;
         }
-        
+
         /* Add these styles to fix mobile viewport height */
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -120,7 +131,7 @@
             position: relative;
             width: 100%;
         }
-        
+
         /* Update the map container positioning */
         #map {
             width: 100%;
@@ -131,16 +142,17 @@
             right: 0;
             bottom: 0;
         }
-        
-        
+
+
         /* Ensure attribution is visible */
         .mapboxgl-ctrl-bottom-right {
             bottom: 0 !important;
             z-index: 2;
         }
-        
+
         /* Update these styles */
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -173,14 +185,63 @@
             bottom: 10px !important;
             z-index: 2;
         }
+
+        /* Add these styles in your existing style section */
+        .mapboxgl-ctrl-icon svg {
+            display: block;
+            margin: 2px;
+        }
+
+        .mapboxgl-ctrl-icon {
+            padding: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .mapboxgl-ctrl-location {
+            background: white;
+            border: none;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+            transition: background-color 0.2s;
+        }
+
+        .mapboxgl-ctrl-location:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Add these to your existing styles */
+        .mapboxgl-ctrl-geolocate {
+            display: flex !important;
+            align-items: center;
+            width: auto !important;
+            min-width: 30px;
+            white-space: nowrap;
+        }
+
+        .mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon {
+            margin-right: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+        .mapboxgl-ctrl-group {
+            width: auto !important;
+        }
     </style>
     <script src="layer-control.js"></script>
     <script src="geolocation-control.js"></script>
+    <script src="mapbox-gl-view-control.js"></script>
 </head>
+
 <body class="flex flex-col">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
-        <h1 class="text-l" style="font-family: Helvetica"><a href="https://amche.in" class="text-white hover:underline">आमचे 3D Goa</a></h1>
+        <h1 class="text-l" style="font-family: Helvetica"><a href="https://amche.in"
+                class="text-white hover:underline">आमचे 3D Goa</a></h1>
         <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
     </header>
 
@@ -191,7 +252,7 @@
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A'; // Replace with your Mapbox access token
-        
+
         // Initialize the map
         // Mapbox Studio style https://www.mapbox.com/studio/styles/planemad/cm3gyibd3004x01qz08rohcsg/
         // Camera position http://localhost:53662/#9.99/15.4121/73.9414/69.6/56
@@ -219,15 +280,14 @@
                 latitude: 15.26032
             }, // Bias results toward Goa
         });
-        
-        map.addControl(geocoder, 'top-left');
+
 
         // Add 3D terrain
         map.on('load', () => {
             // Only add terrain if not already in style
             const style = map.getStyle();
             const hasTerrain = style.sources && style.sources['mapbox-dem'];
-            
+
             if (!hasTerrain) {
                 map.addSource('mapbox-dem', {
                     'type': 'raster-dem',
@@ -235,18 +295,21 @@
                     'tileSize': 512,
                     'maxzoom': 14
                 });
-                
+
                 map.setTerrain({
                     'source': 'mapbox-dem',
                     'exaggeration': 1.5
                 });
             }
 
-            // Add navigation controls
-            map.addControl(new mapboxgl.NavigationControl());
+            // Add geocoder control
+            map.addControl(geocoder, 'top-left');
 
             // Initialize geolocation
             new GeolocationManager(map);
+
+            // Add view control
+            map.addControl(new ViewControl(), 'top-right');
 
             // Example usage with new configuration structure
             map.addControl(new LayerControl({
@@ -254,15 +317,16 @@
                 groupTitle: 'Source:',
                 layers: [
                     {
+                        id: 'aster slope',
+                        label: 'Aster 30m (Goa Coast)',
+                        sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html'
+                    },
+                    {
                         id: 'isro slope',
                         label: 'ISRO 2.5m (Bardez)',
                         sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/'
-                    },
-                    {
-                        id: 'aster slope',
-                        label: 'Aster 30m (Goa)',
-                        sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html'
                     }
+
                 ]
             }), 'bottom-right');
 
@@ -278,66 +342,75 @@
                 ]
             }), 'bottom-right');
 
-            // Set camera position after 10 seconds
-            setTimeout(() => {
-                console.log('Flying to camera position');
-                map.flyTo({
-                    center: [73.8274, 15.4406],
-                    zoom: 9,
-                    pitch: 28,
-                    bearing: 0,
-                    duration: 4000, // Duration in milliseconds (4 seconds)
-                    essential: true,
-                    curve: 1.42, // Smooth easing function
-                    speed: 0.6 // Slower speed for smoother transition
-                });
-            }, 2000);
+                        // Add navigation controls
+                        map.addControl(new mapboxgl.NavigationControl());
+
+
+            // Only set camera position if there's no hash in URL
+            if (!window.location.hash) {
+                setTimeout(() => {
+                    map.flyTo({
+                        center: [73.8274, 15.4406],
+                        zoom: 9,
+                        pitch: 28,
+                        bearing: 0,
+                        duration: 4000,
+                        essential: true,
+                        curve: 1.42,
+                        speed: 0.6
+                    });
+                }, 2000);
+            }
 
             // Update the load event handler to click both buttons
             setTimeout(() => {
                 const controls = document.querySelectorAll('.opacity-control button');
                 controls.forEach(button => button.click());
             }, 500);
+
+
         });
     </script>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FBVGZ4HJV0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBVGZ4HJV0"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-FBVGZ4HJV0');
-</script>
+        gtag('config', 'G-FBVGZ4HJV0');
+    </script>
 
-<!-- Add modal HTML before the closing body tag -->
-<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 h-3/4">
-        <div class="flex justify-between items-center p-4 border-b">
-            <h2 class="text-xl font-bold">Feedback</h2>
-            <button onclick="closeFeedbackModal()" class="text-gray-600 hover:text-gray-800">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <div class="h-[calc(100%-4rem)]">
-            <iframe src="https://forms.gle/8J4HTJMUM1thWpGK9" class="w-full h-full"></iframe>
+    <!-- Add modal HTML before the closing body tag -->
+    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 h-3/4">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold">Feedback</h2>
+                <button onclick="closeFeedbackModal()" class="text-gray-600 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="h-[calc(100%-4rem)]">
+                <iframe src="https://forms.gle/8J4HTJMUM1thWpGK9" class="w-full h-full"></iframe>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Add modal JavaScript before the closing body tag -->
-<script>
-    function openFeedbackModal() {
-        document.getElementById('feedbackModal').classList.remove('hidden');
-        document.getElementById('feedbackModal').classList.add('flex');
-    }
+    <!-- Add modal JavaScript before the closing body tag -->
+    <script>
+        function openFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+            document.getElementById('feedbackModal').classList.add('flex');
+        }
 
-    function closeFeedbackModal() {
-        document.getElementById('feedbackModal').classList.add('hidden');
-        document.getElementById('feedbackModal').classList.remove('flex');
-    }
-</script>
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('hidden');
+            document.getElementById('feedbackModal').classList.remove('flex');
+        }
+    </script>
 </body>
-</html> 
+
+</html>
