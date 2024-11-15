@@ -187,29 +187,36 @@
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A'; // Replace with your Mapbox access token
         
+        // Set with https://labs.mapbox.com/location-helper/#9.47/15.2603/73.8792/16/49
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/planemad/cm3gyibd3004x01qz08rohcsg',
-            center: [73.8278, 15.4989], // Goa coordinates
-            zoom: 11,
-            pitch: 60, // 3D view
-            bearing: -30,
+            center: [73.87916, 15.26032], // Goa coordinates
+            zoom: 9.47,
+            pitch: 49, // 3D view
+            bearing: 16,
             hash: true
         });
 
         // Add 3D terrain
         map.on('load', () => {
-            // map.addSource('mapbox-dem', {
-            //     'type': 'raster-dem',
-            //     'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-            //     'tileSize': 512,
-            //     'maxzoom': 14
-            // });
+            // Only add terrain if not already in style
+            const style = map.getStyle();
+            const hasTerrain = style.sources && style.sources['mapbox-dem'];
             
-            // map.setTerrain({
-            //     'source': 'mapbox-dem',
-            //     'exaggeration': 1.5
-            // });
+            if (!hasTerrain) {
+                map.addSource('mapbox-dem', {
+                    'type': 'raster-dem',
+                    'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                    'tileSize': 512,
+                    'maxzoom': 14
+                });
+                
+                map.setTerrain({
+                    'source': 'mapbox-dem',
+                    'exaggeration': 1.5
+                });
+            }
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl());
