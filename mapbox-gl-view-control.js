@@ -14,51 +14,59 @@ class ViewControl {
 
     onAdd(map) {
         this._map = map;
-        this._container = document.createElement('div');
-        this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
         
-        const button = document.createElement('button');
-        button.className = 'mapboxgl-ctrl-icon';
-        button.type = 'button';
-        button.setAttribute('aria-label', 'Reset map view');
+        // Create container with jQuery
+        this._container = $('<div>', {
+            class: 'mapboxgl-ctrl mapboxgl-ctrl-group'
+        })[0];
         
-        button.style.display = 'flex';
-        button.style.alignItems = 'center';
-        button.style.justifyContent = 'center';
-        button.style.width = '30px';
-        button.style.height = '30px';
-        
-        const img = document.createElement('img');
-        img.src = this.options.iconUrl;
-        img.width = 20;
-        img.height = 20;
-        img.style.display = 'block';
-        button.appendChild(img);
-
-        button.addEventListener('click', () => {
-            this._map.flyTo({
-                ...this.options.initialView,
-                duration: 4000,
-                essential: true,
-                curve: 1.42,
-                speed: 0.6
-            });
+        // Create button with jQuery
+        const $button = $('<button>', {
+            class: 'mapboxgl-ctrl-icon',
+            type: 'button',
+            'aria-label': 'Reset map view',
+            css: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '30px',
+                height: '30px'
+            }
         });
 
-        button.addEventListener('mouseenter', () => {
-            button.style.backgroundColor = '#f0f0f0';
-        });
-        
-        button.addEventListener('mouseleave', () => {
-            button.style.backgroundColor = '#ffffff';
+        // Create image with jQuery
+        const $img = $('<img>', {
+            src: this.options.iconUrl,
+            width: 20,
+            height: 20,
+            css: { display: 'block' }
         });
 
-        this._container.appendChild(button);
+        // Add event handlers using jQuery
+        $button
+            .append($img)
+            .on('click', () => {
+                this._map.flyTo({
+                    ...this.options.initialView,
+                    duration: 4000,
+                    essential: true,
+                    curve: 1.42,
+                    speed: 0.6
+                });
+            })
+            .on('mouseenter', function() {
+                $(this).css('backgroundColor', '#f0f0f0');
+            })
+            .on('mouseleave', function() {
+                $(this).css('backgroundColor', '#ffffff');
+            })
+            .appendTo(this._container);
+
         return this._container;
     }
 
     onRemove() {
-        this._container.parentNode.removeChild(this._container);
+        $(this._container).remove();
         this._map = undefined;
     }
 } 
