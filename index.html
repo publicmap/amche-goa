@@ -108,11 +108,11 @@
         
         /* Add these styles to fix mobile viewport height */
         html, body {
-            height: 100vh;
+            height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            position: fixed;
+            position: relative;
             width: 100%;
         }
         
@@ -136,17 +136,17 @@
         
         /* Update these styles */
         html, body {
-            height: 100vh;
+            height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            position: fixed;
+            position: relative;
             width: 100%;
         }
 
         /* Update main container */
         main {
-            height: calc(100vh - 56px);
+            height: calc(100% - 56px);
             width: 100%;
             position: relative;
             overflow: hidden;
@@ -161,6 +161,12 @@
             left: 0;
             right: 0;
             bottom: 0;
+        }
+
+        /* Add this new style to ensure controls are visible */
+        .mapboxgl-ctrl-bottom-left {
+            bottom: 10px !important;
+            z-index: 2;
         }
     </style>
     <script src="layer-control.js"></script>
