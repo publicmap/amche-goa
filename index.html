@@ -15,9 +15,9 @@
 
     <!-- Add Mapbox Geocoder CSS and JS -->
     <script
-        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet"
-        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.3/mapbox-gl-geocoder.css"
         type="text/css">
 
     <style>
@@ -36,6 +36,7 @@
             border-radius: 4px;
             box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
             margin-bottom: 1px !important;
+            padding: 8px;
         }
 
         .opacity-control button {
@@ -59,9 +60,11 @@
             padding: 8px 12px;
             max-height: 500px;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            transition: all .2s ease-in-out;
             opacity: 1;
             margin-top: 0;
+            padding: 12px;
+            border-top: none;
         }
 
         .source-control.collapsed {
@@ -79,7 +82,8 @@
 
         .radio-group {
             display: flex;
-            gap: 12px;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .radio-label {
@@ -231,8 +235,78 @@
         .mapboxgl-ctrl-group {
             width: auto !important;
         }
+
+        /* Update geocoder input height */
+        .mapboxgl-ctrl-geocoder--input {
+            height: 34px !important;
+        }
+
+        /* Add new styles for layer group cards */
+        .layer-group {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .layer-group:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Update group header styles */
+        .group-header {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f8f8;
+            border-bottom: 1px solid #e5e5e5;
+            position: relative;
+            min-height: 48px;
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .group-header label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-header input[type="checkbox"] {
+            margin: 0;
+            filter: brightness(2); /* Make checkbox brighter when on dark background */
+        }
+
+        /* Add styles for the layer info section */
+        .layer-info {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .layer-info a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .layer-info a:hover {
+            text-decoration: underline;
+        }
+
     </style>
-    <script src="layer-control.js"></script>
+    <script src="map-layer-controls.js"></script>
     <script src="geolocation-control.js"></script>
     <script src="mapbox-gl-view-control.js"></script>
 </head>
@@ -267,11 +341,16 @@
         });
 
         // Add the geocoder control
+        // https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-geocoder/
         // https://github.com/mapbox/mapbox-gl-geocoder/blob/main/API.md
         const geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
-            countries: 'in',  // Restrict to India
+            collapsed: true,
+            clearOnBlur: true,
+            marker: false,
+            countries: 'in', 
+            worldview: 'in', // Restrict to India
             types: 'place,locality,postcode',
             placeholder: 'Search Places',
             bbox: [68.1766451354, 7.96553477623, 97.4025614766, 35.4940095078], // India bounding box
@@ -303,7 +382,7 @@
             }
 
             // Add geocoder control
-            map.addControl(geocoder, 'top-left');
+            map.addControl(geocoder, 'top-right');
 
             // Initialize geolocation
             new GeolocationManager(map);
@@ -311,39 +390,50 @@
             // Add view control
             map.addControl(new ViewControl(), 'top-right');
 
-            // Example usage with new configuration structure
-            map.addControl(new LayerControl({
-                title: 'Protected Slopes',
-                groupTitle: 'Source:',
-                layers: [
-                    {
-                        id: 'aster slope',
-                        label: 'Aster 30m (Goa Coast)',
-                        sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html'
-                    },
-                    {
-                        id: 'isro slope',
-                        label: 'ISRO 2.5m (Bardez)',
-                        sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/'
-                    }
+            // Add layer control with multiple groups
+            const layerControl = new MapLayerControl([
+                {
+                    title: 'Hill Slopes',
+                    groupTitle: 'Select Slope Source:',
+                    headerImage: 'assets/map-layer-slope.png',
+                    layers: [
+                        {
+                            id: 'aster slope',
+                            label: 'Aster 30m (Goa Coast)',
+                            sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                            location: 'Panaji'
+                        },
+                        {
+                            id: 'isro slope',
+                            label: 'ISRO 2.5m (Bardez)',
+                            sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                            location: 'Guirim'
+                        }
+                    ],
+                    autoCollapse: true,
+                    collapseDelay: 2000
+                },
+                {
+                    title: 'Regional Development Plans',
+                    groupTitle: 'Goa RDP 2021',
+                    headerImage: 'assets/map-layer-rdp.png',
+                    layers: [
+                        {
+                            id: 'Anjuna RDP',
+                            label: 'Anjuna RDP',
+                            sourceUrl: 'https://tcp.goa.gov.in/',
+                            location: 'Anjuna'
+                        }
+                    ],
+                    autoCollapse: true,
+                    collapseDelay: 2000
+                }
+            ]);
+            
+            map.addControl(layerControl, 'top-left');
 
-                ]
-            }), 'bottom-right');
-
-            map.addControl(new LayerControl({
-                title: '2021 Development Plans',
-                groupTitle: 'Village:',
-                layers: [
-                    {
-                        id: 'Anjuna RDP',
-                        label: 'Anjuna RDP',
-                        sourceUrl: 'https://tcp.goa.gov.in/'
-                    }
-                ]
-            }), 'bottom-right');
-
-                        // Add navigation controls
-                        map.addControl(new mapboxgl.NavigationControl());
+            // Add navigation controls
+            map.addControl(new mapboxgl.NavigationControl());
 
 
             // Only set camera position if there's no hash in URL
