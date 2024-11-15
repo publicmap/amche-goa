@@ -12,6 +12,10 @@
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css' rel='stylesheet' />
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js'></script>
     
+    <!-- Add Mapbox Geocoder CSS and JS -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+    
     <style>
         #map {
             width: 100%;
@@ -27,6 +31,7 @@
             background: white;
             border-radius: 4px;
             box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+            margin-bottom: 1px!important;
         }
         
         .opacity-control button {
@@ -176,7 +181,7 @@
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <h1 class="text-l" style="font-family: Helvetica"><a href="https://amche.in" class="text-white hover:underline">आमचे 3D Goa</a></h1>
-        <a href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank" class="text-sm hover:underline">Feedback</a>
+        <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
     </header>
 
     <!-- Map Container -->
@@ -187,16 +192,35 @@
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A'; // Replace with your Mapbox access token
         
-        // Set with https://labs.mapbox.com/location-helper/#9.47/15.2603/73.8792/16/49
+        // Initialize the map
+        // Mapbox Studio style https://www.mapbox.com/studio/styles/planemad/cm3gyibd3004x01qz08rohcsg/
+        // Camera position http://localhost:53662/#9.99/15.4121/73.9414/69.6/56
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/planemad/cm3gyibd3004x01qz08rohcsg',
-            center: [73.87916, 15.26032], // Goa coordinates
-            zoom: 9.47,
-            pitch: 49, // 3D view
-            bearing: 16,
+            center: [73.9414, 15.4121],
+            zoom: 9.99,
+            pitch: 69.6,
+            bearing: 56,
             hash: true
         });
+
+        // Add the geocoder control
+        // https://github.com/mapbox/mapbox-gl-geocoder/blob/main/API.md
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            countries: 'in',  // Restrict to India
+            types: 'place,locality,postcode',
+            placeholder: 'Search Places',
+            bbox: [68.1766451354, 7.96553477623, 97.4025614766, 35.4940095078], // India bounding box
+            proximity: {
+                longitude: 73.87916,
+                latitude: 15.26032
+            }, // Bias results toward Goa
+        });
+        
+        map.addControl(geocoder, 'top-left');
 
         // Add 3D terrain
         map.on('load', () => {
@@ -240,7 +264,7 @@
                         sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html'
                     }
                 ]
-            }), 'bottom-left');
+            }), 'bottom-right');
 
             map.addControl(new LayerControl({
                 title: '2021 Development Plans',
@@ -252,7 +276,22 @@
                         sourceUrl: 'https://tcp.goa.gov.in/'
                     }
                 ]
-            }), 'bottom-left');
+            }), 'bottom-right');
+
+            // Set camera position after 10 seconds
+            setTimeout(() => {
+                console.log('Flying to camera position');
+                map.flyTo({
+                    center: [73.8274, 15.4406],
+                    zoom: 9,
+                    pitch: 28,
+                    bearing: 0,
+                    duration: 4000, // Duration in milliseconds (4 seconds)
+                    essential: true,
+                    curve: 1.42, // Smooth easing function
+                    speed: 0.6 // Slower speed for smoother transition
+                });
+            }, 2000);
 
             // Update the load event handler to click both buttons
             setTimeout(() => {
@@ -269,6 +308,36 @@
   gtag('js', new Date());
 
   gtag('config', 'G-FBVGZ4HJV0');
+</script>
+
+<!-- Add modal HTML before the closing body tag -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 h-3/4">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h2 class="text-xl font-bold">Feedback</h2>
+            <button onclick="closeFeedbackModal()" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="h-[calc(100%-4rem)]">
+            <iframe src="https://forms.gle/8J4HTJMUM1thWpGK9" class="w-full h-full"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Add modal JavaScript before the closing body tag -->
+<script>
+    function openFeedbackModal() {
+        document.getElementById('feedbackModal').classList.remove('hidden');
+        document.getElementById('feedbackModal').classList.add('flex');
+    }
+
+    function closeFeedbackModal() {
+        document.getElementById('feedbackModal').classList.add('hidden');
+        document.getElementById('feedbackModal').classList.remove('flex');
+    }
 </script>
 </body>
 </html> 
