@@ -25,6 +25,9 @@
     <script src="map-layer-controls.js"></script>
     <script src="geolocation-control.js"></script>
     <script src="mapbox-gl-view-control.js"></script>
+
+    <!-- Add jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 
 <body class="flex flex-col">
@@ -170,7 +173,7 @@
 
             // Update the load event handler to click both buttons
             setTimeout(() => {
-                const controls = document.querySelectorAll('.opacity-control button');
+                const controls = document.querySelectorAll('.layer-control button');
                 controls.forEach(button => button.click());
             }, 500);
 
@@ -189,18 +192,21 @@
 
     <!-- Add modal HTML before the closing body tag -->
     <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 h-3/4">
-            <div class="flex justify-between items-center p-4 border-b">
+        <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-8">
+            <div class="flex justify-between items-center border-b pb-4">
                 <h2 class="text-xl font-bold">Feedback</h2>
                 <button onclick="closeFeedbackModal()" class="text-gray-600 hover:text-gray-800">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <div class="h-[calc(100%-4rem)]">
-                <iframe src="https://forms.gle/8J4HTJMUM1thWpGK9" class="w-full h-full"></iframe>
+            <div class="mt-4 text-center">
+                <p class="mb-4">Click below to open the feedback form</p>
+                <a href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank" 
+                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Open Feedback Form
+                </a>
             </div>
         </div>
     </div>
