@@ -1,13 +1,10 @@
 class MapLayerControl {
     constructor(options) {
         this._options = {
-            autoCollapse: true,
-            collapseDelay: 2000,
             groups: Array.isArray(options) ? options : [options]
         };
         MapLayerControl.instances = (MapLayerControl.instances || 0) + 1;
         this._instanceId = MapLayerControl.instances;
-        this._collapseTimers = {};
         this._initialized = false;
         this._animationTimeouts = [];
     }
@@ -105,20 +102,6 @@ class MapLayerControl {
 
             $checkbox.on('change', () => {
                 this._toggleSourceControl(groupIndex, $checkbox.prop('checked'));
-                
-                if ($checkbox.prop('checked') && group.autoCollapse === true) {
-                    if (this._collapseTimers[groupIndex]) {
-                        clearTimeout(this._collapseTimers[groupIndex]);
-                    }
-                    
-                    this._collapseTimers[groupIndex] = setTimeout(() => {
-                        $checkbox.prop('checked', false).trigger('change');
-                    }, group.collapseDelay || this._options.collapseDelay);
-                } else if (!$checkbox.prop('checked')) {
-                    if (this._collapseTimers[groupIndex]) {
-                        clearTimeout(this._collapseTimers[groupIndex]);
-                    }
-                }
             });
         });
 
