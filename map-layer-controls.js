@@ -346,12 +346,25 @@ class MapLayerControl {
     _initializeWithAnimation() {
         const checkboxes = this._container.querySelectorAll('input[type="checkbox"]');
         
-        checkboxes.forEach((checkbox, index) => {
-            const group = this._options.groups[index];
-            const shouldBeChecked = group.initiallyChecked || false;
-            checkbox.checked = shouldBeChecked;
+        // First, check all checkboxes and show all layers
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = true;
             checkbox.dispatchEvent(new Event('change'));
         });
+
+        // After 2 seconds, start unchecking boxes that shouldn't be checked
+        setTimeout(() => {
+            checkboxes.forEach((checkbox, index) => {
+                const group = this._options.groups[index];
+                if (!group.initiallyChecked) {
+                    // Uncheck sequentially with 200ms delay between each
+                    setTimeout(() => {
+                        checkbox.checked = false;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }, index * 200);
+                }
+            });
+        }, 2000);
 
         this._initialized = true;
     }
