@@ -76,27 +76,65 @@ class MapLayerControl {
                 }).appendTo($sourceControl);
             }
 
-            const $radioGroup = $('<div>', { class: 'radio-group' });
-
-            group.layers.forEach((layer, index) => {
-                const $radioLabel = $('<label>', { class: 'radio-label' });
-                const $radio = $('<input>', {
-                    type: 'radio',
-                    name: `layer-group-${this._instanceId}-${groupIndex}`,
-                    value: layer.id,
-                    checked: index === 0
+            if (group.type === 'terrain') {
+                const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
+                const $slider = $('<input>', {
+                    type: 'range',
+                    min: '0',
+                    max: '5',
+                    step: '0.2',
+                    value: '1.5',
+                    class: 'w-full'
+                });
+                
+                const $value = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '1.5x'
                 });
 
-                $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
+                $slider.on('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    $value.text(`${value}x`);
+                    if (this._map.getTerrain()) {
+                        this._map.setTerrain({
+                            'source': 'mapbox-dem',
+                            'exaggeration': value
+                        });
+                    }
+                });
 
-                $radioLabel.append(
-                    $radio,
-                    $('<span>', { text: layer.label })
+                $sliderContainer.append(
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1',
+                        text: 'Terrain Exaggeration'
+                    }),
+                    $('<div>', { class: 'flex items-center' }).append($slider, $value)
                 );
-                $radioGroup.append($radioLabel);
-            });
+                $sourceControl.append($sliderContainer);
+            } else {
+                const $radioGroup = $('<div>', { class: 'radio-group' });
 
-            $sourceControl.append($radioGroup);
+                group.layers.forEach((layer, index) => {
+                    const $radioLabel = $('<label>', { class: 'radio-label' });
+                    const $radio = $('<input>', {
+                        type: 'radio',
+                        name: `layer-group-${this._instanceId}-${groupIndex}`,
+                        value: layer.id,
+                        checked: index === 0
+                    });
+
+                    $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
+
+                    $radioLabel.append(
+                        $radio,
+                        $('<span>', { text: layer.label })
+                    );
+                    $radioGroup.append($radioLabel);
+                });
+
+                $sourceControl.append($radioGroup);
+            }
+
             $groupContainer.append($sourceControl);
             $(this._container).append($groupContainer);
 
@@ -112,6 +150,8 @@ class MapLayerControl {
 
     _initializeLayers() {
         this._options.groups.forEach(group => {
+            if (!group.layers || group.type === 'terrain') return;
+            
             group.layers.forEach(layer => {
                 if (this._map.getLayer(layer.id)) {
                     this._map.setLayoutProperty(
@@ -131,7 +171,7 @@ class MapLayerControl {
         if (isChecked) {
             sourceControl.classList.remove('collapsed');
             
-            if (group.layers.length > 0) {
+            if (group.layers && group.layers.length > 0 && group.type !== 'terrain') {
                 const firstLayer = group.layers[0];
                 if (this._map.getLayer(firstLayer.id)) {
                     this._map.setLayoutProperty(
@@ -150,15 +190,17 @@ class MapLayerControl {
         } else {
             sourceControl.classList.add('collapsed');
             
-            group.layers.forEach(layer => {
-                if (this._map.getLayer(layer.id)) {
-                    this._map.setLayoutProperty(
-                        layer.id,
-                        'visibility',
-                        'none'
-                    );
-                }
-            });
+            if (group.layers && group.type !== 'terrain') {
+                group.layers.forEach(layer => {
+                    if (this._map.getLayer(layer.id)) {
+                        this._map.setLayoutProperty(
+                            layer.id,
+                            'visibility',
+                            'none'
+                        );
+                    }
+                });
+            }
         }
     }
 

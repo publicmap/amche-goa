@@ -112,6 +112,12 @@
             // Add layer control with multiple groups
             const layerControl = new MapLayerControl([
                 {
+                    title: '3D Terrain',
+                    groupTitle: 'Terrain Controls',
+                    headerImage: 'assets/map-layer-terrain.png',
+                    type: 'terrain'
+                },
+                {
                     title: 'Hill Slopes',
                     groupTitle: 'Select Slope Source:',
                     headerImage: 'assets/map-layer-slope.png',
@@ -131,8 +137,8 @@
                     ]
                 },
                 {
-                    title: 'Regional Development Plans',
-                    groupTitle: 'Goa RDP 2021',
+                    title: 'Goa Masterplans',
+                    groupTitle: 'Regional Development Plans 2021',
                     headerImage: 'assets/map-layer-rdp.png',
                     layers: [
                         {
