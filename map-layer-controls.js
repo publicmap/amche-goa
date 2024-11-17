@@ -142,7 +142,7 @@ class MapLayerControl {
                 const $slider = $('<input>', {
                     type: 'range',
                     min: '0',
-                    max: '5',
+                    max: '10',
                     step: '0.2',
                     value: '1.5',
                     class: 'w-full'
