@@ -76,7 +76,68 @@ class MapLayerControl {
                 }).appendTo($sourceControl);
             }
 
-            if (group.type === 'terrain') {
+            if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                if (!this._map.getSource(sourceId)) {
+                    this._map.addSource(sourceId, {
+                        type: 'geojson',
+                        data: group.data
+                    });
+
+                    this._map.addLayer({
+                        id: `${sourceId}-fill`,
+                        type: 'fill',
+                        source: sourceId,
+                        paint: {
+                            'fill-color': '#ff0000',
+                            'fill-opacity': 0.5
+                        },
+                        layout: {
+                            'visibility': 'none'
+                        }
+                    });
+
+                    this._map.addLayer({
+                        id: `${sourceId}-line`,
+                        type: 'line',
+                        source: sourceId,
+                        paint: {
+                            'line-color': '#ff0000',
+                            'line-width': 2
+                        },
+                        layout: {
+                            'visibility': 'none'
+                        }
+                    });
+
+                    this._map.addLayer({
+                        id: `${sourceId}-label`,
+                        type: 'symbol',
+                        source: sourceId,
+                        layout: {
+                            'visibility': 'none',
+                            'text-field': ['get', 'name'],
+                            'text-size': 12,
+                            'text-anchor': 'center',
+                            'text-offset': [0, 0],
+                            'text-allow-overlap': false,
+                            'text-ignore-placement': false
+                        },
+                        paint: {
+                            'text-color': '#000000',
+                            'text-halo-color': '#ffffff',
+                            'text-halo-width': 2
+                        }
+                    });
+                }
+
+                if (group.description) {
+                    $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2 px-2',
+                        text: group.description
+                    }).appendTo($sourceControl);
+                }
+            } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
                 const $slider = $('<input>', {
                     type: 'range',
@@ -171,7 +232,17 @@ class MapLayerControl {
         if (isChecked) {
             sourceControl.classList.remove('collapsed');
             
-            if (group.layers && group.layers.length > 0 && group.type !== 'terrain') {
+            if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'visible');
+                this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'visible');
+                this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'visible');
+            } else if (group.type === 'terrain') {
+                this._map.setTerrain({
+                    'source': 'mapbox-dem',
+                    'exaggeration': 1.5
+                });
+            } else if (group.layers && group.layers.length > 0) {
                 const firstLayer = group.layers[0];
                 if (this._map.getLayer(firstLayer.id)) {
                     this._map.setLayoutProperty(
@@ -190,7 +261,14 @@ class MapLayerControl {
         } else {
             sourceControl.classList.add('collapsed');
             
-            if (group.layers && group.type !== 'terrain') {
+            if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'none');
+                this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'none');
+                this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'none');
+            } else if (group.type === 'terrain') {
+                this._map.setTerrain(null);
+            } else if (group.layers) {
                 group.layers.forEach(layer => {
                     if (this._map.getLayer(layer.id)) {
                         this._map.setLayoutProperty(
@@ -268,17 +346,12 @@ class MapLayerControl {
     _initializeWithAnimation() {
         const checkboxes = this._container.querySelectorAll('input[type="checkbox"]');
         
-        checkboxes.forEach((checkbox) => {
-            checkbox.checked = true;
+        checkboxes.forEach((checkbox, index) => {
+            const group = this._options.groups[index];
+            const shouldBeChecked = group.initiallyChecked || false;
+            checkbox.checked = shouldBeChecked;
             checkbox.dispatchEvent(new Event('change'));
         });
-
-        this._animationTimeouts.push(setTimeout(() => {
-            checkboxes.forEach((checkbox) => {
-                checkbox.checked = false;
-                checkbox.dispatchEvent(new Event('change'));
-            });
-        }, 1500));
 
         this._initialized = true;
     }

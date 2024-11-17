@@ -109,49 +109,65 @@
             // Add view control
             map.addControl(new ViewControl(), 'top-right');
 
-            // Add layer control with multiple groups
-            const layerControl = new MapLayerControl([
-                {
-                    title: '3D Terrain',
-                    groupTitle: 'Terrain Controls',
-                    headerImage: 'assets/map-layer-terrain.png',
-                    type: 'terrain'
-                },
-                {
-                    title: 'Hill Slopes',
-                    groupTitle: 'Select Slope Source:',
-                    headerImage: 'assets/map-layer-slope.png',
-                    layers: [
+            // First fetch the GeoJSON data
+            fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/8cbe5eb62ebc7384c104a04706cd27bf1752a150/goa-construction-project-sites.geojson')
+                .then(response => response.json())
+                .then(geojsonData => {
+                    // Add layer control with multiple groups including GeoJSON
+                    const layerControl = new MapLayerControl([
                         {
-                            id: 'aster slope',
-                            label: 'Aster 30m (Goa Coast)',
-                            sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                            location: 'Panaji'
+                            title: '3D Terrain',
+                            groupTitle: 'Terrain Controls',
+                            headerImage: 'assets/map-layer-terrain.png',
+                            type: 'terrain',
+                            initiallyChecked: true
                         },
                         {
-                            id: 'isro slope',
-                            label: 'ISRO 2.5m (Bardez)',
-                            sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                            location: 'Guirim'
-                        }
-                    ]
-                },
-                {
-                    title: 'Goa Masterplans',
-                    groupTitle: 'Regional Development Plans 2021',
-                    headerImage: 'assets/map-layer-rdp.png',
-                    layers: [
+                            title: 'Construction Sites',
+                            groupTitle: 'Construction Project Sites',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'construction-sites',
+                            data: geojsonData,
+                            description: 'Construction project sites in Goa'
+                        },
                         {
-                            id: 'Anjuna RDP',
-                            label: 'Anjuna RDP',
-                            sourceUrl: 'https://tcp.goa.gov.in/',
-                            location: 'Anjuna'
+                            title: 'Hill Slopes',
+                            groupTitle: 'Select Slope Source:',
+                            headerImage: 'assets/map-layer-slope.png',
+                            layers: [
+                                {
+                                    id: 'aster slope',
+                                    label: 'Aster 30m (Goa Coast)',
+                                    sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    location: 'Panaji'
+                                },
+                                {
+                                    id: 'isro slope',
+                                    label: 'ISRO 2.5m (Bardez)',
+                                    sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                }
+                            ]
+                        },
+                        {
+                            title: 'Goa Masterplans',
+                            groupTitle: 'Regional Development Plans 2021',
+                            headerImage: 'assets/map-layer-rdp.png',
+                            layers: [
+                                {
+                                    id: 'Anjuna RDP',
+                                    label: 'Anjuna RDP',
+                                    sourceUrl: 'https://tcp.goa.gov.in/',
+                                    location: 'Anjuna'
+                                }
+                            ]
                         }
-                    ]
-                }
-            ]);
-            
-            map.addControl(layerControl, 'top-left');
+                    ]);
+                    
+                    map.addControl(layerControl, 'top-left');
+                })
+                .catch(error => console.error('Error loading GeoJSON:', error));
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl());
