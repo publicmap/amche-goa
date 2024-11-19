@@ -172,6 +172,86 @@ class MapLayerControl {
                     $('<div>', { class: 'flex items-center' }).append($slider, $value)
                 );
                 $sourceControl.append($sliderContainer);
+            } else if (group.type === 'wms') {
+                const $checkboxGroup = $('<div>', { class: 'checkbox-group' });
+
+                group.layers.forEach((layer) => {
+                    const sourceId = `wms-source-${layer.id}`;
+                    const layerId = `wms-${layer.id}`;
+
+                    if (!this._map.getSource(sourceId)) {
+                        const wmsUrl = `${group.baseUrl}?${new URLSearchParams({
+                            'SERVICE': 'WMS',
+                            'VERSION': '1.3.0',
+                            'REQUEST': 'GetMap',
+                            'FORMAT': 'image/png',
+                            'TRANSPARENT': 'true',
+                            'LAYERS': layer.wmsLayer,
+                            'WIDTH': 512,
+                            'HEIGHT': 512,
+                            'CRS': 'EPSG:3857',
+                            'BBOX': '{bbox-epsg-3857}',
+                            'STYLES': 'default'
+                        }).toString()}`;
+
+                        const customTransform = {
+                            transformRequest: (url, resourceType) => {
+                                if (resourceType === 'Tile' && url.includes('onemapgoa')) {
+                                    return {
+                                        url: url.replace('onemapgoa.in', 'onemapgoagis.goa.gov.in'),
+                                        headers: {
+                                            'Referer': 'https://onemapgoa.in/',
+                                            'Origin': 'https://onemapgoa.in'
+                                        }
+                                    };
+                                }
+                                return { url };
+                            }
+                        };
+
+                        this._map.addSource(sourceId, {
+                            type: 'raster',
+                            tiles: [wmsUrl],
+                            tileSize: 512,
+                            ...customTransform
+                        });
+
+                        this._map.addLayer({
+                            id: layerId,
+                            type: 'raster',
+                            source: sourceId,
+                            layout: {
+                                visibility: layer.initiallyChecked ? 'visible' : 'none'
+                            },
+                            paint: {
+                                'raster-opacity': 0.7
+                            }
+                        });
+                    }
+
+                    const $checkboxLabel = $('<label>', { class: 'checkbox-label' });
+                    const $checkbox = $('<input>', {
+                        type: 'checkbox',
+                        value: layerId,
+                        checked: layer.initiallyChecked || false
+                    });
+
+                    $checkbox.on('change', () => {
+                        this._map.setLayoutProperty(
+                            layerId,
+                            'visibility',
+                            $checkbox.prop('checked') ? 'visible' : 'none'
+                        );
+                    });
+
+                    $checkboxLabel.append(
+                        $checkbox,
+                        $('<span>', { text: layer.label })
+                    );
+                    $checkboxGroup.append($checkboxLabel);
+                });
+
+                $sourceControl.append($checkboxGroup);
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
