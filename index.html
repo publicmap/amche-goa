@@ -170,7 +170,20 @@
                             type: 'geojson',
                             id: 'construction-sites',
                             data: geojsonData,
-                            description: 'Construction project sites in Goa'
+                            description: 'Construction project sites in Goa',
+                            style: {
+                                fill: false,
+                                line: {
+                                    color: '#ff0000',
+                                    width: 2
+                                },
+                                label: {
+                                    color: '#000000',
+                                    size: 12,
+                                    haloColor: '#ffffff',
+                                    haloWidth: 2
+                                }
+                            }
                         },
                         {
                             title: 'Hill Slopes',

@@ -84,26 +84,45 @@ class MapLayerControl {
                         data: group.data
                     });
 
-                    this._map.addLayer({
-                        id: `${sourceId}-fill`,
-                        type: 'fill',
-                        source: sourceId,
-                        paint: {
-                            'fill-color': '#ff0000',
-                            'fill-opacity': 0.5
+                    const style = group.style || {
+                        fill: {
+                            color: '#ff0000',
+                            opacity: 0.5
                         },
-                        layout: {
-                            'visibility': 'none'
+                        line: {
+                            color: '#ff0000',
+                            width: 2
+                        },
+                        label: {
+                            color: '#000000',
+                            haloColor: '#ffffff',
+                            haloWidth: 2,
+                            size: 12
                         }
-                    });
+                    };
+
+                    if (style.fill !== false) {
+                        this._map.addLayer({
+                            id: `${sourceId}-fill`,
+                            type: 'fill',
+                            source: sourceId,
+                            paint: {
+                                'fill-color': style.fill?.color || '#ff0000',
+                                'fill-opacity': style.fill?.opacity || 0.5
+                            },
+                            layout: {
+                                'visibility': 'none'
+                            }
+                        });
+                    }
 
                     this._map.addLayer({
                         id: `${sourceId}-line`,
                         type: 'line',
                         source: sourceId,
                         paint: {
-                            'line-color': '#ff0000',
-                            'line-width': 2
+                            'line-color': style.line?.color || '#ff0000',
+                            'line-width': style.line?.width || 2
                         },
                         layout: {
                             'visibility': 'none'
@@ -117,16 +136,16 @@ class MapLayerControl {
                         layout: {
                             'visibility': 'none',
                             'text-field': ['get', 'name'],
-                            'text-size': 12,
+                            'text-size': style.label?.size || 12,
                             'text-anchor': 'center',
                             'text-offset': [0, 0],
                             'text-allow-overlap': false,
                             'text-ignore-placement': false
                         },
                         paint: {
-                            'text-color': '#000000',
-                            'text-halo-color': '#ffffff',
-                            'text-halo-width': 2
+                            'text-color': style.label?.color || '#000000',
+                            'text-halo-color': style.label?.haloColor || '#ffffff',
+                            'text-halo-width': style.label?.haloWidth || 2
                         }
                     });
                 }
@@ -314,7 +333,9 @@ class MapLayerControl {
             
             if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
-                this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'visible');
+                if (this._map.getLayer(`${sourceId}-fill`)) {
+                    this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'visible');
+                }
                 this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'visible');
                 this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'visible');
             } else if (group.type === 'terrain') {
@@ -343,7 +364,9 @@ class MapLayerControl {
             
             if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
-                this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'none');
+                if (this._map.getLayer(`${sourceId}-fill`)) {
+                    this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'none');
+                }
                 this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'none');
                 this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'none');
             } else if (group.type === 'terrain') {
