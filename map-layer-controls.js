@@ -445,11 +445,46 @@ class MapLayerControl {
                     $('<div>', { class: 'flex items-center' }).append($spaceColorPicker, $spaceColorValue)
                 );
 
-                $sourceControl.append(
-                    $sliderContainer, 
+                // Add fog settings checkbox
+                const $fogSettingsContainer = $('<div>', { class: 'mt-4' });
+                const $fogSettingsLabel = $('<label>', { class: 'flex items-center' });
+                const $fogSettingsCheckbox = $('<input>', {
+                    type: 'checkbox',
+                    class: 'mr-2',
+                    checked: false
+                });
+                
+                $fogSettingsLabel.append(
+                    $fogSettingsCheckbox,
+                    $('<span>', { 
+                        class: 'text-sm text-gray-700',
+                        text: 'Fog Settings'
+                    })
+                );
+
+                // Create collapsible container for fog settings
+                const $fogSettingsContent = $('<div>', { 
+                    class: 'fog-settings-content mt-2 hidden' 
+                });
+
+                // Move all fog-related controls into the collapsible container
+                $fogSettingsContent.append(
                     $fogContainer, 
                     $horizonContainer,
                     $colorContainer
+                );
+
+                // Toggle visibility of fog settings
+                $fogSettingsCheckbox.on('change', (e) => {
+                    $fogSettingsContent.toggleClass('hidden', !e.target.checked);
+                });
+
+                $fogSettingsContainer.append($fogSettingsLabel, $fogSettingsContent);
+
+                // Append everything to source control
+                $sourceControl.append(
+                    $sliderContainer,
+                    $fogSettingsContainer
                 );
             } else if (group.type === 'wms') {
                 const $checkboxGroup = $('<div>', { class: 'checkbox-group' });
