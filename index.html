@@ -77,8 +77,7 @@
             countries: 'in', 
             worldview: 'in', // Restrict to India
             types: 'place,locality,postcode',
-            placeholder: 'Search Places',
-            bbox: [68.1766451354, 7.96553477623, 97.4025614766, 35.4940095078], // India bounding box
+            placeholder: 'Search Places',// India bounding box
             proximity: {
                 longitude: 73.87916,
                 latitude: 15.26032
@@ -151,6 +150,16 @@
                             initiallyChecked: true
                         },
                         {
+                            title: 'Goa Masterplan',
+                            groupTitle: 'Regional Development Plans 2021',
+                            headerImage: 'assets/map-layer-rdp.png',
+                            type: 'tms',
+                            id: 'goa-rdp-map',
+                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
+                            opacity: 0.7,
+                            description: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/'
+                        },
+                        {
                             title: 'OpenStreetMap',
                             groupTitle: 'OpenStreetMap Data',
                             headerImage: 'assets/map-layer-osm.png',
@@ -203,20 +212,7 @@
                                     location: 'Guirim'
                                 }
                             ]
-                        },
-                        {
-                            title: 'Goa Masterplans',
-                            groupTitle: 'Regional Development Plans 2021',
-                            headerImage: 'assets/map-layer-rdp.png',
-                            layers: [
-                                {
-                                    id: 'Anjuna RDP',
-                                    label: 'Anjuna RDP',
-                                    sourceUrl: 'https://tcp.goa.gov.in/',
-                                    location: 'Anjuna'
-                                }
-                            ]
-                        },
+                        }
                         // {
                         //     title: 'One Map Goa',
                         //     groupTitle: 'Official Government Maps',
