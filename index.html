@@ -28,13 +28,13 @@
 
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 </head>
 
 <body class="flex flex-col">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
-        <h1 class="text-l" style="font-family: Helvetica"><a href="https://amche.in"
-                class="text-white hover:underline">आमचे 3D Goa</a></h1>
+        <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">आमचे 3D Goa</a></h1>
         <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
     </header>
 
@@ -107,7 +107,7 @@
             }
 
             // Add geocoder control
-            map.addControl(geocoder, 'top-right');
+            map.addControl(geocoder, 'top-left');
 
             // Initialize geolocation
             new GeolocationManager(map);

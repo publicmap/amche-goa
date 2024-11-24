@@ -1,4 +1,3 @@
-
 #map {
     width: 100%;
     height: 100%;
@@ -214,11 +213,6 @@ main {
     width: auto !important;
 }
 
-/* Update geocoder input height */
-.mapboxgl-ctrl-geocoder--input {
-    height: 34px !important;
-}
-
 /* Add new styles for layer group cards */
 .layer-group {
     background: #fff;
@@ -282,3 +276,159 @@ main {
 .layer-info a:hover {
     text-decoration: underline;
 }
+
+/* Add existing styles from index.html */
+.layer-control-wrapper {
+    position: fixed;
+    top: 125px;
+    left: 0;
+    z-index: 1000;
+}
+
+.mapboxgl-ctrl.layer-control {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 10px;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 120px);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.layer-control-toggle {
+    position: fixed;
+    top: 135px;
+    left: 10px;
+    z-index: 1002;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    pointer-events: auto;
+}
+
+.layer-control-toggle:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.mapboxgl-ctrl.layer-control.no-transition {
+    transition: none !important;
+}
+
+.mapboxgl-ctrl.layer-control.collapsed {
+    transform: translateX(-290px);
+}
+
+@media (min-width: 768px) {
+    .layer-control-wrapper {
+        position: absolute;
+        top: 125px;
+    }
+    
+    .mapboxgl-ctrl.layer-control {
+        max-width: 300px;
+    }
+
+    .layer-control-toggle {
+        position: absolute;
+        top: 10px;
+    }
+}
+
+/* Add header font style */
+header h1 {
+    font-family: Helvetica;
+}
+
+    /* Wrapper for both toggle and control */
+    .layer-control-wrapper {
+        position: fixed;
+        top: 125px;
+        left: 0;
+        z-index: 1000;
+    }
+
+    /* Mobile-first layer control styling */
+    .mapboxgl-ctrl.layer-control {
+        width: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 10px;
+        padding: 10px;
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: calc(100vh - 120px);
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    /* Toggle button styling */
+    .layer-control-toggle {
+        position: fixed;
+        top: 135px;
+        left: 10px;
+        z-index: 1002;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 24px;
+        color: white;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+        pointer-events: auto;
+    }
+
+    .layer-control-toggle:hover {
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    /* No transition class */
+    .mapboxgl-ctrl.layer-control.no-transition {
+        transition: none !important;
+    }
+
+    /* Collapsed state */
+    .mapboxgl-ctrl.layer-control.collapsed {
+        transform: translateX(-290px);
+    }
+
+    /* Media query for larger screens */
+    @media (min-width: 768px) {
+        .layer-control-wrapper {
+            position: absolute;
+            top: 125px;
+        }
+        
+        .mapboxgl-ctrl.layer-control {
+            max-width: 300px;
+        }
+
+        .layer-control-toggle {
+            position: absolute;
+            top: 10px;
+        }
+    }

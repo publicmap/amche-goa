@@ -7,14 +7,32 @@ class MapLayerControl {
         this._instanceId = MapLayerControl.instances;
         this._initialized = false;
         this._animationTimeouts = [];
+        this._collapsed = false;
+        this._sourceControls = [];
     }
 
     onAdd(map) {
         this._map = map;
+        
+        this._wrapper = $('<div>', {
+            class: 'layer-control-wrapper'
+        })[0];
+        
+        this._toggleButton = $('<button>', {
+            class: 'layer-control-toggle',
+            html: '≡',
+            click: (e) => {
+                e.stopPropagation();
+                this._toggleCollapse();
+            }
+        })[0];
+        
         this._container = $('<div>', {
             class: 'mapboxgl-ctrl layer-control'
         })[0];
-        this._sourceControls = [];
+
+        this._wrapper.appendChild(this._toggleButton);
+        this._wrapper.appendChild(this._container);
 
         if (this._map.isStyleLoaded()) {
             this._initializeControl();
@@ -24,7 +42,26 @@ class MapLayerControl {
             });
         }
 
-        return this._container;
+        if (window.innerWidth < 768) {
+            $(this._container).addClass('collapsed no-transition');
+            setTimeout(() => {
+                $(this._container).removeClass('no-transition');
+            }, 100);
+        }
+
+        return this._wrapper;
+    }
+
+    _toggleCollapse() {
+        this._collapsed = !this._collapsed;
+        $(this._container).toggleClass('collapsed');
+        $(this._toggleButton).html(this._collapsed ? '≡' : '×');
+    }
+
+    _handleResize() {
+        if (window.innerWidth < 768 && !this._collapsed) {
+            this._toggleCollapse();
+        }
     }
 
     _initializeControl() {
@@ -158,7 +195,44 @@ class MapLayerControl {
                 }
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
-                const $slider = $('<input>', {
+                
+                const $contoursContainer = $('<div>', { class: 'mb-4' });
+                const $contoursLabel = $('<label>', { class: 'flex items-center' });
+                const $contoursCheckbox = $('<input>', {
+                    type: 'checkbox',
+                    class: 'mr-2',
+                    checked: false
+                });
+                
+                $contoursLabel.append(
+                    $contoursCheckbox,
+                    $('<span>', { 
+                        class: 'text-sm text-gray-700',
+                        text: 'Contours'
+                    })
+                );
+                
+                $contoursCheckbox.on('change', (e) => {
+                    const contourLayers = [
+                        'contour lines',
+                        'contour labels'
+                    ];
+                    
+                    contourLayers.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setLayoutProperty(
+                                layerId,
+                                'visibility',
+                                e.target.checked ? 'visible' : 'none'
+                            );
+                        }
+                    });
+                });
+                
+                $contoursContainer.append($contoursLabel);
+                $sourceControl.append($contoursContainer);
+
+                const $exaggerationSlider = $('<input>', {
                     type: 'range',
                     min: '0',
                     max: '10',
@@ -167,14 +241,93 @@ class MapLayerControl {
                     class: 'w-full'
                 });
                 
-                const $value = $('<span>', { 
+                const $exaggerationValue = $('<span>', { 
                     class: 'text-sm text-gray-600 ml-2',
                     text: '1.5x'
                 });
 
-                $slider.on('input', (e) => {
+                const $fogContainer = $('<div>', { class: 'mt-4' });
+                const $fogSlider = $('<div>', { class: 'fog-range-slider' });
+                
+                const $fogStartSlider = $('<input>', {
+                    type: 'range',
+                    min: '-20',
+                    max: '20',
+                    step: '0.5',
+                    value: '-1',
+                    class: 'w-full'
+                });
+                
+                const $fogEndSlider = $('<input>', {
+                    type: 'range',
+                    min: '-20',
+                    max: '20',
+                    step: '0.5',
+                    value: '2',
+                    class: 'w-full'
+                });
+                
+                const $fogValue = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '[-1, 2]'
+                });
+
+                const $horizonContainer = $('<div>', { class: 'mt-4' });
+                const $horizonSlider = $('<input>', {
+                    type: 'range',
+                    min: '0',
+                    max: '1',
+                    step: '0.01',
+                    value: '0.3',
+                    class: 'w-full'
+                });
+                
+                const $horizonValue = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '0.3'
+                });
+
+                const $colorContainer = $('<div>', { class: 'mt-4' });
+                const $colorPicker = $('<input>', {
+                    type: 'color',
+                    value: '#ffffff',  // Default white
+                    class: 'w-8 h-8 rounded cursor-pointer'
+                });
+                
+                const $colorValue = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '#ffffff'
+                });
+
+                // Add high-color picker
+                const $highColorContainer = $('<div>', { class: 'mt-2' });
+                const $highColorPicker = $('<input>', {
+                    type: 'color',
+                    value: '#add8e6',  // Default light blue
+                    class: 'w-8 h-8 rounded cursor-pointer'
+                });
+                
+                const $highColorValue = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '#add8e6'
+                });
+
+                // Add space-color picker
+                const $spaceColorContainer = $('<div>', { class: 'mt-2' });
+                const $spaceColorPicker = $('<input>', {
+                    type: 'color',
+                    value: '#d8f2ff',  // Default light sky blue
+                    class: 'w-8 h-8 rounded cursor-pointer'
+                });
+                
+                const $spaceColorValue = $('<span>', { 
+                    class: 'text-sm text-gray-600 ml-2',
+                    text: '#d8f2ff'
+                });
+
+                $exaggerationSlider.on('input', (e) => {
                     const value = parseFloat(e.target.value);
-                    $value.text(`${value}x`);
+                    $exaggerationValue.text(`${value}x`);
                     if (this._map.getTerrain()) {
                         this._map.setTerrain({
                             'source': 'mapbox-dem',
@@ -183,14 +336,121 @@ class MapLayerControl {
                     }
                 });
 
+                const updateFog = () => {
+                    const start = parseFloat($fogStartSlider.val());
+                    const end = parseFloat($fogEndSlider.val());
+                    const horizonBlend = parseFloat($horizonSlider.val());
+                    const fogColor = $colorPicker.val();
+                    const highColor = $highColorPicker.val();
+                    const spaceColor = $spaceColorPicker.val();
+                    
+                    $fogValue.text(`[${start.toFixed(1)}, ${end.toFixed(1)}]`);
+                    
+                    if (this._map.getFog()) {
+                        this._map.setFog({
+                            'range': [start, end],
+                            'horizon-blend': horizonBlend,
+                            'color': fogColor,
+                            'high-color': highColor,
+                            'space-color': spaceColor,
+                            'star-intensity': 0.0
+                        });
+                    }
+                };
+
+                $fogStartSlider.on('input', (e) => {
+                    const start = parseFloat(e.target.value);
+                    const end = parseFloat($fogEndSlider.val());
+                    if (start < end) {
+                        updateFog();
+                    }
+                });
+
+                $fogEndSlider.on('input', (e) => {
+                    const start = parseFloat($fogStartSlider.val());
+                    const end = parseFloat(e.target.value);
+                    if (end > start) {
+                        updateFog();
+                    }
+                });
+
+                $horizonSlider.on('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    $horizonValue.text(value.toFixed(2));
+                    updateFog();
+                });
+
+                $colorPicker.on('input', (e) => {
+                    const color = e.target.value;
+                    $colorValue.text(color);
+                    updateFog();
+                });
+
+                $highColorPicker.on('input', (e) => {
+                    const color = e.target.value;
+                    $highColorValue.text(color);
+                    updateFog();
+                });
+
+                $spaceColorPicker.on('input', (e) => {
+                    const color = e.target.value;
+                    $spaceColorValue.text(color);
+                    updateFog();
+                });
+
                 $sliderContainer.append(
                     $('<label>', { 
                         class: 'block text-sm text-gray-700 mb-1',
                         text: 'Terrain Exaggeration'
                     }),
-                    $('<div>', { class: 'flex items-center' }).append($slider, $value)
+                    $('<div>', { class: 'flex items-center' }).append($exaggerationSlider, $exaggerationValue)
                 );
-                $sourceControl.append($sliderContainer);
+
+                $fogContainer.append(
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1',
+                        text: 'Fog Range'
+                    }),
+                    $fogSlider.append($fogStartSlider, $fogEndSlider),
+                    $('<div>', { class: 'flex items-center' }).append($fogValue)
+                );
+
+                $horizonContainer.append(
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1',
+                        text: 'Horizon Blend'
+                    }),
+                    $('<div>', { class: 'flex items-center' }).append($horizonSlider, $horizonValue)
+                );
+
+                $colorContainer.append(
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1',
+                        text: 'Fog Color'
+                    }),
+                    $('<div>', { class: 'flex items-center' }).append($colorPicker, $colorValue),
+                    
+                    // Add high-color section
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        text: 'High Color'
+                    }),
+                    $('<div>', { class: 'flex items-center' }).append($highColorPicker, $highColorValue),
+                    
+                    // Add space-color section
+                    $('<label>', { 
+                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        text: 'Space Color'
+                    }),
+                    $('<div>', { class: 'flex items-center' }).append($spaceColorPicker, $spaceColorValue)
+                );
+
+                $sourceControl.append(
+                    $sliderContainer, 
+                    $fogContainer, 
+                    $horizonContainer,
+                    $colorContainer
+                );
             } else if (group.type === 'wms') {
                 const $checkboxGroup = $('<div>', { class: 'checkbox-group' });
 
@@ -306,6 +566,8 @@ class MapLayerControl {
         if (!this._initialized) {
             this._initializeWithAnimation();
         }
+
+        window.addEventListener('resize', () => this._handleResize());
     }
 
     _initializeLayers() {
@@ -447,19 +709,19 @@ class MapLayerControl {
     }
 
     _initializeWithAnimation() {
-        const checkboxes = this._container.querySelectorAll('input[type="checkbox"]');
+        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header input[type="checkbox"]');
         
         // First, check all checkboxes and show all layers
-        checkboxes.forEach((checkbox) => {
+        groupHeaders.forEach((checkbox) => {
             checkbox.checked = true;
             checkbox.dispatchEvent(new Event('change'));
         });
 
         // After 2 seconds, start unchecking boxes that shouldn't be checked
         setTimeout(() => {
-            checkboxes.forEach((checkbox, index) => {
+            groupHeaders.forEach((checkbox, index) => {
                 const group = this._options.groups[index];
-                if (!group.initiallyChecked) {
+                if (!group?.initiallyChecked) {
                     // Uncheck sequentially with 200ms delay between each
                     setTimeout(() => {
                         checkbox.checked = false;
@@ -478,6 +740,7 @@ class MapLayerControl {
         
         this._container.parentNode.removeChild(this._container);
         this._map = undefined;
+        window.removeEventListener('resize', () => this._handleResize());
     }
 }
 
