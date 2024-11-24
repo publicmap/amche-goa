@@ -7,7 +7,7 @@ class MapLayerControl {
         this._instanceId = MapLayerControl.instances;
         this._initialized = false;
         this._animationTimeouts = [];
-        this._collapsed = false;
+        this._collapsed = true;
         this._sourceControls = [];
     }
 
@@ -55,7 +55,9 @@ class MapLayerControl {
     _toggleCollapse() {
         this._collapsed = !this._collapsed;
         $(this._container).toggleClass('collapsed');
-        $(this._toggleButton).html(this._collapsed ? '≡' : '×');
+        $(this._toggleButton)
+            .toggleClass('is-open')
+            .html(this._collapsed ? '≡' : '×');
     }
 
     _handleResize() {
