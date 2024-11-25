@@ -35,7 +35,10 @@
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">आमचे 3D Goa</a></h1>
-        <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
+        <div class="flex gap-4">
+            <a href="https://github.com/publicmap/3d-goa" class="text-sm hover:underline">Source</a>
+            <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
+        </div>
     </header>
 
     <!-- Map Container -->
@@ -260,8 +263,10 @@
                 .catch(error => console.error('Error loading GeoJSON:', error));
 
             // Add navigation controls
-            map.addControl(new mapboxgl.NavigationControl());
-
+            map.addControl(new mapboxgl.NavigationControl({
+                showCompass: true,
+                showZoom: false
+            }));
 
             // Only set camera position if there's no hash in URL
             if (!window.location.hash) {
