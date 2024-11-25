@@ -36,6 +36,15 @@ class GeolocationManager {
         this.geolocate.on('geolocate', async (event) => {
             this.lastPosition = event;
             
+            // Set initial map position
+            this.map.easeTo({
+                center: [event.coords.longitude, event.coords.latitude],
+                zoom: 18,
+                pitch: 0,
+                bearing: 0, // North
+                duration: 1000 // 1 second animation
+            });
+            
             if (!this.locationLabelSet) {
                 try {
                     const response = await fetch(

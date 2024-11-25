@@ -1,6 +1,6 @@
 # 3d-goa
 
-3D map of Goa
+Public 3D map platform for Goa. Made with the latest map tools.
 
 ## Data Sources
 - [OpenStreetMap](https://www.openstreetmap.org/)
