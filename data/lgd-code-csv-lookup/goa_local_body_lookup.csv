@@ -1,0 +1,206 @@
+Code,Name,Class,Type,District Name,Subdistrict Name,Ward Count,Village Names
+252061,Mapusa,Urban,Municipality,North Goa,Bardez,40,
+252075,Bicholim,Urban,Municipality,North Goa,Bicholim,28,
+252077,Sankhali,Urban,Municipality,North Goa,Bicholim,26,
+252057,Pernem,Urban,Municipality,North Goa,Pernem,20,
+252079,Valpoi,Urban,Municipality,North Goa,Satari,20,
+252071,City Corporation Panaji,Urban,Municipal Corporation,North Goa,Tiswadi,90,
+252100,Canacona,Urban,Municipality,South Goa,Canacona,24,
+252084,Mormugao,Urban,Municipality,South Goa,Mormugao,50,
+252082,Ponda,Urban,Municipality,South Goa,Ponda,30,
+252096,Curchorem Cacora,Urban,Municipality,South Goa,Quepem,30,
+252097,Quepem,Urban,Municipality,South Goa,Quepem,26,
+252095,Cuncolim,Urban,Municipality,South Goa,Salcete,28,
+252087,Margao,Urban,Municipality,South Goa,Salcete,50,
+252099,Sanguem,Urban,Municipality,South Goa,Sanguem,20,
+254349,Aldona,Rurban,Village Panchayat,North Goa,Bardez,11,"Aldona (Ct), Calvim, Corjuem, Ponolem"
+254354,Anjuna-Caisua,Rurban,Village Panchayat,North Goa,Bardez,11,Anjuna (Ct)
+254377,Calangute,Rurban,Village Panchayat,North Goa,Bardez,11,Calangute (Ct) (part)
+254380,Candolim,Rurban,Village Panchayat,North Goa,Bardez,11,"Calangute (Ct) (part), Candolim (Ct), Marra (part)"
+254396,Colvale,Rurban,Village Panchayat,North Goa,Bardez,9,Colvale (Ct)
+254419,Guirim,Rurban,Village Panchayat,North Goa,Bardez,9,Guirim (Ct)
+254442,Moira,Rurban,Village Panchayat,North Goa,Bardez,7,Moira (Ct)
+254457,Nerul,Rurban,Village Panchayat,North Goa,Bardez,9,Nerul (Ct)
+254470,Penha-De-France,Rurban,Village Panchayat,North Goa,Bardez,11,Penha-De-Franca (Ct)
+254471,Pilerne - Marra,Rurban,Village Panchayat,North Goa,Bardez,9,"Marra (part), Pilerne (Ct)"
+254476,"Pomburpa, Olaulim",Rurban,Village Panchayat,North Goa,Bardez,7,"Olaulim, Pomburpa, Salvador-Do-Mundo (Ct) (part)"
+254486,Saligao,Rurban,Village Panchayat,North Goa,Bardez,9,Saligao (Ct)
+254487,Salvador-Do-Mundo,Rurban,Village Panchayat,North Goa,Bardez,9,Salvador-Do-Mundo (Ct) (part)
+254500,Siolim Marna,Rurban,Village Panchayat,North Goa,Bardez,9,"Marna, Siolim (Ct) (part)"
+254501,Siolim-Sodiem,Rurban,Village Panchayat,North Goa,Bardez,7,Siolim (Ct) (part)
+254506,Socorro,Rurban,Village Panchayat,North Goa,Bardez,11,Socorro (Ct)
+254424,Karapur-Sarvan,Rurban,Village Panchayat,North Goa,Bicholim,11,"Carapur (Ct), Sarvona"
+254464,"Pale, Cotombi",Rurban,Village Panchayat,North Goa,Bicholim,9,"Cotombi (part), Pale (Ct)"
+254356,Arambol,Rurban,Village Panchayat,North Goa,Pernem,9,Arambol (Ct)
+254435,Mandrem,Rurban,Village Panchayat,North Goa,Pernem,11,Mandrem (Ct)
+254467,Parcem,Rurban,Village Panchayat,North Goa,Pernem,7,Parcem (Ct)
+254421,Honda,Rurban,Village Panchayat,North Goa,Satari,11,"Buimpal, Onda (Ct), Saleli, Sonus-Vonvoliem"
+254390,Chimbel,Rurban,Village Panchayat,North Goa,Tiswadi,11,"Chimbel (Ct), Morambi-O-Grande (Merces) (part)"
+254398,Corlim,Rurban,Village Panchayat,North Goa,Tiswadi,9,Corlim (Ct)
+254404,Cumbharjua,Rurban,Village Panchayat,North Goa,Tiswadi,9,"Cumbarjua (Ct), Gandaulim"
+254405,"Curca, Bambolim, Talaulim",Rurban,Village Panchayat,North Goa,Tiswadi,11,"Bambolim (Ct), Curca, Goalim-Moula, Talaulim (part)"
+254441,Merces,Rurban,Village Panchayat,North Goa,Tiswadi,11,"Morambi-O-Grande (Merces) (part), Morambi-O-Pequeno (Merces), Murda (Ct), Renovadi (Og)"
+254493,Sao Lourence(Agassaim),Rurban,Village Panchayat,North Goa,Tiswadi,11,Mercurim (Ct)
+254496,Se-Old-Goa,Rurban,Village Panchayat,North Goa,Tiswadi,9,"Bainguinim, Ella, Panelim (Og)"
+254508,St. Cruz,Rurban,Village Panchayat,North Goa,Tiswadi,11,"Calapor (Ct), Cujira (Og)"
+254509,St. Estevam,Rurban,Village Panchayat,North Goa,Tiswadi,7,Jua (Ct)
+254388,Chicalim,Rurban,Village Panchayat,South Goa,Mormugao,11,"Chicalim (Ct), Dabolim, Sao Jacinto Island, Sao Jorge Island"
+254399,Cortalim,Rurban,Village Panchayat,South Goa,Mormugao,11,Cortalim (Ct)
+254488,Sancoale,Rurban,Village Panchayat,South Goa,Mormugao,11,Sancoale (Ct)
+254365,Bandora,Rurban,Village Panchayat,South Goa,Ponda,11,Bandora (Ct)
+254372,"Betqui, Candola",Rurban,Village Panchayat,South Goa,Ponda,9,"Betqui, Candola (Ct)"
+254376,Borim,Rurban,Village Panchayat,South Goa,Ponda,11,Borim (Ct)
+254407,Curti-Khandepar,Rurban,Village Panchayat,South Goa,Ponda,11,"Candepar, Curti (Ct)"
+254436,Marcaim,Rurban,Village Panchayat,South Goa,Ponda,9,Marcaim (Ct)
+254517,Tivrem-Orgao,Rurban,Village Panchayat,South Goa,Ponda,9,"Orgao (Ct), Tivrem"
+254522,Usgao-Ganjem,Rurban,Village Panchayat,South Goa,Ponda,11,"Gangem, Usgao (Ct)"
+254527,Veling-Priol,Rurban,Village Panchayat,South Goa,Ponda,11,"Cuncoliem, Priol (Ct), Velinga"
+254535,Xeldem,Rurban,Village Panchayat,South Goa,Quepem,11,"Sirvoi, Xeldem (Ct)"
+254369,Benaulim,Rurban,Village Panchayat,South Goa,Salcete,11,"Adsulim, Benaulim (Ct), Cana"
+254391,Chinchinim- Deussa,Rurban,Village Panchayat,South Goa,Salcete,11,"Chinchinim (Ct), Deussua"
+254408,Curtorim,Rurban,Village Panchayat,South Goa,Salcete,11,Curtorim (Ct)
+254409,Davorlim Dicarpale,Rurban,Village Panchayat,South Goa,Salcete,11,"Davorlim (Ct) (part), Dicarpale"
+254455,Navelim,Rurban,Village Panchayat,South Goa,Salcete,11,Navelim (Ct)
+254460,Nuvem,Rurban,Village Panchayat,South Goa,Salcete,11,Nuvem (Ct)
+254481,Raia,Rurban,Village Panchayat,South Goa,Salcete,11,Raia (Ct)
+254484,Rumdamol-Davorlim,Rurban,Village Panchayat,South Goa,Salcete,7,Davorlim (Ct) (part)
+254510,St. Jose-De-Areal,Rurban,Village Panchayat,South Goa,Salcete,11,Sao Jose De Areal (Ct)
+254523,Varca,Rurban,Village Panchayat,South Goa,Salcete,9,Varca (Ct)
+254532,Verna,Rurban,Village Panchayat,South Goa,Salcete,9,Verna (Ct)
+254491,Sanvordem,Rurban,Village Panchayat,South Goa,Sanguem,9,"Antoriem, Comproi, Coranginim, Rumbrem, Santona, Sanvordem (Ct)"
+254357,Arpora-Nagoa,Rural,Village Panchayat,North Goa,Bardez,7,"Arpora, Nagoa (part)"
+254358,Assagao,Rural,Village Panchayat,North Goa,Bardez,7,Assagao
+254359,Assanora,Rural,Village Panchayat,North Goa,Bardez,9,"Assonora, Moitem"
+254367,Bastora,Rural,Village Panchayat,North Goa,Bardez,7,Bastora
+254378,Camurli,Rural,Village Panchayat,North Goa,Bardez,7,Camurlim (part)
+254449,Nachinola,Rural,Village Panchayat,North Goa,Bardez,7,Nachinola
+254450,Nadora,Rural,Village Panchayat,North Goa,Bardez,5,Nadora
+254462,Oxel,Rural,Village Panchayat,North Goa,Bardez,7,Oxel
+254469,Parra,Rural,Village Panchayat,North Goa,Bardez,7,Parra
+254473,Pirna,Rural,Village Panchayat,North Goa,Bardez,7,Pirna
+254529,Reis-Magos,Rural,Village Panchayat,North Goa,Bardez,11,Reis-Magos
+254482,Revora,Rural,Village Panchayat,North Goa,Bardez,7,Revora
+254490,Sangolda,Rural,Village Panchayat,North Goa,Bardez,7,Sangolda
+254504,Sirsaim,Rural,Village Panchayat,North Goa,Bardez,7,Sircaim
+254516,Thivim,Rural,Village Panchayat,North Goa,Bardez,11,Tivim
+254520,Ucassaim-Paliem-Punola,Rural,Village Panchayat,North Goa,Bardez,7,"Paliem (part), Punola, Ucassaim"
+254531,Verla Canca,Rural,Village Panchayat,North Goa,Bardez,9,"Canca, Verla"
+254346,Advalpal,Rural,Village Panchayat,North Goa,Bicholim,5,Adwalpale
+254353,Amona,Rural,Village Panchayat,North Goa,Bicholim,7,Amone
+254402,Cudnem,Rural,Village Panchayat,North Goa,Bicholim,7,Cudnem
+272873,Harvalem,Rural,Village Panchayat,North Goa,Bicholim,5,Arvalem
+254430,Latambarcem,Rural,Village Panchayat,North Goa,Bicholim,9,Latambarcem
+254439,Mayem,Rural,Village Panchayat,North Goa,Bicholim,11,"Aturli, Maem, Vainguinim (part)"
+254440,Mencurem Dumacem,Rural,Village Panchayat,North Goa,Bicholim,5,"Dumacem, Mencurem"
+254448,Mulgao,Rural,Village Panchayat,North Goa,Bicholim,7,Mulgao
+254454,Naroa,Rural,Village Panchayat,North Goa,Bicholim,5,Naroa (part)
+254456,Navelim,Rural,Village Panchayat,North Goa,Bicholim,7,Navelim (part)
+254437,Ona Maulinguem Curchirem,Rural,Village Panchayat,North Goa,Bicholim,7,"Curchirem, Maulinguem-North, Ona"
+254472,Piligao,Rural,Village Panchayat,North Goa,Bicholim,7,Piligao
+254485,Salem,Rural,Village Panchayat,North Goa,Bicholim,7,Salem
+254503,Sirigao,Rural,Village Panchayat,North Goa,Bicholim,5,Sirigao
+254511,Surla,Rural,Village Panchayat,North Goa,Bicholim,9,Surla (part)
+254525,Velguem,Rural,Village Panchayat,North Goa,Bicholim,7,Velguem (part)
+254347,Agarwada Chopdem,Rural,Village Panchayat,North Goa,Pernem,7,"Agarvado, Chopdem"
+254350,Alorna,Rural,Village Panchayat,North Goa,Pernem,7,Alorna
+254383,"Casnem, Amberem,Poroscodem",Rural,Village Panchayat,North Goa,Pernem,7,"Amberem, Casnem, Poroscodem"
+254386,Chandel Hasapur,Rural,Village Panchayat,North Goa,Pernem,5,Chandel
+254397,Corgao,Rural,Village Panchayat,North Goa,Pernem,9,Corgao
+254411,Dhargal,Rural,Village Panchayat,North Goa,Pernem,9,Dargalim
+254422,Ibrampur,Rural,Village Panchayat,North Goa,Pernem,7,Ibrampur
+254425,Kasarvanem,Rural,Village Panchayat,North Goa,Pernem,5,Cansarvornem
+254426,Keri Terecol,Rural,Village Panchayat,North Goa,Pernem,7,"Querim (part), Tiracol"
+254445,Morjim,Rural,Village Panchayat,North Goa,Pernem,9,Morgim
+254463,Ozarim,Rural,Village Panchayat,North Goa,Pernem,5,Ozorim
+254465,Paliem,Rural,Village Panchayat,North Goa,Pernem,7,Paliem (part)
+254514,"Tamboxem, Mopa, Uguem",Rural,Village Panchayat,North Goa,Pernem,7,"Mopa, Tamboxem, Uguem (part)"
+254518,Torxem,Rural,Village Panchayat,North Goa,Pernem,7,Torxem
+254519,Tuem,Rural,Village Panchayat,North Goa,Pernem,7,Tuem
+254524,Varkhand Nagzar,Rural,Village Panchayat,North Goa,Pernem,7,Varconda
+254533,Virnoda,Rural,Village Panchayat,North Goa,Pernem,7,Virnora
+254375,Birondem,Rural,Village Panchayat,North Goa,Satari,7,"Advoi, Ansolem, Birondem, Padeli, Sanvorcem, Vantem"
+254401,Cotodem,Rural,Village Panchayat,North Goa,Satari,7,"Ambeli, Assodem, Codqui, Cotorem, Govanem, Malpona, Siranguli, Sirsodem, Velguem (part), Xelopo-Curdo"
+254412,Dongurli-Thane,Rural,Village Panchayat,North Goa,Satari,9,"Choraundem, Dongurli (part), Golauli, Ivrem-Buzruco, Ivrem-Curdo, Naneli, Pale (part), Rivem, Surla (part)"
+254420,Guleli,Rural,Village Panchayat,North Goa,Satari,7,"Conquirem, Damocem, Guleli, Melauli"
+254438,Mauxi,Rural,Village Panchayat,North Goa,Satari,7,"Compordem, Dabem, Mauxi, Naguem, Zormen"
+254446,Morlem,Rural,Village Panchayat,North Goa,Satari,7,Morlem
+254451,Nagargao,Rural,Village Panchayat,North Goa,Satari,7,"Ambedem, Bombedem, Carambolim- Brama, Codal, Davem, Derodem, Edorem, Maloli, Nagargao, Nanorem, Satorem, Satrem, Sigonem (part), Ustem, Vainguinim (part), Xelopo-Buzruco, Zarani"
+254474,Pissurlem,Rural,Village Panchayat,North Goa,Satari,7,"Codiem, Cumarconda, Pissurlem, Ponocem, Vaguriem"
+254477,Poriem,Rural,Village Panchayat,North Goa,Satari,9,"Podocem, Poriem"
+254479,Querim,Rural,Village Panchayat,North Goa,Satari,9,"Anjunem, Gonteli, Gululem, Ponsuli, Quelaudem, Querim (part), Ravona, Siroli"
+254492,Sanvordem,Rural,Village Panchayat,North Goa,Satari,7,"Carambolim-Buzruco, Caranzol (part), Codvol, Cudcem, Pendral, Sanvordem, Sonal"
+254363,Azossim-Mandur,Rural,Village Panchayat,North Goa,Tiswadi,7,"Azossim, Mandur"
+254368,Batim,Rural,Village Panchayat,North Goa,Tiswadi,7,"Batim, Gancim"
+254381,Carambolim,Rural,Village Panchayat,North Goa,Tiswadi,9,Carambolim
+254392,Chodan-Madel,Rural,Village Panchayat,North Goa,Tiswadi,9,"Ambarim, Caraim, Chorao"
+254417,Goltim-Navelim,Rural,Village Panchayat,North Goa,Tiswadi,7,"Goltim, Navelim (part)"
+254459,Neura,Rural,Village Panchayat,North Goa,Tiswadi,7,"Neura-O-Grande, Neura-O-Pequeno"
+254494,Sao Matias,Rural,Village Panchayat,North Goa,Tiswadi,7,"Capao, Malar, Naroa (part)"
+254502,Siridao-Pale,Rural,Village Panchayat,North Goa,Tiswadi,7,Siridao
+254507,St. Andre,Rural,Village Panchayat,North Goa,Tiswadi,9,Goa-Velha
+254513,Taleigao,Rural,Village Panchayat,North Goa,Tiswadi,11,"Durgavado, Taleigao"
+254348,Agonda,Rural,Village Panchayat,South Goa,Canacona,7,Agonda
+254393,Cola,Rural,Village Panchayat,South Goa,Canacona,9,Cola
+254400,Cotigao,Rural,Village Panchayat,South Goa,Canacona,7,Cotigao
+254416,Gaondongri,Rural,Village Panchayat,South Goa,Canacona,9,Gaodongrem
+254431,Loliem-Polem,Rural,Village Panchayat,South Goa,Canacona,9,"Angediva, Loliem"
+254475,Poinguinim,Rural,Village Panchayat,South Goa,Canacona,9,Poinguinim
+254499,Shristhal,Rural,Village Panchayat,South Goa,Canacona,7,Canacona
+254394,Colem,Rural,Village Panchayat,South Goa,Dharbandora,9,"Caranzol (part), Colem, Sigao, Sonauli"
+254410,Dharbandora,Rural,Village Panchayat,South Goa,Dharbandora,9,"Darbandora, Piliem"
+254428,Kirlapal-Dabhal,Rural,Village Panchayat,South Goa,Dharbandora,9,"Bandoli, Camarconda, Codli, Cormonem, Moissal"
+254444,Mollem,Rural,Village Panchayat,South Goa,Dharbandora,7,"Molem, Sangod"
+254489,Sancordem,Rural,Village Panchayat,South Goa,Dharbandora,7,"Aglote, Sancordem, Surla (part)"
+254403,Cansaulim-Arossim-Cuelim,Rural,Village Panchayat,South Goa,Mormugao,9,"Arossim, Cansaulim, Cuelim"
+254389,Chicolna-Bogmalo,Rural,Village Panchayat,South Goa,Mormugao,7,Chicolna
+276388,Quelossim,Rural,Village Panchayat,South Goa,Mormugao,7,Quelossim
+254528,Velsao-Pale,Rural,Village Panchayat,South Goa,Mormugao,7,"Issorcim, Pale (part), Velsao"
+254371,Betora-Nirancal,Rural,Village Panchayat,South Goa,Ponda,11,"Betora, Codar, Conxem, Nirancal"
+254374,Bhoma-Adcolna,Rural,Village Panchayat,South Goa,Ponda,7,"Adcolna, Boma (part)"
+254414,Durbhat,Rural,Village Panchayat,South Goa,Ponda,7,Durbhat
+254429,Kundaim,Rural,Village Panchayat,South Goa,Ponda,7,Cundaim
+254466,Panchawadi,Rural,Village Panchayat,South Goa,Ponda,7,Ponchavadi
+254478,Quela,Rural,Village Panchayat,South Goa,Ponda,9,Queula
+254427,Querim,Rural,Village Panchayat,South Goa,Ponda,7,Querim (part)
+254498,Shiroda,Rural,Village Panchayat,South Goa,Ponda,11,Shiroda
+254512,Vadi Talaulim,Rural,Village Panchayat,South Goa,Ponda,7,"Telaulim, Vadi"
+254530,Verem-Vaghurme,Rural,Village Panchayat,South Goa,Ponda,7,"Savoi-Verem, Vagurbem"
+254534,Volvoi,Rural,Village Panchayat,South Goa,Ponda,5,Volvoi
+254351,Ambaulim,Rural,Village Panchayat,South Goa,Quepem,7,Ambaulim
+254360,Assolda,Rural,Village Panchayat,South Goa,Quepem,7,"Assolda, Hodar, Xelvona, Xic-Xelvona"
+254362,Avedem-Cotombi,Rural,Village Panchayat,South Goa,Quepem,7,"Avedem, Chaifi, Cotombi (part)"
+254364,Balli-Adnem,Rural,Village Panchayat,South Goa,Quepem,9,"Adnem, Bali, Bendordem, Cordem, Tiloi"
+254366,Barcem,Rural,Village Panchayat,South Goa,Quepem,7,"Barcem, Goculdem, Padi, Quedem, Quisconda"
+254384,Caurem,Rural,Village Panchayat,South Goa,Quepem,7,"Cavorem, Cazur, Corla, Maina, Mangal, Pirla, Sulcorna"
+254415,Fatorpa-Quitol,Rural,Village Panchayat,South Goa,Quepem,7,Fatorpa
+254443,Molcornem,Rural,Village Panchayat,South Goa,Quepem,7,"Molcopona, Molcornem, Nagvem, Undorna, Zanodem"
+254447,Morpirla,Rural,Village Panchayat,South Goa,Quepem,7,Morpirla
+254453,Naqueri-Betul,Rural,Village Panchayat,South Goa,Quepem,7,"Naqueri, Quitol"
+254352,Ambelim,Rural,Village Panchayat,South Goa,Salcete,7,Ambelim
+254355,Aquem Baixo,Rural,Village Panchayat,South Goa,Salcete,9,Aquem-Baixo
+254361,Assolna,Rural,Village Panchayat,South Goa,Salcete,7,Assolna
+254370,Betalbatim,Rural,Village Panchayat,South Goa,Salcete,7,"Betalbatim, Gonsua"
+254379,Camurlim,Rural,Village Panchayat,South Goa,Salcete,7,Camurlim (part)
+254382,Carmona,Rural,Village Panchayat,South Goa,Salcete,7,Carmona
+254385,Cavelossim,Rural,Village Panchayat,South Goa,Salcete,7,Cavelossim
+254387,Chandor-Cavorim,Rural,Village Panchayat,South Goa,Salcete,7,"Cavorim, Chandor"
+254395,Colva,Rural,Village Panchayat,South Goa,Salcete,9,"Colva, Gaundaulim, Sernabatim, Vanelim"
+254413,Dramapur- Sirlim,Rural,Village Panchayat,South Goa,Salcete,7,"Dramapur, Sirlim"
+254418,Guirdolim,Rural,Village Panchayat,South Goa,Salcete,7,Guirdolim
+254432,Loutulim,Rural,Village Panchayat,South Goa,Salcete,9,Loutulim
+254433,Macasana,Rural,Village Panchayat,South Goa,Salcete,7,Macasana
+254434,Majorda,Rural,Village Panchayat,South Goa,Salcete,9,"Calata, Majorda, Utorda"
+254452,Nagoa,Rural,Village Panchayat,South Goa,Salcete,7,Nagoa (part)
+254461,Orlim,Rural,Village Panchayat,South Goa,Salcete,7,Orlim
+254468,Paroda,Rural,Village Panchayat,South Goa,Salcete,7,"Mulem, Paroda"
+254480,Rachol,Rural,Village Panchayat,South Goa,Salcete,5,Rachol
+254495,Sarzora,Rural,Village Panchayat,South Goa,Salcete,7,Sarzora
+254497,Seraulim,Rural,Village Panchayat,South Goa,Salcete,7,"Duncolim, Seraulim"
+254515,Telaulim,Rural,Village Panchayat,South Goa,Salcete,7,Talaulim (part)
+254526,Velim,Rural,Village Panchayat,South Goa,Salcete,9,Velim
+254373,Bhati,Rural,Village Panchayat,South Goa,Sanguem,7,"Bati, Cumbari, Dongor, Naiquinim, Potrem, Sigonem (part), Todou, Viliena"
+254406,Curdi,Rural,Village Panchayat,South Goa,Sanguem,7,"Curdem, Kurpem, Porteem"
+254423,Kalay(Kalem),Rural,Village Panchayat,South Goa,Sanguem,7,"Boma (part), Calem, Costi, Dongurli (part), Dudal, Maulinguem, Odxel"
+254458,Neturlim,Rural,Village Panchayat,South Goa,Sanguem,7,"Neturlim, Nundem, Verlem, Vichundrem"
+254483,Rivona,Rural,Village Panchayat,South Goa,Sanguem,9,"Colomb, Rivona"
+254521,Uguem,Rural,Village Panchayat,South Goa,Sanguem,7,"Cotarli, Muguli, Patiem, Salauli, Uguem (part), Xelpem"

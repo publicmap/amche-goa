@@ -1,0 +1,194 @@
+S.No.,Localbody Type Code,Localbody Type Name,Localbody Code,Localbody Version,Localbody Name (In English),Localbody Name (In Local),Parent Localbody Code,State Code,State Name
+1.0,1,District Panchayat,506,1,North Goa,NORTH GOA,,30,Goa
+2.0,1,District Panchayat,507,1,South Goa,SOUTH GOA,,30,Goa
+3.0,3,Village Panchayat,254346,1,Advalpal,ADVALPAL,506,30,Goa
+4.0,3,Village Panchayat,254347,1,Agarwada Chopdem,AGARWADA  CHOPDEM,506,30,Goa
+5.0,3,Village Panchayat,254348,1,Agonda,AGONDA,507,30,Goa
+6.0,3,Village Panchayat,254349,1,Aldona,ALDONA,506,30,Goa
+7.0,3,Village Panchayat,254350,1,Alorna,ALORNA,506,30,Goa
+8.0,3,Village Panchayat,254351,1,Ambaulim,AMBAULIM,507,30,Goa
+9.0,3,Village Panchayat,254352,1,Ambelim,AMBELIM,507,30,Goa
+10.0,3,Village Panchayat,254353,1,Amona,AMONA,506,30,Goa
+11.0,3,Village Panchayat,254354,2,Anjuna-Caisua,ANJUNA-CAISUA,506,30,Goa
+12.0,3,Village Panchayat,254355,2,Aquem Baixo,AQUEM BAIXO,507,30,Goa
+13.0,3,Village Panchayat,254356,1,Arambol,ARAMBOL,506,30,Goa
+14.0,3,Village Panchayat,254357,1,Arpora-Nagoa,ARPORA-NAGOA,506,30,Goa
+15.0,3,Village Panchayat,254358,1,Assagao,ASSAGAO,506,30,Goa
+16.0,3,Village Panchayat,254359,1,Assanora,ASSANORA,506,30,Goa
+17.0,3,Village Panchayat,254360,1,Assolda,ASSOLDA,507,30,Goa
+18.0,3,Village Panchayat,254361,1,Assolna,ASSOLNA,507,30,Goa
+19.0,3,Village Panchayat,254362,1,Avedem-Cotombi,AVEDEM-COTOMBI,507,30,Goa
+20.0,3,Village Panchayat,254363,1,Azossim-Mandur,AZOSSIM-MANDUR,506,30,Goa
+21.0,3,Village Panchayat,254364,1,Balli-Adnem,BALLI-ADNEM,507,30,Goa
+22.0,3,Village Panchayat,254365,2,Bandora,BANDORA,507,30,Goa
+23.0,3,Village Panchayat,254366,1,Barcem,BARCEM,507,30,Goa
+24.0,3,Village Panchayat,254367,1,Bastora,BASTORA,506,30,Goa
+25.0,3,Village Panchayat,254368,1,Batim,BATIM,506,30,Goa
+26.0,3,Village Panchayat,254369,2,Benaulim,BENAULIM,507,30,Goa
+27.0,3,Village Panchayat,254370,1,Betalbatim,BETALBATIM,507,30,Goa
+28.0,3,Village Panchayat,254371,2,Betora-Nirancal,BETORA-NIRANCAL,507,30,Goa
+29.0,3,Village Panchayat,254372,2,"Betqui, Candola","BETQUI, CANDOLA",507,30,Goa
+30.0,3,Village Panchayat,254373,1,Bhati,BHATI,507,30,Goa
+31.0,3,Village Panchayat,254374,2,Bhoma-Adcolna,BHOMA-ADCOLNA,507,30,Goa
+32.0,3,Village Panchayat,254375,1,Birondem,BIRONDEM,506,30,Goa
+33.0,3,Village Panchayat,254376,2,Borim,BORIM,507,30,Goa
+34.0,3,Village Panchayat,254377,1,Calangute,CALANGUTE,506,30,Goa
+35.0,3,Village Panchayat,254378,1,Camurli,CAMURLI,506,30,Goa
+36.0,3,Village Panchayat,254379,1,Camurlim,CAMURLIM,507,30,Goa
+37.0,3,Village Panchayat,254380,1,Candolim,CANDOLIM,506,30,Goa
+38.0,3,Village Panchayat,254403,2,Cansaulim-Arossim-Cuelim,CANSAULIM-AROSSIM-CUELIM,507,30,Goa
+39.0,3,Village Panchayat,254381,4,Carambolim,CARAMBOLIM,506,30,Goa
+40.0,3,Village Panchayat,254382,1,Carmona,CARMONA,507,30,Goa
+41.0,3,Village Panchayat,254383,1,"Casnem, Amberem,Poroscodem","CASNEM, AMBEREM,POROSCODEM",506,30,Goa
+42.0,3,Village Panchayat,254384,1,Caurem,CAUREM,507,30,Goa
+43.0,3,Village Panchayat,254385,1,Cavelossim,CAVELOSSIM,507,30,Goa
+44.0,3,Village Panchayat,254386,2,Chandel Hasapur,CHANDEL HASAPUR,506,30,Goa
+45.0,3,Village Panchayat,254387,1,Chandor-Cavorim,CHANDOR-CAVORIM,507,30,Goa
+46.0,3,Village Panchayat,254388,2,Chicalim,CHICALIM,507,30,Goa
+47.0,3,Village Panchayat,254389,1,Chicolna-Bogmalo,CHICOLNA-BOGMALO,507,30,Goa
+48.0,3,Village Panchayat,254390,1,Chimbel,CHIMBEL,506,30,Goa
+49.0,3,Village Panchayat,254391,1,Chinchinim- Deussa,CHINCHINIM- DEUSSA,507,30,Goa
+50.0,3,Village Panchayat,254392,1,Chodan-Madel,CHODAN-MADEL,506,30,Goa
+51.0,3,Village Panchayat,254393,1,Cola,COLA,507,30,Goa
+52.0,3,Village Panchayat,254394,2,Colem,COLEM,507,30,Goa
+53.0,3,Village Panchayat,254395,1,Colva,COLVA,507,30,Goa
+54.0,3,Village Panchayat,254396,1,Colvale,COLVALE,506,30,Goa
+55.0,3,Village Panchayat,254397,1,Corgao,CORGAO,506,30,Goa
+56.0,3,Village Panchayat,254398,1,Corlim,CORLIM,506,30,Goa
+57.0,3,Village Panchayat,254399,2,Cortalim,CORTALIM,507,30,Goa
+58.0,3,Village Panchayat,254400,1,Cotigao,COTIGAO,507,30,Goa
+59.0,3,Village Panchayat,254401,2,Cotodem,COTODEM,506,30,Goa
+60.0,3,Village Panchayat,254402,1,Cudnem,CUDNEM,506,30,Goa
+61.0,3,Village Panchayat,254404,2,Cumbharjua,CUMBHARJUA,506,30,Goa
+62.0,3,Village Panchayat,254405,1,"Curca, Bambolim, Talaulim","CURCA, BAMBOLIM, TALAULIM",506,30,Goa
+63.0,3,Village Panchayat,254406,1,Curdi,CURDI,507,30,Goa
+64.0,3,Village Panchayat,254407,2,Curti-Khandepar,CURTI-KHANDEPAR,507,30,Goa
+65.0,3,Village Panchayat,254408,1,Curtorim,CURTORIM,507,30,Goa
+66.0,3,Village Panchayat,254409,3,Davorlim Dicarpale,DAVORLIM DICARPALE,507,30,Goa
+67.0,3,Village Panchayat,254410,2,Dharbandora,DHARBANDORA,507,30,Goa
+68.0,3,Village Panchayat,254411,1,Dhargal,DHARGAL,506,30,Goa
+69.0,3,Village Panchayat,254412,2,Dongurli-Thane,DONGURLI-THANE,506,30,Goa
+70.0,3,Village Panchayat,254413,3,Dramapur- Sirlim,DRAMAPUR- SIRLIM,507,30,Goa
+71.0,3,Village Panchayat,254414,2,Durbhat,DURBHAT,507,30,Goa
+72.0,3,Village Panchayat,254415,1,Fatorpa-Quitol,FATORPA-QUITOL,507,30,Goa
+73.0,3,Village Panchayat,254416,1,Gaondongri,GAONDONGRI,507,30,Goa
+74.0,3,Village Panchayat,254417,1,Goltim-Navelim,GOLTIM-NAVELIM,506,30,Goa
+75.0,3,Village Panchayat,254418,1,Guirdolim,GUIRDOLIM,507,30,Goa
+76.0,3,Village Panchayat,254419,1,Guirim,GUIRIM,506,30,Goa
+77.0,3,Village Panchayat,254420,1,Guleli,GULELI,506,30,Goa
+78.0,3,Village Panchayat,272873,1,Harvalem,HARVALEM,506,30,Goa
+79.0,3,Village Panchayat,254421,1,Honda,HONDA,506,30,Goa
+80.0,3,Village Panchayat,254422,1,Ibrampur,IBRAMPUR,506,30,Goa
+81.0,3,Village Panchayat,254423,1,Kalay(Kalem),KALAY(KALEM),507,30,Goa
+82.0,3,Village Panchayat,254424,1,Karapur-Sarvan,KARAPUR-SARVAN,506,30,Goa
+83.0,3,Village Panchayat,254425,1,Kasarvanem,KASARVANEM,506,30,Goa
+84.0,3,Village Panchayat,254426,1,Keri Terecol,KERI TERECOL,506,30,Goa
+85.0,3,Village Panchayat,254428,2,Kirlapal-Dabhal,KIRLAPAL-DABHAL,507,30,Goa
+86.0,3,Village Panchayat,254429,2,Kundaim,KUNDAIM,507,30,Goa
+87.0,3,Village Panchayat,254430,1,Latambarcem,LATAMBARCEM,506,30,Goa
+88.0,3,Village Panchayat,254431,1,Loliem-Polem,LOLIEM-POLEM,507,30,Goa
+89.0,3,Village Panchayat,254432,1,Loutulim,LOUTULIM,507,30,Goa
+90.0,3,Village Panchayat,254433,1,Macasana,MACASANA,507,30,Goa
+91.0,3,Village Panchayat,254434,1,Majorda,MAJORDA,507,30,Goa
+92.0,3,Village Panchayat,254435,1,Mandrem,MANDREM,506,30,Goa
+93.0,3,Village Panchayat,254436,2,Marcaim,MARCAIM,507,30,Goa
+94.0,3,Village Panchayat,254438,1,Mauxi,MAUXI,506,30,Goa
+95.0,3,Village Panchayat,254439,3,Mayem,MAYEM,506,30,Goa
+96.0,3,Village Panchayat,254440,2,Mencurem Dumacem,MENCUREM DUMACEM,506,30,Goa
+97.0,3,Village Panchayat,254441,1,Merces,MERCES,506,30,Goa
+98.0,3,Village Panchayat,254442,1,Moira,MOIRA,506,30,Goa
+99.0,3,Village Panchayat,254443,1,Molcornem,MOLCORNEM,507,30,Goa
+100.0,3,Village Panchayat,254444,2,Mollem,MOLLEM,507,30,Goa
+101.0,3,Village Panchayat,254445,1,Morjim,MORJIM,506,30,Goa
+102.0,3,Village Panchayat,254446,2,Morlem,MORLEM,506,30,Goa
+103.0,3,Village Panchayat,254447,1,Morpirla,MORPIRLA,507,30,Goa
+104.0,3,Village Panchayat,254448,1,Mulgao,MULGAO,506,30,Goa
+105.0,3,Village Panchayat,254449,1,Nachinola,NACHINOLA,506,30,Goa
+106.0,3,Village Panchayat,254450,1,Nadora,NADORA,506,30,Goa
+107.0,3,Village Panchayat,254451,3,Nagargao,NAGARGAO,506,30,Goa
+108.0,3,Village Panchayat,254452,1,Nagoa,NAGOA,507,30,Goa
+109.0,3,Village Panchayat,254453,1,Naqueri-Betul,NAQUERI-BETUL,507,30,Goa
+110.0,3,Village Panchayat,254454,6,Naroa,NAROA,506,30,Goa
+111.0,3,Village Panchayat,254455,2,Navelim,NAVELIM,507,30,Goa
+112.0,3,Village Panchayat,254456,3,Navelim,NAVELIM,506,30,Goa
+113.0,3,Village Panchayat,254457,1,Nerul,NERUL,506,30,Goa
+114.0,3,Village Panchayat,254458,1,Neturlim,NETURLIM,507,30,Goa
+115.0,3,Village Panchayat,254459,1,Neura,NEURA,506,30,Goa
+116.0,3,Village Panchayat,254460,1,Nuvem,NUVEM,507,30,Goa
+117.0,3,Village Panchayat,254437,3,Ona Maulinguem Curchirem,Ona Maulinguem Curchirem,506,30,Goa
+118.0,3,Village Panchayat,254461,1,Orlim,ORLIM,507,30,Goa
+119.0,3,Village Panchayat,254462,1,Oxel,OXEL,506,30,Goa
+120.0,3,Village Panchayat,254463,1,Ozarim,OZARIM,506,30,Goa
+121.0,3,Village Panchayat,254464,1,"Pale, Cotombi","PALE, COTOMBI",506,30,Goa
+122.0,3,Village Panchayat,254465,4,Paliem,PALIEM,506,30,Goa
+123.0,3,Village Panchayat,254466,2,Panchawadi,PANCHAWADI,507,30,Goa
+124.0,3,Village Panchayat,254467,1,Parcem,PARCEM,506,30,Goa
+125.0,3,Village Panchayat,254468,1,Paroda,PARODA,507,30,Goa
+126.0,3,Village Panchayat,254469,1,Parra,PARRA,506,30,Goa
+127.0,3,Village Panchayat,254470,1,Penha-De-France,PENHA-DE-FRANCE,506,30,Goa
+128.0,3,Village Panchayat,254471,2,Pilerne - Marra,PILERNE - MARRA,506,30,Goa
+129.0,3,Village Panchayat,254472,1,Piligao,PILIGAO,506,30,Goa
+130.0,3,Village Panchayat,254473,1,Pirna,PIRNA,506,30,Goa
+131.0,3,Village Panchayat,254474,1,Pissurlem,PISSURLEM,506,30,Goa
+132.0,3,Village Panchayat,254475,1,Poinguinim,POINGUINIM,507,30,Goa
+133.0,3,Village Panchayat,254476,1,"Pomburpa, Olaulim","POMBURPA, OLAULIM",506,30,Goa
+134.0,3,Village Panchayat,254477,1,Poriem,PORIEM,506,30,Goa
+135.0,3,Village Panchayat,254478,2,Quela,QUELA,507,30,Goa
+136.0,3,Village Panchayat,276388,1,Quelossim,Quelossim,507,30,Goa
+137.0,3,Village Panchayat,254427,4,Querim,QUERIM,507,30,Goa
+138.0,3,Village Panchayat,254479,2,Querim,QUERIM,506,30,Goa
+139.0,3,Village Panchayat,254480,1,Rachol,RACHOL,507,30,Goa
+140.0,3,Village Panchayat,254481,1,Raia,RAIA,507,30,Goa
+141.0,3,Village Panchayat,254529,2,Reis-Magos,REIS-MAGOS,506,30,Goa
+142.0,3,Village Panchayat,254482,1,Revora,REVORA,506,30,Goa
+143.0,3,Village Panchayat,254483,3,Rivona,RIVONA,507,30,Goa
+144.0,3,Village Panchayat,254484,1,Rumdamol-Davorlim,RUMDAMOL-DAVORLIM,507,30,Goa
+145.0,3,Village Panchayat,254485,1,Salem,SALEM,506,30,Goa
+146.0,3,Village Panchayat,254486,1,Saligao,SALIGAO,506,30,Goa
+147.0,3,Village Panchayat,254487,1,Salvador-Do-Mundo,SALVADOR-DO-MUNDO,506,30,Goa
+148.0,3,Village Panchayat,254488,2,Sancoale,SANCOALE,507,30,Goa
+149.0,3,Village Panchayat,254489,2,Sancordem,SANCORDEM,507,30,Goa
+150.0,3,Village Panchayat,254490,1,Sangolda,SANGOLDA,506,30,Goa
+151.0,3,Village Panchayat,254491,2,Sanvordem,SANVORDEM,507,30,Goa
+152.0,3,Village Panchayat,254492,2,Sanvordem,SANVORDEM,506,30,Goa
+153.0,3,Village Panchayat,254493,1,Sao Lourence(Agassaim),SAO LOURENCE(AGASSAIM),506,30,Goa
+154.0,3,Village Panchayat,254494,2,Sao Matias,SAO MATIAS,506,30,Goa
+155.0,3,Village Panchayat,254495,1,Sarzora,SARZORA,507,30,Goa
+156.0,3,Village Panchayat,254496,1,Se-Old-Goa,SE-OLD-GOA,506,30,Goa
+157.0,3,Village Panchayat,254497,1,Seraulim,SERAULIM,507,30,Goa
+158.0,3,Village Panchayat,254498,2,Shiroda,SHIRODA,507,30,Goa
+159.0,3,Village Panchayat,254499,1,Shristhal,SHRISTHAL,507,30,Goa
+160.0,3,Village Panchayat,254500,2,Siolim Marna,SIOLIM MARNA,506,30,Goa
+161.0,3,Village Panchayat,254501,2,Siolim-Sodiem,SIOLIM-SODIEM,506,30,Goa
+162.0,3,Village Panchayat,254502,4,Siridao-Pale,SIRIDAO-PALE,506,30,Goa
+163.0,3,Village Panchayat,254503,1,Sirigao,SIRIGAO,506,30,Goa
+164.0,3,Village Panchayat,254504,1,Sirsaim,SIRSAIM,506,30,Goa
+165.0,3,Village Panchayat,254506,1,Socorro,SOCORRO,506,30,Goa
+166.0,3,Village Panchayat,254507,1,St. Andre,ST. ANDRE,506,30,Goa
+167.0,3,Village Panchayat,254508,1,St. Cruz,ST. CRUZ,506,30,Goa
+168.0,3,Village Panchayat,254509,1,St. Estevam,ST. ESTEVAM,506,30,Goa
+169.0,3,Village Panchayat,254510,2,St. Jose-De-Areal,ST. JOSE-DE-AREAL,507,30,Goa
+170.0,3,Village Panchayat,254511,4,Surla,SURLA,506,30,Goa
+171.0,3,Village Panchayat,254513,1,Taleigao,TALEIGAO,506,30,Goa
+172.0,3,Village Panchayat,254514,1,"Tamboxem, Mopa, Uguem","TAMBOXEM, MOPA, UGUEM",506,30,Goa
+173.0,3,Village Panchayat,254515,1,Telaulim,TELAULIM,507,30,Goa
+174.0,3,Village Panchayat,254516,1,Thivim,THIVIM,506,30,Goa
+175.0,3,Village Panchayat,254517,2,Tivrem-Orgao,TIVREM-ORGAO,507,30,Goa
+176.0,3,Village Panchayat,254518,1,Torxem,TORXEM,506,30,Goa
+177.0,3,Village Panchayat,254519,1,Tuem,TUEM,506,30,Goa
+178.0,3,Village Panchayat,254520,2,Ucassaim-Paliem-Punola,UCASSAIM-PALIEM-PUNOLA,506,30,Goa
+179.0,3,Village Panchayat,254521,1,Uguem,UGUEM,507,30,Goa
+180.0,3,Village Panchayat,254522,2,Usgao-Ganjem,USGAO-GANJEM,507,30,Goa
+181.0,3,Village Panchayat,254512,3,Vadi Talaulim,VADI TALAULIM,507,30,Goa
+182.0,3,Village Panchayat,254523,2,Varca,VARCA,507,30,Goa
+183.0,3,Village Panchayat,254524,1,Varkhand Nagzar,VARKHAND NAGZAR,506,30,Goa
+184.0,3,Village Panchayat,254525,1,Velguem,VELGUEM,506,30,Goa
+185.0,3,Village Panchayat,254526,1,Velim,VELIM,507,30,Goa
+186.0,3,Village Panchayat,254527,2,Veling-Priol,VELING-PRIOL,507,30,Goa
+187.0,3,Village Panchayat,254528,1,Velsao-Pale,VELSAO-PALE,507,30,Goa
+188.0,3,Village Panchayat,254530,4,Verem-Vaghurme,VEREM-VAGHURME,507,30,Goa
+189.0,3,Village Panchayat,254531,1,Verla Canca,VERLA CANCA,506,30,Goa
+190.0,3,Village Panchayat,254532,1,Verna,VERNA,507,30,Goa
+191.0,3,Village Panchayat,254533,1,Virnoda,VIRNODA,506,30,Goa
+192.0,3,Village Panchayat,254534,2,Volvoi,VOLVOI,507,30,Goa
+193.0,3,Village Panchayat,254535,1,Xeldem,XELDEM,507,30,Goa

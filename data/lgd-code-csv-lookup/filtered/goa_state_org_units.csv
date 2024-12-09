@@ -1,0 +1,334 @@
+S.No.,Org Unit Code,Org Unit Name (In English),Org Unit Name (In Local),Entity Type,Entity Lc,Parent Org Unit Code,Parent Org Unit Name,Org Located Level Code,Base Organization Name,Base Organization Code,State Name,State Code
+1,2398712,Agriculture Department( STATE- Goa),Agriculture Department( राज्य- GOA),1,30,,,6423,Agriculture Department,2849,Goa,30
+2,2398714,District Office Agriculture( DISTRICT- North Goa),District Office Agriculture( जिला - NORTH GOA),2,551,2398712,Agriculture Department( STATE- Goa),6424,Agriculture Department,2849,Goa,30
+3,2398713,District Office Agriculture( DISTRICT- South Goa),District Office Agriculture( जिला - SOUTH GOA),2,552,2398712,Agriculture Department( STATE- Goa),6424,Agriculture Department,2849,Goa,30
+4,2398725,Block Office Agriculture( BLOCK- Bardez),,5,5929,2398714,District Office Agriculture( DISTRICT- North Goa),6425,Agriculture Department,2849,Goa,30
+5,2398723,Block Office Agriculture( BLOCK- Bicholim),,5,5930,2398714,District Office Agriculture( DISTRICT- North Goa),6425,Agriculture Department,2849,Goa,30
+6,2398726,Block Office Agriculture( BLOCK- Pernem),,5,5931,2398714,District Office Agriculture( DISTRICT- North Goa),6425,Agriculture Department,2849,Goa,30
+7,2398719,Block Office Agriculture( BLOCK- Ponda),,5,5932,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+8,2398724,Block Office Agriculture( BLOCK- Satari),,5,5933,2398714,District Office Agriculture( DISTRICT- North Goa),6425,Agriculture Department,2849,Goa,30
+9,2398722,Block Office Agriculture( BLOCK- Tiswadi),,5,5934,2398714,District Office Agriculture( DISTRICT- North Goa),6425,Agriculture Department,2849,Goa,30
+10,2398715,Block Office Agriculture( BLOCK- Canacona),,5,5935,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+11,2398716,Block Office Agriculture( BLOCK- Mormugao),,5,5936,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+12,2398717,Block Office Agriculture( BLOCK- Quepem),,5,5937,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+13,2398718,Block Office Agriculture( BLOCK- Salcete),,5,5938,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+14,2398720,Block Office Agriculture( BLOCK- Sanguem),,5,5939,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+15,2398721,Block Office Agriculture( BLOCK- Dharbandora),,5,6841,2398713,District Office Agriculture( DISTRICT- South Goa),6425,Agriculture Department,2849,Goa,30
+1,2398697,Department Of Education( STATE- Goa),Department Of Education( राज्य- GOA),1,30,,,6420,Department Of Education,2848,Goa,30
+2,2398699,District office( DISTRICT- North Goa),District office( जिला - NORTH GOA),2,551,2398697,Department Of Education( STATE- Goa),6421,Department Of Education,2848,Goa,30
+3,2398698,District office( DISTRICT- South Goa),District office( जिला - SOUTH GOA),2,552,2398697,Department Of Education( STATE- Goa),6421,Department Of Education,2848,Goa,30
+4,2398710,Block office( BLOCK- Bardez),,5,5929,2398699,District office( DISTRICT- North Goa),6422,Department Of Education,2848,Goa,30
+5,2398708,Block office( BLOCK- Bicholim),,5,5930,2398699,District office( DISTRICT- North Goa),6422,Department Of Education,2848,Goa,30
+6,2398711,Block office( BLOCK- Pernem),,5,5931,2398699,District office( DISTRICT- North Goa),6422,Department Of Education,2848,Goa,30
+7,2398704,Block office( BLOCK- Ponda),,5,5932,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+8,2398709,Block office( BLOCK- Satari),,5,5933,2398699,District office( DISTRICT- North Goa),6422,Department Of Education,2848,Goa,30
+9,2398707,Block office( BLOCK- Tiswadi),,5,5934,2398699,District office( DISTRICT- North Goa),6422,Department Of Education,2848,Goa,30
+10,2398700,Block office( BLOCK- Canacona),,5,5935,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+11,2398701,Block office( BLOCK- Mormugao),,5,5936,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+12,2398702,Block office( BLOCK- Quepem),,5,5937,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+13,2398703,Block office( BLOCK- Salcete),,5,5938,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+14,2398705,Block office( BLOCK- Sanguem),,5,5939,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+15,2398706,Block office( BLOCK- Dharbandora),,5,6841,2398698,District office( DISTRICT- South Goa),6422,Department Of Education,2848,Goa,30
+1,1369212,DEPARTMENT OF MUNICIPAL ADMINISTRATION (STATE),,1,30,,,3644,DEPARTMENT OF MUNICIPAL ADMINISTRATION,1631,Goa,30
+1,7105,Department of Panchayati Raj and RD,,1,30,,,777,Department of Panchayati Raj and RD,480,Goa,30
+2,1236657,DPRO( DISTRICT - NORTH GOA ),,2,551,7105,Department of Panchayati Raj and RD,1705,Department of Panchayati Raj and RD,480,Goa,30
+3,1236658,DPRO( DISTRICT - SOUTH GOA ),,2,552,7105,Department of Panchayati Raj and RD,1705,Department of Panchayati Raj and RD,480,Goa,30
+4,1236659,DRDA( DISTRICT - NORTH GOA ),,2,551,7105,Department of Panchayati Raj and RD,1706,Department of Panchayati Raj and RD,480,Goa,30
+5,1236660,DRDA( DISTRICT - SOUTH GOA ),,2,552,7105,Department of Panchayati Raj and RD,1706,Department of Panchayati Raj and RD,480,Goa,30
+6,1542091,Office of Zilla Panchayat(NORTH GOA ),,-1,506,7105,Department of Panchayati Raj and RD,4804,Department of Panchayati Raj and RD,480,Goa,30
+7,1542092,Office of Zilla Panchayat(SOUTH GOA ),,-1,507,7105,Department of Panchayati Raj and RD,4804,Department of Panchayati Raj and RD,480,Goa,30
+8,1542167,Office of Village Panchayat(ADVALPAL ),,-3,254346,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+9,1542168,Office of Village Panchayat(AGARWADA CHOPDEM ),,-3,254347,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+10,1542169,Office of Village Panchayat(AGONDA ),,-3,254348,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+11,1542170,Office of Village Panchayat(ALDONA ),,-3,254349,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+12,1542171,Office of Village Panchayat(ALORNA ),,-3,254350,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+13,1542172,Office of Village Panchayat(AMBAULIM ),,-3,254351,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+14,1542165,Office of Village Panchayat(AMBELIM ),,-3,254352,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+15,1542166,Office of Village Panchayat(AMONA ),,-3,254353,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+16,1542278,Office of Village Panchayat(ANJUNA-CAISUA ),,-3,254354,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+17,1542279,Office of Village Panchayat(AQUEM BAIXO ),,-3,254355,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+18,1542153,Office of Village Panchayat(ARAMBOL ),,-3,254356,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+19,1542154,Office of Village Panchayat(ARPORA-NAGOA ),,-3,254357,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+20,1542157,Office of Village Panchayat(ASSAGAO ),,-3,254358,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+21,1542158,Office of Village Panchayat(ASSANORA ),,-3,254359,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+22,1542155,Office of Village Panchayat(ASSOLDA ),,-3,254360,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+23,1542159,Office of Village Panchayat(ASSOLNA ),,-3,254361,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+24,1542160,Office of Village Panchayat(AVEDEM-COTOMBI ),,-3,254362,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+25,1542162,Office of Village Panchayat(AZOSSIM-MANDUR ),,-3,254363,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+26,1542163,Office of Village Panchayat(BALLI-ADNEM ),,-3,254364,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+27,1542280,Office of Village Panchayat(BANDORA ),,-3,254365,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+28,1542164,Office of Village Panchayat(BARCEM ),,-3,254366,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+29,1542151,Office of Village Panchayat(BASTORA ),,-3,254367,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+30,1542152,Office of Village Panchayat(BATIM ),,-3,254368,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+31,1542281,Office of Village Panchayat(BENAULIM ),,-3,254369,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+32,1542102,Office of Village Panchayat(BETALBATIM ),,-3,254370,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+33,1542282,Office of Village Panchayat(BETORA-NIRANCAL ),,-3,254371,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+34,1542283,"Office of Village Panchayat(BETQUI, CANDOLA )",,-3,254372,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+35,1542173,Office of Village Panchayat(BHATI ),,-3,254373,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+36,1542275,Office of Village Panchayat(BHOMA-ADCOLNA ),,-3,254374,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+37,1542174,Office of Village Panchayat(BIRONDEM ),,-3,254375,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+38,1542277,Office of Village Panchayat(BORIM ),,-3,254376,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+39,1542175,Office of Village Panchayat(CALANGUTE ),,-3,254377,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+40,1542176,Office of Village Panchayat(CAMURLI ),,-3,254378,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+41,1542177,Office of Village Panchayat(CAMURLIM ),,-3,254379,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+42,1542161,Office of Village Panchayat(CANDOLIM ),,-3,254380,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+43,1542268,Office of Village Panchayat(CARAMBOLIM ),,-3,254381,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+44,1542156,Office of Village Panchayat(CARMONA ),,-3,254382,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+45,1542178,"Office of Village Panchayat(CASNEM, AMBEREM,POROSCODEM )",,-3,254383,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+46,1542179,Office of Village Panchayat(CAUREM ),,-3,254384,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+47,1542180,Office of Village Panchayat(CAVELOSSIM ),,-3,254385,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+48,1542269,Office of Village Panchayat(CHANDEL HASAPUR ),,-3,254386,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+49,1542106,Office of Village Panchayat(CHANDOR-CAVORIM ),,-3,254387,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+50,1542270,Office of Village Panchayat(CHICALIM ),,-3,254388,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+51,1542181,Office of Village Panchayat(CHICOLNA-BOGMALO ),,-3,254389,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+52,1542182,Office of Village Panchayat(CHIMBEL ),,-3,254390,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+53,1542183,Office of Village Panchayat(CHINCHINIM- DEUSSA ),,-3,254391,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+54,1542184,Office of Village Panchayat(CHODAN-MADEL ),,-3,254392,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+55,1542185,Office of Village Panchayat(COLA ),,-3,254393,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+56,1542271,Office of Village Panchayat(COLEM ),,-3,254394,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+57,1542186,Office of Village Panchayat(COLVA ),,-3,254395,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+58,1542187,Office of Village Panchayat(COLVALE ),,-3,254396,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+59,1542188,Office of Village Panchayat(CORGAO ),,-3,254397,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+60,1542189,Office of Village Panchayat(CORLIM ),,-3,254398,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+61,1542272,Office of Village Panchayat(CORTALIM ),,-3,254399,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+62,1542190,Office of Village Panchayat(COTIGAO ),,-3,254400,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+63,1542276,Office of Village Panchayat(COTODEM ),,-3,254401,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+64,1542191,Office of Village Panchayat(CUDNEM ),,-3,254402,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+65,1542110,Office of Village Panchayat(CANSAULIM-AROSSIM-CUELIM ),,-3,254403,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+66,1542111,Office of Village Panchayat(CUMBHARJUA ),,-3,254404,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+67,1542193,"Office of Village Panchayat(CURCA, BAMBOLIM, TALAULIM )",,-3,254405,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+68,1542096,Office of Village Panchayat(CURDI ),,-3,254406,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+69,1542112,Office of Village Panchayat(CURTI-KHANDEPAR ),,-3,254407,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+70,1542194,Office of Village Panchayat(CURTORIM ),,-3,254408,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+71,1542093,Office of Village Panchayat(DAVORLIM DICARPALE ),,-3,254409,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+72,1542113,Office of Village Panchayat(DHARBANDORA ),,-3,254410,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+73,1542195,Office of Village Panchayat(DHARGAL ),,-3,254411,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+74,1542114,Office of Village Panchayat(DONGURLI-THANE ),,-3,254412,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+75,1542094,Office of Village Panchayat(DRAMAPUR- SIRLIM ),,-3,254413,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+76,1542097,Office of Village Panchayat(DURBHAT ),,-3,254414,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+77,1542196,Office of Village Panchayat(FATORPA-QUITOL ),,-3,254415,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+78,1542197,Office of Village Panchayat(GAONDONGRI ),,-3,254416,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+79,1542198,Office of Village Panchayat(GOLTIM-NAVELIM ),,-3,254417,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+80,1542199,Office of Village Panchayat(GUIRDOLIM ),,-3,254418,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+81,1542200,Office of Village Panchayat(GUIRIM ),,-3,254419,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+82,1542201,Office of Village Panchayat(GULELI ),,-3,254420,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+83,1542202,Office of Village Panchayat(HONDA ),,-3,254421,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+84,1542203,Office of Village Panchayat(IBRAMPUR ),,-3,254422,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+85,1542103,Office of Village Panchayat(KALAY(KALEM) ),,-3,254423,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+86,1542147,Office of Village Panchayat(KARAPUR-SARVAN ),,-3,254424,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+87,1542204,Office of Village Panchayat(KASARVANEM ),,-3,254425,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+88,1542205,Office of Village Panchayat(KERI TERECOL ),,-3,254426,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+89,1542115,Office of Village Panchayat(QUERIM ),,-3,254427,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+90,1542116,Office of Village Panchayat(KIRLAPAL-DABHAL ),,-3,254428,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+91,1542117,Office of Village Panchayat(KUNDAIM ),,-3,254429,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+92,1542206,Office of Village Panchayat(LATAMBARCEM ),,-3,254430,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+93,1542207,Office of Village Panchayat(LOLIEM-POLEM ),,-3,254431,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+94,1542208,Office of Village Panchayat(LOUTULIM ),,-3,254432,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+95,1542209,Office of Village Panchayat(MACASANA ),,-3,254433,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+96,1542210,Office of Village Panchayat(MAJORDA ),,-3,254434,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+97,1542211,Office of Village Panchayat(MANDREM ),,-3,254435,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+98,1542118,Office of Village Panchayat(MARCAIM ),,-3,254436,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+99,1542098,Office of Village Panchayat(ONA MAULINGUEM CURCHIREM ),,-3,254437,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+100,1542212,Office of Village Panchayat(MAUXI ),,-3,254438,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+101,1542213,Office of Village Panchayat(MAYEM ),,-3,254439,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+102,1542119,Office of Village Panchayat(MENCUREM DUMACEM ),,-3,254440,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+103,1542192,Office of Village Panchayat(MERCES ),,-3,254441,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+104,1542104,Office of Village Panchayat(MOIRA ),,-3,254442,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+105,1542214,Office of Village Panchayat(MOLCORNEM ),,-3,254443,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+106,1542120,Office of Village Panchayat(MOLLEM ),,-3,254444,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+107,1542215,Office of Village Panchayat(MORJIM ),,-3,254445,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+108,1542121,Office of Village Panchayat(MORLEM ),,-3,254446,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+109,1542148,Office of Village Panchayat(MORPIRLA ),,-3,254447,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+110,1542216,Office of Village Panchayat(MULGAO ),,-3,254448,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+111,1542217,Office of Village Panchayat(NACHINOLA ),,-3,254449,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+112,1542218,Office of Village Panchayat(NADORA ),,-3,254450,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+113,1542122,Office of Village Panchayat(NAGARGAO ),,-3,254451,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+114,1542219,Office of Village Panchayat(NAGOA ),,-3,254452,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+115,1542220,Office of Village Panchayat(NAQUERI-BETUL ),,-3,254453,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+116,1542101,Office of Village Panchayat(NAROA ),,-3,254454,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+117,1542123,Office of Village Panchayat(NAVELIM ),,-3,254455,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+118,1542124,Office of Village Panchayat(NAVELIM ),,-3,254456,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+119,1542221,Office of Village Panchayat(NERUL ),,-3,254457,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+120,1542222,Office of Village Panchayat(NETURLIM ),,-3,254458,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+121,1542223,Office of Village Panchayat(NEURA ),,-3,254459,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+122,1542224,Office of Village Panchayat(NUVEM ),,-3,254460,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+123,1542225,Office of Village Panchayat(ORLIM ),,-3,254461,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+124,1542226,Office of Village Panchayat(OXEL ),,-3,254462,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+125,1542227,Office of Village Panchayat(OZARIM ),,-3,254463,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+126,1542228,"Office of Village Panchayat(PALE, COTOMBI )",,-3,254464,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+127,1542125,Office of Village Panchayat(PALIEM ),,-3,254465,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+128,1542126,Office of Village Panchayat(PANCHAWADI ),,-3,254466,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+129,1542149,Office of Village Panchayat(PARCEM ),,-3,254467,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+130,1542229,Office of Village Panchayat(PARODA ),,-3,254468,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+131,1542230,Office of Village Panchayat(PARRA ),,-3,254469,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+132,1542231,Office of Village Panchayat(PENHA-DE-FRANCE ),,-3,254470,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+133,1542127,Office of Village Panchayat(PILERNE - MARRA ),,-3,254471,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+134,1542232,Office of Village Panchayat(PILIGAO ),,-3,254472,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+135,1542233,Office of Village Panchayat(PIRNA ),,-3,254473,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+136,1542234,Office of Village Panchayat(PISSURLEM ),,-3,254474,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+137,1542235,Office of Village Panchayat(POINGUINIM ),,-3,254475,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+138,1542236,"Office of Village Panchayat(POMBURPA, OLAULIM )",,-3,254476,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+139,1542237,Office of Village Panchayat(PORIEM ),,-3,254477,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+140,1542128,Office of Village Panchayat(QUELA ),,-3,254478,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+141,1542129,Office of Village Panchayat(QUERIM ),,-3,254479,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+142,1542107,Office of Village Panchayat(RACHOL ),,-3,254480,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+143,1542108,Office of Village Panchayat(RAIA ),,-3,254481,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+144,1542238,Office of Village Panchayat(REVORA ),,-3,254482,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+145,1542130,Office of Village Panchayat(RIVONA ),,-3,254483,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+146,1542239,Office of Village Panchayat(RUMDAMOL-DAVORLIM ),,-3,254484,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+147,1542240,Office of Village Panchayat(SALEM ),,-3,254485,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+148,1542241,Office of Village Panchayat(SALIGAO ),,-3,254486,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+149,1542150,Office of Village Panchayat(SALVADOR-DO-MUNDO ),,-3,254487,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+150,1542131,Office of Village Panchayat(SANCOALE ),,-3,254488,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+151,1542132,Office of Village Panchayat(SANCORDEM ),,-3,254489,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+152,1542242,Office of Village Panchayat(SANGOLDA ),,-3,254490,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+153,1542133,Office of Village Panchayat(SANVORDEM ),,-3,254491,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+154,1542134,Office of Village Panchayat(SANVORDEM ),,-3,254492,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+155,1542243,Office of Village Panchayat(SAO LOURENCE(AGASSAIM) ),,-3,254493,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+156,1542244,Office of Village Panchayat(SAO MATIAS ),,-3,254494,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+157,1542245,Office of Village Panchayat(SARZORA ),,-3,254495,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+158,1542246,Office of Village Panchayat(SE-OLD-GOA ),,-3,254496,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+159,1542247,Office of Village Panchayat(SERAULIM ),,-3,254497,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+160,1542135,Office of Village Panchayat(SHIRODA ),,-3,254498,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+161,1542109,Office of Village Panchayat(SHRISTHAL ),,-3,254499,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+162,1542136,Office of Village Panchayat(SIOLIM MARNA ),,-3,254500,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+163,1542137,Office of Village Panchayat(SIOLIM-SODIEM ),,-3,254501,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+164,1542138,Office of Village Panchayat(SIRIDAO-PALE ),,-3,254502,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+165,1542248,Office of Village Panchayat(SIRIGAO ),,-3,254503,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+166,1542249,Office of Village Panchayat(SIRSAIM ),,-3,254504,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+167,1542250,Office of Village Panchayat(SOCORRO ),,-3,254506,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+168,1542251,Office of Village Panchayat(ST. ANDRE ),,-3,254507,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+169,1542252,Office of Village Panchayat(ST. CRUZ ),,-3,254508,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+170,1542253,Office of Village Panchayat(ST. ESTEVAM ),,-3,254509,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+171,1542139,Office of Village Panchayat(ST. JOSE-DE-AREAL ),,-3,254510,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+172,1542140,Office of Village Panchayat(SURLA ),,-3,254511,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+173,1542141,Office of Village Panchayat(Village Panchayat- VADI TALAULIM ),,-3,254512,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+174,1542254,Office of Village Panchayat(TALEIGAO ),,-3,254513,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+175,1542255,"Office of Village Panchayat(TAMBOXEM, MOPA, UGUEM )",,-3,254514,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+176,1542256,Office of Village Panchayat(TELAULIM ),,-3,254515,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+177,1542257,Office of Village Panchayat(THIVIM ),,-3,254516,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+178,1542100,Office of Village Panchayat(TIVREM-ORGAO ),,-3,254517,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+179,1542105,Office of Village Panchayat(TORXEM ),,-3,254518,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+180,1542258,Office of Village Panchayat(TUEM ),,-3,254519,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+181,1542142,Office of Village Panchayat(UCASSAIM-PALIEM-PUNOLA ),,-3,254520,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+182,1542259,Office of Village Panchayat(UGUEM ),,-3,254521,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+183,1542099,Office of Village Panchayat(USGAO-GANJEM ),,-3,254522,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+184,1542143,Office of Village Panchayat(VARCA ),,-3,254523,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+185,1542260,Office of Village Panchayat(VARKHAND NAGZAR ),,-3,254524,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+186,1542261,Office of Village Panchayat(VELGUEM ),,-3,254525,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+187,1542262,Office of Village Panchayat(VELIM ),,-3,254526,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+188,1542144,Office of Village Panchayat(VELING-PRIOL ),,-3,254527,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+189,1542263,Office of Village Panchayat(VELSAO-PALE ),,-3,254528,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+190,1542145,Office of Village Panchayat(REIS-MAGOS ),,-3,254529,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+191,1542095,Office of Village Panchayat(VEREM-VAGHURME ),,-3,254530,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+192,1542264,Office of Village Panchayat(VERLA CANCA ),,-3,254531,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+193,1542265,Office of Village Panchayat(VERNA ),,-3,254532,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+194,1542266,Office of Village Panchayat(VIRNODA ),,-3,254533,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+195,1542146,Office of Village Panchayat(VOLVOI ),,-3,254534,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+196,1542267,Office of Village Panchayat(XELDEM ),,-3,254535,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+197,1542273,Office of Village Panchayat(HARVALEM ),,-3,272873,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+198,1542274,Office of Village Panchayat(Quelossim ),,-3,276388,,,4805,Department of Panchayati Raj and RD,480,Goa,30
+199,2397193,Block Development office( BLOCK- Bardez),,5,5929,1236659,DRDA( DISTRICT - NORTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+200,2397191,Block Development office( BLOCK- Bicholim),,5,5930,1236659,DRDA( DISTRICT - NORTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+201,2397194,Block Development office( BLOCK- Pernem),,5,5931,1236659,DRDA( DISTRICT - NORTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+202,2397187,Block Development office( BLOCK- Ponda),,5,5932,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+203,2397192,Block Development office( BLOCK- Satari),,5,5933,1236659,DRDA( DISTRICT - NORTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+204,2397190,Block Development office( BLOCK- Tiswadi),,5,5934,1236659,DRDA( DISTRICT - NORTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+205,2397183,Block Development office( BLOCK- Canacona),,5,5935,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+206,2397184,Block Development office( BLOCK- Mormugao),,5,5936,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+207,2397185,Block Development office( BLOCK- Quepem),,5,5937,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+208,2397186,Block Development office( BLOCK- Salcete),,5,5938,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+209,2397188,Block Development office( BLOCK- Sanguem),,5,5939,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+210,2397189,Block Development office( BLOCK- Dharbandora),,5,6841,1236660,DRDA( DISTRICT - SOUTH GOA ),6401,Department of Panchayati Raj and RD,480,Goa,30
+1,2397593,Department of Water Resources( STATE- Goa),Department of Water Resources( राज्य- GOA),1,30,,,6405,Department of Water Resources,2844,Goa,30
+2,2397595,District Department of Water Resources( DISTRICT- North Goa),District Department of Water Resources( जिला - NORTH GOA),2,551,2397593,Department of Water Resources( STATE- Goa),6406,Department of Water Resources,2844,Goa,30
+3,2397594,District Department of Water Resources( DISTRICT- South Goa),District Department of Water Resources( जिला - SOUTH GOA),2,552,2397593,Department of Water Resources( STATE- Goa),6406,Department of Water Resources,2844,Goa,30
+4,2397606,Block Department of Water Resources( BLOCK- Bardez),,5,5929,2397595,District Department of Water Resources( DISTRICT- North Goa),6407,Department of Water Resources,2844,Goa,30
+5,2397604,Block Department of Water Resources( BLOCK- Bicholim),,5,5930,2397595,District Department of Water Resources( DISTRICT- North Goa),6407,Department of Water Resources,2844,Goa,30
+6,2397607,Block Department of Water Resources( BLOCK- Pernem),,5,5931,2397595,District Department of Water Resources( DISTRICT- North Goa),6407,Department of Water Resources,2844,Goa,30
+7,2397600,Block Department of Water Resources( BLOCK- Ponda),,5,5932,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+8,2397605,Block Department of Water Resources( BLOCK- Satari),,5,5933,2397595,District Department of Water Resources( DISTRICT- North Goa),6407,Department of Water Resources,2844,Goa,30
+9,2397603,Block Department of Water Resources( BLOCK- Tiswadi),,5,5934,2397595,District Department of Water Resources( DISTRICT- North Goa),6407,Department of Water Resources,2844,Goa,30
+10,2397596,Block Department of Water Resources( BLOCK- Canacona),,5,5935,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+11,2397597,Block Department of Water Resources( BLOCK- Mormugao),,5,5936,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+12,2397598,Block Department of Water Resources( BLOCK- Quepem),,5,5937,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+13,2397599,Block Department of Water Resources( BLOCK- Salcete),,5,5938,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+14,2397601,Block Department of Water Resources( BLOCK- Sanguem),,5,5939,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+15,2397602,Block Department of Water Resources( BLOCK- Dharbandora),,5,6841,2397594,District Department of Water Resources( DISTRICT- South Goa),6407,Department of Water Resources,2844,Goa,30
+1,1242891,Department Women and Child Development (STATE),,1,30,,,2169,Department Women and Child Development,1039,Goa,30
+2,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),,2,551,1242891,Department Women and Child Development (STATE),2170,Department Women and Child Development,1039,Goa,30
+3,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),,2,552,1242891,Department Women and Child Development (STATE),2170,Department Women and Child Development,1039,Goa,30
+4,2397558,Block Department Women and Child Development( BLOCK- Bardez),,5,5929,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+5,2397556,Block Department Women and Child Development( BLOCK- Bicholim),,5,5930,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+6,2397559,Block Department Women and Child Development( BLOCK- Pernem),,5,5931,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+7,2397552,Block Department Women and Child Development( BLOCK- Ponda),,5,5932,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+8,2397557,Block Department Women and Child Development( BLOCK- Satari),,5,5933,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+9,2397555,Block Department Women and Child Development( BLOCK- Tiswadi),,5,5934,1242892,District Department Women and Child Development( DISTRICT - NORTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+10,2397548,Block Department Women and Child Development( BLOCK- Canacona),,5,5935,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+11,2397549,Block Department Women and Child Development( BLOCK- Mormugao),,5,5936,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+12,2397550,Block Department Women and Child Development( BLOCK- Quepem),,5,5937,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+13,2397551,Block Department Women and Child Development( BLOCK- Salcete),,5,5938,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+14,2397553,Block Department Women and Child Development( BLOCK- Sanguem),,5,5939,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+15,2397554,Block Department Women and Child Development( BLOCK- Dharbandora),,5,6841,1242893,District Department Women and Child Development( DISTRICT - SOUTH GOA ),6403,Department Women and Child Development,1039,Goa,30
+1,2281146,Directorate of Census Operations( STATE- GOA),Directorate of Census Operations( राज्य- GOA),1,30,,,5741,Directorate of Census Operations,2649,Goa,30
+1,2398314,Directorate of Health Services( STATE- Goa),Directorate of Health Services( राज्य- GOA),1,30,,,6410,Directorate of Health Services,2845,Goa,30
+2,2398316,District Directorate of Health Services( DISTRICT- North Goa),District Directorate of Health Services( जिला - NORTH GOA),2,551,2398314,Directorate of Health Services( STATE- Goa),6411,Directorate of Health Services,2845,Goa,30
+3,2398315,District Directorate of Health Services( DISTRICT- South Goa),District Directorate of Health Services( जिला - SOUTH GOA),2,552,2398314,Directorate of Health Services( STATE- Goa),6411,Directorate of Health Services,2845,Goa,30
+4,2398327,Block Directorate of Health Services( BLOCK- Bardez),,5,5929,2398316,District Directorate of Health Services( DISTRICT- North Goa),6412,Directorate of Health Services,2845,Goa,30
+5,2398325,Block Directorate of Health Services( BLOCK- Bicholim),,5,5930,2398316,District Directorate of Health Services( DISTRICT- North Goa),6412,Directorate of Health Services,2845,Goa,30
+6,2398328,Block Directorate of Health Services( BLOCK- Pernem),,5,5931,2398316,District Directorate of Health Services( DISTRICT- North Goa),6412,Directorate of Health Services,2845,Goa,30
+7,2398321,Block Directorate of Health Services( BLOCK- Ponda),,5,5932,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+8,2398326,Block Directorate of Health Services( BLOCK- Satari),,5,5933,2398316,District Directorate of Health Services( DISTRICT- North Goa),6412,Directorate of Health Services,2845,Goa,30
+9,2398324,Block Directorate of Health Services( BLOCK- Tiswadi),,5,5934,2398316,District Directorate of Health Services( DISTRICT- North Goa),6412,Directorate of Health Services,2845,Goa,30
+10,2398317,Block Directorate of Health Services( BLOCK- Canacona),,5,5935,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+11,2398318,Block Directorate of Health Services( BLOCK- Mormugao),,5,5936,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+12,2398319,Block Directorate of Health Services( BLOCK- Quepem),,5,5937,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+13,2398320,Block Directorate of Health Services( BLOCK- Salcete),,5,5938,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+14,2398322,Block Directorate of Health Services( BLOCK- Sanguem),,5,5939,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+15,2398323,Block Directorate of Health Services( BLOCK- Dharbandora),,5,6841,2398315,District Directorate of Health Services( DISTRICT- South Goa),6412,Directorate of Health Services,2845,Goa,30
+1,2398329,Directorate Of Social Welfare( STATE- Goa),Directorate Of Social Welfare( राज्य- GOA),1,30,,,6416,Directorate Of Social Welfare,2847,Goa,30
+2,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),District Directorate Of Social Welfare( जिला - NORTH GOA),2,551,2398329,Directorate Of Social Welfare( STATE- Goa),6417,Directorate Of Social Welfare,2847,Goa,30
+3,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),District Directorate Of Social Welfare( जिला - SOUTH GOA),2,552,2398329,Directorate Of Social Welfare( STATE- Goa),6417,Directorate Of Social Welfare,2847,Goa,30
+4,2398342,Block Directorate Of Social Welfare( BLOCK- Bardez),,5,5929,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+5,2398340,Block Directorate Of Social Welfare( BLOCK- Bicholim),,5,5930,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+6,2398343,Block Directorate Of Social Welfare( BLOCK- Pernem),,5,5931,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+7,2398336,Block Directorate Of Social Welfare( BLOCK- Ponda),,5,5932,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+8,2398341,Block Directorate Of Social Welfare( BLOCK- Satari),,5,5933,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+9,2398339,Block Directorate Of Social Welfare( BLOCK- Tiswadi),,5,5934,2398331,District Directorate Of Social Welfare( DISTRICT- North Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+10,2398332,Block Directorate Of Social Welfare( BLOCK- Canacona),,5,5935,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+11,2398333,Block Directorate Of Social Welfare( BLOCK- Mormugao),,5,5936,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+12,2398334,Block Directorate Of Social Welfare( BLOCK- Quepem),,5,5937,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+13,2398335,Block Directorate Of Social Welfare( BLOCK- Salcete),,5,5938,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+14,2398337,Block Directorate Of Social Welfare( BLOCK- Sanguem),,5,5939,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+15,2398338,Block Directorate Of Social Welfare( BLOCK- Dharbandora),,5,6841,2398330,District Directorate Of Social Welfare( DISTRICT- South Goa),6418,Directorate Of Social Welfare,2847,Goa,30
+1,1236667,Election Commission (STATE),,1,30,,,1711,Election Commission,828,Goa,30
+2,1236668,District Election Office( DISTRICT - NORTH GOA ),,2,551,,,1712,Election Commission,828,Goa,30
+3,1236669,District Election Office( DISTRICT - SOUTH GOA ),,2,552,,,1712,Election Commission,828,Goa,30
+1,1429691,Office of State Local Fund Auditor (STATE),,1,30,,,4474,Office of State Local Fund Auditor,2153,Goa,30
+2,1429692,Office of District Fund Auditor( DISTRICT - NORTH GOA ),,2,551,,,4475,Office of State Local Fund Auditor,2153,Goa,30
+3,1429693,Office of District Fund Auditor( DISTRICT - SOUTH GOA ),,2,552,,,4475,Office of State Local Fund Auditor,2153,Goa,30
+1,1236664,Revenue Department (STATE),,1,30,,,1709,Revenue Department,827,Goa,30
+2,1236665,Office of District Collectorate( DISTRICT - NORTH GOA ),,2,551,,,1710,Revenue Department,827,Goa,30
+3,1236666,Office of District Collectorate( DISTRICT - SOUTH GOA ),,2,552,,,1710,Revenue Department,827,Goa,30
+1,32,Test Department,,1,30,,,32,Test Department,32,Goa,30
+2,1206750,Test Department District( DISTRICT - NORTH GOA ),,2,551,32,Test Department,1282,Test Department,32,Goa,30
+3,1206751,Test Department District( DISTRICT - SOUTH GOA ),,2,552,32,Test Department,1282,Test Department,32,Goa,30
+1,2343564,UIDAI State Verification( STATE- GOA),UIDAI State Verification( राज्य- GOA),1,30,,,5967,UIDAI State Verification,2732,Goa,30
+2,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),Office of District Nodal Officer( जिला - NORTH GOA),2,551,2343564,UIDAI State Verification( STATE- GOA),5968,UIDAI State Verification,2732,Goa,30
+3,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),Office of District Nodal Officer( जिला - SOUTH GOA),2,552,2343564,UIDAI State Verification( STATE- GOA),5968,UIDAI State Verification,2732,Goa,30
+4,2343571,Office of Sub District Nodal Officer( SUBDISTRICT- Pernem),Office of Sub District Nodal Officer( उप जिला - Pernem),3,5609,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+5,2343572,Office of Sub District Nodal Officer( SUBDISTRICT- Bardez),Office of Sub District Nodal Officer( उप जिला - Bardez),3,5610,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+6,2343567,Office of Sub District Nodal Officer( SUBDISTRICT- Tiswadi),Office of Sub District Nodal Officer( उप जिला - Tiswadi),3,5611,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+7,2343568,Office of Sub District Nodal Officer( SUBDISTRICT- Bicholim),Office of Sub District Nodal Officer( उप जिला - Bicholim),3,5612,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+8,2343573,Office of Sub District Nodal Officer( SUBDISTRICT- Satari),Office of Sub District Nodal Officer( उप जिला - Satari),3,5613,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+9,2343569,Office of Sub District Nodal Officer( SUBDISTRICT- Ponda),Office of Sub District Nodal Officer( उप जिला - Ponda),3,5614,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+10,2343574,Office of Sub District Nodal Officer( SUBDISTRICT- Mormugao),Office of Sub District Nodal Officer( उप जिला - Mormugao),3,5615,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+11,2343575,Office of Sub District Nodal Officer( SUBDISTRICT- Salcete),Office of Sub District Nodal Officer( उप जिला - Salcete),3,5616,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+12,2343576,Office of Sub District Nodal Officer( SUBDISTRICT- Quepem),Office of Sub District Nodal Officer( उप जिला - Quepem),3,5617,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+13,2343570,Office of Sub District Nodal Officer( SUBDISTRICT- Sanguem),Office of Sub District Nodal Officer( उप जिला - Sanguem),3,5618,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+14,2343577,Office of Sub District Nodal Officer( SUBDISTRICT- Canacona),Office of Sub District Nodal Officer( उप जिला - Canacona),3,5619,2343565,Office of District Nodal Officer( DISTRICT- SOUTH GOA),5969,UIDAI State Verification,2732,Goa,30
+15,2343578,Office of Sub District Nodal Officer( SUBDISTRICT- Dharbandora),Office of Sub District Nodal Officer( उप जिला - Dharbandoda),3,5931,2343566,Office of District Nodal Officer( DISTRICT- NORTH GOA),5969,UIDAI State Verification,2732,Goa,30
+1,1236661,Urban Development Department (STATE),,1,30,,,1707,Urban Development Department,826,Goa,30
+2,1236662,District Urban Development Department( DISTRICT - NORTH GOA ),,2,551,,,1708,Urban Development Department,826,Goa,30
+3,1236663,District Urban Development Department( DISTRICT - SOUTH GOA ),,2,552,,,1708,Urban Development Department,826,Goa,30
+1,97,SIRD,,1,30,,,97,SIRD,155,Goa,30

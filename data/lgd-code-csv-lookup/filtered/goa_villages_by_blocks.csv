@@ -1,0 +1,420 @@
+S.No.,State Code,State Name (In English),State Census 2011 Code,District Code,District Name (In English),District Census 2011 Code,Subdistrict Code,Subdistrict Name (In English),Subdistrict Census 2011 Code,Village Code,Village Name (In English),Village Census 2011 Code,Localbody Code,localbody Name (In English),Localbody Census 2011 Code,Development Block Code,Development Block Name (In English),District Code of Development Block,District Name of Development Block (In English)
+1,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626704,Aldona (Ct),626704,254349,Aldona,0,5929,Bardez,551.0,North Goa
+2,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626694,Anjuna (Ct),626694,254354,Anjuna-Caisua,0,5929,Bardez,551.0,North Goa
+3,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626673,Arpora,626673,254357,Arpora-Nagoa,0,5929,Bardez,551.0,North Goa
+4,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626672,Assagao,626672,254358,Assagao,0,5929,Bardez,551.0,North Goa
+5,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626668,Assonora,626668,254359,Assanora,0,5929,Bardez,551.0,North Goa
+6,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626678,Bastora,626678,254367,Bastora,0,5929,Bardez,551.0,North Goa
+7,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626695,Calangute (Ct),626695,254377,Calangute,0,5929,Bardez,551.0,North Goa
+8,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626695,Calangute (Ct),626695,254380,Candolim,0,5929,Bardez,551.0,North Goa
+9,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626685,Calvim,626685,254349,Aldona,0,5929,Bardez,551.0,North Goa
+10,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626663,Camurlim,626663,254378,Camurli,0,5929,Bardez,551.0,North Goa
+11,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626677,Canca,626677,254531,Verla Canca,0,5929,Bardez,551.0,North Goa
+12,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626697,Candolim (Ct),626697,254380,Candolim,0,5929,Bardez,551.0,North Goa
+13,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626691,Colvale (Ct),626691,254396,Colvale,0,5929,Bardez,551.0,North Goa
+14,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626683,Corjuem,626683,254349,Aldona,0,5929,Bardez,551.0,North Goa
+15,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626693,Guirim (Ct),626693,254419,Guirim,0,5929,Bardez,551.0,North Goa
+16,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626671,Marna,626671,254500,Siolim Marna,0,5929,Bardez,551.0,North Goa
+17,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626689,Marra,626689,254380,Candolim,0,5929,Bardez,551.0,North Goa
+18,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626689,Marra,626689,254471,Pilerne - Marra,0,5929,Bardez,551.0,North Goa
+19,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626692,Moira (Ct),626692,254442,Moira,0,5929,Bardez,551.0,North Goa
+20,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626667,Moitem,626667,254359,Assanora,0,5929,Bardez,551.0,North Goa
+21,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626682,Nachinola,626682,254449,Nachinola,0,5929,Bardez,551.0,North Goa
+22,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626665,Nadora,626665,254450,Nadora,0,5929,Bardez,551.0,North Goa
+23,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626674,Nagoa,626674,254357,Arpora-Nagoa,0,5929,Bardez,551.0,North Goa
+24,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626698,Nerul (Ct),626698,254457,Nerul,0,5929,Bardez,551.0,North Goa
+25,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626686,Olaulim,626686,254476,"Pomburpa, Olaulim",0,5929,Bardez,551.0,North Goa
+26,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626662,Oxel,626662,254462,Oxel,0,5929,Bardez,551.0,North Goa
+27,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626679,Paliem,626679,254520,Ucassaim-Paliem-Punola,0,5929,Bardez,551.0,North Goa
+28,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626675,Parra,626675,254469,Parra,0,5929,Bardez,551.0,North Goa
+29,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626701,Penha-De-Franca (Ct),626701,254470,Penha-De-France,0,5929,Bardez,551.0,North Goa
+30,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626700,Pilerne (Ct),626700,254471,Pilerne - Marra,0,5929,Bardez,551.0,North Goa
+31,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626666,Pirna,626666,254473,Pirna,0,5929,Bardez,551.0,North Goa
+32,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626687,Pomburpa,626687,254476,"Pomburpa, Olaulim",0,5929,Bardez,551.0,North Goa
+33,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626684,Ponolem,626684,254349,Aldona,0,5929,Bardez,551.0,North Goa
+34,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626680,Punola,626680,254520,Ucassaim-Paliem-Punola,0,5929,Bardez,551.0,North Goa
+35,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626699,Reis-Magos,626699,254529,Reis-Magos,0,5929,Bardez,551.0,North Goa
+36,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626664,Revora,626664,254482,Revora,0,5929,Bardez,551.0,North Goa
+37,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626696,Saligao (Ct),626696,254486,Saligao,0,5929,Bardez,551.0,North Goa
+38,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626702,Salvador-Do-Mundo (Ct),626702,254476,"Pomburpa, Olaulim",0,5929,Bardez,551.0,North Goa
+39,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626702,Salvador-Do-Mundo (Ct),626702,254487,Salvador-Do-Mundo,0,5929,Bardez,551.0,North Goa
+40,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626688,Sangolda,626688,254490,Sangolda,0,5929,Bardez,551.0,North Goa
+41,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626690,Siolim (Ct),626690,254500,Siolim Marna,0,5929,Bardez,551.0,North Goa
+42,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626690,Siolim (Ct),626690,254501,Siolim-Sodiem,0,5929,Bardez,551.0,North Goa
+43,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626669,Sircaim,626669,254504,Sirsaim,0,5929,Bardez,551.0,North Goa
+44,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626703,Socorro (Ct),626703,254506,Socorro,0,5929,Bardez,551.0,North Goa
+45,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626670,Tivim,626670,254516,Thivim,0,5929,Bardez,551.0,North Goa
+46,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626681,Ucassaim,626681,254520,Ucassaim-Paliem-Punola,0,5929,Bardez,551.0,North Goa
+47,30,Goa,30,551,North Goa,585,5610,Bardez,5610,626676,Verla,626676,254531,Verla Canca,0,5929,Bardez,551.0,North Goa
+48,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626745,Adwalpale,626745,254346,Advalpal,0,5930,Bicholim,551.0,North Goa
+49,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626758,Amone,626758,254353,Amona,0,5930,Bicholim,551.0,North Goa
+50,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,917385,Arvalem,0,272873,Harvalem,0,5930,Bicholim,551.0,North Goa
+51,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626754,Aturli,626754,254439,Mayem,0,5930,Bicholim,551.0,North Goa
+52,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,924814,Bordem,0,,,,5930,Bicholim,551.0,North Goa
+53,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626763,Carapur (Ct),626763,254424,Karapur-Sarvan,0,5930,Bicholim,551.0,North Goa
+54,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626760,Cotombi,626760,254464,"Pale, Cotombi",0,5930,Bicholim,551.0,North Goa
+55,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626757,Cudnem,626757,254402,Cudnem,0,5930,Bicholim,551.0,North Goa
+56,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626750,Curchirem,626750,254437,Ona Maulinguem Curchirem,0,5930,Bicholim,551.0,North Goa
+57,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626742,Dumacem,626742,254440,Mencurem Dumacem,0,5930,Bicholim,551.0,North Goa
+58,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,924818,Lamgao,0,,,,5930,Bicholim,551.0,North Goa
+59,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626744,Latambarcem,626744,254430,Latambarcem,0,5930,Bicholim,551.0,North Goa
+60,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626752,Maem,626752,254439,Mayem,0,5930,Bicholim,551.0,North Goa
+61,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626749,Maulinguem-North,626749,254437,Ona Maulinguem Curchirem,0,5930,Bicholim,551.0,North Goa
+62,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626741,Mencurem,626741,254440,Mencurem Dumacem,0,5930,Bicholim,551.0,North Goa
+63,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626747,Mulgao,626747,254448,Mulgao,0,5930,Bicholim,551.0,North Goa
+64,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626755,Naroa,626755,254454,Naroa,0,5930,Bicholim,551.0,North Goa
+65,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626759,Navelim,626759,254456,Navelim,0,5930,Bicholim,551.0,North Goa
+66,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626748,Ona,626748,254437,Ona Maulinguem Curchirem,0,5930,Bicholim,551.0,North Goa
+67,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626764,Pale (Ct),626764,254464,"Pale, Cotombi",0,5930,Bicholim,551.0,North Goa
+68,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626756,Piligao,626756,254472,Piligao,0,5930,Bicholim,551.0,North Goa
+69,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626743,Salem,626743,254485,Salem,0,5930,Bicholim,551.0,North Goa
+70,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626751,Sarvona,626751,254424,Karapur-Sarvan,0,5930,Bicholim,551.0,North Goa
+71,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626746,Sirigao,626746,254503,Sirigao,0,5930,Bicholim,551.0,North Goa
+72,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626761,Surla,626761,254511,Surla,0,5930,Bicholim,551.0,North Goa
+73,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626753,Vainguinim,626753,254439,Mayem,0,5930,Bicholim,551.0,North Goa
+74,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,626762,Velguem,626762,254525,Velguem,0,5930,Bicholim,551.0,North Goa
+75,30,Goa,30,551,North Goa,585,5612,Bicholim,5612,924826,Virdi,0,,,,5930,Bicholim,551.0,North Goa
+76,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626657,Agarvado,626657,254347,Agarwada Chopdem,0,5931,Pernem,551.0,North Goa
+77,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626649,Alorna,626649,254350,Alorna,0,5931,Pernem,551.0,North Goa
+78,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626643,Amberem,626643,254383,"Casnem, Amberem,Poroscodem",0,5931,Pernem,551.0,North Goa
+79,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626658,Arambol (Ct),626658,254356,Arambol,0,5931,Pernem,551.0,North Goa
+80,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626651,Cansarvornem,626651,254425,Kasarvanem,0,5931,Pernem,551.0,North Goa
+81,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626641,Casnem,626641,254383,"Casnem, Amberem,Poroscodem",0,5931,Pernem,551.0,North Goa
+82,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626648,Chandel,626648,254386,Chandel Hasapur,0,5931,Pernem,551.0,North Goa
+83,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626656,Chopdem,626656,254347,Agarwada Chopdem,0,5931,Pernem,551.0,North Goa
+84,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626638,Corgao,626638,254397,Corgao,0,5931,Pernem,551.0,North Goa
+85,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626653,Dargalim,626653,254411,Dhargal,0,5931,Pernem,551.0,North Goa
+86,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626650,Ibrampur,626650,254422,Ibrampur,0,5931,Pernem,551.0,North Goa
+87,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626659,Mandrem (Ct),626659,254435,Mandrem,0,5931,Pernem,551.0,North Goa
+88,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626647,Mopa,626647,254514,"Tamboxem, Mopa, Uguem",0,5931,Pernem,551.0,North Goa
+89,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626661,Morgim,626661,254445,Morjim,0,5931,Pernem,551.0,North Goa
+90,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626652,Ozorim,626652,254463,Ozarim,0,5931,Pernem,551.0,North Goa
+91,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626637,Paliem,626637,254465,Paliem,0,5931,Pernem,551.0,North Goa
+92,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626660,Parcem (Ct),626660,254467,Parcem,0,5931,Pernem,551.0,North Goa
+93,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626640,Poroscodem,626640,254383,"Casnem, Amberem,Poroscodem",0,5931,Pernem,551.0,North Goa
+94,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626636,Querim,626636,254426,Keri Terecol,0,5931,Pernem,551.0,North Goa
+95,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626645,Tamboxem,626645,254514,"Tamboxem, Mopa, Uguem",0,5931,Pernem,551.0,North Goa
+96,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626635,Tiracol,626635,254426,Keri Terecol,0,5931,Pernem,551.0,North Goa
+97,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626646,Torxem,626646,254518,Torxem,0,5931,Pernem,551.0,North Goa
+98,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626655,Tuem,626655,254519,Tuem,0,5931,Pernem,551.0,North Goa
+99,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626644,Uguem,626644,254514,"Tamboxem, Mopa, Uguem",0,5931,Pernem,551.0,North Goa
+100,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626642,Varconda,626642,254524,Varkhand Nagzar,0,5931,Pernem,551.0,North Goa
+101,30,Goa,30,551,North Goa,585,5609,Pernem,5609,626654,Virnora,626654,254533,Virnoda,0,5931,Pernem,551.0,North Goa
+102,30,Goa,30,551,North Goa,585,5613,Satari,5613,626825,Advoi,626825,254375,Birondem,0,5933,Satari,551.0,North Goa
+103,30,Goa,30,551,North Goa,585,5613,Satari,5613,626803,Ambedem,626803,254451,Nagargao,0,5933,Satari,551.0,North Goa
+104,30,Goa,30,551,North Goa,585,5613,Satari,5613,626839,Ambeli,626839,254401,Cotodem,0,5933,Satari,551.0,North Goa
+105,30,Goa,30,551,North Goa,585,5613,Satari,5613,626770,Anjunem,626770,254479,Querim,0,5933,Satari,551.0,North Goa
+106,30,Goa,30,551,North Goa,585,5613,Satari,5613,626814,Ansolem,626814,254375,Birondem,0,5933,Satari,551.0,North Goa
+107,30,Goa,30,551,North Goa,585,5613,Satari,5613,626836,Assodem,626836,254401,Cotodem,0,5933,Satari,551.0,North Goa
+108,30,Goa,30,551,North Goa,585,5613,Satari,5613,626830,Birondem,626830,254375,Birondem,0,5933,Satari,551.0,North Goa
+109,30,Goa,30,551,North Goa,585,5613,Satari,5613,626802,Bombedem,626802,254451,Nagargao,0,5933,Satari,551.0,North Goa
+110,30,Goa,30,551,North Goa,585,5613,Satari,5613,626807,Buimpal,626807,254421,Honda,0,5933,Satari,551.0,North Goa
+111,30,Goa,30,551,North Goa,585,5613,Satari,5613,626793,Carambolim- Brama,626793,254451,Nagargao,0,5933,Satari,551.0,North Goa
+112,30,Goa,30,551,North Goa,585,5613,Satari,5613,626821,Carambolim-Buzruco,626821,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+113,30,Goa,30,551,North Goa,585,5613,Satari,5613,626820,Caranzol,626820,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+114,30,Goa,30,551,North Goa,585,5613,Satari,5613,626773,Choraundem,626773,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+115,30,Goa,30,551,North Goa,585,5613,Satari,5613,626780,Codal,626780,254451,Nagargao,0,5933,Satari,551.0,North Goa
+116,30,Goa,30,551,North Goa,585,5613,Satari,5613,626812,Codiem,626812,254474,Pissurlem,0,5933,Satari,551.0,North Goa
+117,30,Goa,30,551,North Goa,585,5613,Satari,5613,626823,Codqui,626823,254401,Cotodem,0,5933,Satari,551.0,North Goa
+118,30,Goa,30,551,North Goa,585,5613,Satari,5613,626818,Codvol,626818,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+119,30,Goa,30,551,North Goa,585,5613,Satari,5613,626790,Compordem,626790,254438,Mauxi,0,5933,Satari,551.0,North Goa
+120,30,Goa,30,551,North Goa,585,5613,Satari,5613,626841,Conquirem,626841,254420,Guleli,0,5933,Satari,551.0,North Goa
+121,30,Goa,30,551,North Goa,585,5613,Satari,5613,626832,Cotorem,626832,254401,Cotodem,0,5933,Satari,551.0,North Goa
+122,30,Goa,30,551,North Goa,585,5613,Satari,5613,626815,Cudcem,626815,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+123,30,Goa,30,551,North Goa,585,5613,Satari,5613,626808,Cumarconda,626808,254474,Pissurlem,0,5933,Satari,551.0,North Goa
+124,30,Goa,30,551,North Goa,585,5613,Satari,5613,626789,Dabem,626789,254438,Mauxi,0,5933,Satari,551.0,North Goa
+125,30,Goa,30,551,North Goa,585,5613,Satari,5613,626831,Damocem,626831,254420,Guleli,0,5933,Satari,551.0,North Goa
+126,30,Goa,30,551,North Goa,585,5613,Satari,5613,626801,Davem,626801,254451,Nagargao,0,5933,Satari,551.0,North Goa
+127,30,Goa,30,551,North Goa,585,5613,Satari,5613,626779,Derodem,626779,254451,Nagargao,0,5933,Satari,551.0,North Goa
+128,30,Goa,30,551,North Goa,585,5613,Satari,5613,626782,Dongurli,626782,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+129,30,Goa,30,551,North Goa,585,5613,Satari,5613,626791,Edorem,626791,254451,Nagargao,0,5933,Satari,551.0,North Goa
+130,30,Goa,30,551,North Goa,585,5613,Satari,5613,626776,Golauli,626776,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+131,30,Goa,30,551,North Goa,585,5613,Satari,5613,626768,Gonteli,626768,254479,Querim,0,5933,Satari,551.0,North Goa
+132,30,Goa,30,551,North Goa,585,5613,Satari,5613,626837,Govanem,626837,254401,Cotodem,0,5933,Satari,551.0,North Goa
+133,30,Goa,30,551,North Goa,585,5613,Satari,5613,626828,Guleli,626828,254420,Guleli,0,5933,Satari,551.0,North Goa
+134,30,Goa,30,551,North Goa,585,5613,Satari,5613,626784,Gululem,626784,254479,Querim,0,5933,Satari,551.0,North Goa
+135,30,Goa,30,551,North Goa,585,5613,Satari,5613,626774,Ivrem-Buzruco,626774,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+136,30,Goa,30,551,North Goa,585,5613,Satari,5613,626775,Ivrem-Curdo,626775,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+137,30,Goa,30,551,North Goa,585,5613,Satari,5613,626796,Maloli,626796,254451,Nagargao,0,5933,Satari,551.0,North Goa
+138,30,Goa,30,551,North Goa,585,5613,Satari,5613,626838,Malpona,626838,254401,Cotodem,0,5933,Satari,551.0,North Goa
+139,30,Goa,30,551,North Goa,585,5613,Satari,5613,924819,Massordem,0,,,,5933,Satari,551.0,North Goa
+140,30,Goa,30,551,North Goa,585,5613,Satari,5613,626806,Mauxi,626806,254438,Mauxi,0,5933,Satari,551.0,North Goa
+141,30,Goa,30,551,North Goa,585,5613,Satari,5613,626840,Melauli,626840,254420,Guleli,0,5933,Satari,551.0,North Goa
+142,30,Goa,30,551,North Goa,585,5613,Satari,5613,626786,Morlem,626786,254446,Morlem,0,5933,Satari,551.0,North Goa
+143,30,Goa,30,551,North Goa,585,5613,Satari,5613,626804,Nagargao,626804,254451,Nagargao,0,5933,Satari,551.0,North Goa
+144,30,Goa,30,551,North Goa,585,5613,Satari,5613,626813,Naguem,626813,254438,Mauxi,0,5933,Satari,551.0,North Goa
+145,30,Goa,30,551,North Goa,585,5613,Satari,5613,626792,Naneli,626792,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+146,30,Goa,30,551,North Goa,585,5613,Satari,5613,626797,Nanorem,626797,254451,Nagargao,0,5933,Satari,551.0,North Goa
+147,30,Goa,30,551,North Goa,585,5613,Satari,5613,924821,Nanus,0,,,,5933,Satari,551.0,North Goa
+148,30,Goa,30,551,North Goa,585,5613,Satari,5613,626842,Onda (Ct),626842,254421,Honda,0,5933,Satari,551.0,North Goa
+149,30,Goa,30,551,North Goa,585,5613,Satari,5613,626829,Padeli,626829,254375,Birondem,0,5933,Satari,551.0,North Goa
+150,30,Goa,30,551,North Goa,585,5613,Satari,5613,626783,Pale,626783,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+151,30,Goa,30,551,North Goa,585,5613,Satari,5613,626819,Pendral,626819,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+152,30,Goa,30,551,North Goa,585,5613,Satari,5613,626809,Pissurlem,626809,254474,Pissurlem,0,5933,Satari,551.0,North Goa
+153,30,Goa,30,551,North Goa,585,5613,Satari,5613,626765,Podocem,626765,254477,Poriem,0,5933,Satari,551.0,North Goa
+154,30,Goa,30,551,North Goa,585,5613,Satari,5613,626826,Ponocem,626826,254474,Pissurlem,0,5933,Satari,551.0,North Goa
+155,30,Goa,30,551,North Goa,585,5613,Satari,5613,626772,Ponsuli,626772,254479,Querim,0,5933,Satari,551.0,North Goa
+156,30,Goa,30,551,North Goa,585,5613,Satari,5613,626766,Poriem,626766,254477,Poriem,0,5933,Satari,551.0,North Goa
+157,30,Goa,30,551,North Goa,585,5613,Satari,5613,626771,Quelaudem,626771,254479,Querim,0,5933,Satari,551.0,North Goa
+158,30,Goa,30,551,North Goa,585,5613,Satari,5613,626785,Querim,626785,254479,Querim,0,5933,Satari,551.0,North Goa
+159,30,Goa,30,551,North Goa,585,5613,Satari,5613,626767,Ravona,626767,254479,Querim,0,5933,Satari,551.0,North Goa
+160,30,Goa,30,551,North Goa,585,5613,Satari,5613,626781,Rivem,626781,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+161,30,Goa,30,551,North Goa,585,5613,Satari,5613,626787,Saleli,626787,254421,Honda,0,5933,Satari,551.0,North Goa
+162,30,Goa,30,551,North Goa,585,5613,Satari,5613,626824,Sanvorcem,626824,254375,Birondem,0,5933,Satari,551.0,North Goa
+163,30,Goa,30,551,North Goa,585,5613,Satari,5613,626816,Sanvordem,626816,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+164,30,Goa,30,551,North Goa,585,5613,Satari,5613,626805,Satorem,626805,254451,Nagargao,0,5933,Satari,551.0,North Goa
+165,30,Goa,30,551,North Goa,585,5613,Satari,5613,626778,Satrem,626778,254451,Nagargao,0,5933,Satari,551.0,North Goa
+166,30,Goa,30,551,North Goa,585,5613,Satari,5613,626795,Sigonem,626795,254451,Nagargao,0,5933,Satari,551.0,North Goa
+167,30,Goa,30,551,North Goa,585,5613,Satari,5613,626834,Siranguli,626834,254401,Cotodem,0,5933,Satari,551.0,North Goa
+168,30,Goa,30,551,North Goa,585,5613,Satari,5613,626769,Siroli,626769,254479,Querim,0,5933,Satari,551.0,North Goa
+169,30,Goa,30,551,North Goa,585,5613,Satari,5613,626835,Sirsodem,626835,254401,Cotodem,0,5933,Satari,551.0,North Goa
+170,30,Goa,30,551,North Goa,585,5613,Satari,5613,626817,Sonal,626817,254492,Sanvordem,0,5933,Satari,551.0,North Goa
+171,30,Goa,30,551,North Goa,585,5613,Satari,5613,626810,Sonus-Vonvoliem,626810,254421,Honda,0,5933,Satari,551.0,North Goa
+172,30,Goa,30,551,North Goa,585,5613,Satari,5613,626777,Surla,626777,254412,Dongurli-Thane,0,5933,Satari,551.0,North Goa
+173,30,Goa,30,551,North Goa,585,5613,Satari,5613,626800,Ustem,626800,254451,Nagargao,0,5933,Satari,551.0,North Goa
+174,30,Goa,30,551,North Goa,585,5613,Satari,5613,626811,Vaguriem,626811,254474,Pissurlem,0,5933,Satari,551.0,North Goa
+175,30,Goa,30,551,North Goa,585,5613,Satari,5613,626798,Vainguinim,626798,254451,Nagargao,0,5933,Satari,551.0,North Goa
+176,30,Goa,30,551,North Goa,585,5613,Satari,5613,626827,Vantem,626827,254375,Birondem,0,5933,Satari,551.0,North Goa
+177,30,Goa,30,551,North Goa,585,5613,Satari,5613,626822,Velguem,626822,254401,Cotodem,0,5933,Satari,551.0,North Goa
+178,30,Goa,30,551,North Goa,585,5613,Satari,5613,924825,Velus,0,,,,5933,Satari,551.0,North Goa
+179,30,Goa,30,551,North Goa,585,5613,Satari,5613,626794,Xelopo-Buzruco,626794,254451,Nagargao,0,5933,Satari,551.0,North Goa
+180,30,Goa,30,551,North Goa,585,5613,Satari,5613,626833,Xelopo-Curdo,626833,254401,Cotodem,0,5933,Satari,551.0,North Goa
+181,30,Goa,30,551,North Goa,585,5613,Satari,5613,626799,Zarani,626799,254451,Nagargao,0,5933,Satari,551.0,North Goa
+182,30,Goa,30,551,North Goa,585,5613,Satari,5613,626788,Zormen,626788,254438,Mauxi,0,5933,Satari,551.0,North Goa
+183,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626705,Ambarim,626705,254392,Chodan-Madel,0,5934,Tiswadi,551.0,North Goa
+184,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626719,Azossim,626719,254363,Azossim-Mandur,0,5934,Tiswadi,551.0,North Goa
+185,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626715,Bainguinim,626715,254496,Se-Old-Goa,0,5934,Tiswadi,551.0,North Goa
+186,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626733,Bambolim (Ct),626733,254405,"Curca, Bambolim, Talaulim",0,5934,Tiswadi,551.0,North Goa
+187,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626722,Batim,626722,254368,Batim,0,5934,Tiswadi,551.0,North Goa
+188,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626732,Calapor (Ct),626732,254508,St. Cruz,0,5934,Tiswadi,551.0,North Goa
+189,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626708,Capao,626708,254494,Sao Matias,0,5934,Tiswadi,551.0,North Goa
+190,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626707,Caraim,626707,254392,Chodan-Madel,0,5934,Tiswadi,551.0,North Goa
+191,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626718,Carambolim,626718,254381,Carambolim,0,5934,Tiswadi,551.0,North Goa
+192,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626730,Chimbel (Ct),626730,254390,Chimbel,0,5934,Tiswadi,551.0,North Goa
+193,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626706,Chorao,626706,254392,Chodan-Madel,0,5934,Tiswadi,551.0,North Goa
+194,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626729,Corlim (Ct),626729,254398,Corlim,0,5934,Tiswadi,551.0,North Goa
+195,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626740,Cujira (Og),626740,254508,St. Cruz,0,5934,Tiswadi,551.0,North Goa
+196,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626728,Cumbarjua (Ct),626728,254404,Cumbharjua,0,5934,Tiswadi,551.0,North Goa
+197,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626723,Curca,626723,254405,"Curca, Bambolim, Talaulim",0,5934,Tiswadi,551.0,North Goa
+198,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,645599,Durgavado,645599,254513,Taleigao,0,5934,Tiswadi,551.0,North Goa
+199,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626714,Ella,626714,254496,Se-Old-Goa,0,5934,Tiswadi,551.0,North Goa
+200,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626721,Gancim,626721,254368,Batim,0,5934,Tiswadi,551.0,North Goa
+201,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626713,Gandaulim,626713,254404,Cumbharjua,0,5934,Tiswadi,551.0,North Goa
+202,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626717,Goalim-Moula,626717,254405,"Curca, Bambolim, Talaulim",0,5934,Tiswadi,551.0,North Goa
+203,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626734,Goa-Velha,626734,254507,St. Andre,0,5934,Tiswadi,551.0,North Goa
+204,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626710,Goltim,626710,254417,Goltim-Navelim,0,5934,Tiswadi,551.0,North Goa
+205,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626727,Jua (Ct),626727,254509,St. Estevam,0,5934,Tiswadi,551.0,North Goa
+206,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626711,Malar,626711,254494,Sao Matias,0,5934,Tiswadi,551.0,North Goa
+207,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626720,Mandur,626720,254363,Azossim-Mandur,0,5934,Tiswadi,551.0,North Goa
+208,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626735,Mercurim (Ct),626735,254493,Sao Lourence(Agassaim),0,5934,Tiswadi,551.0,North Goa
+209,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626737,Morambi-O-Grande (Merces),626737,254390,Chimbel,0,5934,Tiswadi,551.0,North Goa
+210,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626737,Morambi-O-Grande (Merces),626737,254441,Merces,0,5934,Tiswadi,551.0,North Goa
+211,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626739,Morambi-O-Pequeno (Merces),626739,254441,Merces,0,5934,Tiswadi,551.0,North Goa
+212,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626731,Murda (Ct),626731,254441,Merces,0,5934,Tiswadi,551.0,North Goa
+213,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626712,Naroa,626712,254494,Sao Matias,0,5934,Tiswadi,551.0,North Goa
+214,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626709,Navelim,626709,254417,Goltim-Navelim,0,5934,Tiswadi,551.0,North Goa
+215,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626726,Neura-O-Grande,626726,254459,Neura,0,5934,Tiswadi,551.0,North Goa
+216,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626725,Neura-O-Pequeno,626725,254459,Neura,0,5934,Tiswadi,551.0,North Goa
+217,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626736,Panelim (Og),626736,254496,Se-Old-Goa,0,5934,Tiswadi,551.0,North Goa
+218,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626738,Renovadi (Og),626738,254441,Merces,0,5934,Tiswadi,551.0,North Goa
+219,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626724,Siridao,626724,254502,Siridao-Pale,0,5934,Tiswadi,551.0,North Goa
+220,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,626716,Talaulim,626716,254405,"Curca, Bambolim, Talaulim",0,5934,Tiswadi,551.0,North Goa
+221,30,Goa,30,551,North Goa,585,5611,Tiswadi,5611,645598,Taleigao,645598,254513,Taleigao,0,5934,Tiswadi,551.0,North Goa
+222,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627023,Agonda,627023,254348,Agonda,0,5935,Canacona,552.0,South Goa
+223,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627029,Angediva,627029,254431,Loliem-Polem,0,5935,Canacona,552.0,South Goa
+224,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627024,Canacona,627024,254499,Shristhal,0,5935,Canacona,552.0,South Goa
+225,30,Goa,30,552,South Goa,586,5619,Canacona,5619,924816,Chaudi,0,,,,5935,Canacona,552.0,South Goa
+226,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627022,Cola,627022,254393,Cola,0,5935,Canacona,552.0,South Goa
+227,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627028,Cotigao,627028,254400,Cotigao,0,5935,Canacona,552.0,South Goa
+228,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627025,Gaodongrem,627025,254416,Gaondongri,0,5935,Canacona,552.0,South Goa
+229,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627027,Loliem,627027,254431,Loliem-Polem,0,5935,Canacona,552.0,South Goa
+230,30,Goa,30,552,South Goa,586,5619,Canacona,5619,924820,Nagorcem - Palolem,0,,,,5935,Canacona,552.0,South Goa
+231,30,Goa,30,552,South Goa,586,5619,Canacona,5619,627026,Poinguinim,627026,254475,Poinguinim,0,5935,Canacona,552.0,South Goa
+232,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626973,Aglote,626973,254489,Sancordem,0,6841,Dharbandora,552.0,South Goa
+233,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626984,Bandoli,626984,254428,Kirlapal-Dabhal,0,6841,Dharbandora,552.0,South Goa
+234,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626982,Camarconda,626982,254428,Kirlapal-Dabhal,0,6841,Dharbandora,552.0,South Goa
+235,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626976,Caranzol,626976,254394,Colem,0,6841,Dharbandora,552.0,South Goa
+236,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626981,Codli,626981,254428,Kirlapal-Dabhal,0,6841,Dharbandora,552.0,South Goa
+237,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626977,Colem,626977,254394,Colem,0,6841,Dharbandora,552.0,South Goa
+238,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626980,Cormonem,626980,254428,Kirlapal-Dabhal,0,6841,Dharbandora,552.0,South Goa
+239,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626971,Darbandora,626971,254410,Dharbandora,0,6841,Dharbandora,552.0,South Goa
+240,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626983,Moissal,626983,254428,Kirlapal-Dabhal,0,6841,Dharbandora,552.0,South Goa
+241,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626975,Molem,626975,254444,Mollem,0,6841,Dharbandora,552.0,South Goa
+242,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626970,Piliem,626970,254410,Dharbandora,0,6841,Dharbandora,552.0,South Goa
+243,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626972,Sancordem,626972,254489,Sancordem,0,6841,Dharbandora,552.0,South Goa
+244,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626979,Sangod,626979,254444,Mollem,0,6841,Dharbandora,552.0,South Goa
+245,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626978,Sigao,626978,254394,Colem,0,6841,Dharbandora,552.0,South Goa
+246,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626989,Sonauli,626989,254394,Colem,0,6841,Dharbandora,552.0,South Goa
+247,30,Goa,30,552,South Goa,586,5931,Dharbandora,0,626974,Surla,626974,254489,Sancordem,0,6841,Dharbandora,552.0,South Goa
+248,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626884,Arossim,626884,254403,Cansaulim-Arossim-Cuelim,0,5936,Mormugao,552.0,South Goa
+249,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626883,Cansaulim,626883,254403,Cansaulim-Arossim-Cuelim,0,5936,Mormugao,552.0,South Goa
+250,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626885,Chicalim (Ct),626885,254388,Chicalim,0,5936,Mormugao,552.0,South Goa
+251,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626880,Chicolna,626880,254389,Chicolna-Bogmalo,0,5936,Mormugao,552.0,South Goa
+252,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626887,Cortalim (Ct),626887,254399,Cortalim,0,5936,Mormugao,552.0,South Goa
+253,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626877,Cuelim,626877,254403,Cansaulim-Arossim-Cuelim,0,5936,Mormugao,552.0,South Goa
+254,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626874,Dabolim,626874,254388,Chicalim,0,5936,Mormugao,552.0,South Goa
+255,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626879,Issorcim,626879,254528,Velsao-Pale,0,5936,Mormugao,552.0,South Goa
+256,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626878,Pale,626878,254528,Velsao-Pale,0,5936,Mormugao,552.0,South Goa
+257,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626876,Quelossim,626876,276388,Quelossim,0,5936,Mormugao,552.0,South Goa
+258,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626886,Sancoale (Ct),626886,254488,Sancoale,0,5936,Mormugao,552.0,South Goa
+259,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626875,Sao Jacinto Island,626875,254388,Chicalim,0,5936,Mormugao,552.0,South Goa
+260,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626881,Sao Jorge Island,626881,254388,Chicalim,0,5936,Mormugao,552.0,South Goa
+261,30,Goa,30,552,South Goa,586,5615,Mormugao,5615,626882,Velsao,626882,254528,Velsao-Pale,0,5936,Mormugao,552.0,South Goa
+262,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626847,Adcolna,626847,254374,Bhoma-Adcolna,0,5932,Ponda,552.0,South Goa
+263,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626869,Bandora (Ct),626869,254365,Bandora,0,5932,Ponda,552.0,South Goa
+264,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626859,Betora,626859,254371,Betora-Nirancal,0,5932,Ponda,552.0,South Goa
+265,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626844,Betqui,626844,254372,"Betqui, Candola",0,5932,Ponda,552.0,South Goa
+266,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626848,Boma,626848,254374,Bhoma-Adcolna,0,5932,Ponda,552.0,South Goa
+267,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626872,Borim (Ct),626872,254376,Borim,0,5932,Ponda,552.0,South Goa
+268,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626853,Candepar,626853,254407,Curti-Khandepar,0,5932,Ponda,552.0,South Goa
+269,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626865,Candola (Ct),626865,254372,"Betqui, Candola",0,5932,Ponda,552.0,South Goa
+270,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626860,Codar,626860,254371,Betora-Nirancal,0,5932,Ponda,552.0,South Goa
+271,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626862,Conxem,626862,254371,Betora-Nirancal,0,5932,Ponda,552.0,South Goa
+272,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626849,Cuncoliem,626849,254527,Veling-Priol,0,5932,Ponda,552.0,South Goa
+273,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626855,Cundaim,626855,254429,Kundaim,0,5932,Ponda,552.0,South Goa
+274,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626870,Curti (Ct),626870,254407,Curti-Khandepar,0,5932,Ponda,552.0,South Goa
+275,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626856,Durbhat,626856,254414,Durbhat,0,5932,Ponda,552.0,South Goa
+276,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626852,Gangem,626852,254522,Usgao-Ganjem,0,5932,Ponda,552.0,South Goa
+277,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626867,Marcaim (Ct),626867,254436,Marcaim,0,5932,Ponda,552.0,South Goa
+278,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626861,Nirancal,626861,254371,Betora-Nirancal,0,5932,Ponda,552.0,South Goa
+279,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626866,Orgao (Ct),626866,254517,Tivrem-Orgao,0,5932,Ponda,552.0,South Goa
+280,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626864,Ponchavadi,626864,254466,Panchawadi,0,5932,Ponda,552.0,South Goa
+281,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626868,Priol (Ct),626868,254527,Veling-Priol,0,5932,Ponda,552.0,South Goa
+282,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626850,Querim,626850,254427,Querim,0,5932,Ponda,552.0,South Goa
+283,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626871,Queula,626871,254478,Quela,0,5932,Ponda,552.0,South Goa
+284,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626846,Savoi-Verem,626846,254530,Verem-Vaghurme,0,5932,Ponda,552.0,South Goa
+285,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626863,Shiroda,626863,254498,Shiroda,0,5932,Ponda,552.0,South Goa
+286,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626857,Telaulim,626857,254512,Vadi Talaulim,0,5932,Ponda,552.0,South Goa
+287,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626843,Tivrem,626843,254517,Tivrem-Orgao,0,5932,Ponda,552.0,South Goa
+288,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626873,Usgao (Ct),626873,254522,Usgao-Ganjem,0,5932,Ponda,552.0,South Goa
+289,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626858,Vadi,626858,254512,Vadi Talaulim,0,5932,Ponda,552.0,South Goa
+290,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626851,Vagurbem,626851,254530,Verem-Vaghurme,0,5932,Ponda,552.0,South Goa
+291,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626854,Velinga,626854,254527,Veling-Priol,0,5932,Ponda,552.0,South Goa
+292,30,Goa,30,552,South Goa,586,5614,Ponda,5614,626845,Volvoi,626845,254534,Volvoi,0,5932,Ponda,552.0,South Goa
+293,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626948,Adnem,626948,254364,Balli-Adnem,0,5937,Quepem,552.0,South Goa
+294,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626947,Ambaulim,626947,254351,Ambaulim,0,5937,Quepem,552.0,South Goa
+295,30,Goa,30,552,South Goa,586,5617,Quepem,5617,910339,Amona,0,,,,5937,Quepem,552.0,South Goa
+296,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626934,Assolda,626934,254360,Assolda,0,5937,Quepem,552.0,South Goa
+297,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626939,Avedem,626939,254362,Avedem-Cotombi,0,5937,Quepem,552.0,South Goa
+298,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626949,Bali,626949,254364,Balli-Adnem,0,5937,Quepem,552.0,South Goa
+299,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626961,Barcem,626961,254366,Barcem,0,5937,Quepem,552.0,South Goa
+300,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626955,Bendordem,626955,254364,Balli-Adnem,0,5937,Quepem,552.0,South Goa
+301,30,Goa,30,552,South Goa,586,5617,Quepem,5617,924815,Cacora,0,,,,5937,Quepem,552.0,South Goa
+302,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626956,Cavorem,626956,254384,Caurem,0,5937,Quepem,552.0,South Goa
+303,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626967,Cazur,626967,254384,Caurem,0,5937,Quepem,552.0,South Goa
+304,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626940,Chaifi,626940,254362,Avedem-Cotombi,0,5937,Quepem,552.0,South Goa
+305,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626958,Cordem,626958,254364,Balli-Adnem,0,5937,Quepem,552.0,South Goa
+306,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626966,Corla,626966,254384,Caurem,0,5937,Quepem,552.0,South Goa
+307,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626938,Cotombi,626938,254362,Avedem-Cotombi,0,5937,Quepem,552.0,South Goa
+308,30,Goa,30,552,South Goa,586,5617,Quepem,5617,910340,Cusmane,0,,,,5937,Quepem,552.0,South Goa
+309,30,Goa,30,552,South Goa,586,5617,Quepem,5617,924817,Deao,0,,,,5937,Quepem,552.0,South Goa
+310,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626950,Fatorpa,626950,254415,Fatorpa-Quitol,0,5937,Quepem,552.0,South Goa
+311,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626962,Goculdem,626962,254366,Barcem,0,5937,Quepem,552.0,South Goa
+312,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626937,Hodar,626937,254360,Assolda,0,5937,Quepem,552.0,South Goa
+313,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626957,Maina,626957,254384,Caurem,0,5937,Quepem,552.0,South Goa
+314,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626968,Mangal,626968,254384,Caurem,0,5937,Quepem,552.0,South Goa
+315,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626945,Molcopona,626945,254443,Molcornem,0,5937,Quepem,552.0,South Goa
+316,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626946,Molcornem,626946,254443,Molcornem,0,5937,Quepem,552.0,South Goa
+317,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626953,Morpirla,626953,254447,Morpirla,0,5937,Quepem,552.0,South Goa
+318,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626942,Nagvem,626942,254443,Molcornem,0,5937,Quepem,552.0,South Goa
+319,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626952,Naqueri,626952,254453,Naqueri-Betul,0,5937,Quepem,552.0,South Goa
+320,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626959,Padi,626959,254366,Barcem,0,5937,Quepem,552.0,South Goa
+321,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626964,Pirla,626964,254384,Caurem,0,5937,Quepem,552.0,South Goa
+322,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626960,Quedem,626960,254366,Barcem,0,5937,Quepem,552.0,South Goa
+323,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626963,Quisconda,626963,254366,Barcem,0,5937,Quepem,552.0,South Goa
+324,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626951,Quitol,626951,254453,Naqueri-Betul,0,5937,Quepem,552.0,South Goa
+325,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626941,Sirvoi,626941,254535,Xeldem,0,5937,Quepem,552.0,South Goa
+326,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626941,Sirvoi,626941,,,,5937,Quepem,552.0,South Goa
+327,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626965,Sulcorna,626965,254384,Caurem,0,5937,Quepem,552.0,South Goa
+328,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626954,Tiloi,626954,254364,Balli-Adnem,0,5937,Quepem,552.0,South Goa
+329,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626944,Undorna,626944,254443,Molcornem,0,5937,Quepem,552.0,South Goa
+330,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626969,Xeldem (Ct),626969,254535,Xeldem,0,5937,Quepem,552.0,South Goa
+331,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626936,Xelvona,626936,254360,Assolda,0,5937,Quepem,552.0,South Goa
+332,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626935,Xic-Xelvona,626935,254360,Assolda,0,5937,Quepem,552.0,South Goa
+333,30,Goa,30,552,South Goa,586,5617,Quepem,5617,626943,Zanodem,626943,254443,Molcornem,0,5937,Quepem,552.0,South Goa
+334,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626906,Adsulim,626906,254369,Benaulim,0,5938,Salcete,552.0,South Goa
+335,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626922,Ambelim,626922,254352,Ambelim,0,5938,Salcete,552.0,South Goa
+336,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626929,Aquem-Baixo,626929,254355,Aquem Baixo,0,5938,Salcete,552.0,South Goa
+337,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626919,Assolna,626919,254361,Assolna,0,5938,Salcete,552.0,South Goa
+338,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626931,Benaulim (Ct),626931,254369,Benaulim,0,5938,Salcete,552.0,South Goa
+339,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626895,Betalbatim,626895,254370,Betalbatim,0,5938,Salcete,552.0,South Goa
+340,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626891,Calata,626891,254434,Majorda,0,5938,Salcete,552.0,South Goa
+341,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626890,Camurlim,626890,254379,Camurlim,0,5938,Salcete,552.0,South Goa
+342,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626904,Cana,626904,254369,Benaulim,0,5938,Salcete,552.0,South Goa
+343,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626917,Carmona,626917,254382,Carmona,0,5938,Salcete,552.0,South Goa
+344,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626920,Cavelossim,626920,254385,Cavelossim,0,5938,Salcete,552.0,South Goa
+345,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626910,Cavorim,626910,254387,Chandor-Cavorim,0,5938,Salcete,552.0,South Goa
+346,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626911,Chandor,626911,254387,Chandor-Cavorim,0,5938,Salcete,552.0,South Goa
+347,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626933,Chinchinim (Ct),626933,254391,Chinchinim- Deussa,0,5938,Salcete,552.0,South Goa
+348,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626897,Colva,626897,254395,Colva,0,5938,Salcete,552.0,South Goa
+349,30,Goa,30,552,South Goa,586,5616,Salcete,5616,926704,Cuncolim,0,,,,5938,Salcete,552.0,South Goa
+350,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626926,Curtorim (Ct),626926,254408,Curtorim,0,5938,Salcete,552.0,South Goa
+351,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626928,Davorlim (Ct),626928,254409,Davorlim Dicarpale,0,5938,Salcete,552.0,South Goa
+352,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626928,Davorlim (Ct),626928,254484,Rumdamol-Davorlim,0,5938,Salcete,552.0,South Goa
+353,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626918,Deussua,626918,254391,Chinchinim- Deussa,0,5938,Salcete,552.0,South Goa
+354,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626909,Dicarpale,626909,254409,Davorlim Dicarpale,0,5938,Salcete,552.0,South Goa
+355,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626908,Dramapur,626908,254413,Dramapur- Sirlim,0,5938,Salcete,552.0,South Goa
+356,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626900,Duncolim,626900,254497,Seraulim,0,5938,Salcete,552.0,South Goa
+357,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626896,Gaundaulim,626896,254395,Colva,0,5938,Salcete,552.0,South Goa
+358,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626894,Gonsua,626894,254370,Betalbatim,0,5938,Salcete,552.0,South Goa
+359,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626903,Guirdolim,626903,254418,Guirdolim,0,5938,Salcete,552.0,South Goa
+360,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626889,Loutulim,626889,254432,Loutulim,0,5938,Salcete,552.0,South Goa
+361,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626902,Macasana,626902,254433,Macasana,0,5938,Salcete,552.0,South Goa
+362,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626892,Majorda,626892,254434,Majorda,0,5938,Salcete,552.0,South Goa
+363,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626913,Mulem,626913,254468,Paroda,0,5938,Salcete,552.0,South Goa
+364,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626888,Nagoa,626888,254452,Nagoa,0,5938,Salcete,552.0,South Goa
+365,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626930,Navelim (Ct),626930,254455,Navelim,0,5938,Salcete,552.0,South Goa
+366,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626924,Nuvem (Ct),626924,254460,Nuvem,0,5938,Salcete,552.0,South Goa
+367,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626916,Orlim,626916,254461,Orlim,0,5938,Salcete,552.0,South Goa
+368,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626912,Paroda,626912,254468,Paroda,0,5938,Salcete,552.0,South Goa
+369,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626901,Rachol,626901,254480,Rachol,0,5938,Salcete,552.0,South Goa
+370,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626925,Raia (Ct),626925,254481,Raia,0,5938,Salcete,552.0,South Goa
+371,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626927,Sao Jose De Areal (Ct),626927,254510,St. Jose-De-Areal,0,5938,Salcete,552.0,South Goa
+372,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626914,Sarzora,626914,254495,Sarzora,0,5938,Salcete,552.0,South Goa
+373,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626899,Seraulim,626899,254497,Seraulim,0,5938,Salcete,552.0,South Goa
+374,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626905,Sernabatim,626905,254395,Colva,0,5938,Salcete,552.0,South Goa
+375,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626915,Sirlim,626915,254413,Dramapur- Sirlim,0,5938,Salcete,552.0,South Goa
+376,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626907,Talaulim,626907,254515,Telaulim,0,5938,Salcete,552.0,South Goa
+377,30,Goa,30,552,South Goa,586,5616,Salcete,5616,924823,Talvorda,0,,,,5938,Salcete,552.0,South Goa
+378,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626893,Utorda,626893,254434,Majorda,0,5938,Salcete,552.0,South Goa
+379,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626898,Vanelim,626898,254395,Colva,0,5938,Salcete,552.0,South Goa
+380,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626932,Varca (Ct),626932,254523,Varca,0,5938,Salcete,552.0,South Goa
+381,30,Goa,30,552,South Goa,586,5616,Salcete,5616,924824,Varoda,0,,,,5938,Salcete,552.0,South Goa
+382,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626921,Velim,626921,254526,Velim,0,5938,Salcete,552.0,South Goa
+383,30,Goa,30,552,South Goa,586,5616,Salcete,5616,626923,Verna (Ct),626923,254532,Verna,0,5938,Salcete,552.0,South Goa
+384,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626986,Antoriem,626986,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+385,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627006,Bati,627006,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+386,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626990,Boma,626990,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+387,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626988,Calem,626988,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+388,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627013,Colomb,627013,254483,Rivona,0,5939,Sanguem,552.0,South Goa
+389,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626998,Comproi,626998,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+390,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626997,Coranginim,626997,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+391,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626996,Costi,626996,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+392,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627000,Cotarli,627000,254521,Uguem,0,5939,Sanguem,552.0,South Goa
+393,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627007,Cumbari,627007,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+394,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627012,Curdem,627012,254406,Curdi,0,5939,Sanguem,552.0,South Goa
+395,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627009,Dongor,627009,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+396,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626992,Dongurli,626992,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+397,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626995,Dudal,626995,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+398,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627015,Kurpem,627015,254406,Curdi,0,5939,Sanguem,552.0,South Goa
+399,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626994,Maulinguem,626994,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+400,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626999,Muguli,626999,254521,Uguem,0,5939,Sanguem,552.0,South Goa
+401,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627010,Naiquinim,627010,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+402,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627018,Neturlim,627018,254458,Neturlim,0,5939,Sanguem,552.0,South Goa
+403,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627019,Nundem,627019,254458,Neturlim,0,5939,Sanguem,552.0,South Goa
+404,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626991,Odxel,626991,254423,Kalay(Kalem),0,5939,Sanguem,552.0,South Goa
+405,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626993,Patiem,626993,254521,Uguem,0,5939,Sanguem,552.0,South Goa
+406,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627011,Porteem,627011,254406,Curdi,0,5939,Sanguem,552.0,South Goa
+407,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627005,Potrem,627005,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+408,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627014,Rivona,627014,254483,Rivona,0,5939,Sanguem,552.0,South Goa
+409,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626985,Rumbrem,626985,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+410,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627002,Salauli,627002,254521,Uguem,0,5939,Sanguem,552.0,South Goa
+411,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,626987,Santona,626987,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+412,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627021,Sanvordem (Ct),627021,254491,Sanvordem,0,5939,Sanguem,552.0,South Goa
+413,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627017,Sigonem,627017,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+414,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627004,Todou,627004,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+415,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627003,Uguem,627003,254521,Uguem,0,5939,Sanguem,552.0,South Goa
+416,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627020,Verlem,627020,254458,Neturlim,0,5939,Sanguem,552.0,South Goa
+417,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627016,Vichundrem,627016,254458,Neturlim,0,5939,Sanguem,552.0,South Goa
+418,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627008,Viliena,627008,254373,Bhati,0,5939,Sanguem,552.0,South Goa
+419,30,Goa,30,552,South Goa,586,5618,Sanguem,5618,627001,Xelpem,627001,254521,Uguem,0,5939,Sanguem,552.0,South Goa

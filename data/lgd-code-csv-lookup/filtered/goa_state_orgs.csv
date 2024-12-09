@@ -1,0 +1,17 @@
+S.No.,Organization Code,Organization Name,Organization Type,Parent Organization Code,Parent Organization Name,Parent Organization Type,State Code,State Name
+1.0,2849,Agriculture Department,Department,,,,30,Goa
+2.0,2848,Department Of Education,Department,,,,30,Goa
+3.0,1631,DEPARTMENT OF MUNICIPAL ADMINISTRATION,Department,,,,30,Goa
+4.0,480,Department of Panchayati Raj and RD,Department,,,,30,Goa
+5.0,2844,Department of Water Resources,Department,,,,30,Goa
+6.0,1039,Department Women and Child Development,Department,,,,30,Goa
+7.0,2649,Directorate of Census Operations,Department,,,,30,Goa
+8.0,2845,Directorate of Health Services,Department,,,,30,Goa
+9.0,2847,Directorate Of Social Welfare,Department,,,,30,Goa
+10.0,828,Election Commission,Department,,,,30,Goa
+11.0,2153,Office of State Local Fund Auditor,Department,,,,30,Goa
+12.0,827,Revenue Department,Department,,,,30,Goa
+13.0,32,Test Department,Department,,,,30,Goa
+14.0,2732,UIDAI State Verification,Department,,,,30,Goa
+15.0,826,Urban Development Department,Department,,,,30,Goa
+16.0,155,SIRD,Organization,480,Department of Panchayati Raj and RD,Department,30,Goa

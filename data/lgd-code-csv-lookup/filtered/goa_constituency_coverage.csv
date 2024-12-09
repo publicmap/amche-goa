@@ -1,0 +1,530 @@
+S.No,State Code,State Name English,Parliament Constituency Code,Parliament Constituency Name,Assembly Constituency Code,Assembly Constituency Name,Entity Type,Entity Code,Entity Name,Coverage Type,State Name
+1,30,,480,North Goa,3677,Aldona,District,551,North Goa,Partly Covered,Goa
+2,30,,480,North Goa,3677,Aldona,SubDistrict,5610,Bardez,Partly Covered,Goa
+3,30,,480,North Goa,3677,Aldona,Village,626667,Moitem,Fully Covered,Goa
+4,30,,480,North Goa,3677,Aldona,Village,626678,Bastora,Fully Covered,Goa
+5,30,,480,North Goa,3677,Aldona,Village,626679,Paliem,Fully Covered,Goa
+6,30,,480,North Goa,3677,Aldona,Village,626680,Punola,Fully Covered,Goa
+7,30,,480,North Goa,3677,Aldona,Village,626681,Ucassaim,Fully Covered,Goa
+8,30,,480,North Goa,3677,Aldona,Village,626682,Nachinola,Fully Covered,Goa
+9,30,,480,North Goa,3677,Aldona,Village,626683,Corjuem,Fully Covered,Goa
+10,30,,480,North Goa,3677,Aldona,Village,626684,Ponolem,Fully Covered,Goa
+11,30,,480,North Goa,3677,Aldona,Village,626685,Calvim,Fully Covered,Goa
+12,30,,480,North Goa,3677,Aldona,Village,626686,Olaulim,Fully Covered,Goa
+13,30,,480,North Goa,3677,Aldona,Village,626687,Pomburpa,Fully Covered,Goa
+14,30,,480,North Goa,3677,Aldona,Village,626692,Moira (Ct),Fully Covered,Goa
+15,30,,480,North Goa,3677,Aldona,Village,626704,Aldona (Ct),Fully Covered,Goa
+16,30,,480,North Goa,3678,Bicholim,District,551,North Goa,Partly Covered,Goa
+17,30,,480,North Goa,3678,Bicholim,Localbody,252075,Bicholim,Fully Covered,Goa
+18,30,,480,North Goa,3678,Bicholim,SubDistrict,5612,Bicholim,Partly Covered,Goa
+19,30,,480,North Goa,3678,Bicholim,Village,626741,Mencurem,Fully Covered,Goa
+20,30,,480,North Goa,3678,Bicholim,Village,626742,Dumacem,Fully Covered,Goa
+21,30,,480,North Goa,3678,Bicholim,Village,626743,Salem,Fully Covered,Goa
+22,30,,480,North Goa,3678,Bicholim,Village,626744,Latambarcem,Fully Covered,Goa
+23,30,,480,North Goa,3678,Bicholim,Village,626745,Adwalpale,Fully Covered,Goa
+24,30,,480,North Goa,3678,Bicholim,Village,626747,Mulgao,Fully Covered,Goa
+25,30,,480,North Goa,3678,Bicholim,Village,626755,Naroa,Fully Covered,Goa
+26,30,,480,North Goa,3678,Bicholim,Village,924814,Bordem,Fully Covered,Goa
+27,30,,480,North Goa,3678,Bicholim,Village,924818,Lamgao,Fully Covered,Goa
+28,30,,480,North Goa,3678,Bicholim,Village,924826,Virdi,Fully Covered,Goa
+29,30,,480,North Goa,3678,Bicholim,Village,945831,Bicholim,Fully Covered,Goa
+30,30,,480,North Goa,3678,Bicholim,Village,945832,Sankhali,Fully Covered,Goa
+31,30,,480,North Goa,3678,Bicholim,Village,945845,Maulinguem South,Fully Covered,Goa
+32,30,,480,North Goa,3679,Calangute,District,551,North Goa,Partly Covered,Goa
+33,30,,480,North Goa,3679,Calangute,SubDistrict,5610,Bardez,Partly Covered,Goa
+34,30,,480,North Goa,3679,Calangute,Village,626673,Arpora,Fully Covered,Goa
+35,30,,480,North Goa,3679,Calangute,Village,626674,Nagoa,Fully Covered,Goa
+36,30,,480,North Goa,3679,Calangute,Village,626675,Parra,Fully Covered,Goa
+37,30,,480,North Goa,3679,Calangute,Village,626695,Calangute (Ct),Fully Covered,Goa
+38,30,,480,North Goa,3679,Calangute,Village,626697,Candolim (Ct),Fully Covered,Goa
+39,30,,480,North Goa,3680,Cumbarjua,District,551,North Goa,Partly Covered,Goa
+40,30,,480,North Goa,3680,Cumbarjua,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+41,30,,480,North Goa,3680,Cumbarjua,Village,626708,Capao,Fully Covered,Goa
+42,30,,480,North Goa,3680,Cumbarjua,Village,626709,Navelim,Fully Covered,Goa
+43,30,,480,North Goa,3680,Cumbarjua,Village,626710,Goltim,Fully Covered,Goa
+44,30,,480,North Goa,3680,Cumbarjua,Village,626711,Malar,Fully Covered,Goa
+45,30,,480,North Goa,3680,Cumbarjua,Village,626713,Gandaulim,Fully Covered,Goa
+46,30,,480,North Goa,3680,Cumbarjua,Village,626714,Ella,Fully Covered,Goa
+47,30,,480,North Goa,3680,Cumbarjua,Village,626715,Bainguinim,Fully Covered,Goa
+48,30,,480,North Goa,3680,Cumbarjua,Village,626718,Carambolim,Fully Covered,Goa
+49,30,,480,North Goa,3680,Cumbarjua,Village,626727,Jua (Ct),Fully Covered,Goa
+50,30,,480,North Goa,3680,Cumbarjua,Village,626728,Cumbarjua (Ct),Fully Covered,Goa
+51,30,,480,North Goa,3680,Cumbarjua,Village,626729,Corlim (Ct),Fully Covered,Goa
+52,30,,480,North Goa,3680,Cumbarjua,Village,626736,Panelim (Og),Fully Covered,Goa
+53,30,,480,North Goa,3681,Maem,District,551,North Goa,Partly Covered,Goa
+54,30,,480,North Goa,3681,Maem,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+55,30,,480,North Goa,3681,Maem,SubDistrict,5612,Bicholim,Partly Covered,Goa
+56,30,,480,North Goa,3681,Maem,SubDistrict,5613,Satari,Partly Covered,Goa
+57,30,,480,North Goa,3681,Maem,Village,626705,Ambarim,Fully Covered,Goa
+58,30,,480,North Goa,3681,Maem,Village,626706,Chorao,Fully Covered,Goa
+59,30,,480,North Goa,3681,Maem,Village,626707,Caraim,Fully Covered,Goa
+60,30,,480,North Goa,3681,Maem,Village,626712,Naroa,Fully Covered,Goa
+61,30,,480,North Goa,3681,Maem,Village,626746,Sirigao,Fully Covered,Goa
+62,30,,480,North Goa,3681,Maem,Village,626748,Ona,Fully Covered,Goa
+63,30,,480,North Goa,3681,Maem,Village,626749,Maulinguem-North,Fully Covered,Goa
+64,30,,480,North Goa,3681,Maem,Village,626750,Curchirem,Fully Covered,Goa
+65,30,,480,North Goa,3681,Maem,Village,626751,Sarvona,Fully Covered,Goa
+66,30,,480,North Goa,3681,Maem,Village,626752,Maem,Fully Covered,Goa
+67,30,,480,North Goa,3681,Maem,Village,626754,Aturli,Fully Covered,Goa
+68,30,,480,North Goa,3681,Maem,Village,626756,Piligao,Fully Covered,Goa
+69,30,,480,North Goa,3681,Maem,Village,626763,Carapur (Ct),Fully Covered,Goa
+70,30,,480,North Goa,3681,Maem,Village,626798,Vainguinim,Fully Covered,Goa
+71,30,,480,North Goa,3682,Mandrem,District,551,North Goa,Partly Covered,Goa
+72,30,,480,North Goa,3682,Mandrem,SubDistrict,5609,Pernem,Partly Covered,Goa
+73,30,,480,North Goa,3682,Mandrem,Village,626635,Tiracol,Fully Covered,Goa
+74,30,,480,North Goa,3682,Mandrem,Village,626636,Querim,Fully Covered,Goa
+75,30,,480,North Goa,3682,Mandrem,Village,626637,Paliem,Fully Covered,Goa
+76,30,,480,North Goa,3682,Mandrem,Village,626654,Virnora,Fully Covered,Goa
+77,30,,480,North Goa,3682,Mandrem,Village,626655,Tuem,Fully Covered,Goa
+78,30,,480,North Goa,3682,Mandrem,Village,626656,Chopdem,Fully Covered,Goa
+79,30,,480,North Goa,3682,Mandrem,Village,626657,Agarvado,Fully Covered,Goa
+80,30,,480,North Goa,3682,Mandrem,Village,626658,Arambol (Ct),Fully Covered,Goa
+81,30,,480,North Goa,3682,Mandrem,Village,626659,Mandrem (Ct),Fully Covered,Goa
+82,30,,480,North Goa,3682,Mandrem,Village,626660,Parcem (Ct),Fully Covered,Goa
+83,30,,480,North Goa,3682,Mandrem,Village,626661,Morgim,Fully Covered,Goa
+84,30,,480,North Goa,3683,Mapusa,District,551,North Goa,Partly Covered,Goa
+85,30,,480,North Goa,3683,Mapusa,Localbody,252061,Mapusa,Fully Covered,Goa
+86,30,,480,North Goa,3683,Mapusa,SubDistrict,5610,Bardez,Partly Covered,Goa
+87,30,,480,North Goa,3683,Mapusa,Village,945828,Corlim,Fully Covered,Goa
+88,30,,480,North Goa,3683,Mapusa,Village,945829,Cunchelim,Fully Covered,Goa
+89,30,,480,North Goa,3683,Mapusa,Village,945830,Mhapsa,Fully Covered,Goa
+90,30,,480,North Goa,3684,Panaji,District,551,North Goa,Partly Covered,Goa
+91,30,,480,North Goa,3684,Panaji,Localbody,252071,City Corporation Panaji,Fully Covered,Goa
+92,30,,480,North Goa,3684,Panaji,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+93,30,,480,North Goa,3684,Panaji,Village,945834,Panaji,Fully Covered,Goa
+94,30,,480,North Goa,3685,Pernem,District,551,North Goa,Partly Covered,Goa
+95,30,,480,North Goa,3685,Pernem,Localbody,252057,Pernem,Fully Covered,Goa
+96,30,,480,North Goa,3685,Pernem,SubDistrict,5609,Pernem,Partly Covered,Goa
+97,30,,480,North Goa,3685,Pernem,Village,626638,Corgao,Fully Covered,Goa
+98,30,,480,North Goa,3685,Pernem,Village,626639,Pernem,Fully Covered,Goa
+99,30,,480,North Goa,3685,Pernem,Village,626640,Poroscodem,Fully Covered,Goa
+100,30,,480,North Goa,3685,Pernem,Village,626641,Casnem,Fully Covered,Goa
+101,30,,480,North Goa,3685,Pernem,Village,626642,Varconda,Fully Covered,Goa
+102,30,,480,North Goa,3685,Pernem,Village,626643,Amberem,Fully Covered,Goa
+103,30,,480,North Goa,3685,Pernem,Village,626644,Uguem,Fully Covered,Goa
+104,30,,480,North Goa,3685,Pernem,Village,626645,Tamboxem,Fully Covered,Goa
+105,30,,480,North Goa,3685,Pernem,Village,626646,Torxem,Fully Covered,Goa
+106,30,,480,North Goa,3685,Pernem,Village,626647,Mopa,Fully Covered,Goa
+107,30,,480,North Goa,3685,Pernem,Village,626648,Chandel,Fully Covered,Goa
+108,30,,480,North Goa,3685,Pernem,Village,626649,Alorna,Fully Covered,Goa
+109,30,,480,North Goa,3685,Pernem,Village,626650,Ibrampur,Fully Covered,Goa
+110,30,,480,North Goa,3685,Pernem,Village,626651,Cansarvornem,Fully Covered,Goa
+111,30,,480,North Goa,3685,Pernem,Village,626652,Ozorim,Fully Covered,Goa
+112,30,,480,North Goa,3685,Pernem,Village,626653,Dargalim,Fully Covered,Goa
+113,30,,480,North Goa,3686,Poriem,District,551,North Goa,Partly Covered,Goa
+114,30,,480,North Goa,3686,Poriem,SubDistrict,5613,Satari,Partly Covered,Goa
+115,30,,480,North Goa,3686,Poriem,Village,626765,Podocem,Fully Covered,Goa
+116,30,,480,North Goa,3686,Poriem,Village,626766,Poriem,Fully Covered,Goa
+117,30,,480,North Goa,3686,Poriem,Village,626767,Ravona,Fully Covered,Goa
+118,30,,480,North Goa,3686,Poriem,Village,626768,Gonteli,Fully Covered,Goa
+119,30,,480,North Goa,3686,Poriem,Village,626769,Siroli,Fully Covered,Goa
+120,30,,480,North Goa,3686,Poriem,Village,626770,Anjunem,Fully Covered,Goa
+121,30,,480,North Goa,3686,Poriem,Village,626771,Quelaudem,Fully Covered,Goa
+122,30,,480,North Goa,3686,Poriem,Village,626772,Ponsuli,Fully Covered,Goa
+123,30,,480,North Goa,3686,Poriem,Village,626773,Choraundem,Fully Covered,Goa
+124,30,,480,North Goa,3686,Poriem,Village,626774,Ivrem-Buzruco,Fully Covered,Goa
+125,30,,480,North Goa,3686,Poriem,Village,626775,Ivrem-Curdo,Fully Covered,Goa
+126,30,,480,North Goa,3686,Poriem,Village,626776,Golauli,Fully Covered,Goa
+127,30,,480,North Goa,3686,Poriem,Village,626777,Surla,Fully Covered,Goa
+128,30,,480,North Goa,3686,Poriem,Village,626781,Rivem,Fully Covered,Goa
+129,30,,480,North Goa,3686,Poriem,Village,626782,Dongurli,Fully Covered,Goa
+130,30,,480,North Goa,3686,Poriem,Village,626783,Pale,Fully Covered,Goa
+131,30,,480,North Goa,3686,Poriem,Village,626784,Gululem,Fully Covered,Goa
+132,30,,480,North Goa,3686,Poriem,Village,626785,Querim,Fully Covered,Goa
+133,30,,480,North Goa,3686,Poriem,Village,626786,Morlem,Fully Covered,Goa
+134,30,,480,North Goa,3686,Poriem,Village,626787,Saleli,Fully Covered,Goa
+135,30,,480,North Goa,3686,Poriem,Village,626788,Zormen,Fully Covered,Goa
+136,30,,480,North Goa,3686,Poriem,Village,626789,Dabem,Fully Covered,Goa
+137,30,,480,North Goa,3686,Poriem,Village,626790,Compordem,Fully Covered,Goa
+138,30,,480,North Goa,3686,Poriem,Village,626792,Naneli,Fully Covered,Goa
+139,30,,480,North Goa,3686,Poriem,Village,626806,Mauxi,Fully Covered,Goa
+140,30,,480,North Goa,3686,Poriem,Village,626807,Buimpal,Fully Covered,Goa
+141,30,,480,North Goa,3686,Poriem,Village,626808,Cumarconda,Fully Covered,Goa
+142,30,,480,North Goa,3686,Poriem,Village,626809,Pissurlem,Fully Covered,Goa
+143,30,,480,North Goa,3686,Poriem,Village,626810,Sonus-Vonvoliem,Fully Covered,Goa
+144,30,,480,North Goa,3686,Poriem,Village,626811,Vaguriem,Fully Covered,Goa
+145,30,,480,North Goa,3686,Poriem,Village,626812,Codiem,Fully Covered,Goa
+146,30,,480,North Goa,3686,Poriem,Village,626813,Naguem,Fully Covered,Goa
+147,30,,480,North Goa,3686,Poriem,Village,626814,Ansolem,Fully Covered,Goa
+148,30,,480,North Goa,3686,Poriem,Village,626824,Sanvorcem,Fully Covered,Goa
+149,30,,480,North Goa,3686,Poriem,Village,626825,Advoi,Fully Covered,Goa
+150,30,,480,North Goa,3686,Poriem,Village,626826,Ponocem,Fully Covered,Goa
+151,30,,480,North Goa,3686,Poriem,Village,626827,Vantem,Fully Covered,Goa
+152,30,,480,North Goa,3686,Poriem,Village,626829,Padeli,Fully Covered,Goa
+153,30,,480,North Goa,3686,Poriem,Village,626830,Birondem,Fully Covered,Goa
+154,30,,480,North Goa,3686,Poriem,Village,626842,Onda (Ct),Fully Covered,Goa
+155,30,,480,North Goa,3686,Poriem,Village,924819,Massordem,Fully Covered,Goa
+156,30,,480,North Goa,3686,Poriem,Village,924821,Nanus,Fully Covered,Goa
+157,30,,480,North Goa,3686,Poriem,Village,924825,Velus,Fully Covered,Goa
+158,30,,480,North Goa,3687,Porvorim,District,551,North Goa,Partly Covered,Goa
+159,30,,480,North Goa,3687,Porvorim,SubDistrict,5610,Bardez,Partly Covered,Goa
+160,30,,480,North Goa,3687,Porvorim,Village,626701,Penha-De-Franca (Ct),Fully Covered,Goa
+161,30,,480,North Goa,3687,Porvorim,Village,626702,Salvador-Do-Mundo (Ct),Fully Covered,Goa
+162,30,,480,North Goa,3687,Porvorim,Village,626703,Socorro (Ct),Fully Covered,Goa
+163,30,,480,North Goa,3688,Priol,District,552,South Goa,Partly Covered,Goa
+164,30,,480,North Goa,3688,Priol,SubDistrict,5614,Ponda,Partly Covered,Goa
+165,30,,480,North Goa,3688,Priol,Village,626844,Betqui,Fully Covered,Goa
+166,30,,480,North Goa,3688,Priol,Village,626845,Volvoi,Fully Covered,Goa
+167,30,,480,North Goa,3688,Priol,Village,626846,Savoi-Verem,Fully Covered,Goa
+168,30,,480,North Goa,3688,Priol,Village,626847,Adcolna,Fully Covered,Goa
+169,30,,480,North Goa,3688,Priol,Village,626848,Boma,Fully Covered,Goa
+170,30,,480,North Goa,3688,Priol,Village,626849,Cuncoliem,Fully Covered,Goa
+171,30,,480,North Goa,3688,Priol,Village,626850,Querim,Fully Covered,Goa
+172,30,,480,North Goa,3688,Priol,Village,626851,Vagurbem,Fully Covered,Goa
+173,30,,480,North Goa,3688,Priol,Village,626854,Velinga,Fully Covered,Goa
+174,30,,480,North Goa,3688,Priol,Village,626865,Candola (Ct),Fully Covered,Goa
+175,30,,480,North Goa,3688,Priol,Village,626868,Priol (Ct),Fully Covered,Goa
+176,30,,480,North Goa,3689,Saligao,District,551,North Goa,Partly Covered,Goa
+177,30,,480,North Goa,3689,Saligao,SubDistrict,5610,Bardez,Partly Covered,Goa
+178,30,,480,North Goa,3689,Saligao,Village,626688,Sangolda,Fully Covered,Goa
+179,30,,480,North Goa,3689,Saligao,Village,626689,Marra,Fully Covered,Goa
+180,30,,480,North Goa,3689,Saligao,Village,626693,Guirim (Ct),Fully Covered,Goa
+181,30,,480,North Goa,3689,Saligao,Village,626696,Saligao (Ct),Fully Covered,Goa
+182,30,,480,North Goa,3689,Saligao,Village,626698,Nerul (Ct),Fully Covered,Goa
+183,30,,480,North Goa,3689,Saligao,Village,626699,Reis-Magos,Fully Covered,Goa
+184,30,,480,North Goa,3689,Saligao,Village,626700,Pilerne (Ct),Fully Covered,Goa
+185,30,,480,North Goa,3690,Sanquelim,District,551,North Goa,Partly Covered,Goa
+186,30,,480,North Goa,3690,Sanquelim,Localbody,252077,Sankhali,Fully Covered,Goa
+187,30,,480,North Goa,3690,Sanquelim,SubDistrict,5612,Bicholim,Partly Covered,Goa
+188,30,,480,North Goa,3690,Sanquelim,Village,626757,Cudnem,Fully Covered,Goa
+189,30,,480,North Goa,3690,Sanquelim,Village,626758,Amone,Fully Covered,Goa
+190,30,,480,North Goa,3690,Sanquelim,Village,626759,Navelim,Fully Covered,Goa
+191,30,,480,North Goa,3690,Sanquelim,Village,626760,Cotombi,Fully Covered,Goa
+192,30,,480,North Goa,3690,Sanquelim,Village,626761,Surla,Fully Covered,Goa
+193,30,,480,North Goa,3690,Sanquelim,Village,626762,Velguem,Fully Covered,Goa
+194,30,,480,North Goa,3690,Sanquelim,Village,626764,Pale (Ct),Fully Covered,Goa
+195,30,,480,North Goa,3690,Sanquelim,Village,917385,Arvalem,Fully Covered,Goa
+196,30,,480,North Goa,3691,Siolim,District,551,North Goa,Partly Covered,Goa
+197,30,,480,North Goa,3691,Siolim,SubDistrict,5610,Bardez,Partly Covered,Goa
+198,30,,480,North Goa,3691,Siolim,Village,626662,Oxel,Fully Covered,Goa
+199,30,,480,North Goa,3691,Siolim,Village,626671,Marna,Fully Covered,Goa
+200,30,,480,North Goa,3691,Siolim,Village,626672,Assagao,Fully Covered,Goa
+201,30,,480,North Goa,3691,Siolim,Village,626676,Verla,Fully Covered,Goa
+202,30,,480,North Goa,3691,Siolim,Village,626677,Canca,Fully Covered,Goa
+203,30,,480,North Goa,3691,Siolim,Village,626690,Siolim (Ct),Fully Covered,Goa
+204,30,,480,North Goa,3691,Siolim,Village,626694,Anjuna (Ct),Fully Covered,Goa
+205,30,,480,North Goa,3692,St. Andre,District,551,North Goa,Partly Covered,Goa
+206,30,,480,North Goa,3692,St. Andre,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+207,30,,480,North Goa,3692,St. Andre,Village,626716,Talaulim,Fully Covered,Goa
+208,30,,480,North Goa,3692,St. Andre,Village,626717,Goalim-Moula,Fully Covered,Goa
+209,30,,480,North Goa,3692,St. Andre,Village,626719,Azossim,Fully Covered,Goa
+210,30,,480,North Goa,3692,St. Andre,Village,626720,Mandur,Fully Covered,Goa
+211,30,,480,North Goa,3692,St. Andre,Village,626721,Gancim,Fully Covered,Goa
+212,30,,480,North Goa,3692,St. Andre,Village,626722,Batim,Fully Covered,Goa
+213,30,,480,North Goa,3692,St. Andre,Village,626723,Curca,Fully Covered,Goa
+214,30,,480,North Goa,3692,St. Andre,Village,626724,Siridao,Fully Covered,Goa
+215,30,,480,North Goa,3692,St. Andre,Village,626725,Neura-O-Pequeno,Fully Covered,Goa
+216,30,,480,North Goa,3692,St. Andre,Village,626726,Neura-O-Grande,Fully Covered,Goa
+217,30,,480,North Goa,3692,St. Andre,Village,626733,Bambolim (Ct),Fully Covered,Goa
+218,30,,480,North Goa,3692,St. Andre,Village,626734,Goa-Velha,Fully Covered,Goa
+219,30,,480,North Goa,3692,St. Andre,Village,626735,Mercurim (Ct),Fully Covered,Goa
+220,30,,480,North Goa,3693,St. Cruz,District,551,North Goa,Partly Covered,Goa
+221,30,,480,North Goa,3693,St. Cruz,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+222,30,,480,North Goa,3693,St. Cruz,Village,626730,Chimbel (Ct),Fully Covered,Goa
+223,30,,480,North Goa,3693,St. Cruz,Village,626731,Murda (Ct),Fully Covered,Goa
+224,30,,480,North Goa,3693,St. Cruz,Village,626732,Calapor (Ct),Fully Covered,Goa
+225,30,,480,North Goa,3693,St. Cruz,Village,626737,Morambi-O-Grande (Merces),Fully Covered,Goa
+226,30,,480,North Goa,3693,St. Cruz,Village,626738,Renovadi (Og),Fully Covered,Goa
+227,30,,480,North Goa,3693,St. Cruz,Village,626739,Morambi-O-Pequeno (Merces),Fully Covered,Goa
+228,30,,480,North Goa,3693,St. Cruz,Village,626740,Cujira (Og),Fully Covered,Goa
+229,30,,480,North Goa,3694,Taleigao,District,551,North Goa,Partly Covered,Goa
+230,30,,480,North Goa,3694,Taleigao,SubDistrict,5611,Tiswadi,Partly Covered,Goa
+231,30,,480,North Goa,3694,Taleigao,Village,645598,Taleigao,Fully Covered,Goa
+232,30,,480,North Goa,3694,Taleigao,Village,645599,Durgavado,Fully Covered,Goa
+233,30,,480,North Goa,3695,Tivim,District,551,North Goa,Partly Covered,Goa
+234,30,,480,North Goa,3695,Tivim,SubDistrict,5610,Bardez,Partly Covered,Goa
+235,30,,480,North Goa,3695,Tivim,Village,626663,Camurlim,Fully Covered,Goa
+236,30,,480,North Goa,3695,Tivim,Village,626664,Revora,Fully Covered,Goa
+237,30,,480,North Goa,3695,Tivim,Village,626665,Nadora,Fully Covered,Goa
+238,30,,480,North Goa,3695,Tivim,Village,626666,Pirna,Fully Covered,Goa
+239,30,,480,North Goa,3695,Tivim,Village,626668,Assonora,Fully Covered,Goa
+240,30,,480,North Goa,3695,Tivim,Village,626669,Sircaim,Fully Covered,Goa
+241,30,,480,North Goa,3695,Tivim,Village,626670,Tivim,Fully Covered,Goa
+242,30,,480,North Goa,3695,Tivim,Village,626691,Colvale (Ct),Fully Covered,Goa
+243,30,,480,North Goa,3696,Valpoi,District,551,North Goa,Partly Covered,Goa
+244,30,,480,North Goa,3696,Valpoi,District,552,South Goa,Partly Covered,Goa
+245,30,,480,North Goa,3696,Valpoi,Localbody,252079,Valpoi,Fully Covered,Goa
+246,30,,480,North Goa,3696,Valpoi,SubDistrict,5612,Bicholim,Partly Covered,Goa
+247,30,,480,North Goa,3696,Valpoi,SubDistrict,5613,Satari,Partly Covered,Goa
+248,30,,480,North Goa,3696,Valpoi,SubDistrict,5618,Sanguem,Partly Covered,Goa
+249,30,,480,North Goa,3696,Valpoi,Village,626753,Vainguinim,Fully Covered,Goa
+250,30,,480,North Goa,3696,Valpoi,Village,626778,Satrem,Fully Covered,Goa
+251,30,,480,North Goa,3696,Valpoi,Village,626779,Derodem,Fully Covered,Goa
+252,30,,480,North Goa,3696,Valpoi,Village,626780,Codal,Fully Covered,Goa
+253,30,,480,North Goa,3696,Valpoi,Village,626791,Edorem,Fully Covered,Goa
+254,30,,480,North Goa,3696,Valpoi,Village,626793,Carambolim- Brama,Fully Covered,Goa
+255,30,,480,North Goa,3696,Valpoi,Village,626794,Xelopo-Buzruco,Fully Covered,Goa
+256,30,,480,North Goa,3696,Valpoi,Village,626795,Sigonem,Fully Covered,Goa
+257,30,,480,North Goa,3696,Valpoi,Village,626796,Maloli,Fully Covered,Goa
+258,30,,480,North Goa,3696,Valpoi,Village,626797,Nanorem,Fully Covered,Goa
+259,30,,480,North Goa,3696,Valpoi,Village,626799,Zarani,Fully Covered,Goa
+260,30,,480,North Goa,3696,Valpoi,Village,626800,Ustem,Fully Covered,Goa
+261,30,,480,North Goa,3696,Valpoi,Village,626801,Davem,Fully Covered,Goa
+262,30,,480,North Goa,3696,Valpoi,Village,626802,Bombedem,Fully Covered,Goa
+263,30,,480,North Goa,3696,Valpoi,Village,626803,Ambedem,Fully Covered,Goa
+264,30,,480,North Goa,3696,Valpoi,Village,626804,Nagargao,Fully Covered,Goa
+265,30,,480,North Goa,3696,Valpoi,Village,626805,Satorem,Fully Covered,Goa
+266,30,,480,North Goa,3696,Valpoi,Village,626815,Cudcem,Fully Covered,Goa
+267,30,,480,North Goa,3696,Valpoi,Village,626816,Sanvordem,Fully Covered,Goa
+268,30,,480,North Goa,3696,Valpoi,Village,626817,Sonal,Fully Covered,Goa
+269,30,,480,North Goa,3696,Valpoi,Village,626818,Codvol,Fully Covered,Goa
+270,30,,480,North Goa,3696,Valpoi,Village,626819,Pendral,Fully Covered,Goa
+271,30,,480,North Goa,3696,Valpoi,Village,626820,Caranzol,Fully Covered,Goa
+272,30,,480,North Goa,3696,Valpoi,Village,626821,Carambolim-Buzruco,Fully Covered,Goa
+273,30,,480,North Goa,3696,Valpoi,Village,626822,Velguem,Fully Covered,Goa
+274,30,,480,North Goa,3696,Valpoi,Village,626823,Codqui,Fully Covered,Goa
+275,30,,480,North Goa,3696,Valpoi,Village,626828,Guleli,Fully Covered,Goa
+276,30,,480,North Goa,3696,Valpoi,Village,626831,Damocem,Fully Covered,Goa
+277,30,,480,North Goa,3696,Valpoi,Village,626832,Cotorem,Fully Covered,Goa
+278,30,,480,North Goa,3696,Valpoi,Village,626833,Xelopo-Curdo,Fully Covered,Goa
+279,30,,480,North Goa,3696,Valpoi,Village,626834,Siranguli,Fully Covered,Goa
+280,30,,480,North Goa,3696,Valpoi,Village,626835,Sirsodem,Fully Covered,Goa
+281,30,,480,North Goa,3696,Valpoi,Village,626836,Assodem,Fully Covered,Goa
+282,30,,480,North Goa,3696,Valpoi,Village,626837,Govanem,Fully Covered,Goa
+283,30,,480,North Goa,3696,Valpoi,Village,626838,Malpona,Fully Covered,Goa
+284,30,,480,North Goa,3696,Valpoi,Village,626839,Ambeli,Fully Covered,Goa
+285,30,,480,North Goa,3696,Valpoi,Village,626840,Melauli,Fully Covered,Goa
+286,30,,480,North Goa,3696,Valpoi,Village,626841,Conquirem,Fully Covered,Goa
+287,30,,480,North Goa,3696,Valpoi,Village,627021,Sanvordem (Ct),Fully Covered,Goa
+288,30,,480,North Goa,3696,Valpoi,Village,945833,Valpoi,Fully Covered,Goa
+289,30,,481,South Goa,3697,Benaulim,District,552,South Goa,Partly Covered,Goa
+290,30,,481,South Goa,3697,Benaulim,SubDistrict,5616,Salcete,Partly Covered,Goa
+291,30,,481,South Goa,3697,Benaulim,Village,626896,Gaundaulim,Fully Covered,Goa
+292,30,,481,South Goa,3697,Benaulim,Village,626897,Colva,Fully Covered,Goa
+293,30,,481,South Goa,3697,Benaulim,Village,626898,Vanelim,Fully Covered,Goa
+294,30,,481,South Goa,3697,Benaulim,Village,626899,Seraulim,Fully Covered,Goa
+295,30,,481,South Goa,3697,Benaulim,Village,626900,Duncolim,Fully Covered,Goa
+296,30,,481,South Goa,3697,Benaulim,Village,626904,Cana,Fully Covered,Goa
+297,30,,481,South Goa,3697,Benaulim,Village,626905,Sernabatim,Fully Covered,Goa
+298,30,,481,South Goa,3697,Benaulim,Village,626906,Adsulim,Fully Covered,Goa
+299,30,,481,South Goa,3697,Benaulim,Village,626916,Orlim,Fully Covered,Goa
+300,30,,481,South Goa,3697,Benaulim,Village,626917,Carmona,Fully Covered,Goa
+301,30,,481,South Goa,3697,Benaulim,Village,626920,Cavelossim,Fully Covered,Goa
+302,30,,481,South Goa,3697,Benaulim,Village,626931,Benaulim (Ct),Fully Covered,Goa
+303,30,,481,South Goa,3697,Benaulim,Village,626932,Varca (Ct),Fully Covered,Goa
+304,30,,481,South Goa,3698,Canacona,District,552,South Goa,Partly Covered,Goa
+305,30,,481,South Goa,3698,Canacona,Localbody,252100,Canacona,Fully Covered,Goa
+306,30,,481,South Goa,3698,Canacona,SubDistrict,5619,Canacona,Fully Covered,Goa
+307,30,,481,South Goa,3698,Canacona,Village,627022,Cola,Fully Covered,Goa
+308,30,,481,South Goa,3698,Canacona,Village,627023,Agonda,Fully Covered,Goa
+309,30,,481,South Goa,3698,Canacona,Village,627024,Canacona,Fully Covered,Goa
+310,30,,481,South Goa,3698,Canacona,Village,627025,Gaodongrem,Fully Covered,Goa
+311,30,,481,South Goa,3698,Canacona,Village,627026,Poinguinim,Fully Covered,Goa
+312,30,,481,South Goa,3698,Canacona,Village,627027,Loliem,Fully Covered,Goa
+313,30,,481,South Goa,3698,Canacona,Village,627028,Cotigao,Fully Covered,Goa
+314,30,,481,South Goa,3698,Canacona,Village,627029,Angediva,Fully Covered,Goa
+315,30,,481,South Goa,3698,Canacona,Village,924816,Chaudi,Fully Covered,Goa
+316,30,,481,South Goa,3698,Canacona,Village,924820,Nagorcem - Palolem,Fully Covered,Goa
+317,30,,481,South Goa,3699,Cortalim,District,552,South Goa,Partly Covered,Goa
+318,30,,481,South Goa,3699,Cortalim,SubDistrict,5615,Mormugao,Partly Covered,Goa
+319,30,,481,South Goa,3699,Cortalim,Village,626876,Quelossim,Fully Covered,Goa
+320,30,,481,South Goa,3699,Cortalim,Village,626877,Cuelim,Fully Covered,Goa
+321,30,,481,South Goa,3699,Cortalim,Village,626878,Pale,Fully Covered,Goa
+322,30,,481,South Goa,3699,Cortalim,Village,626879,Issorcim,Fully Covered,Goa
+323,30,,481,South Goa,3699,Cortalim,Village,626882,Velsao,Fully Covered,Goa
+324,30,,481,South Goa,3699,Cortalim,Village,626883,Cansaulim,Fully Covered,Goa
+325,30,,481,South Goa,3699,Cortalim,Village,626884,Arossim,Fully Covered,Goa
+326,30,,481,South Goa,3699,Cortalim,Village,626886,Sancoale (Ct),Fully Covered,Goa
+327,30,,481,South Goa,3699,Cortalim,Village,626887,Cortalim (Ct),Fully Covered,Goa
+328,30,,481,South Goa,3700,Cuncolim,District,552,South Goa,Partly Covered,Goa
+329,30,,481,South Goa,3700,Cuncolim,Localbody,252095,Cuncolim,Fully Covered,Goa
+330,30,,481,South Goa,3700,Cuncolim,SubDistrict,5616,Salcete,Partly Covered,Goa
+331,30,,481,South Goa,3700,Cuncolim,SubDistrict,5617,Quepem,Partly Covered,Goa
+332,30,,481,South Goa,3700,Cuncolim,Village,626902,Macasana,Fully Covered,Goa
+333,30,,481,South Goa,3700,Cuncolim,Village,626903,Guirdolim,Fully Covered,Goa
+334,30,,481,South Goa,3700,Cuncolim,Village,626910,Cavorim,Fully Covered,Goa
+335,30,,481,South Goa,3700,Cuncolim,Village,626911,Chandor,Fully Covered,Goa
+336,30,,481,South Goa,3700,Cuncolim,Village,626912,Paroda,Fully Covered,Goa
+337,30,,481,South Goa,3700,Cuncolim,Village,626913,Mulem,Fully Covered,Goa
+338,30,,481,South Goa,3700,Cuncolim,Village,626948,Adnem,Fully Covered,Goa
+339,30,,481,South Goa,3700,Cuncolim,Village,626949,Bali,Fully Covered,Goa
+340,30,,481,South Goa,3700,Cuncolim,Village,626954,Tiloi,Fully Covered,Goa
+341,30,,481,South Goa,3700,Cuncolim,Village,626955,Bendordem,Fully Covered,Goa
+342,30,,481,South Goa,3700,Cuncolim,Village,626958,Cordem,Fully Covered,Goa
+343,30,,481,South Goa,3700,Cuncolim,Village,924823,Talvorda,Fully Covered,Goa
+344,30,,481,South Goa,3700,Cuncolim,Village,924824,Varoda,Fully Covered,Goa
+345,30,,481,South Goa,3701,Curchorem,District,552,South Goa,Partly Covered,Goa
+346,30,,481,South Goa,3701,Curchorem,Localbody,252096,Curchorem Cacora,Fully Covered,Goa
+347,30,,481,South Goa,3701,Curchorem,SubDistrict,5617,Quepem,Partly Covered,Goa
+348,30,,481,South Goa,3701,Curchorem,Village,626934,Assolda,Fully Covered,Goa
+349,30,,481,South Goa,3701,Curchorem,Village,626935,Xic-Xelvona,Fully Covered,Goa
+350,30,,481,South Goa,3701,Curchorem,Village,626936,Xelvona,Fully Covered,Goa
+351,30,,481,South Goa,3701,Curchorem,Village,626937,Hodar,Fully Covered,Goa
+352,30,,481,South Goa,3701,Curchorem,Village,626941,Sirvoi,Fully Covered,Goa
+353,30,,481,South Goa,3701,Curchorem,Village,626969,Xeldem (Ct),Fully Covered,Goa
+354,30,,481,South Goa,3701,Curchorem,Village,924815,Cacora,Fully Covered,Goa
+355,30,,481,South Goa,3701,Curchorem,Village,945840,Curchorem,Fully Covered,Goa
+356,30,,481,South Goa,3702,Curtorim,District,552,South Goa,Partly Covered,Goa
+357,30,,481,South Goa,3702,Curtorim,SubDistrict,5616,Salcete,Partly Covered,Goa
+358,30,,481,South Goa,3702,Curtorim,Village,626901,Rachol,Fully Covered,Goa
+359,30,,481,South Goa,3702,Curtorim,Village,626925,Raia (Ct),Fully Covered,Goa
+360,30,,481,South Goa,3702,Curtorim,Village,626926,Curtorim (Ct),Fully Covered,Goa
+361,30,,481,South Goa,3703,Dabolim,District,552,South Goa,Partly Covered,Goa
+362,30,,481,South Goa,3703,Dabolim,SubDistrict,5615,Mormugao,Partly Covered,Goa
+363,30,,481,South Goa,3703,Dabolim,Village,626874,Dabolim,Fully Covered,Goa
+364,30,,481,South Goa,3703,Dabolim,Village,626875,Sao Jacinto Island,Fully Covered,Goa
+365,30,,481,South Goa,3703,Dabolim,Village,626880,Chicolna,Fully Covered,Goa
+366,30,,481,South Goa,3703,Dabolim,Village,626881,Sao Jorge Island,Fully Covered,Goa
+367,30,,481,South Goa,3703,Dabolim,Village,626885,Chicalim (Ct),Fully Covered,Goa
+368,30,,481,South Goa,3704,Fatorda,District,552,South Goa,Partly Covered,Goa
+369,30,,481,South Goa,3704,Fatorda,SubDistrict,5616,Salcete,Partly Covered,Goa
+370,30,,481,South Goa,3704,Fatorda,Village,926704,Cuncolim,Fully Covered,Goa
+371,30,,481,South Goa,3705,Marcaim,District,552,South Goa,Partly Covered,Goa
+372,30,,481,South Goa,3705,Marcaim,SubDistrict,5614,Ponda,Partly Covered,Goa
+373,30,,481,South Goa,3705,Marcaim,Village,626855,Cundaim,Fully Covered,Goa
+374,30,,481,South Goa,3705,Marcaim,Village,626856,Durbhat,Fully Covered,Goa
+375,30,,481,South Goa,3705,Marcaim,Village,626857,Telaulim,Fully Covered,Goa
+376,30,,481,South Goa,3705,Marcaim,Village,626858,Vadi,Fully Covered,Goa
+377,30,,481,South Goa,3705,Marcaim,Village,626867,Marcaim (Ct),Fully Covered,Goa
+378,30,,481,South Goa,3705,Marcaim,Village,626869,Bandora (Ct),Fully Covered,Goa
+379,30,,481,South Goa,3705,Marcaim,Village,626871,Queula,Fully Covered,Goa
+380,30,,481,South Goa,3706,Margao,District,552,South Goa,Partly Covered,Goa
+381,30,,481,South Goa,3706,Margao,Localbody,252087,Margao,Fully Covered,Goa
+382,30,,481,South Goa,3706,Margao,SubDistrict,5616,Salcete,Partly Covered,Goa
+383,30,,481,South Goa,3706,Margao,Village,945836,Margao,Fully Covered,Goa
+384,30,,481,South Goa,3707,Mormugao,Localbody,252084,Mormugao,Fully Covered,Goa
+385,30,,481,South Goa,3708,Navelim,District,552,South Goa,Partly Covered,Goa
+386,30,,481,South Goa,3708,Navelim,SubDistrict,5616,Salcete,Partly Covered,Goa
+387,30,,481,South Goa,3708,Navelim,Village,626907,Talaulim,Fully Covered,Goa
+388,30,,481,South Goa,3708,Navelim,Village,626909,Dicarpale,Fully Covered,Goa
+389,30,,481,South Goa,3708,Navelim,Village,626928,Davorlim (Ct),Fully Covered,Goa
+390,30,,481,South Goa,3708,Navelim,Village,626929,Aquem-Baixo,Fully Covered,Goa
+391,30,,481,South Goa,3708,Navelim,Village,626930,Navelim (Ct),Fully Covered,Goa
+392,30,,481,South Goa,3709,Nuvem,District,552,South Goa,Partly Covered,Goa
+393,30,,481,South Goa,3709,Nuvem,SubDistrict,5616,Salcete,Partly Covered,Goa
+394,30,,481,South Goa,3709,Nuvem,Village,626888,Nagoa,Fully Covered,Goa
+395,30,,481,South Goa,3709,Nuvem,Village,626889,Loutulim,Fully Covered,Goa
+396,30,,481,South Goa,3709,Nuvem,Village,626890,Camurlim,Fully Covered,Goa
+397,30,,481,South Goa,3709,Nuvem,Village,626891,Calata,Fully Covered,Goa
+398,30,,481,South Goa,3709,Nuvem,Village,626892,Majorda,Fully Covered,Goa
+399,30,,481,South Goa,3709,Nuvem,Village,626893,Utorda,Fully Covered,Goa
+400,30,,481,South Goa,3709,Nuvem,Village,626894,Gonsua,Fully Covered,Goa
+401,30,,481,South Goa,3709,Nuvem,Village,626895,Betalbatim,Fully Covered,Goa
+402,30,,481,South Goa,3709,Nuvem,Village,626923,Verna (Ct),Fully Covered,Goa
+403,30,,481,South Goa,3709,Nuvem,Village,626924,Nuvem (Ct),Fully Covered,Goa
+404,30,,481,South Goa,3710,Ponda,District,552,South Goa,Partly Covered,Goa
+405,30,,481,South Goa,3710,Ponda,Localbody,252082,Ponda,Fully Covered,Goa
+406,30,,481,South Goa,3710,Ponda,SubDistrict,5614,Ponda,Partly Covered,Goa
+407,30,,481,South Goa,3710,Ponda,Village,626843,Tivrem,Fully Covered,Goa
+408,30,,481,South Goa,3710,Ponda,Village,626852,Gangem,Fully Covered,Goa
+409,30,,481,South Goa,3710,Ponda,Village,626853,Candepar,Fully Covered,Goa
+410,30,,481,South Goa,3710,Ponda,Village,626860,Codar,Fully Covered,Goa
+411,30,,481,South Goa,3710,Ponda,Village,626861,Nirancal,Fully Covered,Goa
+412,30,,481,South Goa,3710,Ponda,Village,626862,Conxem,Fully Covered,Goa
+413,30,,481,South Goa,3710,Ponda,Village,626864,Ponchavadi,Fully Covered,Goa
+414,30,,481,South Goa,3710,Ponda,Village,626866,Orgao (Ct),Fully Covered,Goa
+415,30,,481,South Goa,3710,Ponda,Village,626870,Curti (Ct),Fully Covered,Goa
+416,30,,481,South Goa,3710,Ponda,Village,626873,Usgao (Ct),Fully Covered,Goa
+417,30,,481,South Goa,3710,Ponda,Village,945835,Ponda,Fully Covered,Goa
+418,30,,481,South Goa,3711,Quepem,District,552,South Goa,Partly Covered,Goa
+419,30,,481,South Goa,3711,Quepem,Localbody,252097,Quepem,Fully Covered,Goa
+420,30,,481,South Goa,3711,Quepem,SubDistrict,5617,Quepem,Partly Covered,Goa
+421,30,,481,South Goa,3711,Quepem,Village,626938,Cotombi,Fully Covered,Goa
+422,30,,481,South Goa,3711,Quepem,Village,626939,Avedem,Fully Covered,Goa
+423,30,,481,South Goa,3711,Quepem,Village,626940,Chaifi,Fully Covered,Goa
+424,30,,481,South Goa,3711,Quepem,Village,626943,Zanodem,Fully Covered,Goa
+425,30,,481,South Goa,3711,Quepem,Village,626944,Undorna,Fully Covered,Goa
+426,30,,481,South Goa,3711,Quepem,Village,626945,Molcopona,Fully Covered,Goa
+427,30,,481,South Goa,3711,Quepem,Village,626946,Molcornem,Fully Covered,Goa
+428,30,,481,South Goa,3711,Quepem,Village,626947,Ambaulim,Fully Covered,Goa
+429,30,,481,South Goa,3711,Quepem,Village,626950,Fatorpa,Fully Covered,Goa
+430,30,,481,South Goa,3711,Quepem,Village,626951,Quitol,Fully Covered,Goa
+431,30,,481,South Goa,3711,Quepem,Village,626952,Naqueri,Fully Covered,Goa
+432,30,,481,South Goa,3711,Quepem,Village,626953,Morpirla,Fully Covered,Goa
+433,30,,481,South Goa,3711,Quepem,Village,626959,Padi,Fully Covered,Goa
+434,30,,481,South Goa,3711,Quepem,Village,626960,Quedem,Fully Covered,Goa
+435,30,,481,South Goa,3711,Quepem,Village,626961,Barcem,Fully Covered,Goa
+436,30,,481,South Goa,3711,Quepem,Village,626962,Goculdem,Fully Covered,Goa
+437,30,,481,South Goa,3711,Quepem,Village,626963,Quisconda,Fully Covered,Goa
+438,30,,481,South Goa,3711,Quepem,Village,626966,Corla,Fully Covered,Goa
+439,30,,481,South Goa,3711,Quepem,Village,626967,Cazur,Fully Covered,Goa
+440,30,,481,South Goa,3711,Quepem,Village,910339,Amona,Fully Covered,Goa
+441,30,,481,South Goa,3711,Quepem,Village,910340,Cusmane,Fully Covered,Goa
+442,30,,481,South Goa,3711,Quepem,Village,924817,Deao,Fully Covered,Goa
+443,30,,481,South Goa,3711,Quepem,Village,945841,Quepem,Fully Covered,Goa
+444,30,,481,South Goa,3712,Sanguem,District,552,South Goa,Partly Covered,Goa
+445,30,,481,South Goa,3712,Sanguem,Localbody,252099,Sanguem,Fully Covered,Goa
+446,30,,481,South Goa,3712,Sanguem,SubDistrict,5617,Quepem,Partly Covered,Goa
+447,30,,481,South Goa,3712,Sanguem,SubDistrict,5618,Sanguem,Partly Covered,Goa
+448,30,,481,South Goa,3712,Sanguem,Village,626942,Nagvem,Fully Covered,Goa
+449,30,,481,South Goa,3712,Sanguem,Village,626956,Cavorem,Fully Covered,Goa
+450,30,,481,South Goa,3712,Sanguem,Village,626957,Maina,Fully Covered,Goa
+451,30,,481,South Goa,3712,Sanguem,Village,626964,Pirla,Fully Covered,Goa
+452,30,,481,South Goa,3712,Sanguem,Village,626965,Sulcorna,Fully Covered,Goa
+453,30,,481,South Goa,3712,Sanguem,Village,626968,Mangal,Fully Covered,Goa
+454,30,,481,South Goa,3712,Sanguem,Village,626985,Rumbrem,Fully Covered,Goa
+455,30,,481,South Goa,3712,Sanguem,Village,626987,Santona,Fully Covered,Goa
+456,30,,481,South Goa,3712,Sanguem,Village,626988,Calem,Fully Covered,Goa
+457,30,,481,South Goa,3712,Sanguem,Village,626991,Odxel,Fully Covered,Goa
+458,30,,481,South Goa,3712,Sanguem,Village,626992,Dongurli,Fully Covered,Goa
+459,30,,481,South Goa,3712,Sanguem,Village,626993,Patiem,Fully Covered,Goa
+460,30,,481,South Goa,3712,Sanguem,Village,626994,Maulinguem,Fully Covered,Goa
+461,30,,481,South Goa,3712,Sanguem,Village,626995,Dudal,Fully Covered,Goa
+462,30,,481,South Goa,3712,Sanguem,Village,626996,Costi,Fully Covered,Goa
+463,30,,481,South Goa,3712,Sanguem,Village,626997,Coranginim,Fully Covered,Goa
+464,30,,481,South Goa,3712,Sanguem,Village,626998,Comproi,Fully Covered,Goa
+465,30,,481,South Goa,3712,Sanguem,Village,626999,Muguli,Fully Covered,Goa
+466,30,,481,South Goa,3712,Sanguem,Village,627000,Cotarli,Fully Covered,Goa
+467,30,,481,South Goa,3712,Sanguem,Village,627001,Xelpem,Fully Covered,Goa
+468,30,,481,South Goa,3712,Sanguem,Village,627002,Salauli,Fully Covered,Goa
+469,30,,481,South Goa,3712,Sanguem,Village,627003,Uguem,Fully Covered,Goa
+470,30,,481,South Goa,3712,Sanguem,Village,627004,Todou,Fully Covered,Goa
+471,30,,481,South Goa,3712,Sanguem,Village,627005,Potrem,Fully Covered,Goa
+472,30,,481,South Goa,3712,Sanguem,Village,627006,Bati,Fully Covered,Goa
+473,30,,481,South Goa,3712,Sanguem,Village,627007,Cumbari,Fully Covered,Goa
+474,30,,481,South Goa,3712,Sanguem,Village,627008,Viliena,Fully Covered,Goa
+475,30,,481,South Goa,3712,Sanguem,Village,627009,Dongor,Fully Covered,Goa
+476,30,,481,South Goa,3712,Sanguem,Village,627010,Naiquinim,Fully Covered,Goa
+477,30,,481,South Goa,3712,Sanguem,Village,627011,Porteem,Fully Covered,Goa
+478,30,,481,South Goa,3712,Sanguem,Village,627012,Curdem,Fully Covered,Goa
+479,30,,481,South Goa,3712,Sanguem,Village,627013,Colomb,Fully Covered,Goa
+480,30,,481,South Goa,3712,Sanguem,Village,627014,Rivona,Fully Covered,Goa
+481,30,,481,South Goa,3712,Sanguem,Village,627015,Kurpem,Fully Covered,Goa
+482,30,,481,South Goa,3712,Sanguem,Village,627016,Vichundrem,Fully Covered,Goa
+483,30,,481,South Goa,3712,Sanguem,Village,627017,Sigonem,Fully Covered,Goa
+484,30,,481,South Goa,3712,Sanguem,Village,627018,Neturlim,Fully Covered,Goa
+485,30,,481,South Goa,3712,Sanguem,Village,627019,Nundem,Fully Covered,Goa
+486,30,,481,South Goa,3712,Sanguem,Village,627020,Verlem,Fully Covered,Goa
+487,30,,481,South Goa,3712,Sanguem,Village,945842,Sanguem,Fully Covered,Goa
+488,30,,481,South Goa,3713,Sanvordem,District,552,South Goa,Partly Covered,Goa
+489,30,,481,South Goa,3713,Sanvordem,SubDistrict,5618,Sanguem,Partly Covered,Goa
+490,30,,481,South Goa,3713,Sanvordem,SubDistrict,5931,Dharbandora,Fully Covered,Goa
+491,30,,481,South Goa,3713,Sanvordem,Village,626970,Piliem,Fully Covered,Goa
+492,30,,481,South Goa,3713,Sanvordem,Village,626971,Darbandora,Fully Covered,Goa
+493,30,,481,South Goa,3713,Sanvordem,Village,626972,Sancordem,Fully Covered,Goa
+494,30,,481,South Goa,3713,Sanvordem,Village,626973,Aglote,Fully Covered,Goa
+495,30,,481,South Goa,3713,Sanvordem,Village,626974,Surla,Fully Covered,Goa
+496,30,,481,South Goa,3713,Sanvordem,Village,626975,Molem,Fully Covered,Goa
+497,30,,481,South Goa,3713,Sanvordem,Village,626976,Caranzol,Fully Covered,Goa
+498,30,,481,South Goa,3713,Sanvordem,Village,626977,Colem,Fully Covered,Goa
+499,30,,481,South Goa,3713,Sanvordem,Village,626978,Sigao,Fully Covered,Goa
+500,30,,481,South Goa,3713,Sanvordem,Village,626979,Sangod,Fully Covered,Goa
+501,30,,481,South Goa,3713,Sanvordem,Village,626980,Cormonem,Fully Covered,Goa
+502,30,,481,South Goa,3713,Sanvordem,Village,626981,Codli,Fully Covered,Goa
+503,30,,481,South Goa,3713,Sanvordem,Village,626982,Camarconda,Fully Covered,Goa
+504,30,,481,South Goa,3713,Sanvordem,Village,626983,Moissal,Fully Covered,Goa
+505,30,,481,South Goa,3713,Sanvordem,Village,626984,Bandoli,Fully Covered,Goa
+506,30,,481,South Goa,3713,Sanvordem,Village,626986,Antoriem,Fully Covered,Goa
+507,30,,481,South Goa,3713,Sanvordem,Village,626989,Sonauli,Fully Covered,Goa
+508,30,,481,South Goa,3713,Sanvordem,Village,626990,Boma,Fully Covered,Goa
+509,30,,481,South Goa,3714,Siroda,District,552,South Goa,Partly Covered,Goa
+510,30,,481,South Goa,3714,Siroda,SubDistrict,5614,Ponda,Partly Covered,Goa
+511,30,,481,South Goa,3714,Siroda,Village,626859,Betora,Fully Covered,Goa
+512,30,,481,South Goa,3714,Siroda,Village,626863,Shiroda,Fully Covered,Goa
+513,30,,481,South Goa,3714,Siroda,Village,626872,Borim (Ct),Fully Covered,Goa
+514,30,,481,South Goa,3715,Vasco-da-gama,District,552,South Goa,Partly Covered,Goa
+515,30,,481,South Goa,3715,Vasco-da-gama,SubDistrict,5615,Mormugao,Partly Covered,Goa
+516,30,,481,South Goa,3715,Vasco-da-gama,Village,945837,Mormugao Port,Fully Covered,Goa
+517,30,,481,South Goa,3715,Vasco-da-gama,Village,945838,Vadem,Fully Covered,Goa
+518,30,,481,South Goa,3715,Vasco-da-gama,Village,945839,Sambhaji,Fully Covered,Goa
+519,30,,481,South Goa,3716,Velim,District,552,South Goa,Partly Covered,Goa
+520,30,,481,South Goa,3716,Velim,SubDistrict,5616,Salcete,Partly Covered,Goa
+521,30,,481,South Goa,3716,Velim,Village,626908,Dramapur,Fully Covered,Goa
+522,30,,481,South Goa,3716,Velim,Village,626914,Sarzora,Fully Covered,Goa
+523,30,,481,South Goa,3716,Velim,Village,626915,Sirlim,Fully Covered,Goa
+524,30,,481,South Goa,3716,Velim,Village,626918,Deussua,Fully Covered,Goa
+525,30,,481,South Goa,3716,Velim,Village,626919,Assolna,Fully Covered,Goa
+526,30,,481,South Goa,3716,Velim,Village,626921,Velim,Fully Covered,Goa
+527,30,,481,South Goa,3716,Velim,Village,626922,Ambelim,Fully Covered,Goa
+528,30,,481,South Goa,3716,Velim,Village,626927,Sao Jose De Areal (Ct),Fully Covered,Goa
+529,30,,481,South Goa,3716,Velim,Village,626933,Chinchinim (Ct),Fully Covered,Goa
