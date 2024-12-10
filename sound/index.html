@@ -4,46 +4,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amche Sound</title>
+    <title>Real-time Noise Map</title>
 
-    <!-- Tailwind CSS via CDN -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css' rel='stylesheet' />
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Add jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
+    <style>
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(3);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+        .mapboxgl-user-location-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #007cbf;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+        }
+        .mapboxgl-user-location-dot::before {
+            content: '';
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            position: absolute;
+            background-color: #007cbf;
+            opacity: 0.1;
+            animation: pulse 2s infinite;
+        }
+        .mapboxgl-user-location-dot::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            border-top: 5px solid #fff;
+            border-right: 5px solid transparent;
+            border-left: 5px solid transparent;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 
-<body class="flex flex-col">
-    <!-- Add the iframe for the Google Spreadsheet -->
-    <iframe 
-        src="https://publicmap.github.io/noiselogger/"
-        class="w-full h-screen border-0"
-        frameborder="0"
-    ></iframe>
+<body class="bg-gray-100">
+    <div id="map-overlay" class="absolute top-0 left-0 right-0 z-10">
+        <div id="export-panel" class="bg-black bg-opacity-70 p-2 flex justify-center">
+            <button id="exportBtn" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Download CSV</button>
+        </div>
+        <div id="info-panel" class="bg-black bg-opacity-70 text-white p-4">
+            <div class="flex flex-col items-center mb-4">
+                <div id="sound-meter" class="w-full h-8 bg-gray-700 rounded-full overflow-hidden flex mb-2">
+                    <!-- Meter bars will be dynamically added here -->
+                </div>
+                <div class="flex justify-between w-full text-sm">
+                    <span>0 dB</span>
+                    <span>50 dB</span>
+                    <span>100 dB</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="text-4xl font-bold" id="current-level">0</div>
+                <div class="text-xl">dB</div>
+                <div class="flex flex-col ml-4">
+                    <span class="text-sm">10s Avg: <span id="avg-level">0</span> dB</span>
+                    <span class="text-sm">Min: <span id="min-level">0</span> dB</span>
+                    <span class="text-sm">Max: <span id="max-level">0</span> dB</span>
+                    <span class="text-sm">Duration: <span id="duration">0</span> s</span>
+                    <span class="text-sm">Zone: <span id="noise-zone">Silent Zone</span></span>
+                    <span class="text-sm">Accuracy: <span id="location-accuracy">N/A</span> m</span>
+                </div>
+            </div>
+        </div>
+        <div id="control-panel" class="bg-black bg-opacity-70 p-2 flex justify-center">
+            <button id="pauseBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Pause</button>
+            <button id="resumeBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2" disabled>Resume</button>
+            <button id="resetBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Reset</button>
+        </div>
+    </div>
+    <div id='map' class="absolute top-40 bottom-0 w-full"></div>
 
-    <!-- Add modal JavaScript before the closing body tag -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
     <script>
-        function openFeedbackModal() {
-            document.getElementById('feedbackModal').classList.remove('hidden');
-            document.getElementById('feedbackModal').classList.add('flex');
-        }
-
-        function closeFeedbackModal() {
-            document.getElementById('feedbackModal').classList.add('hidden');
-            document.getElementById('feedbackModal').classList.remove('flex');
-        }
-    </script>
-    <!--  Hotjar Tracking Code for amche.in -->
-    <script>
-        (function (h, o, t, j, a, r) {
-            h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments) };
-            h._hjSettings = { hjid: 5234909, hjsv: 6 };
-            a = o.getElementsByTagName('head')[0];
-            r = o.createElement('script'); r.async = 1;
-            r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-            a.appendChild(r);
-        })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            console.log("Export button clicked");
+            
+            // Assuming 'map' is your Mapbox GL JS map object
+            if (map && map.getSource('noise-data')) {
+                let geoJsonData = map.getSource('noise-data')._data;
+                console.log("GeoJSON data:", geoJsonData);
+                
+                if (geoJsonData && geoJsonData.features && geoJsonData.features.length > 0) {
+                    // Convert GeoJSON object to a JSON string
+                    let dataStr = JSON.stringify(geoJsonData);
+                    
+                    // Create a Blob with the data
+                    let dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    
+                    // Create a download link and trigger the download
+                    let url = URL.createObjectURL(dataBlob);
+                    let link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "noise_data.geojson");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    console.log("GeoJSON download initiated");
+                } else {
+                    console.log("No features found in the GeoJSON data");
+                }
+            } else {
+                console.log("Map or noise-data source not found");
+            }
+        });
     </script>
 </body>
 
