@@ -67,41 +67,31 @@ class MapLayerControl {
     }
 
     _initializeControl() {
-        const getNextLayerIndex = (type) => {
+        const getNextLayerIndex = (type, groupIndex) => {
             const layers = this._map.getStyle().layers;
+            console.log('Current layer stack:', layers.map(l => ({ id: l.id, type: l.type })));
             
-            if (type === 'vector' || type === 'symbol' || type === 'line' || type === 'fill') {
-                // Vector layers should go on top
-                return layers.length;
-            } else if (type === 'raster') {
-                // Find the first vector layer index
-                const firstVectorIndex = layers.findIndex(layer => 
-                    ['vector', 'symbol', 'line', 'fill'].includes(layer.type)
-                );
-                
-                // Find the OSM raster layer
-                const osmIndex = layers.findIndex(layer => 
-                    layer.type === 'raster' && (
-                        layer.id === 'satellite' || // Mapbox satellite
-                        layer.id.includes('osm') || // OSM layers
-                        layer.id === 'mapbox-satellite' // Alternative satellite ID
-                    )
-                );
-                
-                if (osmIndex !== -1) {
-                    // Place new raster layers right above the OSM layer
-                    return osmIndex + 1;
-                } else if (firstVectorIndex !== -1) {
-                    // If no OSM layer found but vector layers exist, place below vectors
-                    return firstVectorIndex;
-                } else {
-                    // If neither found, add to the end
-                    return layers.length;
-                }
+            // Find the satellite/base layer
+            const baseLayerIndex = layers.findIndex(layer => 
+                layer.type === 'raster' && layer.id.includes('satellite')
+            );
+            console.log('Base layer index:', baseLayerIndex);
+            
+            // Calculate insert position based on type and group order
+            let insertIndex;
+            if (type === 'tms' || type === 'raster' || type === 'layer-group' || type === 'osm' || !type) {
+                // Insert after the base layer in reverse order
+                // Using total number of groups minus current index to reverse the order
+                const totalGroups = this._options.groups.length;
+                const reversedIndex = totalGroups - (groupIndex || 0) - 1;
+                insertIndex = baseLayerIndex + 1 + reversedIndex;
             } else {
-                // For other types, add at the end
-                return layers.length;
+                // Vector and other layers go at the end
+                insertIndex = layers.length;
             }
+            
+            console.log(`Adding ${type} layer at index ${insertIndex} (groupIndex: ${groupIndex})`);
+            return insertIndex;
         };
 
         this._initializeLayers();
@@ -837,7 +827,7 @@ class MapLayerControl {
                         paint: {
                             'raster-opacity': group.opacity || 1
                         }
-                    }, this._map.getStyle().layers[getNextLayerIndex('raster')]?.id);
+                    }, this._map.getStyle().layers[getNextLayerIndex('tms', groupIndex)]?.id);
                 }
 
                 if (group.description) {

@@ -140,7 +140,7 @@
                     'visibility': 'none'  // Hidden by default
                 },
                 'paint': {
-                    'raster-opacity': 0.6
+                    'raster-opacity': 1
                 }
             });  // Insert before building layer to show 3D buildings on top
 
@@ -176,13 +176,32 @@
                                 }
                         },
                         {
+                            title: 'Hill Slopes',
+                            groupTitle: 'Select Slope Source:',
+                            headerImage: 'assets/map-layer-slope.png',
+                            layers: [
+                                {
+                                    id: 'isro slope',
+                                    label: 'ISRO CartoDEM 2.5m (Bardez)',
+                                    sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                },
+                                {
+                                    id: 'aster slope',
+                                    label: 'NASA Aster 30m (Goa Coast)',
+                                    sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    location: 'Panaji'
+                                }
+                            ]
+                        },
+                        {
                             title: 'Goa Masterplan',
                             groupTitle: 'Regional Development Plans 2021',
                             headerImage: 'assets/map-layer-rdp.png',
                             type: 'tms',
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            opacity: 0.7,
+                            opacity: 0.9,
                             description: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
                             initiallyChecked: true
                         },
@@ -193,7 +212,7 @@
                             type: 'tms',
                             id: 'goa-czmp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2080/{z}/{x}/{y}.png',
-                            opacity: 0.7,
+                            opacity: 0.9,
                             description: 'CZMP plans for Goa from NCSM  https://czmp.ncscm.res.in/'
                         },
                         {
@@ -230,25 +249,6 @@
                                     haloWidth: 2
                                 }
                             }
-                        },
-                        {
-                            title: 'Hill Slopes',
-                            groupTitle: 'Select Slope Source:',
-                            headerImage: 'assets/map-layer-slope.png',
-                            layers: [
-                                {
-                                    id: 'aster slope',
-                                    label: 'NASA Aster 30m (Goa Coast)',
-                                    sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                },
-                                {
-                                    id: 'isro slope',
-                                    label: 'ISRO CartoDEM 2.5m (Bardez)',
-                                    sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                }
-                            ]
                         },
                         {
                             title: '3D Terrain',
