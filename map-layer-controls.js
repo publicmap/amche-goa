@@ -67,6 +67,43 @@ class MapLayerControl {
     }
 
     _initializeControl() {
+        const getNextLayerIndex = (type) => {
+            const layers = this._map.getStyle().layers;
+            
+            if (type === 'vector' || type === 'symbol' || type === 'line' || type === 'fill') {
+                // Vector layers should go on top
+                return layers.length;
+            } else if (type === 'raster') {
+                // Find the first vector layer index
+                const firstVectorIndex = layers.findIndex(layer => 
+                    ['vector', 'symbol', 'line', 'fill'].includes(layer.type)
+                );
+                
+                // Find the OSM raster layer
+                const osmIndex = layers.findIndex(layer => 
+                    layer.type === 'raster' && (
+                        layer.id === 'satellite' || // Mapbox satellite
+                        layer.id.includes('osm') || // OSM layers
+                        layer.id === 'mapbox-satellite' // Alternative satellite ID
+                    )
+                );
+                
+                if (osmIndex !== -1) {
+                    // Place new raster layers right above the OSM layer
+                    return osmIndex + 1;
+                } else if (firstVectorIndex !== -1) {
+                    // If no OSM layer found but vector layers exist, place below vectors
+                    return firstVectorIndex;
+                } else {
+                    // If neither found, add to the end
+                    return layers.length;
+                }
+            } else {
+                // For other types, add at the end
+                return layers.length;
+            }
+        };
+
         this._initializeLayers();
 
         this._options.groups.forEach((group, groupIndex) => {
@@ -187,7 +224,6 @@ class MapLayerControl {
                             maxzoom: 15
                         });
 
-                        // Add vector layer with style configuration
                         this._map.addLayer({
                             id: layerId,
                             type: 'fill',
@@ -200,9 +236,8 @@ class MapLayerControl {
                                 'fill-color': group.style?.color || '#FF0000',
                                 'fill-opacity': group.style?.fillOpacity || 0.1
                             }
-                        });
+                        }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
 
-                        // Add outline layer for better visibility
                         this._map.addLayer({
                             id: `${layerId}-outline`,
                             type: 'line',
@@ -216,23 +251,20 @@ class MapLayerControl {
                                 'line-width': group.style?.width || 1,
                                 'line-opacity': 1
                             }
-                        });
+                        }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
 
-                        // Add click handler for feature inspection
                         if (group.inspect) {
                             const popup = new mapboxgl.Popup({
                                 closeButton: true,
                                 closeOnClick: true
                             });
 
-                            // Add click handler to both fill and outline layers
                             [layerId, `${layerId}-outline`].forEach(id => {
                                 this._map.on('click', id, (e) => {
-                                    console.log('Feature clicked:', e.features[0]); // Debug log
+                                    console.log('Feature clicked:', e.features[0]);
                                     if (e.features.length > 0) {
                                         const feature = e.features[0];
                                         
-                                        // Build popup content
                                         const content = document.createElement('div');
                                         content.className = 'p-2';
                                         
@@ -249,7 +281,7 @@ class MapLayerControl {
                                             
                                             group.inspect.fields.forEach(field => {
                                                 const value = feature.properties[field];
-                                                console.log(`Field ${field}:`, value); // Debug log
+                                                console.log(`Field ${field}:`, value);
                                                 if (value) {
                                                     const fieldDiv = document.createElement('div');
                                                     fieldDiv.className = 'text-sm';
@@ -268,7 +300,6 @@ class MapLayerControl {
                                     }
                                 });
 
-                                // Change cursor on hover
                                 this._map.on('mouseenter', id, () => {
                                     this._map.getCanvas().style.cursor = 'pointer';
                                 });
@@ -311,8 +342,7 @@ class MapLayerControl {
                 }
             });
 
-            // Add the opacity container to the source control before any other controls
-            if (group.type !== 'terrain') { // Skip for terrain layers as they already have opacity control
+            if (group.type !== 'terrain') {
                 $sourceControl.append($opacityContainer);
             }
 
@@ -500,7 +530,7 @@ class MapLayerControl {
                 const $colorContainer = $('<div>', { class: 'mt-4' });
                 const $colorPicker = $('<input>', {
                     type: 'color',
-                    value: '#ffffff',  // Default white
+                    value: '#ffffff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
                 
@@ -509,11 +539,10 @@ class MapLayerControl {
                     text: '#ffffff'
                 });
 
-                // Add high-color picker
                 const $highColorContainer = $('<div>', { class: 'mt-2' });
                 const $highColorPicker = $('<input>', {
                     type: 'color',
-                    value: '#add8e6',  // Default light blue
+                    value: '#add8e6',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
                 
@@ -522,11 +551,10 @@ class MapLayerControl {
                     text: '#add8e6'
                 });
 
-                // Add space-color picker
                 const $spaceColorContainer = $('<div>', { class: 'mt-2' });
                 const $spaceColorPicker = $('<input>', {
                     type: 'color',
-                    value: '#d8f2ff',  // Default light sky blue
+                    value: '#d8f2ff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
                 
@@ -640,14 +668,12 @@ class MapLayerControl {
                     }),
                     $('<div>', { class: 'flex items-center' }).append($colorPicker, $colorValue),
                     
-                    // Add high-color section
                     $('<label>', { 
                         class: 'block text-sm text-gray-700 mb-1 mt-2',
                         text: 'High Color'
                     }),
                     $('<div>', { class: 'flex items-center' }).append($highColorPicker, $highColorValue),
                     
-                    // Add space-color section
                     $('<label>', { 
                         class: 'block text-sm text-gray-700 mb-1 mt-2',
                         text: 'Space Color'
@@ -655,7 +681,6 @@ class MapLayerControl {
                     $('<div>', { class: 'flex items-center' }).append($spaceColorPicker, $spaceColorValue)
                 );
 
-                // Add fog settings checkbox
                 const $fogSettingsContainer = $('<div>', { class: 'mt-4' });
                 const $fogSettingsLabel = $('<label>', { class: 'flex items-center' });
                 const $fogSettingsCheckbox = $('<input>', {
@@ -672,26 +697,22 @@ class MapLayerControl {
                     })
                 );
 
-                // Create collapsible container for fog settings
                 const $fogSettingsContent = $('<div>', { 
                     class: 'fog-settings-content mt-2 hidden' 
                 });
 
-                // Move all fog-related controls into the collapsible container
                 $fogSettingsContent.append(
                     $fogContainer, 
                     $horizonContainer,
                     $colorContainer
                 );
 
-                // Toggle visibility of fog settings
                 $fogSettingsCheckbox.on('change', (e) => {
                     $fogSettingsContent.toggleClass('hidden', !e.target.checked);
                 });
 
                 $fogSettingsContainer.append($fogSettingsLabel, $fogSettingsContent);
 
-                // Append everything to source control
                 $sourceControl.append(
                     $sliderContainer,
                     $fogSettingsContainer
@@ -717,7 +738,7 @@ class MapLayerControl {
                         paint: {
                             'raster-opacity': group.opacity || 1
                         }
-                    });
+                    }, this._map.getStyle().layers[getNextLayerIndex('raster')]?.id);
                 }
 
                 if (group.description) {
@@ -737,7 +758,6 @@ class MapLayerControl {
                         maxzoom: 15
                     });
 
-                    // Add vector layer with style configuration
                     this._map.addLayer({
                         id: layerId,
                         type: 'fill',
@@ -750,9 +770,8 @@ class MapLayerControl {
                             'fill-color': group.style?.color || '#FF0000',
                             'fill-opacity': group.style?.fillOpacity || 0.1
                         }
-                    });
+                    }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
 
-                    // Add outline layer for better visibility
                     this._map.addLayer({
                         id: `${layerId}-outline`,
                         type: 'line',
@@ -766,23 +785,20 @@ class MapLayerControl {
                             'line-width': group.style?.width || 1,
                             'line-opacity': 1
                         }
-                    });
+                    }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
 
-                    // Add click handler for feature inspection
                     if (group.inspect) {
                         const popup = new mapboxgl.Popup({
                             closeButton: true,
                             closeOnClick: true
                         });
 
-                        // Add click handler to both fill and outline layers
                         [layerId, `${layerId}-outline`].forEach(id => {
                             this._map.on('click', id, (e) => {
-                                console.log('Feature clicked:', e.features[0]); // Debug log
+                                console.log('Feature clicked:', e.features[0]);
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
                                     
-                                    // Build popup content
                                     const content = document.createElement('div');
                                     content.className = 'p-2';
                                     
@@ -799,7 +815,7 @@ class MapLayerControl {
                                         
                                         group.inspect.fields.forEach(field => {
                                             const value = feature.properties[field];
-                                            console.log(`Field ${field}:`, value); // Debug log
+                                            console.log(`Field ${field}:`, value);
                                             if (value) {
                                                 const fieldDiv = document.createElement('div');
                                                 fieldDiv.className = 'text-sm';
@@ -818,7 +834,6 @@ class MapLayerControl {
                                 }
                             });
 
-                            // Change cursor on hover
                             this._map.on('mouseenter', id, () => {
                                 this._map.getCanvas().style.cursor = 'pointer';
                             });
@@ -1039,18 +1054,15 @@ class MapLayerControl {
     _initializeWithAnimation() {
         const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header input[type="checkbox"]');
         
-        // First, check all checkboxes and show all layers
         groupHeaders.forEach((checkbox) => {
             checkbox.checked = true;
             checkbox.dispatchEvent(new Event('change'));
         });
 
-        // After 2 seconds, start unchecking boxes that shouldn't be checked
         setTimeout(() => {
             groupHeaders.forEach((checkbox, index) => {
                 const group = this._options.groups[index];
                 if (!group?.initiallyChecked) {
-                    // Uncheck sequentially with 200ms delay between each
                     setTimeout(() => {
                         checkbox.checked = false;
                         checkbox.dispatchEvent(new Event('change'));
