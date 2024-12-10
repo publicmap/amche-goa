@@ -190,78 +190,92 @@ class MapLayerControl {
                         // Add vector layer with style configuration
                         this._map.addLayer({
                             id: layerId,
+                            type: 'fill',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none'
+                            },
+                            paint: {
+                                'fill-color': group.style?.color || '#FF0000',
+                                'fill-opacity': group.style?.fillOpacity || 0.1
+                            }
+                        });
+
+                        // Add outline layer for better visibility
+                        this._map.addLayer({
+                            id: `${layerId}-outline`,
                             type: 'line',
                             source: sourceId,
                             'source-layer': group.sourceLayer || 'default',
                             layout: {
-                                visibility: 'none',
-                                'line-join': 'round',
-                                'line-cap': 'round'
+                                visibility: 'none'
                             },
                             paint: {
                                 'line-color': group.style?.color || '#FF0000',
                                 'line-width': group.style?.width || 1,
-                                'line-opacity': group.opacity || 0.7
+                                'line-opacity': 1
                             }
                         });
 
-                        // Add click handler for feature inspection if configured
+                        // Add click handler for feature inspection
                         if (group.inspect) {
-                            // Create popup
                             const popup = new mapboxgl.Popup({
                                 closeButton: true,
                                 closeOnClick: true
                             });
 
-                            this._map.on('click', layerId, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    
-                                    // Build popup content
-                                    const content = document.createElement('div');
-                                    content.className = 'p-2';
-                                    
-                                    // Add title if specified
-                                    if (group.inspect.label) {
-                                        const title = document.createElement('h3');
-                                        title.className = 'font-bold mb-2';
-                                        title.textContent = group.inspect.label;
-                                        content.appendChild(title);
-                                    }
-
-                                    // Add fields
-                                    if (group.inspect.fields) {
-                                        const fieldsList = document.createElement('div');
-                                        fieldsList.className = 'space-y-1';
+                            // Add click handler to both fill and outline layers
+                            [layerId, `${layerId}-outline`].forEach(id => {
+                                this._map.on('click', id, (e) => {
+                                    console.log('Feature clicked:', e.features[0]); // Debug log
+                                    if (e.features.length > 0) {
+                                        const feature = e.features[0];
                                         
-                                        group.inspect.fields.forEach(field => {
-                                            const value = feature.properties[field];
-                                            if (value) {
-                                                const fieldDiv = document.createElement('div');
-                                                fieldDiv.className = 'text-sm';
-                                                fieldDiv.innerHTML = `<span class="font-medium">${field}:</span> ${value}`;
-                                                fieldsList.appendChild(fieldDiv);
-                                            }
-                                        });
+                                        // Build popup content
+                                        const content = document.createElement('div');
+                                        content.className = 'p-2';
                                         
-                                        content.appendChild(fieldsList);
+                                        if (group.inspect.label) {
+                                            const title = document.createElement('h3');
+                                            title.className = 'font-bold mb-2';
+                                            title.textContent = group.inspect.label;
+                                            content.appendChild(title);
+                                        }
+
+                                        if (group.inspect.fields) {
+                                            const fieldsList = document.createElement('div');
+                                            fieldsList.className = 'space-y-1';
+                                            
+                                            group.inspect.fields.forEach(field => {
+                                                const value = feature.properties[field];
+                                                console.log(`Field ${field}:`, value); // Debug log
+                                                if (value) {
+                                                    const fieldDiv = document.createElement('div');
+                                                    fieldDiv.className = 'text-sm';
+                                                    fieldDiv.innerHTML = `<span class="font-medium">${field}:</span> ${value}`;
+                                                    fieldsList.appendChild(fieldDiv);
+                                                }
+                                            });
+                                            
+                                            content.appendChild(fieldsList);
+                                        }
+
+                                        popup
+                                            .setLngLat(e.lngLat)
+                                            .setDOMContent(content)
+                                            .addTo(this._map);
                                     }
+                                });
 
-                                    // Set popup content and location
-                                    popup
-                                        .setLngLat(e.lngLat)
-                                        .setDOMContent(content)
-                                        .addTo(this._map);
-                                }
-                            });
+                                // Change cursor on hover
+                                this._map.on('mouseenter', id, () => {
+                                    this._map.getCanvas().style.cursor = 'pointer';
+                                });
 
-                            // Change cursor to pointer when hovering over features
-                            this._map.on('mouseenter', layerId, () => {
-                                this._map.getCanvas().style.cursor = 'pointer';
-                            });
-
-                            this._map.on('mouseleave', layerId, () => {
-                                this._map.getCanvas().style.cursor = '';
+                                this._map.on('mouseleave', id, () => {
+                                    this._map.getCanvas().style.cursor = '';
+                                });
                             });
                         }
                     }
@@ -272,6 +286,28 @@ class MapLayerControl {
                             text: group.description
                         }).appendTo($sourceControl);
                     }
+                } else {
+                    const $radioGroup = $('<div>', { class: 'radio-group' });
+
+                    group.layers.forEach((layer, index) => {
+                        const $radioLabel = $('<label>', { class: 'radio-label' });
+                        const $radio = $('<input>', {
+                            type: 'radio',
+                            name: `layer-group-${this._instanceId}-${groupIndex}`,
+                            value: layer.id,
+                            checked: index === 0
+                        });
+
+                        $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
+
+                        $radioLabel.append(
+                            $radio,
+                            $('<span>', { text: layer.label })
+                        );
+                        $radioGroup.append($radioLabel);
+                    });
+
+                    $sourceControl.append($radioGroup);
                 }
             });
 
@@ -704,20 +740,94 @@ class MapLayerControl {
                     // Add vector layer with style configuration
                     this._map.addLayer({
                         id: layerId,
+                        type: 'fill',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer || 'default',
+                        layout: {
+                            visibility: 'none'
+                        },
+                        paint: {
+                            'fill-color': group.style?.color || '#FF0000',
+                            'fill-opacity': group.style?.fillOpacity || 0.1
+                        }
+                    });
+
+                    // Add outline layer for better visibility
+                    this._map.addLayer({
+                        id: `${layerId}-outline`,
                         type: 'line',
                         source: sourceId,
                         'source-layer': group.sourceLayer || 'default',
                         layout: {
-                            visibility: 'none',
-                            'line-join': 'round',
-                            'line-cap': 'round'
+                            visibility: 'none'
                         },
                         paint: {
                             'line-color': group.style?.color || '#FF0000',
                             'line-width': group.style?.width || 1,
-                            'line-opacity': group.opacity || 0.7
+                            'line-opacity': 1
                         }
                     });
+
+                    // Add click handler for feature inspection
+                    if (group.inspect) {
+                        const popup = new mapboxgl.Popup({
+                            closeButton: true,
+                            closeOnClick: true
+                        });
+
+                        // Add click handler to both fill and outline layers
+                        [layerId, `${layerId}-outline`].forEach(id => {
+                            this._map.on('click', id, (e) => {
+                                console.log('Feature clicked:', e.features[0]); // Debug log
+                                if (e.features.length > 0) {
+                                    const feature = e.features[0];
+                                    
+                                    // Build popup content
+                                    const content = document.createElement('div');
+                                    content.className = 'p-2';
+                                    
+                                    if (group.inspect.label) {
+                                        const title = document.createElement('h3');
+                                        title.className = 'font-bold mb-2';
+                                        title.textContent = group.inspect.label;
+                                        content.appendChild(title);
+                                    }
+
+                                    if (group.inspect.fields) {
+                                        const fieldsList = document.createElement('div');
+                                        fieldsList.className = 'space-y-1';
+                                        
+                                        group.inspect.fields.forEach(field => {
+                                            const value = feature.properties[field];
+                                            console.log(`Field ${field}:`, value); // Debug log
+                                            if (value) {
+                                                const fieldDiv = document.createElement('div');
+                                                fieldDiv.className = 'text-sm';
+                                                fieldDiv.innerHTML = `<span class="font-medium">${field}:</span> ${value}`;
+                                                fieldsList.appendChild(fieldDiv);
+                                            }
+                                        });
+                                        
+                                        content.appendChild(fieldsList);
+                                    }
+
+                                    popup
+                                        .setLngLat(e.lngLat)
+                                        .setDOMContent(content)
+                                        .addTo(this._map);
+                                }
+                            });
+
+                            // Change cursor on hover
+                            this._map.on('mouseenter', id, () => {
+                                this._map.getCanvas().style.cursor = 'pointer';
+                            });
+
+                            this._map.on('mouseleave', id, () => {
+                                this._map.getCanvas().style.cursor = '';
+                            });
+                        });
+                    }
                 }
 
                 if (group.description) {
@@ -793,6 +903,7 @@ class MapLayerControl {
                 const layerId = `vector-layer-${group.id}`;
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
                 }
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
@@ -834,6 +945,7 @@ class MapLayerControl {
                 const layerId = `vector-layer-${group.id}`;
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'none');
                 }
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
