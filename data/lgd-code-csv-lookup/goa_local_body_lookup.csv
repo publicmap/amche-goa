@@ -4,7 +4,6 @@ Code,Name,Class,Type,District Name,Subdistrict Name,Ward Count,Village Names
 252077,Sankhali,Urban,Municipality,North Goa,Bicholim,26,
 252057,Pernem,Urban,Municipality,North Goa,Pernem,20,
 252079,Valpoi,Urban,Municipality,North Goa,Satari,20,
-252071,City Corporation Panaji,Urban,Municipal Corporation,North Goa,Tiswadi,90,
 252100,Canacona,Urban,Municipality,South Goa,Canacona,24,
 252084,Mormugao,Urban,Municipality,South Goa,Mormugao,50,
 252082,Ponda,Urban,Municipality,South Goa,Ponda,30,
@@ -204,3 +203,4 @@ Code,Name,Class,Type,District Name,Subdistrict Name,Ward Count,Village Names
 254458,Neturlim,Rural,Village Panchayat,South Goa,Sanguem,7,"Neturlim, Nundem, Verlem, Vichundrem"
 254483,Rivona,Rural,Village Panchayat,South Goa,Sanguem,9,"Colomb, Rivona"
 254521,Uguem,Rural,Village Panchayat,South Goa,Sanguem,7,"Cotarli, Muguli, Patiem, Salauli, Uguem (part), Xelpem"
+252071,City Corporation Panaji,Metropolitan,Municipal Corporation,North Goa,Tiswadi,90,

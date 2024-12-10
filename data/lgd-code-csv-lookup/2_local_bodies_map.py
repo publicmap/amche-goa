@@ -232,8 +232,11 @@ all_bodies = all_bodies.drop(columns=[
 
 # Add Class field based on body type and village names
 def determine_class(row):
+    # Check if body type is Municipal Corporation
+    if row['Type'] == 'Municipal Corporation':
+        return 'Metropolitan'
     # Check if body type is in urban types
-    if row['Type'] in URBAN_BODY_TYPES.values():
+    elif row['Type'] in URBAN_BODY_TYPES.values():
         return 'Urban'
     # For rural bodies, check village names for special cases
     elif pd.notna(row['Village Names']) and any(suffix in str(row['Village Names']) for suffix in ['(Ct)', '(Og)']):
