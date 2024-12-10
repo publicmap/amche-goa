@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Goa</title>
+    <title>आमचे</title>
 
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,7 +34,7 @@
 <body class="flex flex-col">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
-        <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">आमचे 3D Goa</a></h1>
+        <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">आमचे</a></h1>
         <div class="flex gap-4">
             <a href="https://github.com/publicmap/3d-goa" class="text-sm hover:underline">Source</a>
             <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
@@ -146,13 +146,6 @@
                     // Add layer control with multiple groups including GeoJSON
                     const layerControl = new MapLayerControl([
                         {
-                            title: '3D Terrain',
-                            groupTitle: 'Terrain Controls',
-                            headerImage: 'assets/map-layer-terrain.png',
-                            type: 'terrain',
-                            initiallyChecked: true
-                        },
-                        {
                             title: 'Goa Masterplan',
                             groupTitle: 'Regional Development Plans 2021',
                             headerImage: 'assets/map-layer-rdp.png',
@@ -160,7 +153,8 @@
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
                             opacity: 0.7,
-                            description: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/'
+                            description: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
+                            initiallyChecked: true
                         },
                         {
                             title: 'Goa CZMP',
@@ -225,6 +219,13 @@
                                     location: 'Guirim'
                                 }
                             ]
+                        },
+                        {
+                            title: '3D Terrain',
+                            groupTitle: 'Terrain Controls',
+                            headerImage: 'assets/map-layer-terrain.png',
+                            type: 'terrain',
+                            initiallyChecked: true
                         }
                         // {
                         //     title: 'One Map Goa',
