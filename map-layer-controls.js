@@ -1325,7 +1325,7 @@ class MapLayerControl {
             const fieldsGrid = document.createElement('div');
             fieldsGrid.className = 'grid grid-cols-2 gap-3 text-sm';
             
-            group.inspect.fields.forEach(field => {
+            group.inspect.fields.forEach((field, index) => {
                 // Check if the field exists in feature properties
                 if (feature.properties.hasOwnProperty(field) && field !== group.inspect.label) {
                     const value = feature.properties[field];
@@ -1334,10 +1334,11 @@ class MapLayerControl {
                     const fieldContainer = document.createElement('div');
                     fieldContainer.className = 'col-span-2 grid grid-cols-2 gap-2 border-b border-gray-100 py-2';
                     
-                    // Create and add field label
+                    // Create and add field label using fieldTitles if available
                     const fieldLabel = document.createElement('div');
                     fieldLabel.className = 'text-gray-500 uppercase text-xs tracking-wider';
-                    fieldLabel.textContent = field;
+                    // Use fieldTitles if available, otherwise fallback to the field name
+                    fieldLabel.textContent = group.inspect?.fieldTitles?.[index] || field;
                     fieldContainer.appendChild(fieldLabel);
                     
                     // Create and add field value

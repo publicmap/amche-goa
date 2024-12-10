@@ -146,9 +146,9 @@
                     // Add layer control with multiple groups including GeoJSON
                     const layerControl = new MapLayerControl([
                     {
-                            title: 'Land Records',
+                            title: 'Survey Boundaries',
                             groupTitle: 'Cadastral Boundaries',
-                            headerImage: 'assets/map-layer-cadastral.png',
+                            headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
@@ -156,9 +156,9 @@
                             opacity: 0.7,
                             description: 'Survey plot boundaries from Goa Bhunaksha',
                             style: {
-                                color: '#FF0000',
-                                width: 1,
-                                fillOpacity: 0.1
+                                color: '#555',
+                                width: .2,
+                                fillOpacity: 0.03
                             },
                             initiallyChecked: true,
                             inspect: {
@@ -166,6 +166,7 @@
                                     title: 'Survey Number',
                                     label: 'Plot',
                                     fields: ['VillageNam','TalName'],
+                                    fieldTitles: ['Village','Taluk'],
                                     customHtml: 'Source: <a href="https://goaonline.gov.in/Appln/Uil/propertyregister" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/LandRecords" target="_blank">View RoR</a>'
                                 }
                         },
