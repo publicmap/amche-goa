@@ -359,3 +359,50 @@ header h1 {
 .layer-control-toggle.is-open {
     font-size: 20px;  /* Slightly smaller for the × symbol */
 }
+
+/* Popup styles */
+.swiss-popup {
+    max-width: 320px;
+}
+
+.mapboxgl-popup-content {
+    padding: 0;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: white;
+}
+
+.mapboxgl-popup-close-button {
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    color: #666;
+    font-size: 16px;
+    right: 6px;
+    top: 6px;
+}
+
+.mapboxgl-popup-close-button:hover {
+    background: none;
+    color: #000;
+}
+
+/* Hover popup styles */
+.hover-popup .mapboxgl-popup-content {
+    background: white;
+    color: black;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 2px;
+}
+
+.hover-popup .mapboxgl-popup-tip {
+    border-top-color: white;
+}
+
+/* Ensure text is black in both hover and active popups */
+.swiss-popup .text-sm,
+.swiss-popup .text-2xl,
+.hover-popup .text-sm {
+    color: black !important;
+}

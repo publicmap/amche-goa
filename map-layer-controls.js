@@ -221,7 +221,8 @@ class MapLayerControl {
                         this._map.addSource(sourceId, {
                             type: 'vector',
                             tiles: [group.url],
-                            maxzoom: 15
+                            maxzoom: 15,
+                            promoteId: group.inspect?.id || 'id'
                         });
 
                         this._map.addLayer({
@@ -259,39 +260,136 @@ class MapLayerControl {
                                 closeOnClick: true
                             });
 
+                            const hoverPopup = new mapboxgl.Popup({
+                                closeButton: false,
+                                closeOnClick: false,
+                                className: 'hover-popup'
+                            });
+
+                            let hoveredFeatureId = null;
+                            let selectedFeatureId = null;
+
+                            // Get the source layer from group config, with a fallback
+                            const sourceLayer = group.sourceLayer || 'default';
+
                             [layerId, `${layerId}-outline`].forEach(id => {
+                                // Update hover and selection paint properties
+                                if (id === layerId) {
+                                    this._map.setPaintProperty(id, 'fill-opacity', [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        0.9, // Selected opacity
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        0.8, // Hover opacity
+                                        group.style?.fillOpacity || 0.1 // Default opacity
+                                    ]);
+                                } else {
+                                    this._map.setPaintProperty(id, 'line-width', [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4, // Selected width (thicker)
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3, // Hover width
+                                        group.style?.width || 1 // Default width
+                                    ]);
+                                    
+                                    // Add line-color variation for selected state
+                                    this._map.setPaintProperty(id, 'line-color', [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        '#000000', // Selected color (black)
+                                        group.style?.color || '#FF0000' // Default color
+                                    ]);
+                                }
+
+                                // Update hover events
+                                this._map.on('mousemove', id, (e) => {
+                                    if (e.features.length > 0) {
+                                        const feature = e.features[0];
+                                        console.log('Hover feature:', feature); // Debug log
+                                        
+                                        // Update feature state for hover effect
+                                        if (hoveredFeatureId !== null) {
+                                            this._map.setFeatureState(
+                                                { 
+                                                    source: sourceId, 
+                                                    sourceLayer: sourceLayer,
+                                                    id: hoveredFeatureId 
+                                                },
+                                                { hover: false }
+                                            );
+                                        }
+                                        hoveredFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { 
+                                                source: sourceId, 
+                                                sourceLayer: sourceLayer,
+                                                id: hoveredFeatureId 
+                                            },
+                                            { hover: true }
+                                        );
+
+                                        // Show hover popup
+                                        if (group.inspect?.label) {
+                                            const labelValue = feature.properties[group.inspect.label];
+                                            if (labelValue) {
+                                                hoverPopup
+                                                    .setLngLat(e.lngLat)
+                                                    .setDOMContent(this._createSwissPopupContent(feature, group, true))
+                                                    .addTo(this._map);
+                                            }
+                                        }
+                                    }
+                                });
+
+                                this._map.on('mouseleave', id, () => {
+                                    // Clear hover state
+                                    if (hoveredFeatureId !== null) {
+                                        this._map.setFeatureState(
+                                            { 
+                                                source: sourceId, 
+                                                sourceLayer: sourceLayer,
+                                                id: hoveredFeatureId 
+                                            },
+                                            { hover: false }
+                                        );
+                                        hoveredFeatureId = null;
+                                    }
+
+                                    // Remove hover popup
+                                    hoverPopup.remove();
+                                });
+
+                                // Update click event to handle selection
                                 this._map.on('click', id, (e) => {
-                                    console.log('Feature clicked:', e.features[0]);
                                     if (e.features.length > 0) {
                                         const feature = e.features[0];
                                         
-                                        const content = document.createElement('div');
-                                        content.className = 'p-2';
-                                        
-                                        if (group.inspect.label) {
-                                            const title = document.createElement('h3');
-                                            title.className = 'font-bold mb-2';
-                                            title.textContent = group.inspect.label;
-                                            content.appendChild(title);
+                                        // Clear previous selection
+                                        if (selectedFeatureId !== null) {
+                                            this._map.setFeatureState(
+                                                { 
+                                                    source: sourceId, 
+                                                    sourceLayer: sourceLayer,
+                                                    id: selectedFeatureId 
+                                                },
+                                                { selected: false }
+                                            );
                                         }
 
-                                        if (group.inspect.fields) {
-                                            const fieldsList = document.createElement('div');
-                                            fieldsList.className = 'space-y-1';
-                                            
-                                            group.inspect.fields.forEach(field => {
-                                                const value = feature.properties[field];
-                                                console.log(`Field ${field}:`, value);
-                                                if (value) {
-                                                    const fieldDiv = document.createElement('div');
-                                                    fieldDiv.className = 'text-sm';
-                                                    fieldDiv.innerHTML = `<span class="font-medium">${field}:</span> ${value}`;
-                                                    fieldsList.appendChild(fieldDiv);
-                                                }
-                                            });
-                                            
-                                            content.appendChild(fieldsList);
-                                        }
+                                        // Set new selection
+                                        selectedFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { 
+                                                source: sourceId, 
+                                                sourceLayer: sourceLayer,
+                                                id: selectedFeatureId 
+                                            },
+                                            { selected: true }
+                                        );
+
+                                        // Use the _createSwissPopupContent method to create popup content
+                                        const content = this._createSwissPopupContent(feature, group);
 
                                         popup
                                             .setLngLat(e.lngLat)
@@ -300,6 +398,7 @@ class MapLayerControl {
                                     }
                                 });
 
+                                // Existing cursor style events
                                 this._map.on('mouseenter', id, () => {
                                     this._map.getCanvas().style.cursor = 'pointer';
                                 });
@@ -755,7 +854,8 @@ class MapLayerControl {
                     this._map.addSource(sourceId, {
                         type: 'vector',
                         tiles: [group.url],
-                        maxzoom: 15
+                        maxzoom: 15,
+                        promoteId: group.inspect?.id || 'id'
                     });
 
                     this._map.addLayer({
@@ -793,39 +893,135 @@ class MapLayerControl {
                             closeOnClick: true
                         });
 
+                        const hoverPopup = new mapboxgl.Popup({
+                            closeButton: false,
+                            closeOnClick: false,
+                            className: 'hover-popup'
+                        });
+
+                        let hoveredFeatureId = null;
+                        let selectedFeatureId = null;
+
+                        // Get the source layer from group config, with a fallback
+                        const sourceLayer = group.sourceLayer || 'default';
+
                         [layerId, `${layerId}-outline`].forEach(id => {
-                            this._map.on('click', id, (e) => {
-                                console.log('Feature clicked:', e.features[0]);
+                            // Update hover and selection paint properties
+                            if (id === layerId) {
+                                this._map.setPaintProperty(id, 'fill-opacity', [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    0.2, // Selected opacity
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    0.8, // Hover opacity
+                                    group.style?.fillOpacity || 0.1 // Default opacity
+                                ]);
+                            } else {
+                                this._map.setPaintProperty(id, 'line-width', [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    4, // Selected width (thicker)
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    3, // Hover width
+                                    group.style?.width || 1 // Default width
+                                ]);
+                                
+                                // Add line-color variation for selected state
+                                this._map.setPaintProperty(id, 'line-color', [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    '#000000', // Selected color (black)
+                                    group.style?.color || '#FF0000' // Default color
+                                ]);
+                            }
+
+                            // Update hover events
+                            this._map.on('mousemove', id, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
                                     
-                                    const content = document.createElement('div');
-                                    content.className = 'p-2';
+                                    // Update feature state for hover effect
+                                    if (hoveredFeatureId !== null) {
+                                        this._map.setFeatureState(
+                                            { 
+                                                source: sourceId, 
+                                                sourceLayer: sourceLayer,
+                                                id: hoveredFeatureId 
+                                            },
+                                            { hover: false }
+                                        );
+                                    }
+                                    hoveredFeatureId = feature.id;
+                                    this._map.setFeatureState(
+                                        { 
+                                            source: sourceId, 
+                                            sourceLayer: sourceLayer,
+                                            id: hoveredFeatureId 
+                                        },
+                                        { hover: true }
+                                    );
+
+                                    // Show hover popup
+                                    if (group.inspect?.label) {
+                                        const labelValue = feature.properties[group.inspect.label];
+                                        if (labelValue) {
+                                            hoverPopup
+                                                .setLngLat(e.lngLat)
+                                                .setDOMContent(this._createSwissPopupContent(feature, group, true))
+                                                .addTo(this._map);
+                                        }
+                                    }
+                                }
+                            });
+
+                            this._map.on('mouseleave', id, () => {
+                                // Clear hover state
+                                if (hoveredFeatureId !== null) {
+                                    this._map.setFeatureState(
+                                        { 
+                                            source: sourceId, 
+                                            sourceLayer: sourceLayer,
+                                            id: hoveredFeatureId 
+                                        },
+                                        { hover: false }
+                                    );
+                                    hoveredFeatureId = null;
+                                }
+
+                                // Remove hover popup
+                                hoverPopup.remove();
+                            });
+
+                            // Update click event to handle selection
+                            this._map.on('click', id, (e) => {
+                                if (e.features.length > 0) {
+                                    const feature = e.features[0];
                                     
-                                    if (group.inspect.label) {
-                                        const title = document.createElement('h3');
-                                        title.className = 'font-bold mb-2';
-                                        title.textContent = group.inspect.label;
-                                        content.appendChild(title);
+                                    // Clear previous selection
+                                    if (selectedFeatureId !== null) {
+                                        this._map.setFeatureState(
+                                            { 
+                                                source: sourceId, 
+                                                sourceLayer: sourceLayer,
+                                                id: selectedFeatureId 
+                                            },
+                                            { selected: false }
+                                        );
                                     }
 
-                                    if (group.inspect.fields) {
-                                        const fieldsList = document.createElement('div');
-                                        fieldsList.className = 'space-y-1';
-                                        
-                                        group.inspect.fields.forEach(field => {
-                                            const value = feature.properties[field];
-                                            console.log(`Field ${field}:`, value);
-                                            if (value) {
-                                                const fieldDiv = document.createElement('div');
-                                                fieldDiv.className = 'text-sm';
-                                                fieldDiv.innerHTML = `<span class="font-medium">${field}:</span> ${value}`;
-                                                fieldsList.appendChild(fieldDiv);
-                                            }
-                                        });
-                                        
-                                        content.appendChild(fieldsList);
-                                    }
+                                    // Set new selection
+                                    selectedFeatureId = feature.id;
+                                    this._map.setFeatureState(
+                                        { 
+                                            source: sourceId, 
+                                            sourceLayer: sourceLayer,
+                                            id: selectedFeatureId 
+                                        },
+                                        { selected: true }
+                                    );
+
+                                    // Use the _createSwissPopupContent method to create popup content
+                                    const content = this._createSwissPopupContent(feature, group);
 
                                     popup
                                         .setLngLat(e.lngLat)
@@ -834,6 +1030,7 @@ class MapLayerControl {
                                 }
                             });
 
+                            // Existing cursor style events
                             this._map.on('mouseenter', id, () => {
                                 this._map.getCanvas().style.cursor = 'pointer';
                             });
@@ -1081,6 +1278,95 @@ class MapLayerControl {
         this._container.parentNode.removeChild(this._container);
         this._map = undefined;
         window.removeEventListener('resize', () => this._handleResize());
+    }
+
+    _createSwissPopupContent(feature, group, isHover = false) {
+        const content = document.createElement('div');
+        content.className = 'swiss-popup p-4 font-sans';
+        
+        // For hover state, only show label
+        if (isHover) {
+            if (group.inspect?.label) {
+                const labelValue = feature.properties[group.inspect.label];
+                if (labelValue) {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'text-sm font-medium text-white';
+                    labelDiv.textContent = labelValue;
+                    content.appendChild(labelDiv);
+                }
+            }
+            return content;
+        }
+        
+        // Full popup content for click state
+        if (group.inspect?.title) {
+            const title = document.createElement('h3');
+            title.className = 'text-xs uppercase tracking-wider mb-3 text-gray-500 font-medium';
+            title.textContent = group.inspect.title;
+            content.appendChild(title);
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid gap-4 mb-4';
+        
+        // Add label field first if it exists
+        if (group.inspect?.label) {
+            const labelValue = feature.properties[group.inspect.label];
+            if (labelValue) {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'text-2xl font-light mb-2';
+                labelDiv.textContent = labelValue;
+                grid.appendChild(labelDiv);
+            }
+        }
+        
+        // Add fields
+        if (group.inspect?.fields) {
+            const fieldsGrid = document.createElement('div');
+            fieldsGrid.className = 'grid grid-cols-2 gap-3 text-sm';
+            
+            group.inspect.fields.forEach(field => {
+                // Check if the field exists in feature properties
+                if (feature.properties.hasOwnProperty(field) && field !== group.inspect.label) {
+                    const value = feature.properties[field];
+                    
+                    // Create field container
+                    const fieldContainer = document.createElement('div');
+                    fieldContainer.className = 'col-span-2 grid grid-cols-2 gap-2 border-b border-gray-100 py-2';
+                    
+                    // Create and add field label
+                    const fieldLabel = document.createElement('div');
+                    fieldLabel.className = 'text-gray-500 uppercase text-xs tracking-wider';
+                    fieldLabel.textContent = field;
+                    fieldContainer.appendChild(fieldLabel);
+                    
+                    // Create and add field value
+                    const fieldValue = document.createElement('div');
+                    fieldValue.className = 'font-medium text-xs text-right';
+                    fieldValue.textContent = value;
+                    fieldContainer.appendChild(fieldValue);
+                    
+                    fieldsGrid.appendChild(fieldContainer);
+                }
+            });
+            
+            // Only append fieldsGrid if it has children
+            if (fieldsGrid.children.length > 0) {
+                grid.appendChild(fieldsGrid);
+            }
+        }
+        
+        content.appendChild(grid);
+
+        // Add custom HTML if it exists
+        if (group.inspect?.customHtml) {
+            const customContent = document.createElement('div');
+            customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
+            customContent.innerHTML = group.inspect.customHtml;
+            content.appendChild(customContent);
+        }
+
+        return content;
     }
 }
 
