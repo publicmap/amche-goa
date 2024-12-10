@@ -335,7 +335,7 @@ class MapLayerControl {
                                             if (labelValue) {
                                                 hoverPopup
                                                     .setLngLat(e.lngLat)
-                                                    .setDOMContent(this._createSwissPopupContent(feature, group, true))
+                                                    .setDOMContent(this._createPopupContent(feature, group, true))
                                                     .addTo(this._map);
                                             }
                                         }
@@ -388,8 +388,8 @@ class MapLayerControl {
                                             { selected: true }
                                         );
 
-                                        // Use the _createSwissPopupContent method to create popup content
-                                        const content = this._createSwissPopupContent(feature, group);
+                                        // Use the _createPopupContent method to create popup content
+                                        const content = this._createPopupContent(feature, group);
 
                                         popup
                                             .setLngLat(e.lngLat)
@@ -967,7 +967,7 @@ class MapLayerControl {
                                         if (labelValue) {
                                             hoverPopup
                                                 .setLngLat(e.lngLat)
-                                                .setDOMContent(this._createSwissPopupContent(feature, group, true))
+                                                .setDOMContent(this._createPopupContent(feature, group, true))
                                                 .addTo(this._map);
                                         }
                                     }
@@ -1020,8 +1020,8 @@ class MapLayerControl {
                                         { selected: true }
                                     );
 
-                                    // Use the _createSwissPopupContent method to create popup content
-                                    const content = this._createSwissPopupContent(feature, group);
+                                    // Use the _createPopupContent method to create popup content
+                                    const content = this._createPopupContent(feature, group);
 
                                     popup
                                         .setLngLat(e.lngLat)
@@ -1280,9 +1280,9 @@ class MapLayerControl {
         window.removeEventListener('resize', () => this._handleResize());
     }
 
-    _createSwissPopupContent(feature, group, isHover = false) {
+    _createPopupContent(feature, group, isHover = false) {
         const content = document.createElement('div');
-        content.className = 'swiss-popup p-4 font-sans';
+        content.className = 'map-popup p-4 font-sans';
         
         // For hover state, only show label
         if (isHover) {

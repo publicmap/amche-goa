@@ -350,9 +350,10 @@ main {
     }
 }
 
-/* Add header font style */
+/* Update header font style */
 header h1 {
-    font-family: Helvetica;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;  /* Semi-bold weight */
 }
 
 /* Add new style for close state */
@@ -361,7 +362,7 @@ header h1 {
 }
 
 /* Popup styles */
-.swiss-popup {
+.map-popup {
     max-width: 320px;
 }
 
@@ -401,8 +402,8 @@ header h1 {
 }
 
 /* Ensure text is black in both hover and active popups */
-.swiss-popup .text-sm,
-.swiss-popup .text-2xl,
+.map-popup .text-sm,
+.map-popup .text-2xl,
 .hover-popup .text-sm {
     color: black !important;
 }
