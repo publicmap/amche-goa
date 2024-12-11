@@ -633,7 +633,7 @@ class MapLayerControl {
                         paint: {
                             'raster-opacity': group.opacity || 1
                         }
-                    }, this._map.getStyle().layers[getNextLayerIndex('tms', groupIndex)]?.id);
+                    }, this._getInsertPosition('tms', groupIndex));
                 }
 
                 if (group.description) {
@@ -666,7 +666,7 @@ class MapLayerControl {
                             'fill-color': group.style?.color || '#FF0000',
                             'fill-opacity': group.style?.fillOpacity || 0.1
                         }
-                    }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
+                    }, this._getInsertPosition('vector'));
 
                     this._map.addLayer({
                         id: `${layerId}-outline`,
@@ -681,7 +681,7 @@ class MapLayerControl {
                             'line-width': group.style?.width || 1,
                             'line-opacity': 1
                         }
-                    }, this._map.getStyle().layers[getNextLayerIndex('vector')]?.id);
+                    }, this._getInsertPosition('vector'));
 
                     if (group.inspect) {
                         const popup = new mapboxgl.Popup({
@@ -866,6 +866,72 @@ class MapLayerControl {
                 });
 
                 $sourceControl.append($radioGroup);
+            }
+
+            if (group.legendImage) {
+                const $legendContainer = $('<div>', {
+                    class: 'legend-container mt-4 px-2'
+                });
+
+                const $legendImage = $('<img>', {
+                    src: group.legendImage,
+                    class: 'w-full rounded-lg shadow-sm cursor-pointer',
+                    alt: 'Layer Legend'
+                });
+
+                // Add a collapsible toggle for the legend
+                const $legendToggle = $('<button>', {
+                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
+                    html: '<span class="legend-icon">▼</span> Show Legend'
+                });
+
+                const $legendContent = $('<div>', {
+                    class: 'legend-content hidden'
+                }).append($legendImage);
+
+                // Create modal elements
+                const $modal = $('<div>', {
+                    class: 'legend-modal hidden',
+                    click: (e) => {
+                        if (e.target === $modal[0]) {
+                            $modal.addClass('hidden');
+                        }
+                    }
+                });
+
+                const $modalContent = $('<div>', {
+                    class: 'legend-modal-content'
+                });
+
+                const $modalImage = $('<img>', {
+                    src: group.legendImage,
+                    alt: 'Layer Legend (Full Size)'
+                });
+
+                const $closeButton = $('<button>', {
+                    class: 'legend-modal-close',
+                    html: '×',
+                    click: () => $modal.addClass('hidden')
+                });
+
+                $modalContent.append($closeButton, $modalImage);
+                $modal.append($modalContent);
+                $('body').append($modal);
+
+                // Add click handler to legend image
+                $legendImage.on('click', () => {
+                    $modal.removeClass('hidden');
+                });
+
+                $legendToggle.on('click', () => {
+                    $legendContent.toggleClass('hidden');
+                    const $icon = $legendToggle.find('.legend-icon');
+                    $icon.text($legendContent.hasClass('hidden') ? '▼' : '▲');
+                    $legendToggle.html(`${$icon[0].outerHTML} ${$legendContent.hasClass('hidden') ? 'Show' : 'Hide'} Legend`);
+                });
+
+                $legendContainer.append($legendToggle, $legendContent);
+                $sourceControl.append($legendContainer);
             }
 
             $groupContainer.append($sourceControl);
@@ -1164,6 +1230,41 @@ class MapLayerControl {
         }
 
         return content;
+    }
+
+    _getInsertPosition(type, groupIndex) {
+        const layers = this._map.getStyle().layers;
+        
+        if (type === 'vector') {
+            // Vector layers should go at the end (top) of the style
+            return undefined; // This will add it at the end
+        }
+        
+        if (type === 'tms' || type === 'osm') {
+            // Find the satellite/base layer
+            const baseLayerIndex = layers.findIndex(layer => 
+                layer.type === 'raster' && layer.id.includes('satellite')
+            );
+            
+            if (baseLayerIndex !== -1) {
+                // Insert just above the base layer
+                // Earlier groups should be higher in the stack (later in the array)
+                const insertBeforeId = layers[baseLayerIndex + 1]?.id;
+                
+                console.log(`Adding ${type} layer before: ${insertBeforeId}`, {
+                    baseLayerIndex,
+                    groupIndex,
+                    layerStack: layers.map(l => ({ id: l.id, type: l.type }))
+                });
+                return insertBeforeId;
+            }
+        }
+        
+        console.log(`Adding layer at end of style (top of map)`, {
+            type,
+            layerStack: layers.map(l => ({ id: l.id, type: l.type }))
+        });
+        return undefined; // Add at the end (top) by default
     }
 }
 

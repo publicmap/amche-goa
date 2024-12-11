@@ -407,3 +407,144 @@ header h1 {
 .hover-popup .text-sm {
     color: black !important;
 }
+
+/* Update legend container styles */
+.legend-container {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 1rem;
+    max-height: 300px; /* Limit maximum height */
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+/* Style the legend toggle button */
+.legend-container button {
+    font-size: 0.875rem;
+    padding: 0.25rem 0;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Style the legend icon */
+.legend-container .legend-icon {
+    display: inline-block;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+    width: 16px;
+    text-align: center;
+}
+
+/* Style the legend content wrapper */
+.legend-content {
+    overflow-y: auto;
+    max-height: 250px; /* Limit scrollable area height */
+    margin-right: -8px; /* Compensate for scrollbar */
+    padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+/* Style the legend image */
+.legend-content img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Webkit scrollbar styles */
+.legend-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.legend-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.legend-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+/* When legend is hidden */
+.legend-content.hidden {
+    max-height: 0;
+    margin-top: 0;
+}
+
+/* Modal styles */
+.legend-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.legend-modal:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.legend-modal-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.legend-modal-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.legend-modal-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #666;
+    transition: all 0.2s ease;
+}
+
+.legend-modal-close:hover {
+    background: #f0f0f0;
+    color: #000;
+}
+
+/* Update legend image cursor */
+.legend-content img {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.legend-content img:hover {
+    opacity: 0.9;
+}
