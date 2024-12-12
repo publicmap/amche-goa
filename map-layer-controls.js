@@ -1229,6 +1229,42 @@ class MapLayerControl {
             content.appendChild(customContent);
         }
 
+        // Add navigation links
+        const navLinks = document.createElement('div');
+        navLinks.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3';
+        
+        const coordinates = feature.geometry.coordinates;
+        const lat = coordinates[1];
+        const lng = coordinates[0];
+
+        // OSM Edit link
+        const osmLink = document.createElement('a');
+        osmLink.href = `https://www.openstreetmap.org/edit?editor=id#map=19/${lat}/${lng}`;
+        osmLink.target = '_blank';
+        osmLink.className = 'flex items-center gap-1 hover:text-gray-900';
+        osmLink.innerHTML = `
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Openstreetmap_logo.svg" 
+                 class="w-3 h-3" 
+                 alt="OpenStreetMap">
+            Edit OSM
+        `;
+
+        // Google Maps link
+        const googleLink = document.createElement('a');
+        googleLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        googleLink.target = '_blank';
+        googleLink.className = 'flex items-center gap-1 hover:text-gray-900';
+        googleLink.innerHTML = `
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" 
+                 class="w-3 h-3" 
+                 alt="Google Maps">
+            Navigate
+        `;
+
+        navLinks.appendChild(osmLink);
+        navLinks.appendChild(googleLink);
+        content.appendChild(navLinks);
+
         return content;
     }
 
