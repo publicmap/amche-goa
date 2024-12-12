@@ -1234,28 +1234,30 @@ class MapLayerControl {
 
     _getInsertPosition(type, groupIndex) {
         const layers = this._map.getStyle().layers;
+        console.log('Current layer stack:', layers.map(l => ({ id: l.id, type: l.type })));
+        
+        // Find the satellite/base layer
+        const baseLayerIndex = layers.findIndex(layer => 
+            layer.type === 'raster' && layer.id.includes('satellite')
+        );
+        console.log('Base layer index:', baseLayerIndex);
         
         if (type === 'vector') {
             // Vector layers should go at the end (top) of the style
-            return undefined; // This will add it at the end
+            return undefined;
         }
         
-        if (type === 'tms' || type === 'osm') {
-            // Find the satellite/base layer
-            const baseLayerIndex = layers.findIndex(layer => 
-                layer.type === 'raster' && layer.id.includes('satellite')
-            );
-            
-            if (baseLayerIndex !== -1) {
-                // Insert just above the base layer
-                // Earlier groups should be higher in the stack (later in the array)
-                const insertBeforeId = layers[baseLayerIndex + 1]?.id;
+        if (type === 'tms' || type === 'osm' || type === 'raster') {
+            if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
+                // Get the ID of the layer immediately after the satellite layer
+                const insertBeforeId = layers[baseLayerIndex + 1].id;
                 
                 console.log(`Adding ${type} layer before: ${insertBeforeId}`, {
                     baseLayerIndex,
                     groupIndex,
-                    layerStack: layers.map(l => ({ id: l.id, type: l.type }))
+                    insertBeforeId
                 });
+                
                 return insertBeforeId;
             }
         }
@@ -1264,7 +1266,7 @@ class MapLayerControl {
             type,
             layerStack: layers.map(l => ({ id: l.id, type: l.type }))
         });
-        return undefined; // Add at the end (top) by default
+        return undefined;
     }
 }
 
