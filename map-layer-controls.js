@@ -817,7 +817,7 @@ class MapLayerControl {
                                     );
 
                                     // Use the _createPopupContent method to create popup content
-                                    const content = this._createPopupContent(feature, group);
+                                    const content = this._createPopupContent(feature, group, false, e.lngLat);
 
                                     popup
                                         .setLngLat(e.lngLat)
@@ -1142,7 +1142,7 @@ class MapLayerControl {
         window.removeEventListener('resize', () => this._handleResize());
     }
 
-    _createPopupContent(feature, group, isHover = false) {
+    _createPopupContent(feature, group, isHover = false, lngLat = null) {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
         
@@ -1233,22 +1233,21 @@ class MapLayerControl {
         const navLinks = document.createElement('div');
         navLinks.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3';
         
-        const coordinates = feature.geometry.coordinates;
-        const lat = coordinates[1];
-        const lng = coordinates[0];
+        // Use the passed coordinates
+        const lat = lngLat ? lngLat.lat : feature.geometry.coordinates[1];
+        const lng = lngLat ? lngLat.lng : feature.geometry.coordinates[0];
 
         // OSM Edit link
         const osmLink = document.createElement('a');
-        osmLink.href = `https://www.openstreetmap.org/edit?editor=id#map=19/${lat}/${lng}`;
+        osmLink.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}&layers=D`;
         osmLink.target = '_blank';
         osmLink.className = 'flex items-center gap-1 hover:text-gray-900';
         osmLink.innerHTML = `
             <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Openstreetmap_logo.svg" 
-                 class="w-3 h-3" 
+                 class="w-5 h-5" 
                  alt="OpenStreetMap">
-            Edit OSM
         `;
-
+            
         // Google Maps link
         const googleLink = document.createElement('a');
         googleLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
@@ -1256,13 +1255,24 @@ class MapLayerControl {
         googleLink.className = 'flex items-center gap-1 hover:text-gray-900';
         googleLink.innerHTML = `
             <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" 
-                 class="w-3 h-3" 
-                 alt="Google Maps">
-            Navigate
+                class="w-5 h-5" 
+                alt="Google Maps">
+        `;
+
+        // Bhuvan Maps link
+        const bhuvanLink = document.createElement('a');
+        bhuvanLink.href = `https://bhuvanmaps.nrsc.gov.in/?mode=Hybrid#18/${lat}/${lng}`;
+        bhuvanLink.target = '_blank';
+        bhuvanLink.className = 'flex items-center gap-1 hover:text-gray-900';
+        bhuvanLink.innerHTML = `
+            <img src="https://bhuvan.nrsc.gov.in/home/images/bhuvanlite.png" 
+                class="w-5 h-5" 
+                alt="Bhuvan Maps">
         `;
 
         navLinks.appendChild(osmLink);
         navLinks.appendChild(googleLink);
+        navLinks.appendChild(bhuvanLink);
         content.appendChild(navLinks);
 
         return content;
