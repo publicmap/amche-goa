@@ -1296,11 +1296,30 @@ class MapLayerControl {
                         alt="Google Maps">
                 `;
 
+        // Landcover Explorer link with enhanced parameters
+        const landcoverLink = document.createElement('a');
+        landcoverLink.href = `https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=${lng}%2C${lat}%2C18.79&mode=step&timeExtent=2017%2C2023&year=2023&renderingRule=1&month=9`;
+        landcoverLink.target = '_blank';
+        landcoverLink.className = 'flex items-center gap-1 hover:text-gray-900';
+        landcoverLink.innerHTML = `
+            LC
+        `;
+
+        // Google Earth Engine Timelapse link
+        const timelapseLink = document.createElement('a');
+        timelapseLink.href = `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`;
+        timelapseLink.target = '_blank';
+        timelapseLink.className = 'flex items-center gap-1 hover:text-gray-900';
+        timelapseLink.innerHTML = `
+            <span class="text-xs">TL</span>
+        `;
 
         navLinks.appendChild(osmLink);
         navLinks.appendChild(googleLink);
         navLinks.appendChild(bhuvanLink);
         navLinks.appendChild(oneMapGoaLink);
+        navLinks.appendChild(landcoverLink);
+        navLinks.appendChild(timelapseLink);
         content.appendChild(navLinks);
 
         return content;
