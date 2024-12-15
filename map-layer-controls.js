@@ -9,6 +9,15 @@ class MapLayerControl {
         this._animationTimeouts = [];
         this._collapsed = window.innerWidth < 768;
         this._sourceControls = [];
+        this._editMode = false;
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        if (editModeToggle) {
+            editModeToggle.addEventListener('click', () => {
+                this._editMode = !this._editMode;
+                editModeToggle.classList.toggle('active');
+                editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
+            });
+        }
     }
 
     onAdd(map) {
@@ -790,6 +799,22 @@ class MapLayerControl {
 
                             // Update click event to handle selection
                             this._map.on('click', id, (e) => {
+
+                                if (this._editMode) {
+                                    const lat = e.lngLat.lat.toFixed(6);
+                                    const lng = e.lngLat.lng.toFixed(6);
+                                    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}`;
+                                
+                                    new mapboxgl.Popup()
+                                        .setLngLat(e.lngLat)
+                                        .setHTML(`<div class="p-2">
+                                                <p class="mb-2">lat,lon: ${lat}, ${lng}</p>
+                                                <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Click here to save the pin</a>
+                                            </div>`)
+                                        .addTo(this._map);
+                                    return;
+                                }                                
+
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
 
