@@ -869,6 +869,59 @@ class MapLayerControl {
                         text: group.description
                     }).appendTo($sourceControl);
                 }
+            } else if (group.type === 'markers' && group.dataUrl) {
+                fetch(group.dataUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        data = gstableToArray(JSON.parse(data.slice(47, -2)).table)
+                        const sourceId = `markers-${group.id}`;
+
+                        if (!this._map.getSource(sourceId)) {
+                            this._map.addSource(sourceId, {
+                                type: 'geojson',
+                                data: {
+                                    type: 'FeatureCollection',
+                                    features: data.map(item => ({
+                                        type: 'Feature',
+                                        geometry: { type: 'Point', coordinates: [item.Longitude, item.Latitude] },
+                                        properties: item
+                                    }))
+                                }
+                            });
+
+                            this._map.addLayer({
+                                id: `${sourceId}-circles`,
+                                type: 'circle',
+                                source: sourceId,
+                                paint: {
+                                    'circle-radius': group.style?.radius || 6,
+                                    'circle-color': group.style?.color || '#FF0000',
+                                    'circle-opacity': 0.9,
+                                    'circle-stroke-width': 1,
+                                    'circle-stroke-color': '#ffffff'
+                                },
+                                layout: {
+                                    'visibility': 'none'
+                                }
+                            });
+
+                            // Add click handler for popups
+                            this._map.on('click', `${sourceId}-circles`, (e) => {
+                                if (e.features.length > 0) {
+                                    const feature = e.features[0];
+                                    const coordinates = feature.geometry.coordinates.slice();
+                                    const content = this._createPopupContent(feature, group, false, {
+                                        lng: coordinates[0],
+                                        lat: coordinates[1]
+                                    });
+                                    new mapboxgl.Popup()
+                                        .setLngLat(coordinates)
+                                        .setDOMContent(content)
+                                        .addTo(this._map);
+                                }
+                            });
+                        }
+                    });
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
@@ -1036,6 +1089,11 @@ class MapLayerControl {
                         this._handleLayerChange(firstLayer.id, group.layers);
                     }
                 }
+            } else if (group.type === 'markers') {
+                const sourceId = `markers-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-circles`)) {
+                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
+                }
             }
         } else {
             sourceControl.classList.add('collapsed');
@@ -1070,6 +1128,11 @@ class MapLayerControl {
                         );
                     }
                 });
+            } else if (group.type === 'markers') {
+                const sourceId = `markers-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-circles`)) {
+                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'none');
+                }
             }
         }
     }
@@ -1352,6 +1415,20 @@ class MapLayerControl {
         });
         return undefined;
     }
+}
+
+function gstableToArray(tableData) {
+    const { cols, rows } = tableData;
+    const headers = cols.map(col => col.label);
+    const result = rows.map(row => {
+        const obj = {};
+        row.c.forEach((cell, index) => {
+            const key = headers[index];
+            obj[key] = cell ? cell.v : null;
+        });
+        return obj;
+    });
+    return result;
 }
 
 window.MapLayerControl = MapLayerControl; 

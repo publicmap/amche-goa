@@ -278,6 +278,25 @@
                             }
                         },
                         {
+                            title: 'Community Pins',
+                            groupTitle: 'Community Added Locations',
+                            headerImage: 'assets/map-layer-pins.png',
+                            type: 'markers',
+                            id: 'community-pins',
+                            dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
+                            description: 'Locations added by the community',
+                            style: {
+                                color: '#FF4136',
+                                radius: 8
+                            },
+                            inspect: {
+                                title: 'Pin Details',
+                                label: 'name',
+                                fields: ['Location Name', 'Latitude' , 'Longitude'],
+                                fieldTitles: ['Name', 'Lat' , 'Lon'],
+                            }
+                        },
+                        {
                             title: '3D Terrain',
                             groupTitle: 'Terrain Controls',
                             headerImage: 'assets/map-layer-terrain.png',
