@@ -803,17 +803,22 @@ class MapLayerControl {
                                 if (this._editMode) {
                                     const lat = e.lngLat.lat.toFixed(6);
                                     const lng = e.lngLat.lng.toFixed(6);
-                                    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}`;
+                                    const visibleLayers = this._getVisibleLayers();
+                                    const layersParam = encodeURIComponent(JSON.stringify(visibleLayers));
+                                    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}&entry.650960474=${layersParam}`;
                                 
                                     new mapboxgl.Popup()
                                         .setLngLat(e.lngLat)
-                                        .setHTML(`<div class="p-2">
-                                                <p class="mb-2">lat,lon: ${lat}, ${lng}</p>
-                                                <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Click here to save the pin</a>
-                                            </div>`)
+                                        .setHTML(`
+                                            <div class="p-2">
+                                                <p class="mb-2">Location: ${lat}, ${lng}</p>
+                                                <p class="mb-2 text-xs text-gray-600">Visible layers: ${visibleLayers}</p>
+                                                <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Add note for this location</a>
+                                            </div>
+                                        `)
                                         .addTo(this._map);
                                     return;
-                                }                                
+                                }
 
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -874,7 +879,6 @@ class MapLayerControl {
                     .then(response => response.text())
                     .then(data => {
                         data = gstableToArray(JSON.parse(data.slice(47, -2)).table)
-                        console.log(data)
                         const sourceId = `markers-${group.id}`;
 
                         if (!this._map.getSource(sourceId)) {
@@ -1415,6 +1419,35 @@ class MapLayerControl {
             layerStack: layers.map(l => ({ id: l.id, type: l.type }))
         });
         return undefined;
+    }
+
+    _getVisibleLayers() {
+        return this._options.groups.flatMap(group => {
+            const isLayerVisible = (id) =>
+                this._map.getLayer(id) &&
+                this._map.getLayoutProperty(id, 'visibility') === 'visible';
+
+            switch(group.type) {
+                case 'vector':
+                    const vectorId = `vector-layer-${group.id}`;
+                    return isLayerVisible(vectorId) ? [vectorId] : [];
+
+                case 'geojson':
+                    const baseId = `geojson-${group.id}`;
+                    return ['fill', 'line', 'label']
+                        .map(type => `${baseId}-${type}`)
+                        .filter(isLayerVisible);
+
+                case 'tms':
+                    const tmsId = `tms-layer-${group.id}`;
+                    return isLayerVisible(tmsId) ? [tmsId] : [];
+
+                default:
+                    return (group.layers || [])
+                        .map(layer => layer.id)
+                        .filter(isLayerVisible);
+            }
+        });
     }
 }
 
