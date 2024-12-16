@@ -874,6 +874,7 @@ class MapLayerControl {
                     .then(response => response.text())
                     .then(data => {
                         data = gstableToArray(JSON.parse(data.slice(47, -2)).table)
+                        console.log(data)
                         const sourceId = `markers-${group.id}`;
 
                         if (!this._map.getSource(sourceId)) {
@@ -1425,6 +1426,25 @@ function gstableToArray(tableData) {
         row.c.forEach((cell, index) => {
             const key = headers[index];
             obj[key] = cell ? cell.v : null;
+            // Check if this is a timestamp column and has a value
+            if (cell && cell.v && key.toLowerCase().includes('timestamp')) {
+                let timestamp = new Date(...cell.v.match(/\d+/g).map((v, i) => i === 1 ? +v - 1 : +v));
+                timestamp = timestamp.setMonth(timestamp.getMonth() + 1)
+                const now = new Date();
+                const diffTime = Math.abs(now - timestamp);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                // Create a human-readable "days ago" string
+                let daysAgoText;
+                if (diffDays === 0) {
+                    daysAgoText = 'Today';
+                } else if (diffDays === 1) {
+                    daysAgoText = 'Yesterday';
+                } else {
+                    daysAgoText = `${diffDays} days ago`;
+                }
+                // Add the days ago text as a new field
+                obj[`${key}_ago`] = daysAgoText;
+            }
         });
         return obj;
     });
