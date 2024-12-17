@@ -239,10 +239,10 @@ class MapLayerControl {
                 $sourceControl.append($opacityContainer);
             }
 
-            if (group.groupTitle) {
+            if (group.description) {
                 $('<div>', {
                     class: 'title',
-                    text: group.groupTitle
+                    text: group.description
                 }).appendTo($sourceControl);
             }
 
@@ -320,10 +320,10 @@ class MapLayerControl {
                     });
                 }
 
-                if (group.description) {
+                if (group.attribution) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'terrain') {
@@ -634,10 +634,10 @@ class MapLayerControl {
                     }, this._getInsertPosition('tms', groupIndex));
                 }
 
-                if (group.description) {
+                if (group.attribution) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'vector') {
@@ -843,10 +843,10 @@ class MapLayerControl {
                     }
                 }
 
-                if (group.description) {
+                if (group.attribution) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'markers' && group.dataUrl) {
