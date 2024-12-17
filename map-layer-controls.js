@@ -78,28 +78,19 @@ class MapLayerControl {
     _initializeControl() {
         const getNextLayerIndex = (type, groupIndex) => {
             const layers = this._map.getStyle().layers;
-            console.log('Current layer stack:', layers.map(l => ({ id: l.id, type: l.type })));
-
-            // Find the satellite/base layer
             const baseLayerIndex = layers.findIndex(layer =>
                 layer.type === 'raster' && layer.id.includes('satellite')
             );
-            console.log('Base layer index:', baseLayerIndex);
 
-            // Calculate insert position based on type and group order
             let insertIndex;
             if (type === 'tms' || type === 'raster' || type === 'layer-group' || type === 'osm' || !type) {
-                // Insert after the base layer in reverse order
-                // Using total number of groups minus current index to reverse the order
                 const totalGroups = this._options.groups.length;
                 const reversedIndex = totalGroups - (groupIndex || 0) - 1;
                 insertIndex = baseLayerIndex + 1 + reversedIndex;
             } else {
-                // Vector and other layers go at the end
                 insertIndex = layers.length;
             }
 
-            console.log(`Adding ${type} layer at index ${insertIndex} (groupIndex: ${groupIndex})`);
             return insertIndex;
         };
 
@@ -144,7 +135,6 @@ class MapLayerControl {
             });
             this._sourceControls[groupIndex] = $sourceControl[0];
 
-            // Add opacity slider inside the source control
             const $opacityContainer = $('<div>', {
                 class: 'opacity-control mt-2 px-2'
             });
@@ -217,7 +207,6 @@ class MapLayerControl {
                     const layerId = `vector-layer-${group.id}`;
 
                     if (this._map.getLayer(layerId)) {
-                        // Update opacity for both fill and outline layers
                         this._map.setPaintProperty(layerId, 'fill-opacity', value * (group.style?.fillOpacity || 0.1));
                         this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
                     }
@@ -334,7 +323,7 @@ class MapLayerControl {
                 if (group.description) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        text: group.description
+                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'terrain') {
@@ -648,7 +637,7 @@ class MapLayerControl {
                 if (group.description) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        text: group.description
+                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'vector') {
@@ -707,45 +696,40 @@ class MapLayerControl {
                         let hoveredFeatureId = null;
                         let selectedFeatureId = null;
 
-                        // Get the source layer from group config, with a fallback
                         const sourceLayer = group.sourceLayer || 'default';
 
                         [layerId, `${layerId}-outline`].forEach(id => {
-                            // Update hover and selection paint properties
                             if (id === layerId) {
                                 this._map.setPaintProperty(id, 'fill-opacity', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
-                                    0.2, // Selected opacity
+                                    0.2,
                                     ['boolean', ['feature-state', 'hover'], false],
-                                    0.8, // Hover opacity
-                                    group.style?.fillOpacity || 0.1 // Default opacity
+                                    0.8,
+                                    group.style?.fillOpacity || 0.1
                                 ]);
                             } else {
                                 this._map.setPaintProperty(id, 'line-width', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
-                                    4, // Selected width (thicker)
+                                    4,
                                     ['boolean', ['feature-state', 'hover'], false],
-                                    3, // Hover width
-                                    group.style?.width || 1 // Default width
+                                    3,
+                                    group.style?.width || 1
                                 ]);
 
-                                // Add line-color variation for selected state
                                 this._map.setPaintProperty(id, 'line-color', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
-                                    '#000000', // Selected color (black)
-                                    group.style?.color || '#FF0000' // Default color
+                                    '#000000',
+                                    group.style?.color || '#FF0000'
                                 ]);
                             }
 
-                            // Update hover events
                             this._map.on('mousemove', id, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
 
-                                    // Update feature state for hover effect
                                     if (hoveredFeatureId !== null) {
                                         this._map.setFeatureState(
                                             {
@@ -766,7 +750,6 @@ class MapLayerControl {
                                         { hover: true }
                                     );
 
-                                    // Show hover popup
                                     if (group.inspect?.label) {
                                         const labelValue = feature.properties[group.inspect.label];
                                         if (labelValue) {
@@ -780,7 +763,6 @@ class MapLayerControl {
                             });
 
                             this._map.on('mouseleave', id, () => {
-                                // Clear hover state
                                 if (hoveredFeatureId !== null) {
                                     this._map.setFeatureState(
                                         {
@@ -793,13 +775,10 @@ class MapLayerControl {
                                     hoveredFeatureId = null;
                                 }
 
-                                // Remove hover popup
                                 hoverPopup.remove();
                             });
 
-                            // Update click event to handle selection
                             this._map.on('click', id, (e) => {
-
                                 if (this._editMode) {
                                     const lat = e.lngLat.lat.toFixed(6);
                                     const lng = e.lngLat.lng.toFixed(6);
@@ -823,7 +802,6 @@ class MapLayerControl {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
 
-                                    // Clear previous selection
                                     if (selectedFeatureId !== null) {
                                         this._map.setFeatureState(
                                             {
@@ -835,7 +813,6 @@ class MapLayerControl {
                                         );
                                     }
 
-                                    // Set new selection
                                     selectedFeatureId = feature.id;
                                     this._map.setFeatureState(
                                         {
@@ -846,7 +823,6 @@ class MapLayerControl {
                                         { selected: true }
                                     );
 
-                                    // Use the _createPopupContent method to create popup content
                                     const content = this._createPopupContent(feature, group, false, e.lngLat);
 
                                     popup
@@ -856,7 +832,6 @@ class MapLayerControl {
                                 }
                             });
 
-                            // Existing cursor style events
                             this._map.on('mouseenter', id, () => {
                                 this._map.getCanvas().style.cursor = 'pointer';
                             });
@@ -871,7 +846,7 @@ class MapLayerControl {
                 if (group.description) {
                     $('<div>', {
                         class: 'text-sm text-gray-600 mt-2 px-2',
-                        text: group.description
+                        html: group.description.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
                 }
             } else if (group.type === 'markers' && group.dataUrl) {
@@ -910,7 +885,6 @@ class MapLayerControl {
                                 }
                             });
 
-                            // Add click handler for popups
                             this._map.on('click', `${sourceId}-circles`, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -962,7 +936,6 @@ class MapLayerControl {
                     alt: 'Layer Legend'
                 });
 
-                // Add a collapsible toggle for the legend
                 const $legendToggle = $('<button>', {
                     class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
                     html: '<span class="legend-icon">▼</span> Show Legend'
@@ -972,7 +945,6 @@ class MapLayerControl {
                     class: 'legend-content hidden'
                 }).append($legendImage);
 
-                // Create modal elements
                 const $modal = $('<div>', {
                     class: 'legend-modal hidden',
                     click: (e) => {
@@ -1001,7 +973,6 @@ class MapLayerControl {
                 $modal.append($modalContent);
                 $('body').append($modal);
 
-                // Add click handler to legend image
                 $legendImage.on('click', () => {
                     $modal.removeClass('hidden');
                 });
@@ -1239,7 +1210,6 @@ class MapLayerControl {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
-        // For hover state, only show label
         if (isHover) {
             if (group.inspect?.label) {
                 const labelValue = feature.properties[group.inspect.label];
@@ -1253,7 +1223,6 @@ class MapLayerControl {
             return content;
         }
 
-        // Full popup content for click state
         if (group.inspect?.title) {
             const title = document.createElement('h3');
             title.className = 'text-xs uppercase tracking-wider mb-3 text-gray-500 font-medium';
@@ -1264,7 +1233,6 @@ class MapLayerControl {
         const grid = document.createElement('div');
         grid.className = 'grid gap-4 mb-4';
 
-        // Add label field first if it exists
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
             if (labelValue) {
@@ -1275,28 +1243,22 @@ class MapLayerControl {
             }
         }
 
-        // Add fields
         if (group.inspect?.fields) {
             const fieldsGrid = document.createElement('div');
             fieldsGrid.className = 'grid grid-cols-2 gap-3 text-sm';
 
             group.inspect.fields.forEach((field, index) => {
-                // Check if the field exists in feature properties
                 if (feature.properties.hasOwnProperty(field) && field !== group.inspect.label) {
                     const value = feature.properties[field];
 
-                    // Create field container
                     const fieldContainer = document.createElement('div');
                     fieldContainer.className = 'col-span-2 grid grid-cols-2 gap-2 border-b border-gray-100 py-2';
 
-                    // Create and add field label using fieldTitles if available
                     const fieldLabel = document.createElement('div');
                     fieldLabel.className = 'text-gray-500 uppercase text-xs tracking-wider';
-                    // Use fieldTitles if available, otherwise fallback to the field name
                     fieldLabel.textContent = group.inspect?.fieldTitles?.[index] || field;
                     fieldContainer.appendChild(fieldLabel);
 
-                    // Create and add field value
                     const fieldValue = document.createElement('div');
                     fieldValue.className = 'font-medium text-xs text-right';
                     fieldValue.textContent = value;
@@ -1306,7 +1268,6 @@ class MapLayerControl {
                 }
             });
 
-            // Only append fieldsGrid if it has children
             if (fieldsGrid.children.length > 0) {
                 grid.appendChild(fieldsGrid);
             }
@@ -1314,7 +1275,6 @@ class MapLayerControl {
 
         content.appendChild(grid);
 
-        // Add custom HTML if it exists
         if (group.inspect?.customHtml) {
             const customContent = document.createElement('div');
             customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
@@ -1322,11 +1282,9 @@ class MapLayerControl {
             content.appendChild(customContent);
         }
 
-        // Use the passed coordinates
         const lat = lngLat ? lngLat.lat : feature.geometry.coordinates[1];
         const lng = lngLat ? lngLat.lng : feature.geometry.coordinates[0];
 
-        // Add this helper function to convert coordinates
         function convertToWebMercator(lng, lat) {
             const x = lng * 20037508.34 / 180;
             const y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
@@ -1386,38 +1344,23 @@ class MapLayerControl {
 
     _getInsertPosition(type, groupIndex) {
         const layers = this._map.getStyle().layers;
-        console.log('Current layer stack:', layers.map(l => ({ id: l.id, type: l.type })));
-
-        // Find the satellite/base layer
         const baseLayerIndex = layers.findIndex(layer =>
             layer.type === 'raster' && layer.id.includes('satellite')
         );
-        console.log('Base layer index:', baseLayerIndex);
 
+        let insertIndex;
         if (type === 'vector') {
-            // Vector layers should go at the end (top) of the style
             return undefined;
         }
 
         if (type === 'tms' || type === 'osm' || type === 'raster') {
             if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
-                // Get the ID of the layer immediately after the satellite layer
                 const insertBeforeId = layers[baseLayerIndex + 1].id;
-
-                console.log(`Adding ${type} layer before: ${insertBeforeId}`, {
-                    baseLayerIndex,
-                    groupIndex,
-                    insertBeforeId
-                });
 
                 return insertBeforeId;
             }
         }
 
-        console.log(`Adding layer at end of style (top of map)`, {
-            type,
-            layerStack: layers.map(l => ({ id: l.id, type: l.type }))
-        });
         return undefined;
     }
 
@@ -1459,14 +1402,12 @@ function gstableToArray(tableData) {
         row.c.forEach((cell, index) => {
             const key = headers[index];
             obj[key] = cell ? cell.v : null;
-            // Check if this is a timestamp column and has a value
             if (cell && cell.v && key.toLowerCase().includes('timestamp')) {
                 let timestamp = new Date(...cell.v.match(/\d+/g).map((v, i) => i === 1 ? +v - 1 : +v));
                 timestamp = timestamp.setMonth(timestamp.getMonth() + 1)
                 const now = new Date();
                 const diffTime = Math.abs(now - timestamp);
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                // Create a human-readable "days ago" string
                 let daysAgoText;
                 if (diffDays === 0) {
                     daysAgoText = 'Today';
@@ -1475,7 +1416,6 @@ function gstableToArray(tableData) {
                 } else {
                     daysAgoText = `${diffDays} days ago`;
                 }
-                // Add the days ago text as a new field
                 obj[`${key}_ago`] = daysAgoText;
             }
         });
