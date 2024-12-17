@@ -287,12 +287,12 @@ main {
 }
 
 .mapboxgl-ctrl.layer-control {
-    width: 240px;
-    background: #fff;
+    width: 400px;
+    background: #ffffff11;
     border-radius: 4px;
     box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
     margin: 0;
-    padding: 6px 6px 6px 35px;
+    padding: 6px 6px 6px 55px;
     transition: transform 0.2s ease;
     overflow-y: auto;
     max-height: calc(100vh - 180px);
@@ -301,13 +301,16 @@ main {
     left: 0;
     z-index: 1;
 }
-
+button.layer-control-toggle {
+    width: 50px;
+    height: 50px;
+}
 .layer-control-toggle {
     position: absolute;
     top: 0;
     left: 0;
-    width: 29px;
-    height: 29px;
+    width: 50px;
+    height: 50px;
     padding: 0;
     background: #fff;
     border: none;
@@ -337,7 +340,7 @@ main {
 }
 
 .mapboxgl-ctrl.layer-control.collapsed {
-    transform: translateX(-290px);
+    transform: translateX(-403px);
 }
 
 @media (min-width: 768px) {
@@ -346,7 +349,7 @@ main {
     }
     
     .mapboxgl-ctrl.layer-control {
-        max-width: 240px;
+        max-width: 400px;
     }
 }
 
