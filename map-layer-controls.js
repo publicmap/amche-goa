@@ -785,7 +785,7 @@ class MapLayerControl {
                                     const visibleLayers = this._getVisibleLayers();
                                     const layersParam = encodeURIComponent(JSON.stringify(visibleLayers));
                                     const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}&entry.650960474=${layersParam}`;
-                                
+
                                     new mapboxgl.Popup()
                                         .setLngLat(e.lngLat)
                                         .setHTML(`
@@ -1330,7 +1330,7 @@ class MapLayerControl {
             }
         ];
 
-        let linksHTML = navigationLinks.map(link => 
+        let linksHTML = navigationLinks.map(link =>
             `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900">
                 ${link.icon ? `<img src="${link.icon}" class="w-5 h-5" alt="${link.name}">` : ''}
                 ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
@@ -1370,7 +1370,7 @@ class MapLayerControl {
                 this._map.getLayer(id) &&
                 this._map.getLayoutProperty(id, 'visibility') === 'visible';
 
-            switch(group.type) {
+            switch (group.type) {
                 case 'vector':
                     const vectorId = `vector-layer-${group.id}`;
                     return isLayerVisible(vectorId) ? [vectorId] : [];
@@ -1401,6 +1401,7 @@ function gstableToArray(tableData) {
         const obj = {};
         row.c.forEach((cell, index) => {
             const key = headers[index];
+            // Check if this is a timestamp column and has a value
             obj[key] = cell ? cell.v : null;
             if (cell && cell.v && key.toLowerCase().includes('timestamp')) {
                 let timestamp = new Date(...cell.v.match(/\d+/g).map((v, i) => i === 1 ? +v - 1 : +v));
@@ -1408,6 +1409,7 @@ function gstableToArray(tableData) {
                 const now = new Date();
                 const diffTime = Math.abs(now - timestamp);
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                // Create a human-readable "days ago" string
                 let daysAgoText;
                 if (diffDays === 0) {
                     daysAgoText = 'Today';
@@ -1416,6 +1418,7 @@ function gstableToArray(tableData) {
                 } else {
                     daysAgoText = `${diffDays} days ago`;
                 }
+                // Add the days ago text as a new field
                 obj[`${key}_ago`] = daysAgoText;
             }
         });
