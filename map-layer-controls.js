@@ -9,6 +9,15 @@ class MapLayerControl {
         this._animationTimeouts = [];
         this._collapsed = window.innerWidth < 768;
         this._sourceControls = [];
+        this._editMode = false;
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        if (editModeToggle) {
+            editModeToggle.addEventListener('click', () => {
+                this._editMode = !this._editMode;
+                editModeToggle.classList.toggle('active');
+                editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
+            });
+        }
     }
 
     onAdd(map) {
@@ -790,6 +799,27 @@ class MapLayerControl {
 
                             // Update click event to handle selection
                             this._map.on('click', id, (e) => {
+
+                                if (this._editMode) {
+                                    const lat = e.lngLat.lat.toFixed(6);
+                                    const lng = e.lngLat.lng.toFixed(6);
+                                    const visibleLayers = this._getVisibleLayers();
+                                    const layersParam = encodeURIComponent(JSON.stringify(visibleLayers));
+                                    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}&entry.650960474=${layersParam}`;
+                                
+                                    new mapboxgl.Popup()
+                                        .setLngLat(e.lngLat)
+                                        .setHTML(`
+                                            <div class="p-2">
+                                                <p class="mb-2">Location: ${lat}, ${lng}</p>
+                                                <p class="mb-2 text-xs text-gray-600">Visible layers: ${visibleLayers}</p>
+                                                <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Add note for this location</a>
+                                            </div>
+                                        `)
+                                        .addTo(this._map);
+                                    return;
+                                }
+
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
 
@@ -844,6 +874,59 @@ class MapLayerControl {
                         text: group.description
                     }).appendTo($sourceControl);
                 }
+            } else if (group.type === 'markers' && group.dataUrl) {
+                fetch(group.dataUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        data = gstableToArray(JSON.parse(data.slice(47, -2)).table)
+                        const sourceId = `markers-${group.id}`;
+
+                        if (!this._map.getSource(sourceId)) {
+                            this._map.addSource(sourceId, {
+                                type: 'geojson',
+                                data: {
+                                    type: 'FeatureCollection',
+                                    features: data.map(item => ({
+                                        type: 'Feature',
+                                        geometry: { type: 'Point', coordinates: [item.Longitude, item.Latitude] },
+                                        properties: item
+                                    }))
+                                }
+                            });
+
+                            this._map.addLayer({
+                                id: `${sourceId}-circles`,
+                                type: 'circle',
+                                source: sourceId,
+                                paint: {
+                                    'circle-radius': group.style?.radius || 6,
+                                    'circle-color': group.style?.color || '#FF0000',
+                                    'circle-opacity': 0.9,
+                                    'circle-stroke-width': 1,
+                                    'circle-stroke-color': '#ffffff'
+                                },
+                                layout: {
+                                    'visibility': 'none'
+                                }
+                            });
+
+                            // Add click handler for popups
+                            this._map.on('click', `${sourceId}-circles`, (e) => {
+                                if (e.features.length > 0) {
+                                    const feature = e.features[0];
+                                    const coordinates = feature.geometry.coordinates.slice();
+                                    const content = this._createPopupContent(feature, group, false, {
+                                        lng: coordinates[0],
+                                        lat: coordinates[1]
+                                    });
+                                    new mapboxgl.Popup()
+                                        .setLngLat(coordinates)
+                                        .setDOMContent(content)
+                                        .addTo(this._map);
+                                }
+                            });
+                        }
+                    });
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
@@ -1011,6 +1094,11 @@ class MapLayerControl {
                         this._handleLayerChange(firstLayer.id, group.layers);
                     }
                 }
+            } else if (group.type === 'markers') {
+                const sourceId = `markers-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-circles`)) {
+                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
+                }
             }
         } else {
             sourceControl.classList.add('collapsed');
@@ -1045,6 +1133,11 @@ class MapLayerControl {
                         );
                     }
                 });
+            } else if (group.type === 'markers') {
+                const sourceId = `markers-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-circles`)) {
+                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'none');
+                }
             }
         }
     }
@@ -1327,6 +1420,68 @@ class MapLayerControl {
         });
         return undefined;
     }
+
+    _getVisibleLayers() {
+        return this._options.groups.flatMap(group => {
+            const isLayerVisible = (id) =>
+                this._map.getLayer(id) &&
+                this._map.getLayoutProperty(id, 'visibility') === 'visible';
+
+            switch(group.type) {
+                case 'vector':
+                    const vectorId = `vector-layer-${group.id}`;
+                    return isLayerVisible(vectorId) ? [vectorId] : [];
+
+                case 'geojson':
+                    const baseId = `geojson-${group.id}`;
+                    return ['fill', 'line', 'label']
+                        .map(type => `${baseId}-${type}`)
+                        .filter(isLayerVisible);
+
+                case 'tms':
+                    const tmsId = `tms-layer-${group.id}`;
+                    return isLayerVisible(tmsId) ? [tmsId] : [];
+
+                default:
+                    return (group.layers || [])
+                        .map(layer => layer.id)
+                        .filter(isLayerVisible);
+            }
+        });
+    }
+}
+
+function gstableToArray(tableData) {
+    const { cols, rows } = tableData;
+    const headers = cols.map(col => col.label);
+    const result = rows.map(row => {
+        const obj = {};
+        row.c.forEach((cell, index) => {
+            const key = headers[index];
+            obj[key] = cell ? cell.v : null;
+            // Check if this is a timestamp column and has a value
+            if (cell && cell.v && key.toLowerCase().includes('timestamp')) {
+                let timestamp = new Date(...cell.v.match(/\d+/g).map((v, i) => i === 1 ? +v - 1 : +v));
+                timestamp = timestamp.setMonth(timestamp.getMonth() + 1)
+                const now = new Date();
+                const diffTime = Math.abs(now - timestamp);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                // Create a human-readable "days ago" string
+                let daysAgoText;
+                if (diffDays === 0) {
+                    daysAgoText = 'Today';
+                } else if (diffDays === 1) {
+                    daysAgoText = 'Yesterday';
+                } else {
+                    daysAgoText = `${diffDays} days ago`;
+                }
+                // Add the days ago text as a new field
+                obj[`${key}_ago`] = daysAgoText;
+            }
+        });
+        return obj;
+    });
+    return result;
 }
 
 window.MapLayerControl = MapLayerControl; 

@@ -55,6 +55,11 @@
     <!-- Map Container -->
     <main class="flex-grow relative">
         <div id="map"></div>
+        <div id="edit-mode-control" class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
+            <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500" title="Toggle Edit Mode">
+                📌
+            </button>
+        </div>
     </main>
 
     <script>
@@ -270,6 +275,25 @@
                                     haloColor: '#ffffff',
                                     haloWidth: 2
                                 }
+                            }
+                        },
+                        {
+                            title: 'Community Pins',
+                            groupTitle: 'Community Added Locations',
+                            headerImage: 'assets/map-layer-pins.png',
+                            type: 'markers',
+                            id: 'community-pins',
+                            dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
+                            description: 'Locations added by the community',
+                            style: {
+                                color: '#FF4136',
+                                radius: 8
+                            },
+                            inspect: {
+                                title: 'Pin Details',
+                                label: 'name',
+                                fields: ['Location Name', 'Latitude' , 'Longitude', 'Additional Notes (optional)', 'Timestamp_ago'],
+                                fieldTitles: ['Name', 'Lat' , 'Lon', 'Notes', 'Added'],
                             }
                         },
                         {
