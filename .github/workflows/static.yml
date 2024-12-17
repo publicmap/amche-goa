@@ -1,0 +1,73 @@
+# Workflow to deploy main and staging content to GitHub Pages
+name: Deploy main and staging content to GitHub Pages
+
+on:
+  push:
+    branches:
+      - "main"
+      - "staging"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # Fetch and prepare main branch content
+      - name: Fetch main branch content into temporary directory
+        run: |
+          echo "Fetching main branch content..."
+          mkdir -p temp_main
+          git clone --branch main --depth 1 https://github.com/${{ github.repository }} temp_main
+          echo "Copying main branch content to deploy directory..."
+          mkdir -p deploy
+          rsync -av --exclude='.git' temp_main/ deploy/
+
+      # Check if staging branch exists before attempting to fetch
+      - name: Check if staging branch exists
+        id: check_staging
+        run: |
+          if git ls-remote --heads https://github.com/${{ github.repository }} staging | grep 'staging'; then
+            echo "staging_exists=true" >> $GITHUB_ENV
+          else
+            echo "staging_exists=false" >> $GITHUB_ENV
+          fi
+
+      # Fetch and prepare staging branch content if it exists
+      - name: Fetch staging branch content into temporary directory
+        if: env.staging_exists == 'true'
+        run: |
+          echo "Fetching staging branch content..."
+          mkdir -p temp_staging
+          git clone --branch staging --depth 1 https://github.com/${{ github.repository }} temp_staging
+          echo "Copying staging branch content to /staging/ directory..."
+          mkdir -p deploy/staging
+          rsync -av --exclude='.git' temp_staging/ deploy/staging/
+
+      - name: Verify Content Structure
+        run: |
+          echo "Final deployment directory structure:"
+          tree deploy || echo "tree command not available"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
