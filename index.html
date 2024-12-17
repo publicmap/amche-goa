@@ -23,7 +23,8 @@
     <!-- Open Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -40,9 +41,11 @@
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
             <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">amche.in</a></h1>
-            <a href="/sound/index.html" onclick="navigateToSound(event)" class="text-white hover:text-gray-300" title="Sound Map">
+            <a href="/sound/index.html" onclick="navigateToSound(event)" class="text-white hover:text-gray-300"
+                title="Sound Map">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"/>
+                    <path
+                        d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" />
                 </svg>
             </a>
         </div>
@@ -55,8 +58,10 @@
     <!-- Map Container -->
     <main class="flex-grow relative">
         <div id="map"></div>
-        <div id="edit-mode-control" class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
-            <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500" title="Toggle Edit Mode">
+        <div id="edit-mode-control"
+            class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
+            <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"
+                title="Toggle Edit Mode">
                 📌
             </button>
         </div>
@@ -161,16 +166,35 @@
                 .then(geojsonData => {
                     // Add layer control with multiple groups including GeoJSON
                     const layerControl = new MapLayerControl([
-                    {
+                        {
+                            title: 'Community Pins',
+                            description: 'Community Added Locations',
+                            headerImage: 'assets/map-layer-pins.png',
+                            type: 'markers',
+                            id: 'community-pins',
+                            dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
+                            attribution: 'Locations added by the community',
+                            style: {
+                                color: '#FF4136',
+                                radius: 8
+                            },
+                            inspect: {
+                                title: 'Pin Details',
+                                label: 'name',
+                                fields: ['Location Name', 'Latitude', 'Longitude', 'Additional Notes (optional)', 'Timestamp_ago'],
+                                fieldTitles: ['Name', 'Lat', 'Lon', 'Notes', 'Added'],
+                            }
+                        },
+                        {
                             title: 'Survey Boundaries',
-                            groupTitle: 'Cadastral Boundaries',
+                            description: 'Cadastral Boundaries',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
                             opacity: 0.7,
-                            description: 'Survey plot boundaries from Goa Bhunaksha',
+                            attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 color: '#555',
                                 width: .2,
@@ -178,17 +202,17 @@
                             },
                             initiallyChecked: true,
                             inspect: {
-                                    id:'id',
-                                    title: 'Survey Number',
-                                    label: 'kide',
-                                    fields: ['VillageNam','TalName'],
-                                    fieldTitles: ['Village','Taluk'],
-                                    customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
-                                }
+                                id: 'id',
+                                title: 'Survey Number',
+                                label: 'kide',
+                                fields: ['VillageNam', 'TalName'],
+                                fieldTitles: ['Village', 'Taluk'],
+                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                            }
                         },
                         {
                             title: 'Hill Slopes',
-                            groupTitle: 'Select Slope Source:',
+                            description: 'Select Slope Source:',
                             headerImage: 'assets/map-layer-slope.png',
                             legendImage: 'assets/map-layer-slope-legend.jpg',
                             layers: [
@@ -207,43 +231,43 @@
                             ]
                         },
                         {
-                            title: 'Goa Masterplan',
-                            groupTitle: 'Regional Development Plans 2021',
+                            title: 'Landuse Zones',
+                            description: 'Regional Development Plans 2021',
                             headerImage: 'assets/map-layer-rdp.png',
                             legendImage: 'assets/map-layer-rdp-legend.jpg',
                             type: 'tms',
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
                             opacity: 0.9,
-                            description: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
+                            attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
                             initiallyChecked: true
-                        },,
+                        }, ,
                         {
-                            title: 'SOI',
-                            groupTitle: 'Survey of India',
+                            title: 'SOI Toposheets',
+                            description: 'Survey of India',
                             headerImage: 'assets/map-layer-soi.png',
-                            legendImage: 'assets/map-layer-soi-legend.jpg',
+                            legendImage: 'assets/map-layer-soi-legend.png',
                             type: 'tms',
                             id: 'goa-soi-map',
                             url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
                             opacity: 0.9,
-                            description: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
+                            attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
                             initiallyChecked: true
                         },
                         {
                             title: 'Goa CZMP',
-                            groupTitle: 'Coastal Zone Management Plan 2019',
+                            description: 'Coastal Zone Management Plan 2019',
                             headerImage: 'assets/map-layer-czmp.png',
                             legendImage: 'assets/map-layer-czmp-legend.jpg',
                             type: 'tms',
                             id: 'goa-czmp-map',
-                            url: 'https://mapwarper.net/mosaics/tile/2080/{z}/{x}/{y}.png',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
                             opacity: 0.9,
-                            description: 'CZMP plans for Goa from NCSM  https://czmp.ncscm.res.in/'
+                            attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
                         },
                         {
                             title: 'OpenStreetMap',
-                            groupTitle: 'OpenStreetMap Data',
+                            description: 'OpenStreetMap Data',
                             headerImage: 'assets/map-layer-osm.png',
                             type: 'osm',
                             layers: [
@@ -257,12 +281,12 @@
                         },
                         {
                             title: 'Construction Sites',
-                            groupTitle: 'Construction Project Sites',
+                            description: 'Construction Project Sites',
                             headerImage: 'assets/map-layer-construction.png',
                             type: 'geojson',
                             id: 'construction-sites',
                             data: geojsonData,
-                            description: 'Construction project sites in Goa',
+                            attribution: 'Construction project sites in Goa',
                             style: {
                                 fill: false,
                                 line: {
@@ -278,27 +302,8 @@
                             }
                         },
                         {
-                            title: 'Community Pins',
-                            groupTitle: 'Community Added Locations',
-                            headerImage: 'assets/map-layer-pins.png',
-                            type: 'markers',
-                            id: 'community-pins',
-                            dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
-                            description: 'Locations added by the community',
-                            style: {
-                                color: '#FF4136',
-                                radius: 8
-                            },
-                            inspect: {
-                                title: 'Pin Details',
-                                label: 'name',
-                                fields: ['Location Name', 'Latitude' , 'Longitude', 'Additional Notes (optional)', 'Timestamp_ago'],
-                                fieldTitles: ['Name', 'Lat' , 'Lon', 'Notes', 'Added'],
-                            }
-                        },
-                        {
                             title: '3D Terrain',
-                            groupTitle: 'Terrain Controls',
+                            description: 'Terrain Controls',
                             headerImage: 'assets/map-layer-terrain.png',
                             type: 'terrain',
                             initiallyChecked: true
