@@ -168,12 +168,12 @@
                     const layerControl = new MapLayerControl([
                         {
                             title: 'Community Pins',
-                            description: 'Community Added Locations',
+                            description: 'Pin your notes on the map for the rest of the community to see',
                             headerImage: 'assets/map-layer-pins.png',
                             type: 'markers',
                             id: 'community-pins',
                             dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
-                            attribution: 'Locations added by the community',
+                            attribution: 'Source: Collected by amche.in | <a href="https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/edit?resourcekey=&gid=485622101#gid=485622101">View Source Spreadsheet</a>',
                             style: {
                                 color: '#FF4136',
                                 radius: 8
@@ -181,8 +181,8 @@
                             inspect: {
                                 title: 'Pin Details',
                                 label: 'name',
-                                fields: ['Location Name', 'Latitude', 'Longitude', 'Additional Notes (optional)', 'Timestamp_ago'],
-                                fieldTitles: ['Name', 'Lat', 'Lon', 'Notes', 'Added'],
+                                fields: ['Location Name', 'Additional Notes (optional)', 'Timestamp_ago'],
+                                fieldTitles: ['Name', 'Notes', 'Added'],
                             }
                         },
                         {
@@ -207,6 +207,28 @@
                                 label: 'kide',
                                 fields: ['VillageNam', 'TalName'],
                                 fieldTitles: ['Village', 'Taluk'],
+                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                            }
+                        },
+                        {
+                            title: 'Forests',
+                            description: 'Forest beat boundaries',
+                            headerImage: 'assets/map-layer-survey.png',
+                            type: 'vector',
+                            id: 'india-forest',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/forests/bharatmaps/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bharatmaps_RFA',
+                            opacity: 0.7,
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/">Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                color: 'green',
+                                width: 1,
+                                fillOpacity: 0.7
+                            },
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Forest Range',
+                                label: 'beat_name',
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
                             }
                         },

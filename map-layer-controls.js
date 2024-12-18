@@ -885,6 +885,13 @@ class MapLayerControl {
                                 }
                             });
 
+                            if (group.attribution) {
+                                $('<div>', {
+                                    class: 'text-sm text-gray-600 mt-2 px-2',
+                                    html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                                }).appendTo($sourceControl);
+                            }
+
                             this._map.on('click', `${sourceId}-circles`, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
