@@ -50,8 +50,8 @@
             </a>
         </div>
         <div class="flex gap-4">
-            <a href="https://github.com/publicmap/3d-goa" class="text-sm hover:underline">Source</a>
-            <button onclick="openFeedbackModal()" class="text-sm hover:underline">Feedback</button>
+            <a href="https://github.com/publicmap/amche-goa" class="text-sm hover:underline">Source</a>
+            <a href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank" class="text-sm hover:underline">Feedback</a>
         </div>
     </header>
 
@@ -351,43 +351,7 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-FBVGZ4HJV0');
-    </script>
-
-    <!-- Add modal HTML before the closing body tag -->
-    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-8">
-            <div class="flex justify-between items-center border-b pb-4">
-                <h2 class="text-xl font-bold">Feedback</h2>
-                <button onclick="closeFeedbackModal()" class="text-gray-600 hover:text-gray-800">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div class="mt-4 text-center">
-                <p class="mb-4">Click below to open the feedback form</p>
-                <a href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Open Feedback Form
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add modal JavaScript before the closing body tag -->
-    <script>
-        function openFeedbackModal() {
-            document.getElementById('feedbackModal').classList.remove('hidden');
-            document.getElementById('feedbackModal').classList.add('flex');
-        }
-
-        function closeFeedbackModal() {
-            document.getElementById('feedbackModal').classList.add('hidden');
-            document.getElementById('feedbackModal').classList.remove('flex');
-        }
     </script>
     <!--  Hotjar Tracking Code for amche.in -->
     <script>
@@ -400,7 +364,6 @@
             a.appendChild(r);
         })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
     </script>
-
     <script>
         function navigateToSound(event) {
             event.preventDefault();
