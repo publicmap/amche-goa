@@ -1381,7 +1381,7 @@ class MapLayerControl {
         ];
 
         let linksHTML = navigationLinks.map(link =>
-            `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900">
+            `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
                 ${link.icon ? `<img src="${link.icon}" class="w-5 h-5" alt="${link.name}">` : ''}
                 ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
             </a>`
