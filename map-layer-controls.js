@@ -18,6 +18,12 @@ class MapLayerControl {
                 editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
             });
         }
+
+        this._defaultPaintProperties = {
+            'line-color': '#555',
+            'line-width': 0.2,
+            'fill-opacity': 0.03,
+        };
     }
 
     onAdd(map) {
@@ -206,9 +212,46 @@ class MapLayerControl {
                     const sourceId = `vector-${group.id}`;
                     const layerId = `vector-layer-${group.id}`;
 
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'fill-opacity', value * (group.style?.fillOpacity || 0.1));
-                        this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
+                    if (!this._map.getSource(sourceId)) {
+                        this._map.addSource(sourceId, {
+                            type: 'vector',
+                            tiles: [group.url],
+                            promoteId: group.inspect?.id || 'id'
+                        });
+
+                        const fillPaint = {
+                            'fill-color': group.style?.color || '#FF0000',
+                            'fill-opacity': group.style?.['fill-opacity'] || this._defaultPaintProperties['fill-opacity']
+                        };
+
+                        const linePaint = {
+                            'line-color': group.style?.['line-color'] || this._defaultPaintProperties['line-color'],
+                            'line-width': group.style?.['line-width'] || this._defaultPaintProperties['line-width'],
+                            'line-opacity': 1
+                        };
+
+
+                        this._map.addLayer({
+                            id: layerId,
+                            type: 'fill',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none'
+                            },
+                            paint: fillPaint
+                        }, this._getInsertPosition('vector'));
+
+                        this._map.addLayer({
+                            id: `${layerId}-outline`,
+                            type: 'line',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none'
+                            },
+                            paint: linePaint
+                        }, this._getInsertPosition('vector'));
                     }
                 } else {
                     const $radioGroup = $('<div>', { class: 'radio-group' });
