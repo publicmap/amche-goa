@@ -1177,22 +1177,11 @@ class MapLayerControl {
     _initializeWithAnimation() {
         const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header input[type="checkbox"]');
 
-        groupHeaders.forEach((checkbox) => {
-            checkbox.checked = true;
+        groupHeaders.forEach((checkbox, index) => {
+            const group = this._options.groups[index];
+            checkbox.checked = group?.initiallyChecked ?? false;
             checkbox.dispatchEvent(new Event('change'));
         });
-
-        setTimeout(() => {
-            groupHeaders.forEach((checkbox, index) => {
-                const group = this._options.groups[index];
-                if (!group?.initiallyChecked) {
-                    setTimeout(() => {
-                        checkbox.checked = false;
-                        checkbox.dispatchEvent(new Event('change'));
-                    }, index * 200);
-                }
-            });
-        }, 2000);
 
         this._initialized = true;
     }
