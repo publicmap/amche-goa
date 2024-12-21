@@ -82,24 +82,6 @@ class MapLayerControl {
     }
 
     _initializeControl() {
-        const getNextLayerIndex = (type, groupIndex) => {
-            const layers = this._map.getStyle().layers;
-            const baseLayerIndex = layers.findIndex(layer =>
-                layer.type === 'raster' && layer.id.includes('satellite')
-            );
-
-            let insertIndex;
-            if (type === 'tms' || type === 'raster' || type === 'layer-group' || type === 'osm' || !type) {
-                const totalGroups = this._options.groups.length;
-                const reversedIndex = totalGroups - (groupIndex || 0) - 1;
-                insertIndex = baseLayerIndex + 1 + reversedIndex;
-            } else {
-                insertIndex = layers.length;
-            }
-
-            return insertIndex;
-        };
-
         this._initializeLayers();
 
         this._options.groups.forEach((group, groupIndex) => {
@@ -209,7 +191,6 @@ class MapLayerControl {
                         }
                     });
                 } else if (group.type === 'vector') {
-                    const sourceId = `vector-${group.id}`;
                     const layerId = `vector-layer-${group.id}`;
 
                     if (!this._map.getSource(sourceId)) {
@@ -475,7 +456,6 @@ class MapLayerControl {
                     text: '#ffffff'
                 });
 
-                const $highColorContainer = $('<div>', { class: 'mt-2' });
                 const $highColorPicker = $('<input>', {
                     type: 'color',
                     value: '#add8e6',
@@ -487,7 +467,6 @@ class MapLayerControl {
                     text: '#add8e6'
                 });
 
-                const $spaceColorContainer = $('<div>', { class: 'mt-2' });
                 const $spaceColorPicker = $('<input>', {
                     type: 'color',
                     value: '#d8f2ff',
@@ -674,7 +653,7 @@ class MapLayerControl {
                         paint: {
                             'raster-opacity': group.opacity || 1
                         }
-                    }, this._getInsertPosition('tms', groupIndex));
+                    }, this._getInsertPosition('tms'));
                 }
 
                 if (group.attribution) {
@@ -1392,13 +1371,12 @@ class MapLayerControl {
         return content;
     }
 
-    _getInsertPosition(type, groupIndex) {
+    _getInsertPosition(type) {
         const layers = this._map.getStyle().layers;
         const baseLayerIndex = layers.findIndex(layer =>
             layer.type === 'raster' && layer.id.includes('satellite')
         );
 
-        let insertIndex;
         if (type === 'vector') {
             return undefined;
         }
