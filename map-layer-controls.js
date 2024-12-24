@@ -1,5 +1,69 @@
 class MapLayerControl {
     constructor(options) {
+        this._defaultStyles = {
+            vector: {
+                fill: {
+                    'fill-color': '#FF0000',
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        0.2,
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.8,
+                        0.03
+                    ]
+                },
+                line: {
+                    'line-color': 'green',
+                    'line-width': [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        4,
+                        ['boolean', ['feature-state', 'hover'], false],
+                        3,
+                        0.2
+                    ],
+                    'line-opacity': 1
+                }
+            },
+            geojson: {
+                fill: {
+                    'fill-color': '#ff0000',
+                    'fill-opacity': 0.5
+                },
+                line: {
+                    'line-color': '#ff0000',
+                    'line-width': 2
+                },
+                label: {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 2,
+                    'text-size': 12
+                }
+            },
+            markers: {
+                circle: {
+                    'circle-radius': 6,
+                    'circle-color': '#FF0000',
+                    'circle-opacity': 0.9,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#ffffff'
+                }
+            },
+            terrain: {
+                exaggeration: 1.5,
+                fog: {
+                    range: [-1, 2],
+                    'horizon-blend': 0.3,
+                    color: '#ffffff',
+                    'high-color': '#add8e6',
+                    'space-color': '#d8f2ff',
+                    'star-intensity': 0.0
+                }
+            }
+        };
+
         this._options = {
             groups: Array.isArray(options) ? options : [options]
         };
@@ -18,12 +82,6 @@ class MapLayerControl {
                 editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
             });
         }
-
-        this._defaultPaintProperties = {
-            'line-color': '#555',
-            'line-width': 0.2,
-            'fill-opacity': 0.03,
-        };
     }
 
     onAdd(map) {
@@ -191,26 +249,16 @@ class MapLayerControl {
                         }
                     });
                 } else if (group.type === 'vector') {
+                    const sourceId = `vector-${group.id}`;
                     const layerId = `vector-layer-${group.id}`;
 
                     if (!this._map.getSource(sourceId)) {
                         this._map.addSource(sourceId, {
                             type: 'vector',
                             tiles: [group.url],
+                            maxzoom: 15,
                             promoteId: group.inspect?.id || 'id'
                         });
-
-                        const fillPaint = {
-                            'fill-color': group.style?.color || '#FF0000',
-                            'fill-opacity': group.style?.['fill-opacity'] || this._defaultPaintProperties['fill-opacity']
-                        };
-
-                        const linePaint = {
-                            'line-color': group.style?.['line-color'] || this._defaultPaintProperties['line-color'],
-                            'line-width': group.style?.['line-width'] || this._defaultPaintProperties['line-width'],
-                            'line-opacity': 1
-                        };
-
 
                         this._map.addLayer({
                             id: layerId,
@@ -220,7 +268,17 @@ class MapLayerControl {
                             layout: {
                                 visibility: 'none'
                             },
-                            paint: fillPaint
+                            paint: {
+                                'fill-color': group.style?.['fill-color'] || '#000000',
+                                'fill-opacity': [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    0.2,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    0.8,
+                                    group.style?.['fill-opacity'] || 0.1
+                                ]
+                            }
                         }, this._getInsertPosition('vector'));
 
                         this._map.addLayer({
@@ -231,7 +289,25 @@ class MapLayerControl {
                             layout: {
                                 visibility: 'none'
                             },
-                            paint: linePaint
+                            paint: {
+                                'line-color': [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    '#000000',
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    '#000000',
+                                    group.style?.['line-color'] || '#000000'
+                                ],
+                                'line-width': [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    4,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    3,
+                                    group.style?.['line-width'] || 0.2
+                                ],
+                                'line-opacity': 1
+                            }
                         }, this._getInsertPosition('vector'));
                     }
                 } else {
@@ -278,20 +354,18 @@ class MapLayerControl {
                         data: group.data
                     });
 
-                    const style = group.style || {
+                    const style = {
                         fill: {
-                            color: '#ff0000',
-                            opacity: 0.5
+                            ...this._defaultStyles.geojson.fill,
+                            ...(group.style?.fill || {})
                         },
                         line: {
-                            color: '#ff0000',
-                            width: 2
+                            ...this._defaultStyles.geojson.line,
+                            ...(group.style?.line || {})
                         },
                         label: {
-                            color: '#000000',
-                            haloColor: '#ffffff',
-                            haloWidth: 2,
-                            size: 12
+                            ...this._defaultStyles.geojson.label,
+                            ...(group.style?.label || {})
                         }
                     };
 
@@ -301,8 +375,8 @@ class MapLayerControl {
                             type: 'fill',
                             source: sourceId,
                             paint: {
-                                'fill-color': style.fill?.color || '#ff0000',
-                                'fill-opacity': style.fill?.opacity || 0.5
+                                'fill-color': style.fill?.['fill-color'] || '#ff0000',
+                                'fill-opacity': style.fill?.['fill-opacity'] || 0.5
                             },
                             layout: {
                                 'visibility': 'none'
@@ -315,8 +389,8 @@ class MapLayerControl {
                         type: 'line',
                         source: sourceId,
                         paint: {
-                            'line-color': style.line?.color || '#ff0000',
-                            'line-width': style.line?.width || 2
+                            'line-color': style.line?.['line-color'] || '#ff0000',
+                            'line-width': style.line?.['line-width'] || 2
                         },
                         layout: {
                             'visibility': 'none'
@@ -330,16 +404,16 @@ class MapLayerControl {
                         layout: {
                             'visibility': 'none',
                             'text-field': ['get', 'name'],
-                            'text-size': style.label?.size || 12,
+                            'text-size': style.label?.['text-size'] || 12,
                             'text-anchor': 'center',
                             'text-offset': [0, 0],
                             'text-allow-overlap': false,
                             'text-ignore-placement': false
                         },
                         paint: {
-                            'text-color': style.label?.color || '#000000',
-                            'text-halo-color': style.label?.haloColor || '#ffffff',
-                            'text-halo-width': style.label?.haloWidth || 2
+                            'text-color': style.label?.['text-color'] || '#000000',
+                            'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': style.label?.['text-halo-width'] || 2
                         }
                     });
                 }
@@ -779,9 +853,9 @@ class MapLayerControl {
                                                 .setLngLat(e.lngLat)
                                                 .setDOMContent(this._createPopupContent(feature, group, true))
                                                 .addTo(this._map);
-                                        }
                                     }
                                 }
+                            }
                             });
 
                             this._map.on('mouseleave', id, () => {
@@ -896,11 +970,9 @@ class MapLayerControl {
                                 type: 'circle',
                                 source: sourceId,
                                 paint: {
-                                    'circle-radius': group.style?.radius || 6,
-                                    'circle-color': group.style?.color || '#FF0000',
-                                    'circle-opacity': 0.9,
-                                    'circle-stroke-width': 1,
-                                    'circle-stroke-color': '#ffffff'
+                                    ...this._defaultStyles.markers.circle,
+                                    'circle-radius': group.style?.radius || this._defaultStyles.markers.circle['circle-radius'],
+                                    'circle-color': group.style?.color || this._defaultStyles.markers.circle['circle-color']
                                 },
                                 layout: {
                                     'visibility': 'none'
