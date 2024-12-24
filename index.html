@@ -68,6 +68,22 @@
     </main>
 
     <script>
+
+//FIXME: move this function to a utils
+function getQueryParameters() {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const params = {};
+
+    // Iterate through all entries in the URLSearchParams object
+    for (const [key, value] of urlParams.entries()) {
+        params[key] = value;
+    }
+
+    return params; // Return the object containing all query parameters
+}
+
+
         mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ'; // Mapbox Token by @planemad. Migrate to community token.
 
         // Initialize the map
@@ -160,12 +176,15 @@
                 }
             });  // Insert before building layer to show 3D buildings on top
 
+
+
             // First fetch the GeoJSON data
             fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
                 .then(response => response.json())
                 .then(geojsonData => {
-                    // Add layer control with multiple groups including GeoJSON
-                    const layerControl = new MapLayerControl([
+
+                    // Put Layers in a variable, we may want to move this to a separate file or so.
+                    let layersConfig = [
                         {
                             title: 'Community Pins',
                             description: 'Community Added Locations',
@@ -241,7 +260,7 @@
                             opacity: 0.9,
                             attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
                             initiallyChecked: true
-                        }, ,
+                        },
                         {
                             title: 'SOI Toposheets',
                             description: 'Survey of India',
@@ -252,7 +271,6 @@
                             url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
                             opacity: 0.9,
                             attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
-                            initiallyChecked: true
                         },
                         {
                             title: 'Goa CZMP',
@@ -308,7 +326,21 @@
                             type: 'terrain',
                             initiallyChecked: true
                         }
-                    ]);
+                    ];
+                    
+                    // if the layers= query parameter is set, handle setting initiallyChecked on those layers
+                    const queryParams = getQueryParameters();
+                    if (queryParams.layers) {
+                        const activeLayers = queryParams.layers.split(',').map(s => s.trim());
+                        console.log('active layers', activeLayers);
+                        layersConfig = layersConfig.map(layer => {
+                            layer.initiallyChecked = activeLayers.includes(layer.id);
+                            return layer;
+                        });
+                    }
+                    console.log('layers config', layersConfig);
+                    // Add layer control with multiple groups including GeoJSON
+                    const layerControl = new MapLayerControl(layersConfig);
 
                     map.addControl(layerControl, 'top-left');
                 })
