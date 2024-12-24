@@ -249,7 +249,6 @@ class MapLayerControl {
                         }
                     });
                 } else if (group.type === 'vector') {
-                    const sourceId = `vector-${group.id}`;
                     const layerId = `vector-layer-${group.id}`;
 
                     if (!this._map.getSource(sourceId)) {
