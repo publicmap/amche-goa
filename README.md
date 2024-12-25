@@ -1,6 +1,6 @@
-# 3d-goa
+# [amche-goa](https://amche.in/)
 
-Public 3D map platform for Goa. Made with the latest map tools.
+Participatory GIS platform for Goa. Made with the latest map tools.
 
 ## Data Sources
 - [OpenStreetMap](https://www.openstreetmap.org/)
