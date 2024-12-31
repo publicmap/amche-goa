@@ -115,8 +115,8 @@ class MapLayerControl {
             if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
                 $opacityButton = $('<button>', {
                     class: 'opacity-toggle hidden',
-                    'data-opacity': '1',
-                    title: '100% opacity'
+                    'data-opacity': '0.95',
+                    title: '95% opacity'
                 });
                 
                 // Add click handler for opacity button
@@ -124,7 +124,7 @@ class MapLayerControl {
                     e.preventDefault();
                     e.stopPropagation();
                     const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
-                    const newOpacity = currentOpacity === 1 ? 0.5 : 1;
+                    const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
                     $opacityButton.attr('data-opacity', newOpacity);
                     $opacityButton.attr('title', `${newOpacity * 100}% opacity`);
                     
@@ -281,7 +281,7 @@ class MapLayerControl {
                             source: sourceId,
                             paint: {
                                 'fill-color': style.fill?.color || '#ff0000',
-                                'fill-opacity': style.fill?.opacity || 0.5
+                                'fill-opacity': (style.fill?.opacity || 0.5) * 0.95
                             },
                             layout: {
                                 'visibility': 'none'
@@ -390,7 +390,7 @@ class MapLayerControl {
                     min: '-20',
                     max: '20',
                     step: '0.5',
-                    value: '-1',
+                    value: '0',
                     class: 'w-full'
                 });
 
@@ -399,13 +399,13 @@ class MapLayerControl {
                     min: '-20',
                     max: '20',
                     step: '0.5',
-                    value: '2',
+                    value: '10',
                     class: 'w-full'
                 });
 
                 const $fogValue = $('<span>', {
                     class: 'text-sm text-gray-600 ml-2',
-                    text: '[-1, 2]'
+                    text: '[0, 10]'
                 });
 
                 const $horizonContainer = $('<div>', { class: 'mt-4' });
@@ -663,7 +663,7 @@ class MapLayerControl {
                         },
                         paint: {
                             'fill-color': group.style?.color || '#FF0000',
-                            'fill-opacity': group.style?.fillOpacity || 0.1
+                            'fill-opacity': (group.style?.fillOpacity || 0.5) * 0.95
                         }
                     }, this._getInsertPosition('vector'));
 
@@ -707,7 +707,7 @@ class MapLayerControl {
                                     0.2,
                                     ['boolean', ['feature-state', 'hover'], false],
                                     0.8,
-                                    group.style?.fillOpacity || 0.1
+                                    (group.style?.fillOpacity || 0.5) * 0.95
                                 ]);
                             } else {
                                 this._map.setPaintProperty(id, 'line-width', [
@@ -1035,47 +1035,44 @@ class MapLayerControl {
                     'exaggeration': 1.5 
                 });
                 
-                // Set default fog settings
-                this._map.setFog({
+                // Get existing fog settings from the map style, or use defaults
+                const existingFog = this._map.getFog() || {
                     'range': [-1, 2],
                     'horizon-blend': 0.3,
                     'color': '#ffffff',
                     'high-color': '#add8e6',
                     'space-color': '#d8f2ff',
                     'star-intensity': 0.0
-                });
+                };
 
-                // Update the UI controls to match default values
-                const $exaggerationSlider = $(sourceControl).find('input[type="range"]').first();
-                if ($exaggerationSlider.length) {
-                    $exaggerationSlider.val(1.5);
-                    $exaggerationSlider.next('span').text('1.5x');
-                }
+                // Set fog with existing or default values
+                this._map.setFog(existingFog);
 
-                // Reset fog range sliders
+                // Update the UI controls to match the current fog values
                 const $fogStartSlider = $(sourceControl).find('.fog-range-slider input').first();
                 const $fogEndSlider = $(sourceControl).find('.fog-range-slider input').last();
-                if ($fogStartSlider.length && $fogEndSlider.length) {
-                    $fogStartSlider.val(-1);
-                    $fogEndSlider.val(2);
-                    $(sourceControl).find('.fog-range-slider').next().find('span').text('[-1, 2]');
-                }
-
-                // Reset horizon blend
                 const $horizonSlider = $(sourceControl).find('.mt-4 input[type="range"]').first();
-                if ($horizonSlider.length) {
-                    $horizonSlider.val(0.3);
-                    $horizonSlider.next('span').text('0.3');
-                }
-
-                // Reset color pickers
                 const $colorPicker = $(sourceControl).find('input[type="color"]').eq(0);
                 const $highColorPicker = $(sourceControl).find('input[type="color"]').eq(1);
                 const $spaceColorPicker = $(sourceControl).find('input[type="color"]').eq(2);
-                
-                if ($colorPicker.length) $colorPicker.val('#ffffff');
-                if ($highColorPicker.length) $highColorPicker.val('#add8e6');
-                if ($spaceColorPicker.length) $spaceColorPicker.val('#d8f2ff');
+
+                if ($fogStartSlider.length && $fogEndSlider.length) {
+                    $fogStartSlider.val(existingFog.range[0]);
+                    $fogEndSlider.val(existingFog.range[1]);
+                    $(sourceControl).find('.fog-range-slider').next().find('span')
+                        .text(`[${existingFog.range[0]}, ${existingFog.range[1]}]`);
+                }
+
+                if ($horizonSlider.length) {
+                    $horizonSlider.val(existingFog['horizon-blend']);
+                    $horizonSlider.next('span').text(existingFog['horizon-blend'].toFixed(2));
+                }
+
+                if ($colorPicker.length) $colorPicker.val(existingFog.color);
+                if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
+                if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
+
+                // ... rest of terrain initialization code ...
             } else if (group.type === 'layer-group') {
                 const firstRadio = sourceControl.querySelector('input[type="radio"]');
                 if (firstRadio) {
