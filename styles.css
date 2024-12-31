@@ -248,7 +248,7 @@ main {
     background: rgba(0, 0, 0, 0.4);
 }
 
-.group-header label {
+.header-label {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -550,4 +550,38 @@ header h1 {
 
 .legend-content img:hover {
     opacity: 0.9;
+}
+
+/* Update opacity toggle button styles */
+button.opacity-toggle {
+    margin-left: auto !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    border: 1px solid #ddd !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0 !important;
+    background: white !important;
+}
+
+button.opacity-toggle[data-opacity="0.5"] {
+    background: #999 !important;
+}
+
+button.opacity-toggle:hover {
+    border-color: #999 !important;
+}
+
+button.opacity-toggle.hidden {
+    display: none !important;
+}
+
+/* Remove old opacity control styles */
+.opacity-control {
+    display: none;
 }
