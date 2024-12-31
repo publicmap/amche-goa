@@ -1028,7 +1028,55 @@ class MapLayerControl {
         if (isChecked) {
             sourceControl.classList.remove('collapsed');
 
-            if (group.type === 'layer-group') {
+            if (group.type === 'terrain') {
+                // Enable terrain with default settings
+                this._map.setTerrain({ 
+                    'source': 'mapbox-dem',
+                    'exaggeration': 1.5 
+                });
+                
+                // Set default fog settings
+                this._map.setFog({
+                    'range': [-1, 2],
+                    'horizon-blend': 0.3,
+                    'color': '#ffffff',
+                    'high-color': '#add8e6',
+                    'space-color': '#d8f2ff',
+                    'star-intensity': 0.0
+                });
+
+                // Update the UI controls to match default values
+                const $exaggerationSlider = $(sourceControl).find('input[type="range"]').first();
+                if ($exaggerationSlider.length) {
+                    $exaggerationSlider.val(1.5);
+                    $exaggerationSlider.next('span').text('1.5x');
+                }
+
+                // Reset fog range sliders
+                const $fogStartSlider = $(sourceControl).find('.fog-range-slider input').first();
+                const $fogEndSlider = $(sourceControl).find('.fog-range-slider input').last();
+                if ($fogStartSlider.length && $fogEndSlider.length) {
+                    $fogStartSlider.val(-1);
+                    $fogEndSlider.val(2);
+                    $(sourceControl).find('.fog-range-slider').next().find('span').text('[-1, 2]');
+                }
+
+                // Reset horizon blend
+                const $horizonSlider = $(sourceControl).find('.mt-4 input[type="range"]').first();
+                if ($horizonSlider.length) {
+                    $horizonSlider.val(0.3);
+                    $horizonSlider.next('span').text('0.3');
+                }
+
+                // Reset color pickers
+                const $colorPicker = $(sourceControl).find('input[type="color"]').eq(0);
+                const $highColorPicker = $(sourceControl).find('input[type="color"]').eq(1);
+                const $spaceColorPicker = $(sourceControl).find('input[type="color"]').eq(2);
+                
+                if ($colorPicker.length) $colorPicker.val('#ffffff');
+                if ($highColorPicker.length) $highColorPicker.val('#add8e6');
+                if ($spaceColorPicker.length) $spaceColorPicker.val('#d8f2ff');
+            } else if (group.type === 'layer-group') {
                 const firstRadio = sourceControl.querySelector('input[type="radio"]');
                 if (firstRadio) {
                     firstRadio.checked = true;
@@ -1042,7 +1090,7 @@ class MapLayerControl {
                         this._map.setLayoutProperty(
                             layerId,
                             'visibility',
-                            isChecked ? 'visible' : 'none'
+                            'visible'
                         );
                     }
                 });
@@ -1072,7 +1120,25 @@ class MapLayerControl {
         } else {
             sourceControl.classList.add('collapsed');
 
-            if (group.type === 'layer-group') {
+            if (group.type === 'terrain') {
+                // Disable terrain
+                this._map.setTerrain(null);
+                
+                // Reset fog
+                this._map.setFog(null);
+                
+                // Hide contour layers if they exist
+                const contourLayers = ['contour lines', 'contour labels'];
+                contourLayers.forEach(layerId => {
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setLayoutProperty(
+                            layerId,
+                            'visibility',
+                            'none'
+                        );
+                    }
+                });
+            } else if (group.type === 'layer-group') {
                 const allLayers = this._map.getStyle().layers.map(layer => layer.id);
                 group.groups.forEach(subGroup => {
                     const matchingLayers = allLayers.filter(layerId => 
@@ -1088,6 +1154,7 @@ class MapLayerControl {
                     });
                 });
             } else if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
                 ['fill', 'line', 'label'].forEach(type => {
                     const layerId = `${sourceId}-${type}`;
                     if (this._map.getLayer(layerId)) {
