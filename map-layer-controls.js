@@ -1430,7 +1430,9 @@ class MapLayerControl {
         
         groups.forEach(subGroup => {
             const matchingLayers = allLayers.filter(layerId => 
-                layerId === subGroup.id || layerId.startsWith(`${subGroup.id} `)
+                layerId === subGroup.id || 
+                layerId.startsWith(`${subGroup.id}-`) ||
+                layerId.startsWith(`${subGroup.id} `)
             );
             
             matchingLayers.forEach(layerId => {
