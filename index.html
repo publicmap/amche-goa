@@ -94,8 +94,6 @@ function getQueryParameters() {
             style: 'mapbox://styles/planemad/cm3gyibd3004x01qz08rohcsg',
             center: [73.9414, 15.4121],
             zoom: 9.99,
-            pitch: 69.6,
-            bearing: 56,
             hash: true,
             attributionControl: false
         });
@@ -230,15 +228,15 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Hill Slopes',
-                            description: 'Select Slope Source:',
+                            title: 'Slope Zones',
+                            description: 'Slope zone classification using terrain data',
                             type: 'layer-group',
                             headerImage: 'assets/map-layer-slope.png',
                             legendImage: 'assets/map-layer-slope-legend.jpg',
                             groups: [
                                 {
                                     id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Bardez/Sancoale)',
+                                    title: 'ISRO CartoDEM 2.5m (Partial)',
                                     attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
                                     location: 'Guirim'
                                 },
