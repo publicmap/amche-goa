@@ -163,6 +163,40 @@ class MapLayerControl {
                     if (this._map.getLayer(layerId)) {
                         this._map.setPaintProperty(layerId, 'raster-opacity', value);
                     }
+                } else if (group.type === 'layer-group') {
+                    const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                    group.groups.forEach(subGroup => {
+                        const matchingLayers = allLayers.filter(layerId => 
+                            layerId === subGroup.id || layerId.startsWith(`${subGroup.id} `)
+                        );
+                        
+                        matchingLayers.forEach(layerId => {
+                            if (this._map.getLayer(layerId)) {
+                                const layer = this._map.getLayer(layerId);
+                                switch (layer.type) {
+                                    case 'raster':
+                                        this._map.setPaintProperty(layerId, 'raster-opacity', value);
+                                        break;
+                                    case 'fill':
+                                        this._map.setPaintProperty(layerId, 'fill-opacity', value);
+                                        break;
+                                    case 'line':
+                                        this._map.setPaintProperty(layerId, 'line-opacity', value);
+                                        break;
+                                    case 'symbol':
+                                        this._map.setPaintProperty(layerId, 'text-opacity', value);
+                                        this._map.setPaintProperty(layerId, 'icon-opacity', value);
+                                        break;
+                                }
+                            }
+                        });
+                    });
+                } else if (group.type === 'vector') {
+                    const layerId = `vector-layer-${group.id}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setPaintProperty(layerId, 'fill-opacity', value * (group.style?.fillOpacity || 0.1));
+                        this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
+                    }
                 } else if (group.layers) {
                     group.layers.forEach(layer => {
                         if (this._map.getLayer(layer.id)) {
@@ -184,35 +218,6 @@ class MapLayerControl {
                             }
                         }
                     });
-                } else if (group.type === 'vector') {
-                    const layerId = `vector-layer-${group.id}`;
-
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'fill-opacity', value * (group.style?.fillOpacity || 0.1));
-                        this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
-                    }
-                } else {
-                    const $radioGroup = $('<div>', { class: 'radio-group' });
-
-                    group.layers.forEach((layer, index) => {
-                        const $radioLabel = $('<label>', { class: 'radio-label' });
-                        const $radio = $('<input>', {
-                            type: 'radio',
-                            name: `layer-group-${this._instanceId}-${groupIndex}`,
-                            value: layer.id,
-                            checked: index === 0
-                        });
-
-                        $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
-
-                        $radioLabel.append(
-                            $radio,
-                            $('<span>', { text: layer.label })
-                        );
-                        $radioGroup.append($radioLabel);
-                    });
-
-                    $sourceControl.append($radioGroup);
                 }
             });
 
@@ -227,7 +232,51 @@ class MapLayerControl {
                 }).appendTo($sourceControl);
             }
 
-            if (group.type === 'geojson') {
+            if (group.type === 'layer-group') {
+                const $radioGroup = $('<div>', { class: 'radio-group mt-2' });
+
+                group.groups.forEach((subGroup, index) => {
+                    const $radioLabel = $('<label>', { class: 'radio-label' });
+                    const $radio = $('<input>', {
+                        type: 'radio',
+                        name: `layer-group-${this._instanceId}-${groupIndex}`,
+                        value: subGroup.id,
+                        checked: index === 0
+                    });
+
+                    $radio.on('change', () => this._handleLayerGroupChange(subGroup.id, group.groups));
+
+                    $radioLabel.append(
+                        $radio,
+                        $('<span>', { text: subGroup.title })
+                    );
+                    $radioGroup.append($radioLabel);
+
+                    if (subGroup.attribution || subGroup.location) {
+                        const links = [];
+                        if (subGroup.attribution) {
+                            links.push(`<a href="${subGroup.attribution}" target="_blank" class="hover:underline">Source</a>`);
+                        }
+                        if (subGroup.location) {
+                            links.push(`<a href="#" class="hover:underline view-link" data-location="${subGroup.location}">View</a>`);
+                        }
+
+                        const $infoDiv = $('<div>', {
+                            class: 'layer-info text-xs pl-5 text-gray-600',
+                            html: links.join(' | ')
+                        });
+
+                        $infoDiv.find('.view-link').on('click', (e) => {
+                            e.preventDefault();
+                            this._flyToLocation(subGroup.location);
+                        });
+
+                        $radioLabel.append($infoDiv);
+                    }
+                });
+
+                $sourceControl.append($radioGroup);
+            } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
@@ -1006,7 +1055,13 @@ class MapLayerControl {
         if (isChecked) {
             sourceControl.classList.remove('collapsed');
 
-            if (group.type === 'vector') {
+            if (group.type === 'layer-group') {
+                const firstRadio = sourceControl.querySelector('input[type="radio"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
+                    this._handleLayerGroupChange(firstRadio.value, group.groups);
+                }
+            } else if (group.type === 'vector') {
                 const layerId = `vector-layer-${group.id}`;
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', 'visible');
@@ -1093,41 +1148,50 @@ class MapLayerControl {
     }
 
     _handleLayerChange(selectedLayerId, layers) {
+        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+        
         layers.forEach(layer => {
-            if (this._map.getLayer(layer.id)) {
-                const isVisible = layer.id === selectedLayerId;
-                this._map.setLayoutProperty(
-                    layer.id,
-                    'visibility',
-                    isVisible ? 'visible' : 'none'
-                );
+            // Find all layers that start with this ID
+            const matchingLayers = allLayers.filter(layerId => 
+                layerId === layer.id || layerId.startsWith(`${layer.id} `)
+            );
+            
+            matchingLayers.forEach(layerId => {
+                if (this._map.getLayer(layerId)) {
+                    const isVisible = layer.id === selectedLayerId;
+                    this._map.setLayoutProperty(
+                        layerId,
+                        'visibility',
+                        isVisible ? 'visible' : 'none'
+                    );
+                }
+            });
 
-                const $radioInput = $(`input[value="${layer.id}"]`, this._container);
-                if ($radioInput.length) {
-                    const $label = $radioInput.closest('.radio-label');
-                    $('.layer-info', $label.parent()).remove();
+            const $radioInput = $(`input[value="${layer.id}"]`, this._container);
+            if ($radioInput.length) {
+                const $label = $radioInput.closest('.radio-label');
+                $('.layer-info', $label.parent()).remove();
 
-                    if (isVisible) {
-                        const links = [];
-                        if (layer.sourceUrl) {
-                            links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
-                        }
-                        if (layer.location) {
-                            links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
-                        }
-
-                        const $infoDiv = $('<div>', {
-                            class: 'layer-info text-xs pl-5 text-gray-600',
-                            html: links.join(' | ')
-                        });
-
-                        $infoDiv.find('.view-link').on('click', (e) => {
-                            e.preventDefault();
-                            this._flyToLocation(layer.location);
-                        });
-
-                        $infoDiv.insertAfter($label);
+                if (isVisible) {
+                    const links = [];
+                    if (layer.sourceUrl) {
+                        links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
                     }
+                    if (layer.location) {
+                        links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
+                    }
+
+                    const $infoDiv = $('<div>', {
+                        class: 'layer-info text-xs pl-5 text-gray-600',
+                        html: links.join(' | ')
+                    });
+
+                    $infoDiv.find('.view-link').on('click', (e) => {
+                        e.preventDefault();
+                        this._flyToLocation(layer.location);
+                    });
+
+                    $infoDiv.insertAfter($label);
                 }
             }
         });
@@ -1338,25 +1402,47 @@ class MapLayerControl {
                 this._map.getLayoutProperty(id, 'visibility') === 'visible';
 
             switch (group.type) {
+                case 'layer-group':
+                    return group.groups
+                        .map(subGroup => subGroup.id)
+                        .filter(isLayerVisible);
                 case 'vector':
                     const vectorId = `vector-layer-${group.id}`;
                     return isLayerVisible(vectorId) ? [vectorId] : [];
-
                 case 'geojson':
                     const baseId = `geojson-${group.id}`;
                     return ['fill', 'line', 'label']
                         .map(type => `${baseId}-${type}`)
                         .filter(isLayerVisible);
-
                 case 'tms':
                     const tmsId = `tms-layer-${group.id}`;
                     return isLayerVisible(tmsId) ? [tmsId] : [];
-
                 default:
                     return (group.layers || [])
                         .map(layer => layer.id)
                         .filter(isLayerVisible);
             }
+        });
+    }
+
+    _handleLayerGroupChange(selectedId, groups) {
+        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+        
+        groups.forEach(subGroup => {
+            const matchingLayers = allLayers.filter(layerId => 
+                layerId === subGroup.id || layerId.startsWith(`${subGroup.id} `)
+            );
+            
+            matchingLayers.forEach(layerId => {
+                if (this._map.getLayer(layerId)) {
+                    const isVisible = subGroup.id === selectedId;
+                    this._map.setLayoutProperty(
+                        layerId,
+                        'visibility',
+                        isVisible ? 'visible' : 'none'
+                    );
+                }
+            });
         });
     }
 }

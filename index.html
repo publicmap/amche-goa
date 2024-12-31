@@ -232,19 +232,26 @@ function getQueryParameters() {
                         {
                             title: 'Hill Slopes',
                             description: 'Select Slope Source:',
+                            type: 'layer-group',
                             headerImage: 'assets/map-layer-slope.png',
                             legendImage: 'assets/map-layer-slope-legend.jpg',
-                            layers: [
+                            groups: [
                                 {
-                                    id: 'isro slope',
-                                    label: 'ISRO CartoDEM 2.5m (Bardez)',
-                                    sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Bardez/Sancoale)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
                                     location: 'Guirim'
                                 },
                                 {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Goa'
+                                },
+                                {
                                     id: 'aster slope',
-                                    label: 'NASA Aster 30m (Goa Coast)',
-                                    sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    title: 'NASA Aster 30m (Goa Coast)',
+                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
                                     location: 'Panaji'
                                 }
                             ]
