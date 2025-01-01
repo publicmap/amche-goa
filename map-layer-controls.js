@@ -1,5 +1,6 @@
 class MapLayerControl {
     constructor(options) {
+        this._domCache = {};
         this._options = {
             groups: Array.isArray(options) ? options : [options]
         };
@@ -70,9 +71,14 @@ class MapLayerControl {
     }
 
     _handleResize() {
-        if (window.innerWidth < 768 && !this._collapsed) {
-            this._toggleCollapse();
+        if (this._resizeTimeout) {
+            clearTimeout(this._resizeTimeout);
         }
+        this._resizeTimeout = setTimeout(() => {
+            if (window.innerWidth < 768 && !this._collapsed) {
+                this._toggleCollapse();
+            }
+        }, 250);
     }
 
     _initializeControl() {
@@ -1270,30 +1276,41 @@ class MapLayerControl {
     }
 
     onRemove() {
-        this._animationTimeouts.forEach(timeout => clearTimeout(timeout));
-        this._animationTimeouts = [];
-
+        this._cleanup();
         this._container.parentNode.removeChild(this._container);
         this._map = undefined;
         window.removeEventListener('resize', () => this._handleResize());
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
+        if (isHover) {
+            return this._createHoverPopupContent(feature, group);
+        }
+        return this._createDetailedPopupContent(feature, group, lngLat);
+    }
+
+    _createHoverPopupContent(feature, group) {
+        if (!this._hoverTemplate) {
+            this._hoverTemplate = document.createElement('div');
+            this._hoverTemplate.className = 'map-popup p-4 font-sans';
+        }
+        const content = this._hoverTemplate.cloneNode(true);
+        
+        if (group.inspect?.label) {
+            const labelValue = feature.properties[group.inspect.label];
+            if (labelValue) {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'text-sm font-medium text-white';
+                labelDiv.textContent = labelValue;
+                content.appendChild(labelDiv);
+            }
+        }
+        return content;
+    }
+
+    _createDetailedPopupContent(feature, group, lngLat = null) {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
-
-        if (isHover) {
-            if (group.inspect?.label) {
-                const labelValue = feature.properties[group.inspect.label];
-                if (labelValue) {
-                    const labelDiv = document.createElement('div');
-                    labelDiv.className = 'text-sm font-medium text-white';
-                    labelDiv.textContent = labelValue;
-                    content.appendChild(labelDiv);
-                }
-            }
-            return content;
-        }
 
         if (group.inspect?.title) {
             const title = document.createElement('h3');
@@ -1466,18 +1483,28 @@ class MapLayerControl {
     }
 
     _handleLayerGroupChange(selectedId, groups) {
-        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+        const allLayers = this._map.getStyle().layers
+            .map(layer => layer.id)
+            .filter(id => groups.some(group => 
+                id === group.id || 
+                id.startsWith(`${group.id}-`) ||
+                id.startsWith(`${group.id} `)
+            ));
+
+        this._updateLayerVisibility(allLayers, false);
         
-        groups.forEach(subGroup => {
-            const matchingLayers = allLayers.filter(layerId => 
-                layerId === subGroup.id || 
-                layerId.startsWith(`${subGroup.id}-`) ||
-                layerId.startsWith(`${subGroup.id} `)
-            );
-            
-            matchingLayers.forEach(layerId => {
+        const selectedLayers = allLayers.filter(id => 
+            id === selectedId || 
+            id.startsWith(`${selectedId}-`) ||
+            id.startsWith(`${selectedId} `)
+        );
+        this._updateLayerVisibility(selectedLayers, true);
+    }
+
+    _updateLayerVisibility(layers, isVisible) {
+        this._map.batch(() => {
+            layers.forEach(layerId => {
                 if (this._map.getLayer(layerId)) {
-                    const isVisible = subGroup.id === selectedId;
                     this._map.setLayoutProperty(
                         layerId,
                         'visibility',
@@ -1486,6 +1513,16 @@ class MapLayerControl {
                 }
             });
         });
+    }
+
+    _cleanup() {
+        this._visibilityCache?.clear();
+        this._domCache = {};
+        if (this._resizeTimeout) {
+            clearTimeout(this._resizeTimeout);
+        }
+        this._animationTimeouts.forEach(clearTimeout);
+        this._animationTimeouts = [];
     }
 }
 
