@@ -1291,7 +1291,7 @@ class MapLayerControl {
     _createHoverPopupContent(feature, group) {
         if (!this._hoverTemplate) {
             this._hoverTemplate = document.createElement('div');
-            this._hoverTemplate.className = 'map-popup p-4 font-sans';
+            this._hoverTemplate.className = 'map-popup p-0 font-sans';
         }
         const content = this._hoverTemplate.cloneNode(true);
         
@@ -1299,9 +1299,22 @@ class MapLayerControl {
             const labelValue = feature.properties[group.inspect.label];
             if (labelValue) {
                 const labelDiv = document.createElement('div');
-                labelDiv.className = 'text-sm font-medium text-white';
+                labelDiv.className = 'text-base font-medium';
                 labelDiv.textContent = labelValue;
                 content.appendChild(labelDiv);
+
+                // Add additional fields if configured
+                if (group.inspect?.fields) {
+                    group.inspect.fields.forEach(field => {
+                        const value = feature.properties[field];
+                        if (value) {
+                            const fieldDiv = document.createElement('div');
+                            fieldDiv.className = 'text-sm';
+                            fieldDiv.textContent = value;
+                            content.appendChild(fieldDiv);
+                        }
+                    });
+                }
             }
         }
         return content;
