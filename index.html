@@ -210,12 +210,11 @@ function getQueryParameters() {
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
-                            opacity: 0.7,
                             attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                color: '#555',
-                                width: .2,
-                                fillOpacity: 0.03
+                                color: 'hsla(0, 0%, 33%, .4)',
+                                width: 1,
+                                fillOpacity: 1
                             },
                             initiallyChecked: true,
                             inspect: {
@@ -263,7 +262,6 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            opacity: 0.9,
                             attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
                             initiallyChecked: true
                         },
@@ -275,7 +273,6 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-soi-map',
                             url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
-                            opacity: 0.9,
                             attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
                         },
                         {
@@ -286,7 +283,6 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-czmp-map',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
-                            opacity: 0.9,
                             attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
                         },
                         {

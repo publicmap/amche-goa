@@ -559,7 +559,7 @@ button.opacity-toggle {
     height: 20px !important;
     border-radius: 50% !important;
     padding: 0 !important;
-    border: 1px solid #ddd !important;
+    border: 2px solid #ddd !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
     display: flex !important;

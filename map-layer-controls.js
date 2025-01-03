@@ -179,7 +179,7 @@ class MapLayerControl {
                     } else if (group.type === 'vector') {
                         const layerId = `vector-layer-${group.id}`;
                         if (this._map.getLayer(layerId)) {
-                            this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * (group.style?.fillOpacity || 0.1));
+                            this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
                             this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
                         }
                     }
@@ -265,8 +265,7 @@ class MapLayerControl {
 
                     const style = group.style || {
                         fill: {
-                            color: '#ff0000',
-                            opacity: 0.5
+                            color: '#ff0000'
                         },
                         line: {
                             color: '#ff0000',
@@ -287,7 +286,7 @@ class MapLayerControl {
                             source: sourceId,
                             paint: {
                                 'fill-color': style.fill?.color || '#ff0000',
-                                'fill-opacity': (style.fill?.opacity || 0.5) * 0.95
+                                'fill-opacity': 0.95
                             },
                             layout: {
                                 'visibility': 'none'
@@ -669,7 +668,7 @@ class MapLayerControl {
                         },
                         paint: {
                             'fill-color': group.style?.color || '#FF0000',
-                            'fill-opacity': (group.style?.fillOpacity || 0.5) * 0.95
+                            'fill-opacity': 0.95
                         }
                     }, this._getInsertPosition('vector'));
 
@@ -713,7 +712,7 @@ class MapLayerControl {
                                     0.2,
                                     ['boolean', ['feature-state', 'hover'], false],
                                     0.8,
-                                    (group.style?.fillOpacity || 0.5) * 0.95
+                                    0.95
                                 ]);
                             } else {
                                 this._map.setPaintProperty(id, 'line-width', [
