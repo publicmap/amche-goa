@@ -1502,16 +1502,24 @@ class MapLayerControl {
     }
 
     _updateLayerVisibility(layers, isVisible) {
-        this._map.batch(() => {
-            layers.forEach(layerId => {
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(
-                        layerId,
-                        'visibility',
-                        isVisible ? 'visible' : 'none'
-                    );
-                }
+        if (typeof this._map.batch === 'function') {
+            this._map.batch(() => {
+                this._updateLayerVisibilityImpl(layers, isVisible);
             });
+        } else {
+            this._updateLayerVisibilityImpl(layers, isVisible);
+        }
+    }
+
+    _updateLayerVisibilityImpl(layers, isVisible) {
+        layers.forEach(layerId => {
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(
+                    layerId,
+                    'visibility',
+                    isVisible ? 'visible' : 'none'
+                );
+            }
         });
     }
 
