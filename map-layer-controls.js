@@ -392,6 +392,7 @@ class MapLayerControl {
 
                 const $fogStartSlider = $('<input>', {
                     type: 'range',
+                    id: `fog-start-${this._instanceId}`,
                     min: '-20',
                     max: '20',
                     step: '0.5',
@@ -401,6 +402,7 @@ class MapLayerControl {
 
                 const $fogEndSlider = $('<input>', {
                     type: 'range',
+                    id: `fog-end-${this._instanceId}`,
                     min: '-20',
                     max: '20',
                     step: '0.5',
@@ -416,6 +418,7 @@ class MapLayerControl {
                 const $horizonContainer = $('<div>', { class: 'mt-4' });
                 const $horizonSlider = $('<input>', {
                     type: 'range',
+                    id: `horizon-blend-${this._instanceId}`,
                     min: '0',
                     max: '1',
                     step: '0.01',
@@ -431,6 +434,7 @@ class MapLayerControl {
                 const $colorContainer = $('<div>', { class: 'mt-4' });
                 const $colorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-color-${this._instanceId}`,
                     value: '#ffffff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -442,6 +446,7 @@ class MapLayerControl {
 
                 const $highColorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-high-color-${this._instanceId}`,
                     value: '#add8e6',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -453,6 +458,7 @@ class MapLayerControl {
 
                 const $spaceColorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-space-color-${this._instanceId}`,
                     value: '#d8f2ff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -1054,12 +1060,12 @@ class MapLayerControl {
                 this._map.setFog(existingFog);
 
                 // Update the UI controls to match existing values
-                const $fogStartSlider = $(sourceControl).find('.fog-range-slider input').first();
-                const $fogEndSlider = $(sourceControl).find('.fog-range-slider input').last();
-                const $horizonSlider = $(sourceControl).find('.mt-4 input[type="range"]').first();
-                const $colorPicker = $(sourceControl).find('input[type="color"]').eq(0);
-                const $highColorPicker = $(sourceControl).find('input[type="color"]').eq(1);
-                const $spaceColorPicker = $(sourceControl).find('input[type="color"]').eq(2);
+                const $fogStartSlider = $(`#fog-start-${this._instanceId}`);
+                const $fogEndSlider = $(`#fog-end-${this._instanceId}`);
+                const $horizonSlider = $(`#horizon-blend-${this._instanceId}`);
+                const $colorPicker = $(`#fog-color-${this._instanceId}`);
+                const $highColorPicker = $(`#fog-high-color-${this._instanceId}`);
+                const $spaceColorPicker = $(`#fog-space-color-${this._instanceId}`);
 
                 if ($fogStartSlider.length && $fogEndSlider.length) {
                     $fogStartSlider.val(existingFog.range[0]);
