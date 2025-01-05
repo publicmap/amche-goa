@@ -64,6 +64,7 @@ class MapLayerControl {
             }
         };
 
+        this._domCache = {};
         this._options = {
             groups: Array.isArray(options) ? options : [options]
         };
@@ -134,9 +135,14 @@ class MapLayerControl {
     }
 
     _handleResize() {
-        if (window.innerWidth < 768 && !this._collapsed) {
-            this._toggleCollapse();
+        if (this._resizeTimeout) {
+            clearTimeout(this._resizeTimeout);
         }
+        this._resizeTimeout = setTimeout(() => {
+            if (window.innerWidth < 768 && !this._collapsed) {
+                this._toggleCollapse();
+            }
+        }, 250);
     }
 
     _initializeControl() {
@@ -145,6 +151,8 @@ class MapLayerControl {
         this._options.groups.forEach((group, groupIndex) => {
             const $groupContainer = $('<div>', { class: 'layer-group' });
             const $groupHeader = $('<div>', { class: 'group-header' });
+            const $sourceControl = $('<div>', { class: 'source-control collapsed' });
+            this._sourceControls[groupIndex] = $sourceControl[0];
 
             if (group.headerImage) {
                 $groupHeader.css({
@@ -157,7 +165,7 @@ class MapLayerControl {
                 $('<div>', { class: 'header-overlay' }).appendTo($groupHeader);
             }
 
-            const $label = $('<label>');
+            const $label = $('<label>', { class: 'header-label' });
             const $checkbox = $('<input>', {
                 type: 'checkbox',
                 checked: false
@@ -172,171 +180,93 @@ class MapLayerControl {
                 });
             }
 
-            $label.append($checkbox, $titleSpan);
+            // Create opacity button if layer type supports it
+            let $opacityButton;
+            if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                $opacityButton = $('<button>', {
+                    class: 'opacity-toggle hidden',
+                    'data-opacity': '0.95',
+                    title: '95% opacity'
+                });
+                
+                // Add click handler for opacity button
+                $opacityButton.on('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
+                    const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
+                    $opacityButton.attr('data-opacity', newOpacity);
+                    $opacityButton.attr('title', `${newOpacity * 100}% opacity`);
+                    
+                    // Update layer opacity based on layer type
+                    if (group.type === 'layer-group') {
+                        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                        group.groups.forEach(subGroup => {
+                            const matchingLayers = allLayers.filter(layerId => 
+                                layerId === subGroup.id || 
+                                layerId.startsWith(`${subGroup.id}-`) ||
+                                layerId.startsWith(`${subGroup.id} `)
+                            );
+                            
+                            matchingLayers.forEach(layerId => {
+                                if (this._map.getLayer(layerId)) {
+                                    const layer = this._map.getLayer(layerId);
+                                    // Apply opacity based on layer type
+                                    if (layer.type === 'fill') {
+                                        this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                                    } else if (layer.type === 'line') {
+                                        this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
+                                    } else if (layer.type === 'symbol') {
+                                        this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
+                                    } else if (layer.type === 'raster') {
+                                        this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                                    }
+                                }
+                            });
+                        });
+                    } else if (group.type === 'geojson') {
+                        const sourceId = `geojson-${group.id}`;
+                        if (this._map.getLayer(`${sourceId}-fill`)) {
+                            this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
+                        }
+                        if (this._map.getLayer(`${sourceId}-line`)) {
+                            this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
+                        }
+                        if (this._map.getLayer(`${sourceId}-label`)) {
+                            this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
+                        }
+                    } else if (group.type === 'tms') {
+                        const layerId = `tms-layer-${group.id}`;
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                        }
+                    } else if (group.type === 'vector') {
+                        const layerId = `vector-layer-${group.id}`;
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                            this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
+                        }
+                    }
+                });
+            } else {
+                // For unsupported types, create an empty span instead
+                $opacityButton = $('<span>');
+            }
+
+            // Update checkbox change handler
+            $checkbox.on('change', () => {
+                const isChecked = $checkbox.prop('checked');
+                if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                    $opacityButton.toggleClass('hidden', !isChecked);
+                }
+                this._toggleSourceControl(groupIndex, isChecked);
+            });
+
+            // Append elements in the correct order
+            $label.append($checkbox, $titleSpan, $opacityButton);
             $groupHeader.append($label);
             $groupContainer.append($groupHeader);
-
-            const $sourceControl = $('<div>', {
-                class: 'source-control collapsed'
-            });
-            this._sourceControls[groupIndex] = $sourceControl[0];
-
-            const $opacityContainer = $('<div>', {
-                class: 'opacity-control mt-2 px-2'
-            });
-
-            const $opacitySlider = $('<input>', {
-                type: 'range',
-                min: '0',
-                max: '1',
-                step: '0.1',
-                value: '1',
-                class: 'w-full'
-            });
-
-            const $opacityValue = $('<span>', {
-                class: 'text-sm text-gray-600 ml-2',
-                text: '100%'
-            });
-
-            $opacityContainer.append(
-                $('<label>', {
-                    class: 'block text-sm text-gray-700 mb-1',
-                    text: 'Layer Opacity'
-                }),
-                $('<div>', { class: 'flex items-center' }).append($opacitySlider, $opacityValue)
-            );
-
-            $opacitySlider.on('input', (e) => {
-                const value = parseFloat(e.target.value);
-                $opacityValue.text(`${Math.round(value * 100)}%`);
-
-                if (group.type === 'geojson') {
-                    const sourceId = `geojson-${group.id}`;
-                    if (this._map.getLayer(`${sourceId}-fill`)) {
-                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', value * 0.5);
-                    }
-                    if (this._map.getLayer(`${sourceId}-line`)) {
-                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', value);
-                    }
-                    if (this._map.getLayer(`${sourceId}-label`)) {
-                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', value);
-                    }
-                } else if (group.type === 'tms') {
-                    const layerId = `tms-layer-${group.id}`;
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'raster-opacity', value);
-                    }
-                } else if (group.layers) {
-                    group.layers.forEach(layer => {
-                        if (this._map.getLayer(layer.id)) {
-                            const layerType = this._map.getLayer(layer.id).type;
-                            switch (layerType) {
-                                case 'raster':
-                                    this._map.setPaintProperty(layer.id, 'raster-opacity', value);
-                                    break;
-                                case 'fill':
-                                    this._map.setPaintProperty(layer.id, 'fill-opacity', value);
-                                    break;
-                                case 'line':
-                                    this._map.setPaintProperty(layer.id, 'line-opacity', value);
-                                    break;
-                                case 'symbol':
-                                    this._map.setPaintProperty(layer.id, 'text-opacity', value);
-                                    this._map.setPaintProperty(layer.id, 'icon-opacity', value);
-                                    break;
-                            }
-                        }
-                    });
-                } else if (group.type === 'vector') {
-                    const layerId = `vector-layer-${group.id}`;
-
-                    if (!this._map.getSource(sourceId)) {
-                        this._map.addSource(sourceId, {
-                            type: 'vector',
-                            tiles: [group.url],
-                            maxzoom: 15,
-                            promoteId: group.inspect?.id || 'id'
-                        });
-
-                        this._map.addLayer({
-                            id: layerId,
-                            type: 'fill',
-                            source: sourceId,
-                            'source-layer': group.sourceLayer || 'default',
-                            layout: {
-                                visibility: 'none'
-                            },
-                            paint: {
-                                'fill-color': group.style?.['fill-color'] || '#000000',
-                                'fill-opacity': [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    0.2,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    0.8,
-                                    group.style?.['fill-opacity'] || 0.1
-                                ]
-                            }
-                        }, this._getInsertPosition('vector'));
-
-                        this._map.addLayer({
-                            id: `${layerId}-outline`,
-                            type: 'line',
-                            source: sourceId,
-                            'source-layer': group.sourceLayer || 'default',
-                            layout: {
-                                visibility: 'none'
-                            },
-                            paint: {
-                                'line-color': [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    '#000000',
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    '#000000',
-                                    group.style?.['line-color'] || '#000000'
-                                ],
-                                'line-width': [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    4,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    3,
-                                    group.style?.['line-width'] || 0.2
-                                ],
-                                'line-opacity': 1
-                            }
-                        }, this._getInsertPosition('vector'));
-                    }
-                } else {
-                    const $radioGroup = $('<div>', { class: 'radio-group' });
-
-                    group.layers.forEach((layer, index) => {
-                        const $radioLabel = $('<label>', { class: 'radio-label' });
-                        const $radio = $('<input>', {
-                            type: 'radio',
-                            name: `layer-group-${this._instanceId}-${groupIndex}`,
-                            value: layer.id,
-                            checked: index === 0
-                        });
-
-                        $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
-
-                        $radioLabel.append(
-                            $radio,
-                            $('<span>', { text: layer.label })
-                        );
-                        $radioGroup.append($radioLabel);
-                    });
-
-                    $sourceControl.append($radioGroup);
-                }
-            });
-
-            if (group.type !== 'terrain') {
-                $sourceControl.append($opacityContainer);
-            }
+            $groupContainer.append($sourceControl);
 
             if (group.description) {
                 $('<div>', {
@@ -345,7 +275,51 @@ class MapLayerControl {
                 }).appendTo($sourceControl);
             }
 
-            if (group.type === 'geojson') {
+            if (group.type === 'layer-group') {
+                const $radioGroup = $('<div>', { class: 'radio-group mt-2' });
+
+                group.groups.forEach((subGroup, index) => {
+                    const $radioLabel = $('<label>', { class: 'radio-label' });
+                    const $radio = $('<input>', {
+                        type: 'radio',
+                        name: `layer-group-${this._instanceId}-${groupIndex}`,
+                        value: subGroup.id,
+                        checked: index === 0
+                    });
+
+                    $radio.on('change', () => this._handleLayerGroupChange(subGroup.id, group.groups));
+
+                    $radioLabel.append(
+                        $radio,
+                        $('<span>', { text: subGroup.title })
+                    );
+                    $radioGroup.append($radioLabel);
+
+                    if (subGroup.attribution || subGroup.location) {
+                        const links = [];
+                        if (subGroup.attribution) {
+                            links.push(`<a href="${subGroup.attribution}" target="_blank" class="hover:underline">Source</a>`);
+                        }
+                        if (subGroup.location) {
+                            links.push(`<a href="#" class="hover:underline view-link" data-location="${subGroup.location}">View</a>`);
+                        }
+
+                        const $infoDiv = $('<div>', {
+                            class: 'layer-info text-xs pl-5 text-gray-600',
+                            html: links.join(' | ')
+                        });
+
+                        $infoDiv.find('.view-link').on('click', (e) => {
+                            e.preventDefault();
+                            this._flyToLocation(subGroup.location);
+                        });
+
+                        $radioLabel.append($infoDiv);
+                    }
+                });
+
+                $sourceControl.append($radioGroup);
+            } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
@@ -375,7 +349,7 @@ class MapLayerControl {
                             source: sourceId,
                             paint: {
                                 'fill-color': style.fill?.['fill-color'] || '#ff0000',
-                                'fill-opacity': style.fill?.['fill-opacity'] || 0.5
+                                'fill-opacity': style.fill?.['fill-opacity'] || 0.95
                             },
                             layout: {
                                 'visibility': 'none'
@@ -481,30 +455,33 @@ class MapLayerControl {
 
                 const $fogStartSlider = $('<input>', {
                     type: 'range',
+                    id: `fog-start-${this._instanceId}`,
                     min: '-20',
                     max: '20',
                     step: '0.5',
-                    value: '-1',
+                    value: '0',
                     class: 'w-full'
                 });
 
                 const $fogEndSlider = $('<input>', {
                     type: 'range',
+                    id: `fog-end-${this._instanceId}`,
                     min: '-20',
                     max: '20',
                     step: '0.5',
-                    value: '2',
+                    value: '10',
                     class: 'w-full'
                 });
 
                 const $fogValue = $('<span>', {
                     class: 'text-sm text-gray-600 ml-2',
-                    text: '[-1, 2]'
+                    text: '[0, 10]'
                 });
 
                 const $horizonContainer = $('<div>', { class: 'mt-4' });
                 const $horizonSlider = $('<input>', {
                     type: 'range',
+                    id: `horizon-blend-${this._instanceId}`,
                     min: '0',
                     max: '1',
                     step: '0.01',
@@ -520,6 +497,7 @@ class MapLayerControl {
                 const $colorContainer = $('<div>', { class: 'mt-4' });
                 const $colorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-color-${this._instanceId}`,
                     value: '#ffffff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -531,6 +509,7 @@ class MapLayerControl {
 
                 const $highColorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-high-color-${this._instanceId}`,
                     value: '#add8e6',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -542,6 +521,7 @@ class MapLayerControl {
 
                 const $spaceColorPicker = $('<input>', {
                     type: 'color',
+                    id: `fog-space-color-${this._instanceId}`,
                     value: '#d8f2ff',
                     class: 'w-8 h-8 rounded cursor-pointer'
                 });
@@ -757,7 +737,7 @@ class MapLayerControl {
                         },
                         paint: {
                             'fill-color': group.style?.color || '#FF0000',
-                            'fill-opacity': group.style?.fillOpacity || 0.1
+                            'fill-opacity': 0.95
                         }
                     }, this._getInsertPosition('vector'));
 
@@ -801,7 +781,7 @@ class MapLayerControl {
                                     0.2,
                                     ['boolean', ['feature-state', 'hover'], false],
                                     0.8,
-                                    group.style?.fillOpacity || 0.1
+                                    0.95
                                 ]);
                             } else {
                                 this._map.setPaintProperty(id, 'line-width', [
@@ -1127,128 +1107,210 @@ class MapLayerControl {
         if (isChecked) {
             sourceControl.classList.remove('collapsed');
 
-            if (group.type === 'vector') {
-                const layerId = `vector-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'visible');
-                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
+            if (group.type === 'terrain') {
+                // Enable terrain with default settings
+                this._map.setTerrain({ 
+                    'source': 'mapbox-dem',
+                    'exaggeration': 1.5 
+                });
+                
+                // Get existing fog settings or use defaults
+                const existingFog = this._map.getFog() || {
+                    'range': [-1, 2],
+                    'horizon-blend': 0.3,
+                    'color': '#ffffff',
+                    'high-color': '#add8e6',
+                    'space-color': '#d8f2ff',
+                    'star-intensity': 0.0
+                };
+
+                // Set fog using existing or default values
+                this._map.setFog(existingFog);
+
+                // Update the UI controls to match existing values
+                const $fogStartSlider = $(`#fog-start-${this._instanceId}`);
+                const $fogEndSlider = $(`#fog-end-${this._instanceId}`);
+                const $horizonSlider = $(`#horizon-blend-${this._instanceId}`);
+                const $colorPicker = $(`#fog-color-${this._instanceId}`);
+                const $highColorPicker = $(`#fog-high-color-${this._instanceId}`);
+                const $spaceColorPicker = $(`#fog-space-color-${this._instanceId}`);
+
+                if ($fogStartSlider.length && $fogEndSlider.length) {
+                    $fogStartSlider.val(existingFog.range[0]);
+                    $fogEndSlider.val(existingFog.range[1]);
+                    $(sourceControl).find('.fog-range-slider').next().find('span')
+                        .text(`[${existingFog.range[0]}, ${existingFog.range[1]}]`);
+                }
+
+                if ($horizonSlider.length) {
+                    // Handle interpolated horizon-blend values
+                    const horizonBlend = Array.isArray(existingFog['horizon-blend']) 
+                        ? existingFog['horizon-blend'][4] // Use the first value from interpolation
+                        : existingFog['horizon-blend'];
+                    
+                    $horizonSlider.val(horizonBlend);
+                    $horizonSlider.next('span').text(horizonBlend.toFixed(2));
+                }
+
+                if ($colorPicker.length) $colorPicker.val(existingFog.color);
+                if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
+                if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
+            } else if (group.type === 'layer-group') {
+                const firstRadio = sourceControl.querySelector('input[type="radio"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
+                    this._handleLayerGroupChange(firstRadio.value, group.groups);
                 }
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
-                if (this._map.getLayer(`${sourceId}-fill`)) {
-                    this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'visible');
-                }
-                this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'visible');
-                this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'visible');
-            } else if (group.type === 'terrain') {
-                this._map.setTerrain({
-                    'source': 'mapbox-dem',
-                    'exaggeration': 1.5
+                ['fill', 'line', 'label'].forEach(type => {
+                    const layerId = `${sourceId}-${type}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setLayoutProperty(
+                            layerId,
+                            'visibility',
+                            'visible'
+                        );
+                    }
                 });
             } else if (group.type === 'tms') {
                 const layerId = `tms-layer-${group.id}`;
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', 'visible');
                 }
-            } else if (group.layers && group.layers.length > 0) {
-                const firstLayer = group.layers[0];
-                if (this._map.getLayer(firstLayer.id)) {
-                    this._map.setLayoutProperty(
-                        firstLayer.id,
-                        'visibility',
-                        'visible'
-                    );
-
-                    const firstRadio = sourceControl.querySelector(`input[value="${firstLayer.id}"]`);
-                    if (firstRadio) {
-                        firstRadio.checked = true;
-                        this._handleLayerChange(firstLayer.id, group.layers);
-                    }
+            } else if (group.type === 'vector') {
+                const layerId = `vector-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
                 }
             } else if (group.type === 'markers') {
                 const sourceId = `markers-${group.id}`;
                 if (this._map.getLayer(`${sourceId}-circles`)) {
                     this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
                 }
+            } else if (group.layers) {
+                const firstRadio = sourceControl.querySelector('input[type="radio"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
+                    this._handleLayerChange(firstRadio.value, group.layers);
+                }
             }
         } else {
             sourceControl.classList.add('collapsed');
 
-            if (group.type === 'vector') {
-                const layerId = `vector-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
-                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'none');
-                }
-            } else if (group.type === 'geojson') {
-                const sourceId = `geojson-${group.id}`;
-                if (this._map.getLayer(`${sourceId}-fill`)) {
-                    this._map.setLayoutProperty(`${sourceId}-fill`, 'visibility', 'none');
-                }
-                this._map.setLayoutProperty(`${sourceId}-line`, 'visibility', 'none');
-                this._map.setLayoutProperty(`${sourceId}-label`, 'visibility', 'none');
-            } else if (group.type === 'terrain') {
+            if (group.type === 'terrain') {
+                // Disable terrain
                 this._map.setTerrain(null);
-            } else if (group.type === 'tms') {
-                const layerId = `tms-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
-                }
-            } else if (group.layers) {
-                group.layers.forEach(layer => {
-                    if (this._map.getLayer(layer.id)) {
+                
+                // Reset fog
+                this._map.setFog(null);
+                
+                // Hide contour layers if they exist
+                const contourLayers = ['contour lines', 'contour labels'];
+                contourLayers.forEach(layerId => {
+                    if (this._map.getLayer(layerId)) {
                         this._map.setLayoutProperty(
-                            layer.id,
+                            layerId,
                             'visibility',
                             'none'
                         );
                     }
                 });
+            } else if (group.type === 'layer-group') {
+                const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                group.groups.forEach(subGroup => {
+                    const matchingLayers = allLayers.filter(layerId => 
+                        layerId === subGroup.id || 
+                        layerId.startsWith(`${subGroup.id}-`) ||
+                        layerId.startsWith(`${subGroup.id} `)
+                    );
+                    
+                    matchingLayers.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                        }
+                    });
+                });
+            } else if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                ['fill', 'line', 'label'].forEach(type => {
+                    const layerId = `${sourceId}-${type}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                    }
+                });
+            } else if (group.type === 'tms') {
+                const layerId = `tms-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                }
+            } else if (group.type === 'vector') {
+                const layerId = `vector-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'none');
+                }
             } else if (group.type === 'markers') {
                 const sourceId = `markers-${group.id}`;
                 if (this._map.getLayer(`${sourceId}-circles`)) {
                     this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'none');
                 }
+            } else if (group.layers) {
+                group.layers.forEach(layer => {
+                    if (this._map.getLayer(layer.id)) {
+                        this._map.setLayoutProperty(layer.id, 'visibility', 'none');
+                    }
+                });
             }
         }
     }
 
     _handleLayerChange(selectedLayerId, layers) {
+        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+        
         layers.forEach(layer => {
-            if (this._map.getLayer(layer.id)) {
-                const isVisible = layer.id === selectedLayerId;
-                this._map.setLayoutProperty(
-                    layer.id,
-                    'visibility',
-                    isVisible ? 'visible' : 'none'
-                );
+            // Find all layers that start with this ID
+            const matchingLayers = allLayers.filter(layerId => 
+                layerId === layer.id || layerId.startsWith(`${layer.id} `)
+            );
+            
+            matchingLayers.forEach(layerId => {
+                if (this._map.getLayer(layerId)) {
+                    const isVisible = layer.id === selectedLayerId;
+                    this._map.setLayoutProperty(
+                        layerId,
+                        'visibility',
+                        isVisible ? 'visible' : 'none'
+                    );
+                }
+            });
 
-                const $radioInput = $(`input[value="${layer.id}"]`, this._container);
-                if ($radioInput.length) {
-                    const $label = $radioInput.closest('.radio-label');
-                    $('.layer-info', $label.parent()).remove();
+            const $radioInput = $(`input[value="${layer.id}"]`, this._container);
+            if ($radioInput.length) {
+                const $label = $radioInput.closest('.radio-label');
+                $('.layer-info', $label.parent()).remove();
 
-                    if (isVisible) {
-                        const links = [];
-                        if (layer.sourceUrl) {
-                            links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
-                        }
-                        if (layer.location) {
-                            links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
-                        }
-
-                        const $infoDiv = $('<div>', {
-                            class: 'layer-info text-xs pl-5 text-gray-600',
-                            html: links.join(' | ')
-                        });
-
-                        $infoDiv.find('.view-link').on('click', (e) => {
-                            e.preventDefault();
-                            this._flyToLocation(layer.location);
-                        });
-
-                        $infoDiv.insertAfter($label);
+                if (isVisible) {
+                    const links = [];
+                    if (layer.sourceUrl) {
+                        links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
                     }
+                    if (layer.location) {
+                        links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
+                    }
+
+                    const $infoDiv = $('<div>', {
+                        class: 'layer-info text-xs pl-5 text-gray-600',
+                        html: links.join(' | ')
+                    });
+
+                    $infoDiv.find('.view-link').on('click', (e) => {
+                        e.preventDefault();
+                        this._flyToLocation(layer.location);
+                    });
+
+                    $infoDiv.insertAfter($label);
                 }
             }
         });
@@ -1287,30 +1349,54 @@ class MapLayerControl {
     }
 
     onRemove() {
-        this._animationTimeouts.forEach(timeout => clearTimeout(timeout));
-        this._animationTimeouts = [];
-
+        this._cleanup();
         this._container.parentNode.removeChild(this._container);
         this._map = undefined;
         window.removeEventListener('resize', () => this._handleResize());
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
-        const content = document.createElement('div');
-        content.className = 'map-popup p-4 font-sans';
-
         if (isHover) {
-            if (group.inspect?.label) {
-                const labelValue = feature.properties[group.inspect.label];
-                if (labelValue) {
-                    const labelDiv = document.createElement('div');
-                    labelDiv.className = 'text-sm font-medium text-white';
-                    labelDiv.textContent = labelValue;
-                    content.appendChild(labelDiv);
+            return this._createHoverPopupContent(feature, group);
+        }
+        return this._createDetailedPopupContent(feature, group, lngLat);
+    }
+
+    _createHoverPopupContent(feature, group) {
+        if (!this._hoverTemplate) {
+            this._hoverTemplate = document.createElement('div');
+            this._hoverTemplate.className = 'map-popup p-0 font-sans';
+        }
+        const content = this._hoverTemplate.cloneNode(true);
+        
+        if (group.inspect?.label) {
+            const labelValue = feature.properties[group.inspect.label];
+            if (labelValue) {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'text-base font-medium';
+                labelDiv.textContent = labelValue;
+                content.appendChild(labelDiv);
+
+                // Add additional fields if configured
+                if (group.inspect?.fields) {
+                    group.inspect.fields.forEach(field => {
+                        const value = feature.properties[field];
+                        if (value) {
+                            const fieldDiv = document.createElement('div');
+                            fieldDiv.className = 'text-sm';
+                            fieldDiv.textContent = value;
+                            content.appendChild(fieldDiv);
+                        }
+                    });
                 }
             }
-            return content;
         }
+        return content;
+    }
+
+    _createDetailedPopupContent(feature, group, lngLat = null) {
+        const content = document.createElement('div');
+        content.className = 'map-popup p-4 font-sans';
 
         if (group.inspect?.title) {
             const title = document.createElement('h3');
@@ -1459,26 +1545,78 @@ class MapLayerControl {
                 this._map.getLayoutProperty(id, 'visibility') === 'visible';
 
             switch (group.type) {
+                case 'layer-group':
+                    return group.groups
+                        .map(subGroup => subGroup.id)
+                        .filter(isLayerVisible);
                 case 'vector':
                     const vectorId = `vector-layer-${group.id}`;
                     return isLayerVisible(vectorId) ? [vectorId] : [];
-
                 case 'geojson':
                     const baseId = `geojson-${group.id}`;
                     return ['fill', 'line', 'label']
                         .map(type => `${baseId}-${type}`)
                         .filter(isLayerVisible);
-
                 case 'tms':
                     const tmsId = `tms-layer-${group.id}`;
                     return isLayerVisible(tmsId) ? [tmsId] : [];
-
                 default:
                     return (group.layers || [])
                         .map(layer => layer.id)
                         .filter(isLayerVisible);
             }
         });
+    }
+
+    _handleLayerGroupChange(selectedId, groups) {
+        const allLayers = this._map.getStyle().layers
+            .map(layer => layer.id)
+            .filter(id => groups.some(group => 
+                id === group.id || 
+                id.startsWith(`${group.id}-`) ||
+                id.startsWith(`${group.id} `)
+            ));
+
+        this._updateLayerVisibility(allLayers, false);
+        
+        const selectedLayers = allLayers.filter(id => 
+            id === selectedId || 
+            id.startsWith(`${selectedId}-`) ||
+            id.startsWith(`${selectedId} `)
+        );
+        this._updateLayerVisibility(selectedLayers, true);
+    }
+
+    _updateLayerVisibility(layers, isVisible) {
+        if (typeof this._map.batch === 'function') {
+            this._map.batch(() => {
+                this._updateLayerVisibilityImpl(layers, isVisible);
+            });
+        } else {
+            this._updateLayerVisibilityImpl(layers, isVisible);
+        }
+    }
+
+    _updateLayerVisibilityImpl(layers, isVisible) {
+        layers.forEach(layerId => {
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(
+                    layerId,
+                    'visibility',
+                    isVisible ? 'visible' : 'none'
+                );
+            }
+        });
+    }
+
+    _cleanup() {
+        this._visibilityCache?.clear();
+        this._domCache = {};
+        if (this._resizeTimeout) {
+            clearTimeout(this._resizeTimeout);
+        }
+        this._animationTimeouts.forEach(clearTimeout);
+        this._animationTimeouts = [];
     }
 }
 

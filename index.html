@@ -4,14 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>amche.in</title>
+	<link rel="canonical" href="https://amche.in" />
+	<title>amche.in - Interactive Map of Goa</title>
+
+	<!-- SEO and Social Media Meta Tags -->
+	<meta
+		name="description"
+		content="Explore Goa's interactive map featuring detailed cadastral boundaries, land use zones, construction sites, hill slopes, coastal zones (CZMP), and community-contributed locations. 3D terrain views, and regional development plans for comprehensive Goa mapping."
+	/>
+	<meta
+		name="keywords"
+		content="Goa maps, land use zones, cadastral maps, Goa construction sites, Goa coastal zones, CZMP, Survey of India, Goa terrain, Goa RDP, Goa hill slopes, interactive mapping, Goa community mapping, Goa land records"
+	/>
+
+	<!-- Open Graph Meta Tags for Social Media -->
+	<meta property="og:title" content="amche.in - Interactive Map of Goa" />
+	<meta
+		property="og:description"
+		content="Explore and contribute to the various layers of Goa's community maintained GIS map platform. Layers include cadastral boundaries, land use zones, construction sites, hill slopes, coastal regulation zones (CZMP), regional development plans along with user contributed map annotations."
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://amche.in" />
+	<meta property="og:image" content="https://amche.in/assets/og_image.jpg" />
+	<meta property="og:site_name" content="amche.in" />
+	<meta property="og:locale" content="en_IN" />
+
+	<!-- Twitter Card Meta Tags -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="amche.in - Interactive Map of Goa" />
+	<meta
+		name="twitter:description"
+		content="Explore and contribute to the various layers of Goa's community maintained GIS map platform. Layers include cadastral boundaries, land use zones, construction sites, hill slopes, coastal regulation zones (CZMP), regional development plans along with user contributed map annotations."
+	/>
+	<meta name="twitter:image" content="https://amche.in/assets/og_image.jpg" />
 
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Mapbox GL JS -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.9.0-beta.1/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.9.0-beta.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.js'></script>
 
     <!-- Add Mapbox Geocoder CSS and JS -->
     <script
@@ -94,8 +125,6 @@ function getQueryParameters() {
             style: 'mapbox://styles/planemad/cm3gyibd3004x01qz08rohcsg',
             center: [73.9414, 15.4121],
             zoom: 9.99,
-            pitch: 69.6,
-            bearing: 56,
             hash: true,
             attributionControl: false
         });
@@ -205,18 +234,16 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Survey Boundaries',
+                            title: 'Survey Plot Boundaries',
                             description: 'Cadastral Boundaries',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
-                            opacity: 0.7,
                             attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': 'green',
-                                'fill-opacity': 1,
                                 'line-color': 'yellow',
                                 'line-width': 2
                             },
@@ -254,34 +281,41 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Hill Slopes',
-                            description: 'Select Slope Source:',
+                            id: 'slope-zones',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
                             headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.jpg',
-                            layers: [
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
                                 {
-                                    id: 'isro slope',
-                                    label: 'ISRO CartoDEM 2.5m (Bardez)',
-                                    sourceUrl: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Partial)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
                                     location: 'Guirim'
                                 },
                                 {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
                                     id: 'aster slope',
-                                    label: 'NASA Aster 30m (Goa Coast)',
-                                    sourceUrl: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    title: 'NASA Aster 30m (Goa Coast)',
+                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
                                     location: 'Panaji'
                                 }
                             ]
                         },
                         {
-                            title: 'Landuse Zones',
+                            title: 'Landuse Zoning Plans',
                             description: 'Regional Development Plans 2021',
                             headerImage: 'assets/map-layer-rdp.png',
                             legendImage: 'assets/map-layer-rdp-legend.jpg',
                             type: 'tms',
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            opacity: 0.9,
                             attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
                             initiallyChecked: true
                         },
@@ -293,7 +327,6 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-soi-map',
                             url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
-                            opacity: 0.9,
                             attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
                         },
                         {
@@ -304,7 +337,6 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-czmp-map',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
-                            opacity: 0.9,
                             attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
                         },
                         {
@@ -402,23 +434,27 @@ function getQueryParameters() {
         });
     </script>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBVGZ4HJV0"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-FBVGZ4HJV0');
-    </script>
-    <!--  Hotjar Tracking Code for amche.in -->
-    <script>
-        (function (h, o, t, j, a, r) {
-            h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments) };
-            h._hjSettings = { hjid: 5234909, hjsv: 6 };
-            a = o.getElementsByTagName('head')[0];
-            r = o.createElement('script'); r.async = 1;
-            r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-            a.appendChild(r);
-        })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+        if (window.location.hostname === 'amche.in') {
+            // Load Google Analytics
+            const gtagScript = document.createElement('script');
+            gtagScript.async = true;
+            gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FBVGZ4HJV0';
+            document.head.appendChild(gtagScript);
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-FBVGZ4HJV0');
+            // Load Hotjar
+            (function (h, o, t, j, a, r) {
+                h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments) };
+                h._hjSettings = { hjid: 5234909, hjsv: 6 };
+                a = o.getElementsByTagName('head')[0];
+                r = o.createElement('script'); r.async = 1;
+                r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
+                a.appendChild(r);
+            })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+        }
     </script>
     <script>
         function navigateToSound(event) {
