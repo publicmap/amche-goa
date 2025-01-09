@@ -736,7 +736,7 @@ class MapLayerControl {
                             visibility: 'none'
                         },
                         paint: {
-                            'fill-color': group.style?.color || '#FF0000',
+                            'fill-color': group.style?.['fill-color'] || '#FF0000',
                             'fill-opacity': 0.95
                         }
                     }, this._getInsertPosition('vector'));
@@ -750,8 +750,8 @@ class MapLayerControl {
                             visibility: 'none'
                         },
                         paint: {
-                            'line-color': group.style?.color || '#FF0000',
-                            'line-width': group.style?.width || 1,
+                            'line-color': group.style?.['line-color'] || '#FF0000',
+                            'line-width': group.style?.['line-width'] || 1,
                             'line-opacity': 1
                         }
                     }, this._getInsertPosition('vector'));
@@ -790,14 +790,14 @@ class MapLayerControl {
                                     4,
                                     ['boolean', ['feature-state', 'hover'], false],
                                     3,
-                                    group.style?.width || 1
+                                    group.style?.['line-width'] || 1
                                 ]);
 
                                 this._map.setPaintProperty(id, 'line-color', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
                                     '#000000',
-                                    group.style?.color || '#FF0000'
+                                    group.style?.['line-color'] || '#FF0000'
                                 ]);
                             }
 
@@ -951,7 +951,7 @@ class MapLayerControl {
                                 paint: {
                                     ...this._defaultStyles.markers.circle,
                                     'circle-radius': group.style?.radius || this._defaultStyles.markers.circle['circle-radius'],
-                                    'circle-color': group.style?.color || this._defaultStyles.markers.circle['circle-color']
+                                    'circle-color': group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color']
                                 },
                                 layout: {
                                     'visibility': 'none'
