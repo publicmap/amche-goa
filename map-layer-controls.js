@@ -736,7 +736,9 @@ class MapLayerControl {
                     this._map.addSource(sourceId, {
                         type: 'vector',
                         tiles: [group.url],
-                        promoteId: group.inspect?.id || 'id'
+                        promoteId: group.inspect?.id || 'id',
+                        minzoom: group.minzoom || 8,
+                        maxzoom: group.maxzoom || 14
                     });
 
                     // Update the fill layer paint properties
@@ -769,36 +771,6 @@ class MapLayerControl {
                         'source-layer': group.sourceLayer || 'default',
                         layout: {
                             visibility: 'none'
-                        },
-                        paint: {
-                            'line-color': [
-                                'case',
-                                ['boolean', ['feature-state', 'selected'], false],
-                                '#000000',
-                                group.style?.['line-color'] || '#FF0000'
-                            ],
-                            'line-width': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                10, [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    2,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    1.5,
-                                    0.5
-                                ],
-                                16, [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    4,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    3,
-                                    1
-                                ]
-                            ],
-                            'line-opacity': 1
                         }
                     }, this._getInsertPosition('vector'));
 

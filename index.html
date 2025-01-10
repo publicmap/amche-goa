@@ -269,6 +269,7 @@ function getQueryParameters() {
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
+                            maxzoom: 16,
                             attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
@@ -319,7 +320,8 @@ function getQueryParameters() {
                             id: 'india-forest',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'FSI_Beats',
-                            attribution: 'Source: <a href="https://bharatmaps.gov.in/">Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            maxzoom: 11,
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'line-color': 'green',
                                 'line-width': 1,
@@ -327,7 +329,7 @@ function getQueryParameters() {
                                 'fill-color': 'green'
                             },
                             inspect: {
-                                id: 'objectid',
+                                id: 'OBJECTID_12',
                                 title: 'Forest Range',
                                 label: 'Beat_Name',
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
