@@ -16,12 +16,25 @@ class MapLayerControl {
                 line: {
                     'line-color': 'green',
                     'line-width': [
-                        'case',
-                        ['boolean', ['feature-state', 'selected'], false],
-                        4,
-                        ['boolean', ['feature-state', 'hover'], false],
-                        3,
-                        0.2
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        10, [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            2,
+                            ['boolean', ['feature-state', 'hover'], false],
+                            1.5,
+                            0.5
+                        ],
+                        16, [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            4,
+                            ['boolean', ['feature-state', 'hover'], false],
+                            3,
+                            1
+                        ]
                     ],
                     'line-opacity': 1
                 }
@@ -723,10 +736,10 @@ class MapLayerControl {
                     this._map.addSource(sourceId, {
                         type: 'vector',
                         tiles: [group.url],
-                        maxzoom: 15,
                         promoteId: group.inspect?.id || 'id'
                     });
 
+                    // Update the fill layer paint properties
                     this._map.addLayer({
                         id: layerId,
                         type: 'fill',
@@ -737,10 +750,18 @@ class MapLayerControl {
                         },
                         paint: {
                             'fill-color': group.style?.['fill-color'] || '#FF0000',
-                            'fill-opacity': 0.95
+                            'fill-opacity': [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                0.2,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.8,
+                                0.03
+                            ]
                         }
                     }, this._getInsertPosition('vector'));
 
+                    // Update the outline layer paint properties
                     this._map.addLayer({
                         id: `${layerId}-outline`,
                         type: 'line',
@@ -750,8 +771,33 @@ class MapLayerControl {
                             visibility: 'none'
                         },
                         paint: {
-                            'line-color': group.style?.['line-color'] || '#FF0000',
-                            'line-width': group.style?.['line-width'] || 1,
+                            'line-color': [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                '#000000',
+                                group.style?.['line-color'] || '#FF0000'
+                            ],
+                            'line-width': [
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                10, [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    2,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    1.5,
+                                    0.5
+                                ],
+                                16, [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    4,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    3,
+                                    1
+                                ]
+                            ],
                             'line-opacity': 1
                         }
                     }, this._getInsertPosition('vector'));
@@ -784,14 +830,8 @@ class MapLayerControl {
                                     0.95
                                 ]);
                             } else {
-                                this._map.setPaintProperty(id, 'line-width', [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    4,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    3,
-                                    group.style?.['line-width'] || 1
-                                ]);
+                                this._map.setPaintProperty(id, 'line-width', 
+                                    group.style?.['line-width'] || 1);
 
                                 this._map.setPaintProperty(id, 'line-color', [
                                     'case',
