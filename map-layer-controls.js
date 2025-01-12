@@ -808,7 +808,7 @@ class MapLayerControl {
                                 this._map.setPaintProperty(id, 'line-color', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
-                                    '#000000',
+                                    group.style?.['line-color'] || '#000000',
                                     group.style?.['line-color'] || '#FF0000'
                                 ]);
                             }

@@ -234,6 +234,20 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            id: 'goa-local-body',
+                            title: 'Local Body Boundaries',
+                            description: 'Municipal and Panchayat limits',
+                            type: 'layer-group',
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            groups: [
+                                {
+                                    id: 'goa-local-body',
+                                    title: 'Boundaries',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                }
+                            ]
+                        },
+                        {
                             id: 'slope-zones',
                             title: 'Slope Zoning',
                             description: 'Slope zone classification using terrain data',
@@ -313,7 +327,7 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Forests',
+                            title: 'Reserve Forests',
                             description: 'Forest beat boundaries',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
@@ -323,16 +337,36 @@ function getQueryParameters() {
                             maxzoom: 11,
                             attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                'line-color': 'green',
-                                'line-width': 1,
-                                'fill-opacity': 0.7,
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        .5
+                                    ]
+                                ],
                                 'fill-color': 'green'
                             },
                             inspect: {
                                 id: 'OBJECTID_12',
                                 title: 'Forest Range',
                                 label: 'Beat_Name',
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                                fields: ['Range'],
+                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
                             }
                         },
                         {
