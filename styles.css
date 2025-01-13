@@ -289,10 +289,7 @@ main {
 .mapboxgl-ctrl.layer-control {
     width: 400px;
     background: #ffffff11;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-    margin: 0;
-    padding: 6px 6px 6px 55px;
+    padding: 0 0 0 55px;
     transition: transform 0.2s ease;
     overflow-y: auto;
     max-height: calc(100vh - 180px);
@@ -340,7 +337,7 @@ button.layer-control-toggle {
 }
 
 .mapboxgl-ctrl.layer-control.collapsed {
-    transform: translateX(-403px);
+    transform: translateX(-420px);
 }
 
 @media (min-width: 768px) {
