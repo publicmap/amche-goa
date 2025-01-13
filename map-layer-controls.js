@@ -282,10 +282,11 @@ class MapLayerControl {
             $groupContainer.append($sourceControl);
 
             if (group.description) {
-                $('<div>', {
-                    class: 'title',
-                    text: group.description
-                }).appendTo($sourceControl);
+                const $description = $('<div>', {
+                    class: 'text-sm text-gray-600 mb-2 px-2',
+                    html: group.description  // Changed from text: to html:
+                });
+                $sourceControl.append($description);
             }
 
             if (group.type === 'layer-group') {
