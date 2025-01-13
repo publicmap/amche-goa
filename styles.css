@@ -217,8 +217,13 @@ main {
 
 /* Add new styles for layer group cards */
 .layer-group {
-    background: #fff;
+    background: #d6d6d6;
     overflow: hidden;
+    opacity: 0.8;
+}
+.layer-group:hover {
+    background: #e8e8e8;
+    opacity: 1;
 }
 
 .layer-group:last-child {
