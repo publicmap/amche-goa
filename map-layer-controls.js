@@ -1464,7 +1464,16 @@ class MapLayerControl {
             
             exportButton.onclick = () => {
                 // Generate KML content
-                const title = feature.properties[group.inspect?.label] || 'Exported Feature';
+                const fieldValues = group.inspect?.fields
+                    ? group.inspect.fields
+                        .map(field => feature.properties[field])
+                        .filter(value => value) // Remove empty/null values
+                        .join('_')
+                    : '';
+                const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
+                const title = fieldValues 
+                    ? `${fieldValues}_${groupTitle}` 
+                    : feature.properties[group.inspect?.label] || 'Exported_Feature';
                 const description = group.inspect?.title || 'Exported from Amche Goa';
                 const kmlContent = convertToKML(feature, {title, description});
                 
