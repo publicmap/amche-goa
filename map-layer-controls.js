@@ -1450,24 +1450,26 @@ class MapLayerControl {
 
         // Add KML export button before the navigation links
         if (this._map.getZoom() >= 14) { // Only show export option at zoom 14 or higher
-            const exportContainer = document.createElement('div');
-            exportContainer.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3';
+            const $exportContainer = $('<div>', {
+                class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
+            });
             
-            const exportButton = document.createElement('button');
-            exportButton.className = 'flex items-center gap-1 hover:text-gray-900 cursor-pointer';
-            exportButton.innerHTML = `
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Export KML</span>
-            `;
+            const $exportButton = $('<button>', {
+                class: 'flex items-center gap-1 hover:text-gray-900 cursor-pointer',
+                html: `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Export KML</span>
+                `
+            });
             
-            exportButton.onclick = () => {
+            $exportButton.on('click', () => {
                 // Generate KML content
                 const fieldValues = group.inspect?.fields
                     ? group.inspect.fields
                         .map(field => feature.properties[field])
-                        .filter(value => value) // Remove empty/null values
+                        .filter(value => value)
                         .join('_')
                     : '';
                 const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
@@ -1477,22 +1479,23 @@ class MapLayerControl {
                 const description = group.inspect?.title || 'Exported from Amche Goa';
                 const kmlContent = convertToKML(feature, {title, description});
                 
-                // Create download link
+                // Create and trigger download
                 const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${title}.kml`;
                 
-                // Trigger download
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                $('<a>', {
+                    href: url,
+                    download: `${title}.kml`
+                })
+                .appendTo('body')
+                .trigger('click')
+                .remove();
+                
                 URL.revokeObjectURL(url);
-            };
+            });
             
-            exportContainer.appendChild(exportButton);
-            content.appendChild(exportContainer);
+            $exportContainer.append($exportButton);
+            $(content).append($exportContainer);
         }
 
         return content;
