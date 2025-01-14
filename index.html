@@ -216,22 +216,64 @@ function getQueryParameters() {
                     let layersConfig = [
                         {
                             title: 'Community Pins',
-                            description: 'Community Added Locations',
+                            description: 'Pin your notes on the map for the rest of the community to see',
                             headerImage: 'assets/map-layer-pins.png',
                             type: 'markers',
                             id: 'community-pins',
                             dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
-                            attribution: 'Locations added by the community',
+                            attribution: 'Source: Collected by amche.in | <a href="https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/edit?resourcekey=&gid=485622101#gid=485622101">View Source Spreadsheet</a>',
                             style: {
-                                color: '#FF4136',
-                                radius: 8
+                                'circle-color': '#FF4136',
+                                'circle-radius': 8
                             },
                             inspect: {
                                 title: 'Pin Details',
                                 label: 'name',
-                                fields: ['Location Name', 'Latitude', 'Longitude', 'Additional Notes (optional)', 'Timestamp_ago'],
-                                fieldTitles: ['Name', 'Lat', 'Lon', 'Notes', 'Added'],
+                                fields: ['Location Name', 'Additional Notes (optional)', 'Timestamp_ago'],
+                                fieldTitles: ['Name', 'Notes', 'Added'],
                             }
+                        },
+                        {
+                            id: 'goa-local-body',
+                            title: 'Local Body Boundaries',
+                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                            headerImage: 'assets/map-layer-local-boundaries.png',
+                            type: 'layer-group',
+                            groups: [
+                                {
+                                    id: 'goa-local-body',
+                                    title: 'Bhuvan Panchayat',
+                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
+                                }
+                            ]
+                        },
+                        {
+                            id: 'slope-zones',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Partial)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                },
+                                {
+                                    id: 'aster slope',
+                                    title: 'NASA Aster 30m (Goa Coast)',
+                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    location: 'Panaji'
+                                }
+                            ]
                         },
                         {
                             title: 'Survey Plot Boundaries',
@@ -241,11 +283,38 @@ function getQueryParameters() {
                             id: 'goa-cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
+                            maxzoom: 16,
                             attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                color: 'hsla(0, 0%, 33%, .8)',
-                                width: 1,
-                                fillOpacity: 0.2
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    13, 'rgba(0, 0, 0, 0)',
+                                    16, 'rgba(0, 0, 0, 0.5)'
+                                ],
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        2,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1.5,
+                                        0
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        .5
+                                    ]
+                                ]
                             },
                             initiallyChecked: true,
                             inspect: {
@@ -258,32 +327,47 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'slope-zones',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Partial)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                },
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'aster slope',
-                                    title: 'NASA Aster 30m (Goa Coast)',
-                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                }
-                            ]
+                            title: 'Reserve Forests',
+                            description: 'Forest beat boundaries',
+                            headerImage: 'assets/map-layer-forest.png',
+                            type: 'vector',
+                            id: 'india-forest',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'FSI_Beats',
+                            maxzoom: 11,
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        .5
+                                    ]
+                                ],
+                                'fill-color': 'green'
+                            },
+                            inspect: {
+                                id: 'OBJECTID_12',
+                                title: 'Forest Range',
+                                label: 'Beat_Name',
+                                fields: ['Range'],
+                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
+                            }
                         },
                         {
                             title: 'Landuse Zoning Plans',

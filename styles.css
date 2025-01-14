@@ -217,11 +217,13 @@ main {
 
 /* Add new styles for layer group cards */
 .layer-group {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 8px;
+    background: #d6d6d6;
     overflow: hidden;
+    opacity: 0.8;
+}
+.layer-group:hover {
+    background: #e8e8e8;
+    opacity: 1;
 }
 
 .layer-group:last-child {
@@ -289,10 +291,8 @@ main {
 .mapboxgl-ctrl.layer-control {
     width: 400px;
     background: #ffffff11;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
     margin: 0;
-    padding: 6px 6px 6px 55px;
+    padding: 0 0 0 55px;
     transition: transform 0.2s ease;
     overflow-y: auto;
     max-height: calc(100vh - 180px);
@@ -340,7 +340,7 @@ button.layer-control-toggle {
 }
 
 .mapboxgl-ctrl.layer-control.collapsed {
-    transform: translateX(-403px);
+    transform: translateX(-420px);
 }
 
 @media (min-width: 768px) {

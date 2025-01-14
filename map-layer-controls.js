@@ -1,5 +1,82 @@
 class MapLayerControl {
     constructor(options) {
+        this._defaultStyles = {
+            vector: {
+                fill: {
+                    'fill-color': '#FF0000',
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        0.2,
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.8,
+                        0.03
+                    ]
+                },
+                line: {
+                    'line-color': 'green',
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        10, [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            2,
+                            ['boolean', ['feature-state', 'hover'], false],
+                            1.5,
+                            0.5
+                        ],
+                        16, [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            4,
+                            ['boolean', ['feature-state', 'hover'], false],
+                            3,
+                            1
+                        ]
+                    ],
+                    'line-opacity': 1
+                }
+            },
+            geojson: {
+                fill: {
+                    'fill-color': '#ff0000',
+                    'fill-opacity': 0.5
+                },
+                line: {
+                    'line-color': '#ff0000',
+                    'line-width': 2
+                },
+                label: {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 2,
+                    'text-size': 12
+                }
+            },
+            markers: {
+                circle: {
+                    'circle-radius': 6,
+                    'circle-color': '#FF0000',
+                    'circle-opacity': 0.9,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#ffffff'
+                }
+            },
+            terrain: {
+                exaggeration: 1.5,
+                fog: {
+                    range: [-1, 2],
+                    'horizon-blend': 0.3,
+                    color: '#ffffff',
+                    'high-color': '#add8e6',
+                    'space-color': '#d8f2ff',
+                    'star-intensity': 0.0
+                }
+            }
+        };
+
         this._domCache = {};
         this._options = {
             groups: Array.isArray(options) ? options : [options]
@@ -205,10 +282,11 @@ class MapLayerControl {
             $groupContainer.append($sourceControl);
 
             if (group.description) {
-                $('<div>', {
-                    class: 'title',
-                    text: group.description
-                }).appendTo($sourceControl);
+                const $description = $('<div>', {
+                    class: 'text-sm text-gray-600 mb-2 px-2',
+                    html: group.description  // Changed from text: to html:
+                });
+                $sourceControl.append($description);
             }
 
             if (group.type === 'layer-group') {
@@ -263,19 +341,18 @@ class MapLayerControl {
                         data: group.data
                     });
 
-                    const style = group.style || {
+                    const style = {
                         fill: {
-                            color: '#ff0000'
+                            ...this._defaultStyles.geojson.fill,
+                            ...(group.style?.fill || {})
                         },
                         line: {
-                            color: '#ff0000',
-                            width: 2
+                            ...this._defaultStyles.geojson.line,
+                            ...(group.style?.line || {})
                         },
                         label: {
-                            color: '#000000',
-                            haloColor: '#ffffff',
-                            haloWidth: 2,
-                            size: 12
+                            ...this._defaultStyles.geojson.label,
+                            ...(group.style?.label || {})
                         }
                     };
 
@@ -285,8 +362,8 @@ class MapLayerControl {
                             type: 'fill',
                             source: sourceId,
                             paint: {
-                                'fill-color': style.fill?.color || '#ff0000',
-                                'fill-opacity': 0.95
+                                'fill-color': style.fill?.['fill-color'] || '#ff0000',
+                                'fill-opacity': style.fill?.['fill-opacity'] || 0.95
                             },
                             layout: {
                                 'visibility': 'none'
@@ -299,8 +376,8 @@ class MapLayerControl {
                         type: 'line',
                         source: sourceId,
                         paint: {
-                            'line-color': style.line?.color || '#ff0000',
-                            'line-width': style.line?.width || 2
+                            'line-color': style.line?.['line-color'] || '#ff0000',
+                            'line-width': style.line?.['line-width'] || 2
                         },
                         layout: {
                             'visibility': 'none'
@@ -314,16 +391,16 @@ class MapLayerControl {
                         layout: {
                             'visibility': 'none',
                             'text-field': ['get', 'name'],
-                            'text-size': style.label?.size || 12,
+                            'text-size': style.label?.['text-size'] || 12,
                             'text-anchor': 'center',
                             'text-offset': [0, 0],
                             'text-allow-overlap': false,
                             'text-ignore-placement': false
                         },
                         paint: {
-                            'text-color': style.label?.color || '#000000',
-                            'text-halo-color': style.label?.haloColor || '#ffffff',
-                            'text-halo-width': style.label?.haloWidth || 2
+                            'text-color': style.label?.['text-color'] || '#000000',
+                            'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': style.label?.['text-halo-width'] || 2
                         }
                     });
                 }
@@ -660,10 +737,12 @@ class MapLayerControl {
                     this._map.addSource(sourceId, {
                         type: 'vector',
                         tiles: [group.url],
-                        maxzoom: 15,
-                        promoteId: group.inspect?.id || 'id'
+                        promoteId: group.inspect?.id || 'id',
+                        minzoom: group.minzoom || 8,
+                        maxzoom: group.maxzoom || 14
                     });
 
+                    // Update the fill layer paint properties
                     this._map.addLayer({
                         id: layerId,
                         type: 'fill',
@@ -673,11 +752,19 @@ class MapLayerControl {
                             visibility: 'none'
                         },
                         paint: {
-                            'fill-color': group.style?.color || '#FF0000',
-                            'fill-opacity': 0.95
+                            'fill-color': group.style?.['fill-color'] || '#FF0000',
+                            'fill-opacity': [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                0.2,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.8,
+                                0.03
+                            ]
                         }
                     }, this._getInsertPosition('vector'));
 
+                    // Update the outline layer paint properties
                     this._map.addLayer({
                         id: `${layerId}-outline`,
                         type: 'line',
@@ -685,11 +772,6 @@ class MapLayerControl {
                         'source-layer': group.sourceLayer || 'default',
                         layout: {
                             visibility: 'none'
-                        },
-                        paint: {
-                            'line-color': group.style?.color || '#FF0000',
-                            'line-width': group.style?.width || 1,
-                            'line-opacity': 1
                         }
                     }, this._getInsertPosition('vector'));
 
@@ -721,20 +803,14 @@ class MapLayerControl {
                                     0.95
                                 ]);
                             } else {
-                                this._map.setPaintProperty(id, 'line-width', [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    4,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    3,
-                                    group.style?.width || 1
-                                ]);
+                                this._map.setPaintProperty(id, 'line-width', 
+                                    group.style?.['line-width'] || 1);
 
                                 this._map.setPaintProperty(id, 'line-color', [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
-                                    '#000000',
-                                    group.style?.color || '#FF0000'
+                                    group.style?.['line-color'] || '#000000',
+                                    group.style?.['line-color'] || '#FF0000'
                                 ]);
                             }
 
@@ -769,9 +845,9 @@ class MapLayerControl {
                                                 .setLngLat(e.lngLat)
                                                 .setDOMContent(this._createPopupContent(feature, group, true))
                                                 .addTo(this._map);
-                                        }
                                     }
                                 }
+                            }
                             });
 
                             this._map.on('mouseleave', id, () => {
@@ -886,16 +962,21 @@ class MapLayerControl {
                                 type: 'circle',
                                 source: sourceId,
                                 paint: {
-                                    'circle-radius': group.style?.radius || 6,
-                                    'circle-color': group.style?.color || '#FF0000',
-                                    'circle-opacity': 0.9,
-                                    'circle-stroke-width': 1,
-                                    'circle-stroke-color': '#ffffff'
+                                    ...this._defaultStyles.markers.circle,
+                                    'circle-radius': group.style?.radius || this._defaultStyles.markers.circle['circle-radius'],
+                                    'circle-color': group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color']
                                 },
                                 layout: {
                                     'visibility': 'none'
                                 }
                             });
+
+                            if (group.attribution) {
+                                $('<div>', {
+                                    class: 'text-sm text-gray-600 mt-2 px-2',
+                                    html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                                }).appendTo($sourceControl);
+                            }
 
                             this._map.on('click', `${sourceId}-circles`, (e) => {
                                 if (e.features.length > 0) {
@@ -1438,7 +1519,7 @@ class MapLayerControl {
         ];
 
         let linksHTML = navigationLinks.map(link =>
-            `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900">
+            `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
                 ${link.icon ? `<img src="${link.icon}" class="w-5 h-5" alt="${link.name}">` : ''}
                 ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
             </a>`
