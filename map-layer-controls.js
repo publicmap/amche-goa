@@ -1,3 +1,5 @@
+import { convertToKML, gstableToArray } from './map-utils.js';
+
 class MapLayerControl {
     constructor(options) {
         this._defaultStyles = {
@@ -1527,6 +1529,64 @@ class MapLayerControl {
         linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
+        // Add KML export button before the navigation links
+        if (this._map.getZoom() >= 14) { // Only show export option at zoom 14 or higher
+            const $exportContainer = $('<div>', {
+                class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
+            });
+            
+            const $exportButton = $('<button>', {
+                class: 'flex items-center gap-1 hover:text-gray-900 cursor-pointer',
+                html: `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Export KML</span>
+                `
+            });
+            
+            $exportButton.on('click', () => {
+                try {
+                    // Generate KML content
+                    const fieldValues = group.inspect?.fields
+                        ? group.inspect.fields
+                            .map(field => feature.properties[field])
+                            .filter(value => value)
+                            .join('_')
+                        : '';
+                    const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
+                    const title = fieldValues 
+                        ? `${fieldValues}_${groupTitle}` 
+                        : feature.properties[group.inspect?.label] || 'Exported_Feature';
+                    const description = group.inspect?.title || 'Exported from Amche Goa';
+                    
+                    const kmlContent = convertToKML(feature, {title, description});
+                    
+                    // Create and trigger download
+                    const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
+                    const url = URL.createObjectURL(blob);
+                    
+                    const $downloadLink = $('<a>', {
+                        href: url,
+                        download: `${title}.kml`
+                    });
+                    
+                    // Append to body, click, and cleanup
+                    $('body').append($downloadLink);
+                    $downloadLink[0].click(); // Use native click() on the DOM element
+                    $downloadLink.remove();
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    console.error('Error exporting KML:', error);
+                    alert('Error exporting KML. Please check the console for details.');
+                }
+            });
+            
+            $exportContainer.append($exportButton);
+            $(content).append($exportContainer);
+        }
+
         return content;
     }
 
@@ -1631,39 +1691,6 @@ class MapLayerControl {
         this._animationTimeouts.forEach(clearTimeout);
         this._animationTimeouts = [];
     }
-}
-
-function gstableToArray(tableData) {
-    const { cols, rows } = tableData;
-    const headers = cols.map(col => col.label);
-    const result = rows.map(row => {
-        const obj = {};
-        row.c.forEach((cell, index) => {
-            const key = headers[index];
-            // Check if this is a timestamp column and has a value
-            obj[key] = cell ? cell.v : null;
-            if (cell && cell.v && key.toLowerCase().includes('timestamp')) {
-                let timestamp = new Date(...cell.v.match(/\d+/g).map((v, i) => i === 1 ? +v - 1 : +v));
-                timestamp = timestamp.setMonth(timestamp.getMonth() + 1)
-                const now = new Date();
-                const diffTime = Math.abs(now - timestamp);
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                // Create a human-readable "days ago" string
-                let daysAgoText;
-                if (diffDays === 0) {
-                    daysAgoText = 'Today';
-                } else if (diffDays === 1) {
-                    daysAgoText = 'Yesterday';
-                } else {
-                    daysAgoText = `${diffDays} days ago`;
-                }
-                // Add the days ago text as a new field
-                obj[`${key}_ago`] = daysAgoText;
-            }
-        });
-        return obj;
-    });
-    return result;
 }
 
 window.MapLayerControl = MapLayerControl; 
