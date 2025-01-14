@@ -6,23 +6,33 @@
  * @param {string} options.description - Description for the KML document
  * @returns {string} KML document as a string
  */
+function escapeXml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
 export function convertToKML(feature, options) {
     const {title, description} = options;
     
-    // Start KML document
+    // Start KML document with escaped values
     let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>${title}</name>
-    <description>${description}</description>
+    <name>${escapeXml(title)}</name>
+    <description>${escapeXml(description)}</description>
     <Placemark>
-      <name>${title}</name>
+      <name>${escapeXml(title)}</name>
       <description><![CDATA[`;
 
     // Add properties as description
     for (const [key, value] of Object.entries(feature.properties)) {
         if (value) {
-            kml += `<strong>${key}:</strong> ${value}<br/>`;
+            kml += `<strong>${escapeXml(key)}:</strong> ${escapeXml(value)}<br/>`;
         }
     }
 
