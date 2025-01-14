@@ -1465,33 +1465,41 @@ class MapLayerControl {
             });
             
             $exportButton.on('click', () => {
-                // Generate KML content
-                const fieldValues = group.inspect?.fields
-                    ? group.inspect.fields
-                        .map(field => feature.properties[field])
-                        .filter(value => value)
-                        .join('_')
-                    : '';
-                const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
-                const title = fieldValues 
-                    ? `${fieldValues}_${groupTitle}` 
-                    : feature.properties[group.inspect?.label] || 'Exported_Feature';
-                const description = group.inspect?.title || 'Exported from Amche Goa';
-                const kmlContent = convertToKML(feature, {title, description});
-                
-                // Create and trigger download
-                const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
-                const url = URL.createObjectURL(blob);
-                
-                $('<a>', {
-                    href: url,
-                    download: `${title}.kml`
-                })
-                .appendTo('body')
-                .trigger('click')
-                .remove();
-                
-                URL.revokeObjectURL(url);
+                try {
+                    // Generate KML content
+                    const fieldValues = group.inspect?.fields
+                        ? group.inspect.fields
+                            .map(field => feature.properties[field])
+                            .filter(value => value)
+                            .join('_')
+                        : '';
+                    const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
+                    const title = fieldValues 
+                        ? `${fieldValues}_${groupTitle}` 
+                        : feature.properties[group.inspect?.label] || 'Exported_Feature';
+                    const description = group.inspect?.title || 'Exported from Amche Goa';
+                    
+                    const kmlContent = convertToKML(feature, {title, description});
+                    
+                    // Create and trigger download
+                    const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
+                    const url = URL.createObjectURL(blob);
+                    
+                    const $downloadLink = $('<a>', {
+                        href: url,
+                        download: `${title}.kml`
+                    });
+                    
+                    // Append to body, click, and cleanup
+                    $('body').append($downloadLink);
+                    $downloadLink[0].click(); // Use native click() on the DOM element
+                    $downloadLink.remove();
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    console.error('Error exporting KML:', error);
+                    alert('Error exporting KML. Please check the console for details.');
+                }
             });
             
             $exportContainer.append($exportButton);
