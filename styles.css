@@ -551,3 +551,16 @@ header h1 {
 .legend-content img:hover {
     opacity: 0.9;
 }
+
+/* Update drawer styles to prevent closing on outside click */
+sl-drawer::part(overlay) {
+    background: none;
+    pointer-events: none; /* Prevent overlay from capturing clicks */
+}
+
+sl-drawer::part(panel) {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    pointer-events: auto; /* Enable clicks on the panel */
+}
