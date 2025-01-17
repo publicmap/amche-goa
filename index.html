@@ -316,7 +316,7 @@ function getQueryParameters() {
                             ['linear'],
                             ['zoom'],
                             13, 'rgba(0, 0, 0, 0)',
-                            16, 'rgba(0, 0, 0, 0.5)'
+                            16, 'rgba(0, 0, 0, 0.3)'
                         ],
                         'line-color': 'black',
                         'line-width': [
@@ -349,6 +349,50 @@ function getQueryParameters() {
                         fields: ['VillageNam', 'TalName'],
                         fieldTitles: ['Village', 'Taluk'],
                         customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                    }
+                },
+                {
+                    title: 'Land Conversion Sites',
+                    description: 'Sites undergoing landuse conversion',
+                    headerImage: 'assets/map-layer-conversion-sites.png',
+                    type: 'geojson',
+                    id: 'land-conversion-sites',
+                    dataUrl: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/c3f74fe3d0e7e3711c1b80a9ab274b7e0c9d18c5/goa-land-conversion-sites.geojson',
+                    attribution: 'Official Gazette, Government of Goa',
+                    style: {
+                        fill: false,
+                        line: {
+                            color: '#ff0000',
+                            width: 2
+                        },
+                        label: {
+                            color: '#000000',
+                            size: 12,
+                            haloColor: '#ffffff',
+                            haloWidth: 2
+                        }
+                    }
+                },
+                {
+                    title: 'Construction Sites',
+                    description: 'Construction Project Sites',
+                    headerImage: 'assets/map-layer-construction.png',
+                    type: 'geojson',
+                    id: 'construction-sites',
+                    dataUrl: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson',
+                    attribution: 'Construction project sites in Goa',
+                    style: {
+                        fill: false,
+                        line: {
+                            color: '#ff0000',
+                            width: 2
+                        },
+                        label: {
+                            color: '#000000',
+                            size: 12,
+                            haloColor: '#ffffff',
+                            haloWidth: 2
+                        }
                     }
                 },
                 {
@@ -438,50 +482,6 @@ function getQueryParameters() {
                             location: 'Panaji'
                         }
                     ]
-                },
-                {
-                    title: 'Land Conversion Sites',
-                    description: 'Sites undergoing landuse conversion',
-                    headerImage: 'assets/map-layer-conversion-sites.png',
-                    type: 'geojson',
-                    id: 'land-conversion-sites',
-                    dataUrl: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/c3f74fe3d0e7e3711c1b80a9ab274b7e0c9d18c5/goa-land-conversion-sites.geojson',
-                    attribution: 'Official Gazette, Government of Goa',
-                    style: {
-                        fill: false,
-                        line: {
-                            color: '#ff0000',
-                            width: 2
-                        },
-                        label: {
-                            color: '#000000',
-                            size: 12,
-                            haloColor: '#ffffff',
-                            haloWidth: 2
-                        }
-                    }
-                },
-                {
-                    title: 'Construction Sites',
-                    description: 'Construction Project Sites',
-                    headerImage: 'assets/map-layer-construction.png',
-                    type: 'geojson',
-                    id: 'construction-sites',
-                    dataUrl: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson',
-                    attribution: 'Construction project sites in Goa',
-                    style: {
-                        fill: false,
-                        line: {
-                            color: '#ff0000',
-                            width: 2
-                        },
-                        label: {
-                            color: '#000000',
-                            size: 12,
-                            haloColor: '#ffffff',
-                            haloWidth: 2
-                        }
-                    }
                 },
                 {
                     title: '3D Terrain',
