@@ -207,261 +207,303 @@ function getQueryParameters() {
 
 
 
-            // First fetch the GeoJSON data
-            fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
-                .then(response => response.json())
-                .then(geojsonData => {
+            // Function to fetch and process GeoJSON layers
+            const loadGeoJSONLayers = (layersConfig) => {
+                // Create an array of fetch promises
+                const fetchPromises = layersConfig
+                    .filter(layer => layer.type === 'geojson' && layer.dataUrl)
+                    .map(layer => 
+                        fetch(layer.dataUrl)
+                            .then(response => response.json())
+                            .then(geojsonData => ({
+                                ...layer,
+                                data: geojsonData
+                            }))
+                    );
 
-                    // Put Layers in a variable, we may want to move this to a separate file or so.
-                    let layersConfig = [
-                        {
-                            title: 'Community Pins',
-                            description: 'Pin your notes on the map for the rest of the community to see',
-                            headerImage: 'assets/map-layer-pins.png',
-                            type: 'markers',
-                            id: 'community-pins',
-                            dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
-                            attribution: 'Source: Collected by amche.in | <a href="https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/edit?resourcekey=&gid=485622101#gid=485622101">View Source Spreadsheet</a>',
-                            style: {
-                                'circle-color': '#FF4136',
-                                'circle-radius': 8
-                            },
-                            inspect: {
-                                title: 'Pin Details',
-                                label: 'name',
-                                fields: ['Location Name', 'Additional Notes (optional)', 'Timestamp_ago'],
-                                fieldTitles: ['Name', 'Notes', 'Added'],
-                            }
-                        },
+                // Wait for all GeoJSON data to load
+                Promise.all(fetchPromises)
+                    .then(loadedLayers => {
+                        // Update the layersConfig with loaded GeoJSON data
+                        const updatedLayersConfig = layersConfig.map(layer => {
+                            const loadedLayer = loadedLayers.find(l => l.id === layer.id);
+                            return loadedLayer || layer;
+                        });
+
+                        // Initialize the layer control with updated config
+                        const layerControl = new MapLayerControl(updatedLayersConfig);
+                        map.addControl(layerControl, 'top-left');
+                    })
+                    .catch(error => console.error('Error loading GeoJSON:', error));
+            };
+
+            // Define layers configuration
+            let layersConfig = [
+                {
+                    title: 'Community Pins',
+                    description: 'Pin your notes on the map for the rest of the community to see',
+                    headerImage: 'assets/map-layer-pins.png',
+                    type: 'markers',
+                    id: 'community-pins',
+                    dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
+                    attribution: 'Source: Collected by amche.in | <a href="https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/edit?resourcekey=&gid=485622101#gid=485622101">View Source Spreadsheet</a>',
+                    style: {
+                        'circle-color': '#FF4136',
+                        'circle-radius': 8
+                    },
+                    inspect: {
+                        title: 'Pin Details',
+                        label: 'name',
+                        fields: ['Location Name', 'Additional Notes (optional)', 'Timestamp_ago'],
+                        fieldTitles: ['Name', 'Notes', 'Added'],
+                    }
+                },
+                {
+                    id: 'goa-local-body',
+                    title: 'Local Body Boundaries',
+                    description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                    headerImage: 'assets/map-layer-local-boundaries.png',
+                    type: 'layer-group',
+                    groups: [
                         {
                             id: 'goa-local-body',
-                            title: 'Local Body Boundaries',
-                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
-                            headerImage: 'assets/map-layer-local-boundaries.png',
-                            type: 'layer-group',
-                            groups: [
-                                {
-                                    id: 'goa-local-body',
-                                    title: 'Bhuvan Panchayat',
-                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
-                                }
-                            ]
-                        },
-                        {
-                            id: 'slope-zones',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Partial)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                },
-                                {
-                                    id: 'aster slope',
-                                    title: 'NASA Aster 30m (Goa Coast)',
-                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Survey Plot Boundaries',
-                            description: 'Cadastral Boundaries',
-                            headerImage: 'assets/map-layer-survey.png',
-                            type: 'vector',
-                            id: 'goa-cadastral',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'Goa_Bhunaksha_Cadastrals',
-                            maxzoom: 16,
-                            attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'fill-color': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    13, 'rgba(0, 0, 0, 0)',
-                                    16, 'rgba(0, 0, 0, 0.5)'
-                                ],
-                                'line-color': 'black',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        2,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        1.5,
-                                        0
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        6,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        .5
-                                    ]
-                                ]
-                            },
-                            initiallyChecked: true,
-                            inspect: {
-                                id: 'id',
-                                title: 'Survey Number',
-                                label: 'kide',
-                                fields: ['VillageNam', 'TalName'],
-                                fieldTitles: ['Village', 'Taluk'],
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
-                            }
-                        },
-                        {
-                            title: 'Reserve Forests',
-                            description: 'Forest beat boundaries',
-                            headerImage: 'assets/map-layer-forest.png',
-                            type: 'vector',
-                            id: 'india-forest',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'FSI_Beats',
-                            maxzoom: 11,
-                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'line-color': '#006400',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        .5
-                                    ]
-                                ],
-                                'fill-color': 'green'
-                            },
-                            inspect: {
-                                id: 'OBJECTID_12',
-                                title: 'Forest Range',
-                                label: 'Beat_Name',
-                                fields: ['Range'],
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
-                            }
-                        },
-                        {
-                            title: 'Landuse Zoning Plans',
-                            description: 'Regional Development Plans 2021',
-                            headerImage: 'assets/map-layer-rdp.png',
-                            legendImage: 'assets/map-layer-rdp-legend.jpg',
-                            type: 'tms',
-                            id: 'goa-rdp-map',
-                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
-                            initiallyChecked: true
-                        },
-                        {
-                            title: 'SOI Toposheets',
-                            description: 'Survey of India',
-                            headerImage: 'assets/map-layer-soi.png',
-                            legendImage: 'assets/map-layer-soi-legend.png',
-                            type: 'tms',
-                            id: 'goa-soi-map',
-                            url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
-                            attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
-                        },
-                        {
-                            title: 'Goa CZMP',
-                            description: 'Coastal Zone Management Plan 2019',
-                            headerImage: 'assets/map-layer-czmp.png',
-                            legendImage: 'assets/map-layer-czmp-legend.jpg',
-                            type: 'tms',
-                            id: 'goa-czmp-map',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
-                            attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
-                        },
-                        {
-                            title: 'OpenStreetMap',
-                            description: 'OpenStreetMap Data',
-                            headerImage: 'assets/map-layer-osm.png',
-                            type: 'osm',
-                            layers: [
-                                {
-                                    id: 'osm-tiles',
-                                    label: 'OpenStreetMap',
-                                    sourceUrl: 'https://www.openstreetmap.org/copyright',
-                                    location: 'Panaji'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Construction Sites',
-                            description: 'Construction Project Sites',
-                            headerImage: 'assets/map-layer-construction.png',
-                            type: 'geojson',
-                            id: 'construction-sites',
-                            data: geojsonData,
-                            attribution: 'Construction project sites in Goa',
-                            style: {
-                                fill: false,
-                                line: {
-                                    color: '#ff0000',
-                                    width: 2
-                                },
-                                label: {
-                                    color: '#000000',
-                                    size: 12,
-                                    haloColor: '#ffffff',
-                                    haloWidth: 2
-                                }
-                            }
-                        },
-                        {
-                            title: '3D Terrain',
-                            description: 'Terrain Controls',
-                            headerImage: 'assets/map-layer-terrain.png',
-                            type: 'terrain',
-                            initiallyChecked: true
+                            title: 'Bhuvan Panchayat',
+                            attribution: 'https://grammanchitra.gov.in/gm4MVC',
                         }
-                    ];
-                    
-                    // if the layers= query parameter is set, handle setting initiallyChecked on those layers
-                    const queryParams = getQueryParameters();
-                    if (queryParams.layers) {
-                        const activeLayers = queryParams.layers.split(',').map(s => s.trim());
-                        console.log('active layers', activeLayers);
-                        layersConfig = layersConfig.map(layer => {
-                            layer.initiallyChecked = activeLayers.includes(layer.id);
-                            return layer;
-                        });
+                    ]
+                },
+                {
+                    id: 'slope-zones',
+                    title: 'Slope Zoning',
+                    description: 'Slope zone classification using terrain data',
+                    type: 'layer-group',
+                    headerImage: 'assets/map-layer-slope.png',
+                    legendImage: 'assets/map-layer-slope-legend.png',
+                    groups: [
+                        {
+                            id: 'nasadem-30-m',
+                            title: 'NASA NASADEM 30m',
+                            attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                            location: 'Goa'
+                        },
+                        {
+                            id: 'cartodem-2-5-m',
+                            title: 'ISRO CartoDEM 2.5m (Partial)',
+                            attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                            location: 'Guirim'
+                        },
+                        {
+                            id: 'aster slope',
+                            title: 'NASA Aster 30m (Goa Coast)',
+                            attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                            location: 'Panaji'
+                        }
+                    ]
+                },
+                {
+                    title: 'Survey Plot Boundaries',
+                    description: 'Cadastral Boundaries',
+                    headerImage: 'assets/map-layer-survey.png',
+                    type: 'vector',
+                    id: 'goa-cadastral',
+                    url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
+                    sourceLayer: 'Goa_Bhunaksha_Cadastrals',
+                    maxzoom: 16,
+                    attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                    style: {
+                        'fill-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            13, 'rgba(0, 0, 0, 0)',
+                            16, 'rgba(0, 0, 0, 0.5)'
+                        ],
+                        'line-color': 'black',
+                        'line-width': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            14, [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                2,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                1.5,
+                                0
+                            ],
+                            18, [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                6,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                5,
+                                .5
+                            ]
+                        ]
+                    },
+                    initiallyChecked: true,
+                    inspect: {
+                        id: 'id',
+                        title: 'Survey Number',
+                        label: 'kide',
+                        fields: ['VillageNam', 'TalName'],
+                        fieldTitles: ['Village', 'Taluk'],
+                        customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
                     }
-                    console.log('layers config', layersConfig);
-                    // Add layer control with multiple groups including GeoJSON
-                    const layerControl = new MapLayerControl(layersConfig);
+                },
+                {
+                    title: 'Reserve Forests',
+                    description: 'Forest beat boundaries',
+                    headerImage: 'assets/map-layer-forest.png',
+                    type: 'vector',
+                    id: 'india-forest',
+                    url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
+                    sourceLayer: 'FSI_Beats',
+                    maxzoom: 11,
+                    attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                    style: {
+                        'line-color': '#006400',
+                        'line-width': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            14, [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                4,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                3,
+                                1
+                            ],
+                            18, [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                8,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                5,
+                                .5
+                            ]
+                        ],
+                        'fill-color': 'green'
+                    },
+                    inspect: {
+                        id: 'OBJECTID_12',
+                        title: 'Forest Range',
+                        label: 'Beat_Name',
+                        fields: ['Range'],
+                        customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
+                    }
+                },
+                {
+                    title: 'Landuse Zoning Plans',
+                    description: 'Regional Development Plans 2021',
+                    headerImage: 'assets/map-layer-rdp.png',
+                    legendImage: 'assets/map-layer-rdp-legend.jpg',
+                    type: 'tms',
+                    id: 'goa-rdp-map',
+                    url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
+                    attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
+                    initiallyChecked: true
+                },
+                {
+                    title: 'SOI Toposheets',
+                    description: 'Survey of India',
+                    headerImage: 'assets/map-layer-soi.png',
+                    legendImage: 'assets/map-layer-soi-legend.png',
+                    type: 'tms',
+                    id: 'goa-soi-map',
+                    url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
+                    attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
+                },
+                {
+                    title: 'Goa CZMP',
+                    description: 'Coastal Zone Management Plan 2019',
+                    headerImage: 'assets/map-layer-czmp.png',
+                    legendImage: 'assets/map-layer-czmp-legend.jpg',
+                    type: 'tms',
+                    id: 'goa-czmp-map',
+                    url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
+                    attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
+                },
+                {
+                    title: 'OpenStreetMap',
+                    description: 'OpenStreetMap Data',
+                    headerImage: 'assets/map-layer-osm.png',
+                    type: 'osm',
+                    layers: [
+                        {
+                            id: 'osm-tiles',
+                            label: 'OpenStreetMap',
+                            sourceUrl: 'https://www.openstreetmap.org/copyright',
+                            location: 'Panaji'
+                        }
+                    ]
+                },
+                {
+                    title: 'Land Conversion Sites',
+                    description: 'Sites undergoing landuse conversion',
+                    headerImage: 'assets/map-layer-conversion-sites.png',
+                    type: 'geojson',
+                    id: 'land-conversion-sites',
+                    dataUrl: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/c3f74fe3d0e7e3711c1b80a9ab274b7e0c9d18c5/goa-land-conversion-sites.geojson',
+                    attribution: 'Official Gazette, Government of Goa',
+                    style: {
+                        fill: false,
+                        line: {
+                            color: '#ff0000',
+                            width: 2
+                        },
+                        label: {
+                            color: '#000000',
+                            size: 12,
+                            haloColor: '#ffffff',
+                            haloWidth: 2
+                        }
+                    }
+                },
+                {
+                    title: 'Construction Sites',
+                    description: 'Construction Project Sites',
+                    headerImage: 'assets/map-layer-construction.png',
+                    type: 'geojson',
+                    id: 'construction-sites',
+                    dataUrl: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson',
+                    attribution: 'Construction project sites in Goa',
+                    style: {
+                        fill: false,
+                        line: {
+                            color: '#ff0000',
+                            width: 2
+                        },
+                        label: {
+                            color: '#000000',
+                            size: 12,
+                            haloColor: '#ffffff',
+                            haloWidth: 2
+                        }
+                    }
+                },
+                {
+                    title: '3D Terrain',
+                    description: 'Terrain Controls',
+                    headerImage: 'assets/map-layer-terrain.png',
+                    type: 'terrain',
+                    initiallyChecked: true
+                }
+            ];
 
-                    map.addControl(layerControl, 'top-left');
-                })
-                .catch(error => console.error('Error loading GeoJSON:', error));
+            // Handle query parameters
+            const queryParams = getQueryParameters();
+            if (queryParams.layers) {
+                const activeLayers = queryParams.layers.split(',').map(s => s.trim());
+                layersConfig = layersConfig.map(layer => {
+                    layer.initiallyChecked = activeLayers.includes(layer.id);
+                    return layer;
+                });
+            }
+
+            // Load GeoJSON layers and initialize layer control
+            loadGeoJSONLayers(layersConfig);
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl({
