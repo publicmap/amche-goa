@@ -337,74 +337,198 @@ class MapLayerControl {
                 $sourceControl.append($radioGroup);
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
-                if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'geojson',
-                        data: group.data
-                    });
+                
+                // If it's a URL, fetch and process the data
+                if (group.dataUrl) {
+                    fetch(group.dataUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Ensure each feature has an ID
+                            data.features = data.features.map((feature, index) => ({
+                                ...feature,
+                                id: feature.id || feature.properties[group.inspect?.id] || index
+                            }));
+                            
+                            // Add the source with processed data
+                            if (!this._map.getSource(sourceId)) {
+                                this._map.addSource(sourceId, {
+                                    type: 'geojson',
+                                    data: data
+                                });
+                                
+                                const style = {
+                                    fill: {
+                                        ...this._defaultStyles.geojson.fill,
+                                        ...(group.style?.fill || {})
+                                    },
+                                    line: {
+                                        ...this._defaultStyles.geojson.line,
+                                        ...(group.style?.line || {})
+                                    },
+                                    label: {
+                                        ...this._defaultStyles.geojson.label,
+                                        ...(group.style?.label || {})
+                                    }
+                                };
 
-                    const style = {
-                        fill: {
-                            ...this._defaultStyles.geojson.fill,
-                            ...(group.style?.fill || {})
-                        },
-                        line: {
-                            ...this._defaultStyles.geojson.line,
-                            ...(group.style?.line || {})
-                        },
-                        label: {
-                            ...this._defaultStyles.geojson.label,
-                            ...(group.style?.label || {})
-                        }
+                                if (style.fill !== false) {
+                                    this._map.addLayer({
+                                        id: `${sourceId}-fill`,
+                                        type: 'fill',
+                                        source: sourceId,
+                                        paint: {
+                                            'fill-color': style.fill?.['fill-color'] || '#ff0000',
+                                            'fill-opacity': [
+                                                'case',
+                                                ['boolean', ['feature-state', 'selected'], false],
+                                                0.2,
+                                                ['boolean', ['feature-state', 'hover'], false],
+                                                0.8,
+                                                0.03
+                                            ]
+                                        },
+                                        layout: {
+                                            'visibility': 'none'
+                                        }
+                                    });
+                                }
+
+                                this._map.addLayer({
+                                    id: `${sourceId}-line`,
+                                    type: 'line',
+                                    source: sourceId,
+                                    paint: {
+                                        'line-color': style.line?.['line-color'] || '#ff0000',
+                                        'line-width': [
+                                            'case',
+                                            ['boolean', ['feature-state', 'selected'], false],
+                                            4,
+                                            ['boolean', ['feature-state', 'hover'], false],
+                                            2,
+                                            style.line?.['line-width'] || 1
+                                        ],
+                                        'line-opacity': 1
+                                    },
+                                    layout: {
+                                        'visibility': 'none'
+                                    }
+                                });
+
+                                this._map.addLayer({
+                                    id: `${sourceId}-label`,
+                                    type: 'symbol',
+                                    source: sourceId,
+                                    layout: {
+                                        'visibility': 'none',
+                                        'text-field': ['get', 'name'],
+                                        'text-size': style.label?.['text-size'] || 12,
+                                        'text-anchor': 'center',
+                                        'text-offset': [0, 0],
+                                        'text-allow-overlap': false,
+                                        'text-ignore-placement': false
+                                    },
+                                    paint: {
+                                        'text-color': style.label?.['text-color'] || '#000000',
+                                        'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
+                                        'text-halo-width': style.label?.['text-halo-width'] || 2
+                                    }
+                                });
+                            }
+                        });
+                } else if (group.data) {
+                    // If data is provided directly
+                    const data = {
+                        ...group.data,
+                        features: group.data.features.map((feature, index) => ({
+                            ...feature,
+                            id: feature.id || feature.properties[group.inspect?.id] || index
+                        }))
                     };
+                    
+                    if (!this._map.getSource(sourceId)) {
+                        this._map.addSource(sourceId, {
+                            type: 'geojson',
+                            data: data
+                        });
+                        
+                        const style = {
+                            fill: {
+                                ...this._defaultStyles.geojson.fill,
+                                ...(group.style?.fill || {})
+                            },
+                            line: {
+                                ...this._defaultStyles.geojson.line,
+                                ...(group.style?.line || {})
+                            },
+                            label: {
+                                ...this._defaultStyles.geojson.label,
+                                ...(group.style?.label || {})
+                            }
+                        };
 
-                    if (style.fill !== false) {
+                        if (style.fill !== false) {
+                            this._map.addLayer({
+                                id: `${sourceId}-fill`,
+                                type: 'fill',
+                                source: sourceId,
+                                paint: {
+                                    'fill-color': style.fill?.['fill-color'] || '#ff0000',
+                                    'fill-opacity': [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        0.2,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        0.8,
+                                        0.03
+                                    ]
+                                },
+                                layout: {
+                                    'visibility': 'none'
+                                }
+                            });
+                        }
+
                         this._map.addLayer({
-                            id: `${sourceId}-fill`,
-                            type: 'fill',
+                            id: `${sourceId}-line`,
+                            type: 'line',
                             source: sourceId,
                             paint: {
-                                'fill-color': style.fill?.['fill-color'] || '#ff0000',
-                                'fill-opacity': style.fill?.['fill-opacity'] || 0.95
+                                'line-color': style.line?.['line-color'] || '#ff0000',
+                                'line-width': [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    4,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    2,
+                                    style.line?.['line-width'] || 1
+                                ],
+                                'line-opacity': 1
                             },
                             layout: {
                                 'visibility': 'none'
                             }
                         });
+
+                        this._map.addLayer({
+                            id: `${sourceId}-label`,
+                            type: 'symbol',
+                            source: sourceId,
+                            layout: {
+                                'visibility': 'none',
+                                'text-field': ['get', 'name'],
+                                'text-size': style.label?.['text-size'] || 12,
+                                'text-anchor': 'center',
+                                'text-offset': [0, 0],
+                                'text-allow-overlap': false,
+                                'text-ignore-placement': false
+                            },
+                            paint: {
+                                'text-color': style.label?.['text-color'] || '#000000',
+                                'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
+                                'text-halo-width': style.label?.['text-halo-width'] || 2
+                            }
+                        });
                     }
-
-                    this._map.addLayer({
-                        id: `${sourceId}-line`,
-                        type: 'line',
-                        source: sourceId,
-                        paint: {
-                            'line-color': style.line?.['line-color'] || '#ff0000',
-                            'line-width': style.line?.['line-width'] || 2
-                        },
-                        layout: {
-                            'visibility': 'none'
-                        }
-                    });
-
-                    this._map.addLayer({
-                        id: `${sourceId}-label`,
-                        type: 'symbol',
-                        source: sourceId,
-                        layout: {
-                            'visibility': 'none',
-                            'text-field': ['get', 'name'],
-                            'text-size': style.label?.['text-size'] || 12,
-                            'text-anchor': 'center',
-                            'text-offset': [0, 0],
-                            'text-allow-overlap': false,
-                            'text-ignore-placement': false
-                        },
-                        paint: {
-                            'text-color': style.label?.['text-color'] || '#000000',
-                            'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
-                            'text-halo-width': style.label?.['text-halo-width'] || 2
-                        }
-                    });
                 }
 
                 if (group.attribution) {
@@ -412,6 +536,97 @@ class MapLayerControl {
                         class: 'text-sm text-gray-600 mt-2 px-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
                     }).appendTo($sourceControl);
+                }
+
+                // Add inspection functionality if inspect properties are defined
+                if (group.inspect) {
+                    const popup = new mapboxgl.Popup({
+                        closeButton: true,
+                        closeOnClick: true
+                    });
+
+                    const hoverPopup = new mapboxgl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                        className: 'hover-popup'
+                    });
+
+                    let hoveredFeatureId = null;
+                    let selectedFeatureId = null;
+
+                    // Add hover and click interactions for both fill and line layers
+                    [`${sourceId}-fill`, `${sourceId}-line`].forEach(id => {
+                        // Mouse move - hover effect
+                        this._map.on('mousemove', id, (e) => {
+                            if (e.features.length > 0) {
+                                const feature = e.features[0];
+
+                                if (hoveredFeatureId !== null) {
+                                    this._map.setFeatureState(
+                                        { source: sourceId, id: hoveredFeatureId },
+                                        { hover: false }
+                                    );
+                                }
+                                hoveredFeatureId = feature.id;
+                                this._map.setFeatureState(
+                                    { source: sourceId, id: hoveredFeatureId },
+                                    { hover: true }
+                                );
+
+                                if (group.inspect?.label) {
+                                    const labelValue = feature.properties[group.inspect.label];
+                                    if (labelValue) {
+                                        hoverPopup
+                                            .setLngLat(e.lngLat)
+                                            .setDOMContent(this._createPopupContent(feature, group, true))
+                                            .addTo(this._map);
+                                    }
+                                }
+                            }
+                        });
+
+                        // Mouse leave - remove hover effect
+                        this._map.on('mouseleave', id, () => {
+                            if (hoveredFeatureId !== null) {
+                                this._map.setFeatureState(
+                                    { source: sourceId, id: hoveredFeatureId },
+                                    { hover: false }
+                                );
+                            }
+                            hoveredFeatureId = null;
+                            hoverPopup.remove();
+                            this._map.getCanvas().style.cursor = '';
+                        });
+
+                        // Click - show popup
+                        this._map.on('click', id, (e) => {
+                            if (e.features.length > 0) {
+                                const feature = e.features[0];
+
+                                if (selectedFeatureId !== null) {
+                                    this._map.setFeatureState(
+                                        { source: sourceId, id: selectedFeatureId },
+                                        { selected: false }
+                                    );
+                                }
+                                selectedFeatureId = feature.id;
+                                this._map.setFeatureState(
+                                    { source: sourceId, id: selectedFeatureId },
+                                    { selected: true }
+                                );
+
+                                popup
+                                    .setLngLat(e.lngLat)
+                                    .setDOMContent(this._createPopupContent(feature, group))
+                                    .addTo(this._map);
+                            }
+                        });
+
+                        // Mouse enter - change cursor
+                        this._map.on('mouseenter', id, () => {
+                            this._map.getCanvas().style.cursor = 'pointer';
+                        });
+                    });
                 }
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
