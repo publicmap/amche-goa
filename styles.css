@@ -217,11 +217,13 @@ main {
 
 /* Add new styles for layer group cards */
 .layer-group {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    margin-bottom: 8px;
+    background: #d6d6d6;
     overflow: hidden;
+    opacity: 0.8;
+}
+.layer-group:hover {
+    background: #e8e8e8;
+    opacity: 1;
 }
 
 .layer-group:last-child {
@@ -248,7 +250,7 @@ main {
     background: rgba(0, 0, 0, 0.4);
 }
 
-.group-header label {
+.header-label {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -289,10 +291,8 @@ main {
 .mapboxgl-ctrl.layer-control {
     width: 400px;
     background: #ffffff11;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
     margin: 0;
-    padding: 6px 6px 6px 55px;
+    padding: 0 0 0 55px;
     transition: transform 0.2s ease;
     overflow-y: auto;
     max-height: calc(100vh - 180px);
@@ -340,7 +340,7 @@ button.layer-control-toggle {
 }
 
 .mapboxgl-ctrl.layer-control.collapsed {
-    transform: translateX(-403px);
+    transform: translateX(-420px);
 }
 
 @media (min-width: 768px) {
@@ -562,5 +562,38 @@ sl-drawer::part(panel) {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(8px);
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    pointer-events: auto; /* Enable clicks on the panel */
+    pointer-events: auto;
+ } /* Enable clicks on the panel */
+/* Update opacity toggle button styles */
+button.opacity-toggle {
+    margin-left: auto !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    border: 2px solid #ddd !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0 !important;
+    background: white !important;
+}
+
+button.opacity-toggle[data-opacity="0.5"] {
+    background: #999 !important;
+}
+
+button.opacity-toggle:hover {
+    border-color: #999 !important;
+}
+
+button.opacity-toggle.hidden {
+    display: none !important;
+}
+
+/* Remove old opacity control styles */
+.opacity-control {
+    display: none;
 }
