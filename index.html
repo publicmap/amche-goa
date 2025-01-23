@@ -470,7 +470,9 @@ function getQueryParameters() {
                     // Add layer control with multiple groups including GeoJSON
                     const layerControl = new MapLayerControl(layersConfig);
 
-                    map.addControl(layerControl, 'top-left');
+                    // map.addControl(layerControl, 'top-left');
+                    const container = document.getElementById('layer-controls-container');
+                    layerControl.renderToContainer(container, map);
                 })
                 .catch(error => console.error('Error loading GeoJSON:', error));
 
