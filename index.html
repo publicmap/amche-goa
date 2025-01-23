@@ -73,8 +73,14 @@
 
 <body class="flex flex-col">
     <!-- Add drawer after header -->
-    <sl-drawer label="Menu" placement="start" class="drawer-placement-start" no-modal contained>
-        <div id="layer-controls-container"></div>
+    <sl-drawer label="Map controls" placement="start" class="drawer-placement-start" no-modal contained open>
+        <!-- Loading state using Shoelace components -->
+        <div id="layer-controls-loader" class="p-4">
+            <div class="flex flex-col gap-4" id="skeleton-container">
+                <!-- Skeletons will be added here dynamically -->
+            </div>
+        </div>
+        <div id="layer-controls-container" class="hidden"></div>
     </sl-drawer>
 
     <!-- Header -->
@@ -472,9 +478,29 @@ function getQueryParameters() {
 
                     // map.addControl(layerControl, 'top-left');
                     const container = document.getElementById('layer-controls-container');
+                    
+                    // Hide loader and show controls
+                    document.getElementById('layer-controls-loader').classList.add('hidden');
+                    container.classList.remove('hidden');
+                    
                     layerControl.renderToContainer(container, map);
+
+                    // Initialize controls
+                    setTimeout(() => {
+                        const controls = document.querySelectorAll('.layer-control button');
+                        controls.forEach(button => button.click());
+                    }, 500);
                 })
-                .catch(error => console.error('Error loading GeoJSON:', error));
+                .catch(error => {
+                    console.error('Error loading GeoJSON:', error);
+                    // Show error state in drawer
+                    document.getElementById('layer-controls-loader').innerHTML = `
+                        <div class="text-red-500">
+                            <sl-icon name="exclamation-triangle"></sl-icon>
+                            Error loading map layers. Please try refreshing the page.
+                        </div>
+                    `;
+                });
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl({
@@ -497,14 +523,6 @@ function getQueryParameters() {
                     });
                 }, 2000);
             }
-
-            // Update the load event handler to click both buttons
-            setTimeout(() => {
-                const controls = document.querySelectorAll('.layer-control button');
-                controls.forEach(button => button.click());
-            }, 500);
-
-
         });
     </script>
     <!-- Google tag (gtag.js) -->
@@ -546,6 +564,18 @@ function getQueryParameters() {
 
         openButton.addEventListener('click', () => drawer.show());
         closeButton.addEventListener('click', () => drawer.hide());
+    </script>
+    <script>
+        // Add this after your existing scripts
+        const skeletonContainer = document.getElementById('skeleton-container');
+        const numberOfSkeletons = 15;
+        
+        Array.from({ length: numberOfSkeletons }).forEach(() => {
+            const skeleton = document.createElement('sl-skeleton');
+            skeleton.className = 'skeleton-map-controls';
+            skeleton.setAttribute('effect', 'pulse');
+            skeletonContainer.appendChild(skeleton);
+        });
     </script>
 </body>
 

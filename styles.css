@@ -597,3 +597,19 @@ button.opacity-toggle.hidden {
 .opacity-control {
     display: none;
 }
+
+
+/* Style all skeleton loaders in the drawer */
+#layer-controls-loader sl-skeleton::part(base) {
+    --border-radius: 0;
+    height: 100px;
+}
+
+/* Add hover effect */
+#layer-controls-loader sl-skeleton {
+    opacity: 0.8;
+}
+
+#layer-controls-loader sl-skeleton:hover {
+    opacity: 1;
+}
