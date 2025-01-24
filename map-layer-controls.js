@@ -149,6 +149,15 @@ class MapLayerControl {
                 class: 'w-4 h-4'
             });
 
+            $checkbox.on('change', (e) => {
+                console.log('Checkbox changed:', {
+                    groupIndex,
+                    checked: e.target.checked,
+                    groupTitle: group.title
+                });
+                this._toggleSourceControl(groupIndex, e.target.checked);
+            });
+
             const $titleSpan = $('<span>', { 
                 text: group.title,
                 class: 'text-sm font-medium'
@@ -1084,6 +1093,12 @@ class MapLayerControl {
     }
 
     _toggleSourceControl(groupIndex, isChecked) {
+        console.log('Toggle source control:', {
+            groupIndex,
+            isChecked,
+            group: this._options.groups[groupIndex],
+            sourceControl: this._sourceControls[groupIndex]
+        });
         const $sourceControl = $(this._sourceControls[groupIndex]);
         const group = this._options.groups[groupIndex];
 
@@ -1121,7 +1136,7 @@ class MapLayerControl {
                 if ($fogStartSlider.length && $fogEndSlider.length) {
                     $fogStartSlider.val(existingFog.range[0]);
                     $fogEndSlider.val(existingFog.range[1]);
-                    $(sourceControl).find('.fog-range-slider').next().find('span')
+                    $sourceControl.find('.fog-range-slider').next().find('span')
                         .text(`[${existingFog.range[0]}, ${existingFog.range[1]}]`);
                 }
 
@@ -1138,11 +1153,12 @@ class MapLayerControl {
                 if ($colorPicker.length) $colorPicker.val(existingFog.color);
                 if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
                 if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
+
             } else if (group.type === 'layer-group') {
-                const firstRadio = sourceControl.querySelector('input[type="radio"]');
-                if (firstRadio) {
-                    firstRadio.checked = true;
-                    this._handleLayerGroupChange(firstRadio.value, group.groups);
+                const firstRadio = $sourceControl.find('input[type="radio"]').first();
+                if (firstRadio.length) {
+                    firstRadio.prop('checked', true);
+                    this._handleLayerGroupChange(firstRadio.val(), group.groups);
                 }
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
@@ -1171,8 +1187,8 @@ class MapLayerControl {
                     );
 
                     const firstRadio = $sourceControl.find(`input[value="${firstLayer.id}"]`);
-                    if (firstRadio) {
-                        firstRadio.checked = true;
+                    if (firstRadio.length) {
+                        firstRadio.prop('checked', true);
                         this._handleLayerChange(firstLayer.id, group.layers);
                     }
                 }
@@ -1182,10 +1198,10 @@ class MapLayerControl {
                     this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
                 }
             } else if (group.layers) {
-                const firstRadio = sourceControl.querySelector('input[type="radio"]');
-                if (firstRadio) {
-                    firstRadio.checked = true;
-                    this._handleLayerChange(firstRadio.value, group.layers);
+                const firstRadio = $sourceControl.find('input[type="radio"]').first();
+                if (firstRadio.length) {
+                    firstRadio.prop('checked', true);
+                    this._handleLayerChange(firstRadio.val(), group.layers);
                 }
             }
         } else {
