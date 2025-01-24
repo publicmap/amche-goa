@@ -71,18 +71,7 @@
 
 </head>
 
-<body class="flex flex-col">
-    <!-- Add drawer after header -->
-    <sl-drawer label="Map controls" placement="start" class="drawer-placement-start" no-modal contained open>
-        <!-- Loading state using Shoelace components -->
-        <div id="layer-controls-loader" class="p-4">
-            <div class="flex flex-col gap-4" id="skeleton-container">
-                <!-- Skeletons will be added here dynamically -->
-            </div>
-        </div>
-        <div id="layer-controls-container" class="hidden"></div>
-    </sl-drawer>
-
+<body class="flex flex-col h-screen">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
@@ -103,17 +92,31 @@
         </div>
     </header>
 
-    <!-- Map Container -->
-    <main class="flex-grow relative">
-        <div id="map"></div>
-        <div id="edit-mode-control"
-            class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
-            <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"
-                title="Toggle Edit Mode">
-                📌
-            </button>
-        </div>
-    </main>
+    <!-- Wrap main content in a container -->
+    <div class="flex flex-grow relative h-full">
+        <!-- Map Container -->
+        <main class="flex-grow relative h-full">
+            <div id="map" style="width: 100%; height: 100%;"></div>
+            <!-- Add drawer inside the map container -->
+            <sl-drawer label="Map controls" placement="start" class="drawer-placement-start" contained>
+                <!-- Loading state using Shoelace components -->
+                <div id="layer-controls-loader" class="p-4">
+                    <div class="flex flex-col gap-4" id="skeleton-container">
+                        <!-- Skeletons will be added here dynamically -->
+                    </div>
+                </div>
+                <div id="layer-controls-container" class="hidden"></div>
+            </sl-drawer>
+            
+            <div id="edit-mode-control"
+                class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
+                <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"
+                    title="Toggle Edit Mode">
+                    📌
+                </button>
+            </div>
+        </main>
+    </div>
 
     <script>
 
