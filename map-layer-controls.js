@@ -1092,27 +1092,50 @@ class MapLayerControl {
         });
     }
 
-    _toggleSourceControl(groupIndex, isChecked) {
-        console.log('Toggle source control:', {
-            groupIndex,
-            isChecked,
-            group: this._options.groups[groupIndex],
-            sourceControl: this._sourceControls[groupIndex]
-        });
-        const $sourceControl = $(this._sourceControls[groupIndex]);
+    _toggleSourceControl(groupIndex, checked) {
         const group = this._options.groups[groupIndex];
+        const $sourceControl = $(this._sourceControls[groupIndex]);
 
-        if (isChecked) {
+        if (checked) {
             $sourceControl.slideDown(200);
 
-            if (group.type === 'terrain') {
-                // Enable terrain with default settings
+            if (group.type === 'vector') {
+                const sourceId = `vector-source-${group.id}`;
+                if (!this._map.getSource(sourceId)) {
+                    this._map.addSource(sourceId, {
+                        type: 'vector',
+                        url: group.url,
+                        maxzoom: group.maxzoom
+                    });
+                }
+
+                const layerId = `vector-layer-${group.id}`;
+                if (!this._map.getLayer(layerId)) {
+                    this._map.addLayer({
+                        id: layerId,
+                        type: 'fill',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer,
+                        paint: group.style?.fill || this._defaultStyles.vector.fill
+                    });
+
+                    this._map.addLayer({
+                        id: `${layerId}-outline`,
+                        type: 'line',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer,
+                        paint: group.style?.line || this._defaultStyles.vector.line
+                    });
+                }
+
+                this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
+            } else if (group.type === 'terrain') {
                 this._map.setTerrain({ 
                     'source': 'mapbox-dem',
                     'exaggeration': 1.5 
                 });
                 
-                // Get existing fog settings or use defaults
                 const existingFog = this._map.getFog() || {
                     'range': [-1, 2],
                     'horizon-blend': 0.3,
@@ -1122,10 +1145,8 @@ class MapLayerControl {
                     'star-intensity': 0.0
                 };
 
-                // Set fog using existing or default values
                 this._map.setFog(existingFog);
 
-                // Update the UI controls to match existing values
                 const $fogStartSlider = $(`#fog-start-${this._instanceId}`);
                 const $fogEndSlider = $(`#fog-end-${this._instanceId}`);
                 const $horizonSlider = $(`#horizon-blend-${this._instanceId}`);
@@ -1141,9 +1162,8 @@ class MapLayerControl {
                 }
 
                 if ($horizonSlider.length) {
-                    // Handle interpolated horizon-blend values
                     const horizonBlend = Array.isArray(existingFog['horizon-blend']) 
-                        ? existingFog['horizon-blend'][4] // Use the first value from interpolation
+                        ? existingFog['horizon-blend'][4]
                         : existingFog['horizon-blend'];
                     
                     $horizonSlider.val(horizonBlend);
@@ -1153,7 +1173,6 @@ class MapLayerControl {
                 if ($colorPicker.length) $colorPicker.val(existingFog.color);
                 if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
                 if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
-
             } else if (group.type === 'layer-group') {
                 const firstRadio = $sourceControl.find('input[type="radio"]').first();
                 if (firstRadio.length) {
@@ -1208,13 +1227,10 @@ class MapLayerControl {
             $sourceControl.slideUp(200);
 
             if (group.type === 'terrain') {
-                // Disable terrain
                 this._map.setTerrain(null);
                 
-                // Reset fog
                 this._map.setFog(null);
                 
-                // Hide contour layers if they exist
                 const contourLayers = ['contour lines', 'contour labels'];
                 contourLayers.forEach(layerId => {
                     if (this._map.getLayer(layerId)) {
@@ -1278,7 +1294,6 @@ class MapLayerControl {
         const allLayers = this._map.getStyle().layers.map(layer => layer.id);
         
         layers.forEach(layer => {
-            // Find all layers that start with this ID
             const matchingLayers = allLayers.filter(layerId => 
                 layerId === layer.id || layerId.startsWith(`${layer.id} `)
             );
@@ -1378,7 +1393,6 @@ class MapLayerControl {
                 labelDiv.textContent = labelValue;
                 content.appendChild(labelDiv);
 
-                // Add additional fields if configured
                 if (group.inspect?.fields) {
                     group.inspect.fields.forEach(field => {
                         const value = feature.properties[field];
@@ -1515,8 +1529,7 @@ class MapLayerControl {
         linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
-        // Add KML export button before the navigation links
-        if (this._map.getZoom() >= 14) { // Only show export option at zoom 14 or higher
+        if (this._map.getZoom() >= 14) {
             const $exportContainer = $('<div>', {
                 class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
             });
@@ -1533,7 +1546,6 @@ class MapLayerControl {
             
             $exportButton.on('click', () => {
                 try {
-                    // Generate KML content
                     const fieldValues = group.inspect?.fields
                         ? group.inspect.fields
                             .map(field => feature.properties[field])
@@ -1548,7 +1560,6 @@ class MapLayerControl {
                     
                     const kmlContent = convertToKML(feature, {title, description});
                     
-                    // Create and trigger download
                     const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
                     const url = URL.createObjectURL(blob);
                     
@@ -1557,9 +1568,8 @@ class MapLayerControl {
                         download: `${title}.kml`
                     });
                     
-                    // Append to body, click, and cleanup
                     $('body').append($downloadLink);
-                    $downloadLink[0].click(); // Use native click() on the DOM element
+                    $downloadLink[0].click();
                     $downloadLink.remove();
                     URL.revokeObjectURL(url);
                     
