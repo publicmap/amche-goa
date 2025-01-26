@@ -127,20 +127,24 @@ class MapLayerControl {
             });
             
             const $groupHeader = $('<div>', { 
-                class: 'group-header flex items-center gap-3' 
+                class: 'group-header flex items-center gap-3 relative overflow-hidden' 
             });
 
             if (group.headerImage) {
-                $groupHeader.append(
-                    $('<img>', {
-                        src: group.headerImage,
-                        class: 'w-8 h-8 rounded'
-                    })
-                );
+                const $headerBg = $('<div>', {
+                    class: 'absolute inset-0 bg-cover bg-center bg-no-repeat',
+                    style: `background-image: url('${group.headerImage}')`
+                });
+                
+                const $headerOverlay = $('<div>', {
+                    class: 'absolute inset-0 bg-black bg-opacity-40'
+                });
+                
+                $groupHeader.append($headerBg, $headerOverlay);
             }
 
             const $label = $('<label>', {
-                class: 'flex items-center gap-2 cursor-pointer'
+                class: 'flex items-center gap-2 cursor-pointer relative z-10 text-white'
             });
             
             const $checkbox = $('<input>', {
