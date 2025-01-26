@@ -404,7 +404,6 @@ function getQueryParameters() {
                             id: 'goa-rdp-map',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
                             attribution: 'RDP 2021 plans from Goa TCP https://tcp.goa.gov.in/',
-                            initiallyChecked: true
                         },
                         {
                             title: 'SOI Toposheets',
@@ -494,11 +493,18 @@ function getQueryParameters() {
                     
                     layerControl.renderToContainer(container, map);
 
-                    // Initialize controls
-                    setTimeout(() => {
-                        const controls = document.querySelectorAll('.layer-control button');
-                        controls.forEach(button => button.click());
-                    }, 500);
+                    // Initialize controls for layers that should be initially checked
+                    const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
+                    console.log('Initially checked layers:', initiallyCheckedLayers.map(l => l.title));
+
+                    initiallyCheckedLayers.forEach(layer => {
+                        // Find the checkbox for this layer using jQuery
+                        const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
+                        if ($checkbox.length && !$checkbox.prop('checked')) {
+                            $checkbox.prop('checked', true);
+                            $checkbox.trigger('change');
+                        }
+                    });
                 })
                 .catch(error => {
                     console.error('Error loading GeoJSON:', error);

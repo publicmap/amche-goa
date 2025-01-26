@@ -149,12 +149,27 @@ class MapLayerControl {
                 class: 'w-4 h-4'
             });
 
+            const $sourceControl = $('<div>', {
+                class: 'source-control mt-3 pl-11',
+                style: `display: ${group.initiallyChecked ? 'block' : 'none'};`
+            });
+            this._sourceControls[groupIndex] = $sourceControl[0];
+
+            if (group.initiallyChecked) {
+                setTimeout(() => {
+                    this._toggleSourceControl(groupIndex, true);
+                }, 0);
+            }
+
             $checkbox.on('change', (e) => {
                 console.log('Checkbox changed:', {
                     groupIndex,
                     checked: e.target.checked,
                     groupTitle: group.title
                 });
+                
+                $(this._sourceControls[groupIndex]).slideToggle(200);
+                
                 this._toggleSourceControl(groupIndex, e.target.checked);
             });
 
@@ -165,12 +180,7 @@ class MapLayerControl {
 
             $label.append($checkbox, $titleSpan);
             $groupHeader.append($label);
-            $groupContainer.append($groupHeader);
-
-            const $sourceControl = $('<div>', {
-                class: 'source-control mt-3 pl-11'
-            });
-            this._sourceControls[groupIndex] = $sourceControl[0];
+            $groupContainer.append($groupHeader, $sourceControl);
 
             const $opacityContainer = $('<div>', {
                 class: 'opacity-control mt-2 px-2'
