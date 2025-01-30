@@ -234,7 +234,6 @@ main {
 .group-header {
     display: flex;
     align-items: center;
-    padding: 12px;
     position: relative;
     min-height: 48px;
     border-radius: 4px;
@@ -245,11 +244,6 @@ main {
 .group-header input[type="checkbox"] {
     margin: 0;
     filter: brightness(2);
-}
-
-/* Ensure text is visible on the background image */
-.group-header .text-sm {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Add styles for the layer info section */
@@ -617,4 +611,15 @@ sl-drawer::part(panel) {
     width: 100%;
     height: 100%;
     position: relative;
+}
+
+sl-details.map-controls-group::part(base) {
+    width: 100%;
+}
+sl-details.map-controls-group::part(content) {
+    padding-top: 0;
+}
+
+sl-details.map-controls-group::part(header) {
+    /* padding: 0; */
 }

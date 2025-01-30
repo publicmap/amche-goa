@@ -122,69 +122,106 @@ class MapLayerControl {
         this._initializeLayers();
 
         this._options.groups.forEach((group, groupIndex) => {
-            const $groupContainer = $('<div>', { 
-                class: 'layer-group p-4 border-b border-gray-200'
-            });
-            
-            const $groupHeader = $('<div>', { 
-                class: 'group-header flex items-center gap-3 relative overflow-hidden' 
+
+            const $groupHeader = $('<sl-details>', {
+                class: 'group-header w-full map-controls-group',
+                open: group.initiallyChecked || false
             });
 
-            if (group.headerImage) {
-                const $headerBg = $('<div>', {
-                    class: 'absolute inset-0 bg-cover bg-center bg-no-repeat',
-                    style: `background-image: url('${group.headerImage}')`
-                });
-                
-                const $headerOverlay = $('<div>', {
-                    class: 'absolute inset-0 bg-black bg-opacity-40'
-                });
-                
-                $groupHeader.append($headerBg, $headerOverlay);
-            }
-
-            const $label = $('<label>', {
-                class: 'flex items-center gap-2 cursor-pointer relative z-10 text-white'
+            // Add sl-show/hide listeners to sync checkbox with sl-details
+            $groupHeader[0].addEventListener('sl-show', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+                this._toggleSourceControl(groupIndex, true);
             });
-            
+
+            $groupHeader[0].addEventListener('sl-hide', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+                this._toggleSourceControl(groupIndex, false);
+            });
+
+            // Add empty slots to remove the icons
+            $groupHeader.append(
+                $('<span>', { slot: 'expand-icon' }),
+                $('<span>', { slot: 'collapse-icon' })
+            );
+
+            const $summary = $('<div>', {
+                slot: 'summary',
+                class: 'flex items-center gap-2 relative w-full h-12'
+            });
+
+            const $contentWrapper = $('<div>', {
+                class: 'flex items-center gap-2 relative z-10 w-full p-2'
+            });
+
             const $checkbox = $('<input>', {
                 type: 'checkbox',
                 checked: group.initiallyChecked || false,
                 class: 'w-4 h-4'
             });
 
-            const $sourceControl = $('<div>', {
-                class: 'source-control mt-3 pl-11',
-                style: `display: ${group.initiallyChecked ? 'block' : 'none'};`
-            });
-            this._sourceControls[groupIndex] = $sourceControl[0];
-
-            if (group.initiallyChecked) {
-                setTimeout(() => {
-                    this._toggleSourceControl(groupIndex, true);
-                }, 0);
-            }
-
-            $checkbox.on('change', (e) => {
-                console.log('Checkbox changed:', {
-                    groupIndex,
-                    checked: e.target.checked,
-                    groupTitle: group.title
-                });
-                
-                $(this._sourceControls[groupIndex]).slideToggle(200);
-                
-                this._toggleSourceControl(groupIndex, e.target.checked);
-            });
+           $checkbox.on('click', (e) => {
+            // Stop event propagation to prevent any interference
+            e.stopPropagation();
+            
+            // Get current state and toggle it
+            const currentState = $checkbox.prop('checked');
+            
+            // Update checkbox state
+            $checkbox.prop('checked', currentState);
+            
+            // Update sl-details and layer visibility
+            !!currentState? $groupHeader[0].show() : $groupHeader[0].hide();
+            this._toggleSourceControl(groupIndex, currentState);
+        });
 
             const $titleSpan = $('<span>', { 
                 text: group.title,
-                class: 'text-sm font-medium'
+                class: 'control-title text-sm font-medium font-bold text-white'
             });
 
-            $label.append($checkbox, $titleSpan);
-            $groupHeader.append($label);
-            $groupContainer.append($groupHeader, $sourceControl);
+            // Add header background if exists
+            if (group.headerImage) {
+                const $headerBg = $('<div>', {
+                    class: 'absolute top-0 left-0 right-0 w-full h-full bg-cover bg-center bg-no-repeat',
+                    style: `background-image: url('${group.headerImage}')`
+                });
+                
+                const $headerOverlay = $('<div>', {
+                    class: 'absolute top-0 left-0 right-0 w-full h-full bg-black bg-opacity-40'
+                });
+                
+                $summary.append($headerBg, $headerOverlay, $contentWrapper);
+            } else {
+                $summary.append($contentWrapper);
+            }
+
+            $contentWrapper.append($checkbox, $titleSpan);
+            $groupHeader.append($summary);
+
+            // Add source control to sl-details content
+            const $sourceControl = $('<div>', {
+                class: 'source-control mt-3 pl-11'
+            });
+
+            // Handle different group types and their content
+            if (group.type === 'layer-group') {
+                // Layer group content (already inside sl-details)
+            } else if (group.type === 'terrain') {
+                // Terrain controls
+            } else if (group.type === 'tms') {
+                // TMS layer content
+            } else if (group.type === 'vector') {
+                // Vector layer content
+            } else if (group.type === 'markers') {
+                // Markers content
+            } else {
+                // Other layer types
+            }
+
+            $container.append($groupHeader);
 
             const $opacityContainer = $('<div>', {
                 class: 'opacity-control mt-2 px-2'
@@ -291,6 +328,7 @@ class MapLayerControl {
 
             if (group.type === 'layer-group') {
                 const $radioGroup = $('<div>', { class: 'radio-group mt-2' });
+                const $contentArea = $('<div>');
 
                 group.groups.forEach((subGroup, index) => {
                     const $radioLabel = $('<label>', { class: 'radio-label' });
@@ -332,7 +370,11 @@ class MapLayerControl {
                     }
                 });
 
-                $sourceControl.append($radioGroup);
+                // Add radio group to content area
+                $contentArea.append($radioGroup);
+                
+                // Add content area to sl-details
+                $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 if (!this._map.getSource(sourceId)) {
@@ -406,10 +448,15 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
@@ -724,10 +771,15 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
@@ -932,10 +984,15 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'markers' && group.dataUrl) {
                 fetch(group.dataUrl)
@@ -972,10 +1029,15 @@ class MapLayerControl {
                             });
 
                             if (group.attribution) {
-                                $('<div>', {
-                                    class: 'text-sm text-gray-600 mt-2 px-2',
+                                const $attribution = $('<div>', {
+                                    class: 'text-sm text-gray-600 mt-2',
                                     html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                                }).appendTo($sourceControl);
+                                });
+                                
+                                // Add attribution to sl-details content area instead of source control
+                                const $contentArea = $('<div>');
+                                $contentArea.append($attribution);
+                                $groupHeader.append($contentArea);
                             }
 
                             this._map.on('click', `${sourceId}-circles`, (e) => {
@@ -1023,52 +1085,20 @@ class MapLayerControl {
                     class: 'legend-container mt-4 px-2'
                 });
 
+                const $legendToggle = $('<button>', {
+                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
+                    html: '<span class="legend-icon">▼</span> Show Legend'
+                });
+
                 const $legendImage = $('<img>', {
                     src: group.legendImage,
                     class: 'w-full rounded-lg shadow-sm cursor-pointer',
                     alt: 'Layer Legend'
                 });
 
-                const $legendToggle = $('<button>', {
-                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
-                    html: '<span class="legend-icon">▼</span> Show Legend'
-                });
-
                 const $legendContent = $('<div>', {
                     class: 'legend-content hidden'
                 }).append($legendImage);
-
-                const $modal = $('<div>', {
-                    class: 'legend-modal hidden',
-                    click: (e) => {
-                        if (e.target === $modal[0]) {
-                            $modal.addClass('hidden');
-                        }
-                    }
-                });
-
-                const $modalContent = $('<div>', {
-                    class: 'legend-modal-content'
-                });
-
-                const $modalImage = $('<img>', {
-                    src: group.legendImage,
-                    alt: 'Layer Legend (Full Size)'
-                });
-
-                const $closeButton = $('<button>', {
-                    class: 'legend-modal-close',
-                    html: '×',
-                    click: () => $modal.addClass('hidden')
-                });
-
-                $modalContent.append($closeButton, $modalImage);
-                $modal.append($modalContent);
-                $('body').append($modal);
-
-                $legendImage.on('click', () => {
-                    $modal.removeClass('hidden');
-                });
 
                 $legendToggle.on('click', () => {
                     $legendContent.toggleClass('hidden');
@@ -1078,11 +1108,13 @@ class MapLayerControl {
                 });
 
                 $legendContainer.append($legendToggle, $legendContent);
-                $sourceControl.append($legendContainer);
+                
+                // Add legend to sl-details content area
+                const $contentArea = $('<div>');
+                $contentArea.append($legendContainer);
+                $groupHeader.append($contentArea);
             }
 
-            $groupContainer.append($sourceControl);
-            $container.append($groupContainer);
         });
 
         if (!this._initialized) {
@@ -1382,7 +1414,29 @@ class MapLayerControl {
             checkbox.dispatchEvent(new Event('change'));
         });
 
-        this._initialized = true;
+        if (!this._initialized) {
+            // Add no-transition class initially
+            this._container.classList.add('no-transition');
+            // Force a reflow
+            void this._container.offsetWidth;
+            // Remove no-transition class
+            this._container.classList.remove('no-transition');
+            
+            this._initialized = true;
+        }
+        
+        // Add collapsed class after a brief delay to ensure initial render is complete
+        requestAnimationFrame(() => {
+            this._container.classList.add('collapsed');
+        });
+    }
+
+    toggleControl() {
+        // Ensure smooth animation by using requestAnimationFrame
+        requestAnimationFrame(() => {
+            this._container.classList.toggle('collapsed');
+        });
+        this._toggleButton.classList.toggle('is-open');
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
