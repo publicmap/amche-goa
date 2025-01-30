@@ -86,7 +86,6 @@ class MapLayerControl {
         MapLayerControl.instances = (MapLayerControl.instances || 0) + 1;
         this._instanceId = MapLayerControl.instances;
         this._initialized = false;
-        this._animationTimeouts = [];
         this._sourceControls = [];
         this._editMode = false;
         const editModeToggle = document.getElementById('edit-mode-toggle');
@@ -128,18 +127,6 @@ class MapLayerControl {
                 open: group.initiallyChecked || false
             });
 
-            // Add sl-show/hide listeners to sync checkbox with sl-details
-            $groupHeader[0].addEventListener('sl-show', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                checkbox.checked = true;
-                this._toggleSourceControl(groupIndex, true);
-            });
-
-            $groupHeader[0].addEventListener('sl-hide', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                checkbox.checked = false;
-                this._toggleSourceControl(groupIndex, false);
-            });
 
             // Add empty slots to remove the icons
             $groupHeader.append(
@@ -173,7 +160,40 @@ class MapLayerControl {
             $checkbox.prop('checked', currentState);
             
             // Update sl-details and layer visibility
-            !!currentState? $groupHeader[0].show() : $groupHeader[0].hide();
+            if (currentState) {
+                $groupHeader[0].show();
+                // If group has radio buttons, select the first radio button by default
+                const $firstRadio = $groupHeader.find('input[type="radio"]').first();
+                if ($firstRadio.length) {
+                    $firstRadio.prop('checked', true);
+                    if (group.type === 'layer-group') {
+                        this._handleLayerGroupChange($firstRadio.val(), group.groups);
+                    } else {
+                        this._handleLayerChange($firstRadio.val(), group.layers);
+                    }
+                }
+            } else {
+                $groupHeader[0].hide();
+                // Hide all layers in the group
+                if (group.type === 'layer-group') {
+                    group.groups.forEach(subGroup => {
+                        const allLayers = this._map.getStyle().layers
+                            .map(layer => layer.id)
+                            .filter(id => 
+                                id === subGroup.id || 
+                                id.startsWith(`${subGroup.id}-`) ||
+                                id.startsWith(`${subGroup.id} `)
+                            );
+                        this._updateLayerVisibility(allLayers, false);
+                    });
+                } else if (group.layers) {
+                    group.layers.forEach(layer => {
+                        if (this._map.getLayer(layer.id)) {
+                            this._map.setLayoutProperty(layer.id, 'visibility', 'none');
+                        }
+                    });
+                }
+            }
             this._toggleSourceControl(groupIndex, currentState);
         });
 
@@ -205,21 +225,6 @@ class MapLayerControl {
             const $sourceControl = $('<div>', {
                 class: 'source-control mt-3 pl-11'
             });
-
-            // Handle different group types and their content
-            if (group.type === 'layer-group') {
-                // Layer group content (already inside sl-details)
-            } else if (group.type === 'terrain') {
-                // Terrain controls
-            } else if (group.type === 'tms') {
-                // TMS layer content
-            } else if (group.type === 'vector') {
-                // Vector layer content
-            } else if (group.type === 'markers') {
-                // Markers content
-            } else {
-                // Other layer types
-            }
 
             $container.append($groupHeader);
 
@@ -1143,8 +1148,6 @@ class MapLayerControl {
         const $sourceControl = $(this._sourceControls[groupIndex]);
 
         if (checked) {
-            $sourceControl.slideDown(200);
-
             if (group.type === 'vector') {
                 const sourceId = `vector-source-${group.id}`;
                 if (!this._map.getSource(sourceId)) {
@@ -1270,7 +1273,6 @@ class MapLayerControl {
                 }
             }
         } else {
-            $sourceControl.slideUp(200);
 
             if (group.type === 'terrain') {
                 this._map.setTerrain(null);
@@ -1752,8 +1754,6 @@ class MapLayerControl {
         if (this._resizeTimeout) {
             clearTimeout(this._resizeTimeout);
         }
-        this._animationTimeouts.forEach(clearTimeout);
-        this._animationTimeouts = [];
     }
 }
 
