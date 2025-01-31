@@ -248,6 +248,27 @@ function getQueryParameters() {
                             ]
                         },
                         {
+                            id: 'municipal-wards',
+                            title: 'Municipal Ward Boundaries',
+                            description: 'Urban Local Body Ward Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'sbm_wards',
+                            attribution: 'Source: Swachh Bharat Mission GIS',
+                            style: {
+                                'fill-color': 'red',
+                                'line-width': 5,
+                                'line-opacity': 0.8
+                            },
+                            inspect: {
+                                title: 'Ward Number',
+                                label: 'wardcode',
+                                id: 'objectid',
+                                fields: ['ulbname'],
+                                fieldTitles: ['Urban Local Body']
+                            }
+                        },
+                        {
                             id: 'slope-zones',
                             title: 'Slope Zoning',
                             description: 'Slope zone classification using terrain data',
