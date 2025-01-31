@@ -148,9 +148,10 @@ class MapLayerControl {
                 checked: group.initiallyChecked || false,
                 class: 'w-4 h-4'
             });
-
-           $checkbox.on('click', (e) => {
-            // Stop event propagation to prevent any interference
+    
+        // Update checkbox click handler
+        $checkbox.on('click', (e) => {
+            // Stop event propagation to prevent any interference  
             e.stopPropagation();
             
             // Get current state and toggle it
@@ -158,6 +159,11 @@ class MapLayerControl {
             
             // Update checkbox state
             $checkbox.prop('checked', currentState);
+            
+            // Show/hide opacity switch for supported layer types
+            if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                $opacityButton.toggleClass('hidden', !currentState);
+            }
             
             // Update sl-details and layer visibility
             if (currentState) {
@@ -197,6 +203,87 @@ class MapLayerControl {
             this._toggleSourceControl(groupIndex, currentState);
         });
 
+
+        const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+                ? $('<sl-icon-button>', {
+                    class: 'opacity-toggle hidden ml-auto',
+                    'data-opacity': '0.95',
+                    title: 'Toggle opacity',
+                    name: 'layers-fill', // Start with filled icon
+                    'font-size': '2.5rem'
+                }).css({
+                    '--sl-color-neutral-600': '#ffffff', // Start with white for full opacity
+                    '--sl-color-primary-600': 'currentColor', // Use current color instead of hover effect
+                    '--sl-color-primary-500': 'currentColor',
+                    'color': '#ffffff' // Set initial color
+                })
+                : $('<span>');
+
+        $opacityButton[0]?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
+
+            const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
+            $opacityButton.attr('data-opacity', newOpacity);
+            $opacityButton.title = `Toggle opacity`;
+            
+            // Update icon and color based on opacity
+            $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
+            $opacityButton.css({
+                'color': newOpacity === 0.95 ? '#ffffff' : '#999999'
+            });
+            
+            if (group.type === 'layer-group') {
+                const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                group.groups.forEach(subGroup => {
+                    const matchingLayers = allLayers.filter(layerId => 
+                        layerId === subGroup.id || 
+                        layerId.startsWith(`${subGroup.id}-`) ||
+                        layerId.startsWith(`${subGroup.id} `)
+                    );
+                    
+                    matchingLayers.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            const layer = this._map.getLayer(layerId);
+                            if (layer.type === 'fill') {
+                                this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                            } else if (layer.type === 'line') {
+                                this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
+                            } else if (layer.type === 'symbol') {
+                                this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
+                            } else if (layer.type === 'raster') {
+                                this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                            }
+                        }
+                    });
+                });
+            } else if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-fill`)) {
+                    this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
+                }
+                if (this._map.getLayer(`${sourceId}-line`)) {
+                    this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
+                }
+                if (this._map.getLayer(`${sourceId}-label`)) {
+                    this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
+                }
+            } else if (group.type === 'tms') {
+                const layerId = `tms-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                }
+            } else if (group.type === 'vector') {
+                const layerId = `vector-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                    this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
+                }
+            }
+        });
+
+          
             const $titleSpan = $('<span>', { 
                 text: group.title,
                 class: 'control-title text-sm font-medium font-bold text-white'
@@ -218,7 +305,7 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($checkbox, $titleSpan);
+            $contentWrapper.append($checkbox, $titleSpan, $opacityButton);
             $groupHeader.append($summary);
 
             // Add source control to sl-details content
