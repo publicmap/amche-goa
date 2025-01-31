@@ -620,3 +620,93 @@ sl-details.map-controls-group::part(base) {
 sl-details.map-controls-group::part(content) {
     padding-top: 0;
 }
+
+/* Add styles to ensure proper spacing and scrolling for fog settings */
+.fog-settings-content {
+    max-height: 70vh; /* Limit maximum height */
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+    padding-right: 8px; /* Add some padding for the scrollbar */
+}
+
+/* Add smooth scrolling for a better user experience */
+.fog-settings-content {
+    scroll-behavior: smooth;
+}
+
+/* Style the scrollbar for better visibility */
+.fog-settings-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.fog-settings-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.fog-settings-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.fog-settings-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Style the terrain control container */
+.terrain-control-container {
+    max-height: 400px;  /* Set a maximum height */
+    overflow-y: auto;   /* Enable vertical scrolling */
+    padding-right: 12px; /* Add padding for scrollbar */
+}
+
+/* Style the terrain settings sections */
+.terrain-settings-section {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+/* Style the scrollbar */
+.terrain-control-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.terrain-control-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.terrain-control-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.terrain-control-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Ensure proper spacing for controls */
+.terrain-control-container .terrain-settings-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Style the fog settings checkbox area */
+.terrain-control-container label.flex.items-center {
+    padding: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+}
+
+/* Style the input controls */
+.terrain-control-container input[type="range"],
+.terrain-control-container input[type="color"] {
+    width: 100%;
+    margin: 4px 0;
+}
+
+/* Style the color picker containers */
+.terrain-control-container .flex.items-center {
+    gap: 8px;
+}

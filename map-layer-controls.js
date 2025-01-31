@@ -310,7 +310,7 @@ class MapLayerControl {
 
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
-                class: 'source-control mt-3'
+                class: 'source-control mt-3 terrain-control-container' // Add terrain-control-container class
             });
 
             $container.append($groupHeader);
@@ -551,7 +551,9 @@ class MapLayerControl {
                     $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'terrain') {
-                const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
+                const $sliderContainer = $('<div>', { 
+                    class: 'terrain-settings-section' // Add terrain-settings-section class
+                });
 
                 const $contoursContainer = $('<div>', { class: 'mb-4' });
                 const $contoursLabel = $('<label>', { class: 'flex items-center' });
@@ -785,26 +787,33 @@ class MapLayerControl {
 
                 $colorContainer.append(
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'Fog Color'
                     }),
-                    $('<div>', { class: 'flex items-center' }).append($colorPicker, $colorValue),
+                    $('<div>', { class: 'flex items-center mb-3' }).append($colorPicker, $colorValue), // Add bottom margin
 
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'High Color'
                     }),
-                    $('<div>', { class: 'flex items-center' }).append($highColorPicker, $highColorValue),
+                    $('<div>', { class: 'flex items-center mb-3' }).append($highColorPicker, $highColorValue), // Add bottom margin
 
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'Space Color'
                     }),
                     $('<div>', { class: 'flex items-center' }).append($spaceColorPicker, $spaceColorValue)
                 );
 
-                const $fogSettingsContainer = $('<div>', { class: 'mt-4' });
-                const $fogSettingsLabel = $('<label>', { class: 'flex items-center' });
+                // Update the fog settings container and controls
+                const $fogSettingsContainer = $('<div>', { 
+                    class: 'mt-4 mb-4' // Add bottom margin
+                });
+
+                const $fogSettingsLabel = $('<label>', { 
+                    class: 'flex items-center mb-2' // Add margin bottom
+                });
+
                 const $fogSettingsCheckbox = $('<input>', {
                     type: 'checkbox',
                     class: 'mr-2',
@@ -819,8 +828,9 @@ class MapLayerControl {
                     })
                 );
 
+                // Update the fog settings content container
                 const $fogSettingsContent = $('<div>', {
-                    class: 'fog-settings-content mt-2 hidden'
+                    class: 'fog-settings-content mt-2 hidden pb-4 terrain-settings-section' // Add terrain-settings-section class
                 });
 
                 $fogSettingsContent.append(
@@ -829,10 +839,12 @@ class MapLayerControl {
                     $colorContainer
                 );
 
+                // Add the toggle behavior back
                 $fogSettingsCheckbox.on('change', (e) => {
                     $fogSettingsContent.toggleClass('hidden', !e.target.checked);
                 });
 
+                // Append everything to the container
                 $fogSettingsContainer.append($fogSettingsLabel, $fogSettingsContent);
 
                 $sourceControl.append(
