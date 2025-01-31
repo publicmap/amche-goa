@@ -18,8 +18,9 @@
 
 import os
 import pandas as pd
+import csv
 
-state_code=30
+# Define state name to extract
 state_name='goa'
 
 # Define urban body type mapping
@@ -64,27 +65,116 @@ print("\n".join(rural_body_villages.columns.tolist()))
 print("\nurban_body_wards:")
 print("\n".join(urban_body_wards.columns.tolist()))
 
-# Standardize column names based on actual CSV headers
+# Debug: Print actual column names
+print("\nActual urban_body_wards columns:")
+print(urban_body_wards.columns.tolist())
 
-rural_body_wards = rural_body_wards.rename(columns={
+# Debug: Print detailed column information
+print("\nDetailed column analysis:")
+for col in urban_body_wards.columns:
+    print(f"Column: '{col}' (length: {len(col)})")
+    print(f"ASCII values: {[ord(c) for c in col]}")
+
+# Debug: Print exact matches we're looking for
+required_columns = ['Urban Localbody Code', 'District Name', 'District Code', 'SubDistrict Code', 'SubDistrict Name']
+print("\nChecking for required columns:")
+for col in required_columns:
+    exists = col in urban_body_wards.columns
+    print(f"'{col}' exists: {exists}")
+    if not exists:
+        close_matches = [existing for existing in urban_body_wards.columns if col.lower() in existing.lower()]
+        print(f"Possible matches: {close_matches}")
+
+# Get the exact column names from the DataFrame
+urban_cols = urban_body_wards.columns.tolist()
+
+# Find the exact column names we need
+urban_code_col = [col for col in urban_cols if 'Urban Localbody Code' in col][0]
+district_name_col = [col for col in urban_cols if 'District Name' in col][0]
+district_code_col = [col for col in urban_cols if 'District Code' in col][0]
+subdistrict_code_col = [col for col in urban_cols if 'SubDistrict Code' in col][0]
+subdistrict_name_col = [col for col in urban_cols if 'SubDistrict Name' in col][0]
+
+# Debug: Print the columns we found
+print("\nFound column names:")
+print(f"Urban code: '{urban_code_col}'")
+print(f"District name: '{district_name_col}'")
+print(f"District code: '{district_code_col}'")
+print(f"Subdistrict code: '{subdistrict_code_col}'")
+print(f"Subdistrict name: '{subdistrict_name_col}'")
+
+# Create list of columns to use
+columns_to_use = [
+    urban_code_col,
+    district_name_col,
+    district_code_col,
+    subdistrict_code_col,
+    subdistrict_name_col
+]
+
+# Use the column list
+urban_districts = urban_body_wards.groupby('Urban Localbody Code').agg({
+    'District Code': lambda x: x.dropna().iloc[0] if not x.dropna().empty else '',
+    'District Name': lambda x: x.dropna().iloc[0] if not x.dropna().empty else '',
+    'SubDistrict Code': lambda x: x.dropna().iloc[0] if not x.dropna().empty else '',
+    'SubDistrict Name': lambda x: x.dropna().iloc[0] if not x.dropna().empty else ''
+}).reset_index()
+
+# Rename columns to standardize them
+urban_districts = urban_districts.rename(columns={
+    'Urban Localbody Code': 'Code'
+})
+
+# Convert codes to string, handling NA values
+urban_districts['District Code'] = urban_districts['District Code'].fillna('').astype(str)
+urban_districts['District Code'] = urban_districts['District Code'].apply(lambda x: str(int(float(x))) if x else '')
+urban_districts['SubDistrict Code'] = urban_districts['SubDistrict Code'].fillna('').astype(str)
+urban_districts['SubDistrict Code'] = urban_districts['SubDistrict Code'].apply(lambda x: str(int(float(x))) if x else '')
+
+# Create rural_districts with renamed columns and ensure district code is string
+rural_districts = rural_body_villages[[
+    'Local Body Code',
+    'District Name (in English)',
+    'District Code',
+    'Sub District Code',
+    'Sub District Name (in English)'
+]].drop_duplicates()
+
+# Rename the columns to match our standardized names
+rural_districts = rural_districts.rename(columns={
     'Local Body Code': 'Code',
-    'Local Body Name': 'Name',
-    'Local Body Type': 'Type'
-}) 
+    'District Name (in English)': 'District Name',
+    'Sub District Name (in English)': 'SubDistrict Name',
+    'Sub District Code': 'SubDistrict Code'
+})
+
+# Convert codes to string, handling NA values
+rural_districts['District Code'] = rural_districts['District Code'].fillna('').astype(str)
+rural_districts['District Code'] = rural_districts['District Code'].apply(lambda x: str(int(float(x))) if x else '')
+rural_districts['SubDistrict Code'] = rural_districts['SubDistrict Code'].fillna('').astype(str)
+rural_districts['SubDistrict Code'] = rural_districts['SubDistrict Code'].apply(lambda x: str(int(float(x))) if x else '')
+
+# Standardize column names based on actual CSV headers
+urban_body_wards = urban_body_wards.rename(columns={
+    'Urban Localbody Code': 'Code',
+    'Urban Localbody Name': 'Name',
+    'Localbody Type': 'Type',
+    'SubDistrict Name': 'SubDistrict Name'  # This should match exactly
+})
 
 rural_body_villages = rural_body_villages.rename(columns={
     'Local Body Code': 'Code',
     'Local Body Name (in English)': 'Name',
     'Local Body Type': 'Type',
-    'Sub District Name (in English)': 'Subdistrict Name',
+    'Sub District Name (in English)': 'SubDistrict Name',
     'District Name (in English)': 'District Name'
 })
 
-urban_body_wards = urban_body_wards.rename(columns={
-    'Urban Localbody Code': 'Code',
-    'Urban Localbody Name': 'Name',
-    'Localbody Type': 'Type',
-    'SubDistrict Name': 'Subdistrict Name'
+# Standardize column names for rural_body_wards
+rural_body_wards = rural_body_wards.rename(columns={
+    'Local Body Code': 'Code',
+    'Local Body Name': 'Name',
+    'Local Body Type': 'Type'
 })
 
 # Derive rural_bodies from ward mapping (similar to urban_bodies)
@@ -107,22 +197,22 @@ all_bodies = pd.concat([rural_bodies, urban_bodies], ignore_index=True)
 
 def map_subdistrict_names(all_bodies, urban_body_wards, rural_body_villages):
     # First ensure the column exists in all_bodies
-    if 'Subdistrict Name' not in all_bodies.columns:
-        all_bodies['Subdistrict Name'] = pd.NA
+    if 'SubDistrict Name' not in all_bodies.columns:
+        all_bodies['SubDistrict Name'] = pd.NA
     
-    # For urban bodies, group by Urban Localbody Code to get unique subdistrict mappings
-    valid_urban_mapping = urban_body_wards.dropna(subset=['Subdistrict Name'])\
+    # For urban bodies, group by Code to get unique subdistrict mappings
+    valid_urban_mapping = urban_body_wards.dropna(subset=['SubDistrict Name'])\
         .groupby('Code')\
         .agg({
-            'Subdistrict Name': 'first'
+            'SubDistrict Name': 'first'
         })\
         .reset_index()
     
-    # For rural bodies, group by Local Body Code to get unique subdistrict mappings
-    valid_pri_mapping = rural_body_villages.dropna(subset=['Subdistrict Name'])\
+    # For rural bodies, group by Code to get unique subdistrict mappings
+    valid_pri_mapping = rural_body_villages.dropna(subset=['SubDistrict Name'])\
         .groupby('Code')\
         .agg({
-            'Subdistrict Name': 'first'
+            'SubDistrict Name': 'first'
         })\
         .reset_index()
     
@@ -138,7 +228,7 @@ def map_subdistrict_names(all_bodies, urban_body_wards, rural_body_villages):
     )
 
     # Update only where original values are NA
-    all_bodies['Subdistrict Name'] = all_bodies['Subdistrict Name'].fillna(merged_data['Subdistrict Name_new'])
+    all_bodies['SubDistrict Name'] = all_bodies['SubDistrict Name'].fillna(merged_data['SubDistrict Name_new'])
     
     return all_bodies
 
@@ -196,74 +286,225 @@ all_ward_counts = pd.concat([
 # Map the counts to all_bodies
 all_bodies['Ward Count'] = all_bodies['Code'].map(all_ward_counts).fillna(0).astype(int)
 
-# Load the district information from the mapping files
-urban_districts = urban_body_wards[['Code', 'District Name']].drop_duplicates()
-rural_districts = rural_body_villages[['Code', 'District Name']].drop_duplicates()
-
-# Concatenate the district information
-all_districts = pd.concat([urban_districts, rural_districts], ignore_index=True)
-
 # Merge the district information into all_bodies
-# Modified merge to handle the column naming properly
-all_bodies = all_bodies.drop(columns=['District Name'], errors='ignore')  # Remove any existing District Name column
-all_bodies = all_bodies.merge(all_districts, on='Code', how='left')
-
-# Update the drop columns list to include 'District Name_y' instead of 'District Name'
-all_bodies = all_bodies.drop(columns=[
-    'S.No.',
-    'Ward Code', 
-    'Ward Number', 
-    'Ward Name',
-    'Ward Name (In English)', 
-    'Ward Name (In Local)',
-    'District Level Parent Name',
-    'State Code', 
-    'State Name',
-    'Parliament Constituency code',
-    'Parliament Constituency Code',
-    'Parliament Constituency ECI Code',
-    'Parliament Constituency Name',
-    'Assembly Constituency Code',
-    'Assembly Constituency ECI Code',
-    'Assembly Constituency Name',
-    'District Code',
-    'SubDistrict Code'
-], errors='ignore')
+all_bodies = all_bodies.merge(
+    pd.concat([rural_districts, urban_districts]), 
+    on='Code', 
+    how='left',
+    suffixes=('_old', '')  # Keep the new values from the districts data
+)
 
 # Add Class field based on body type and village names
 def determine_class(row):
     # Check if body type is Municipal Corporation
     if row['Type'] == 'Municipal Corporation':
-        return 'Metropolitan'
+        return 'City'
     # Check if body type is in urban types
     elif row['Type'] in URBAN_BODY_TYPES.values():
-        return 'Urban'
+        return 'Town'
     # For rural bodies, check village names for special cases
     elif pd.notna(row['Village Names']) and any(suffix in str(row['Village Names']) for suffix in ['(Ct)', '(Og)']):
-        return 'Rurban'
+        return 'Suburb'
     else:
-        return 'Rural'
+        return 'Village'
 
 all_bodies['Class'] = all_bodies.apply(determine_class, axis=1)
 
-# Reorder columns in a more natural sequence
+# Update the column order to match actual column names in the dataframe
 column_order = [
     'Code',
     'Name',
     'Class',
     'Type',
+    'District Code',
     'District Name',
-    'Subdistrict Name',
+    'SubDistrict Code',
+    'SubDistrict Name',
+    'Parliament Constituency code',
+    'Parliament Constituency Name',
+    'Assembly Constituency Code',
+    'Assembly Constituency Name',
     'Ward Count',
     'Village Names'
 ]
 
-# Reorder columns and sort by District, Subdistrict, Name in descending order
+# First ensure all required columns exist
+for col in column_order:
+    if col not in all_bodies.columns:
+        all_bodies[col] = None  # Add missing columns with None values
+
+# Now reorder columns and sort
 all_bodies = all_bodies[column_order].sort_values(
-    by=['Class','District Name', 'Subdistrict Name', 'Name'],
-    ascending=[False, True, True, True]
+    by=['District Name', 'SubDistrict Name', 'Class', 'Name'],
+    ascending=[True, True, False, True]
 )
 
-# Save the updated data
-all_bodies.to_csv('./goa_local_body_lookup.csv', index=False)
+# Add new lookup dictionaries for constituency mappings
+urban_ward_constituency_map = {}
+rural_ward_constituency_map = {}
+
+def load_constituency_mappings():
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Load urban constituency mappings
+    mapping_file = os.path.join(script_dir, 'filtered', 'goa_constituencies_mapping_urban.csv')
+    print(f"Loading urban constituency mappings from: {mapping_file}")
+    
+    with open(mapping_file, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            ward_code = row['Ward Code']
+            parliament_code = row['Parliament Constituency code']
+            parliament_name = row['Parliament Constituency Name']
+            assembly_code = row['Assembly Constituency Code'] 
+            assembly_name = row['Assembly Constituency Name']
+            
+            urban_ward_constituency_map[ward_code] = (
+                parliament_code,
+                parliament_name, 
+                assembly_code,
+                assembly_name
+            )
+    
+    # Load rural constituency mappings from coverage file
+    coverage_file = os.path.join(script_dir, 'filtered', 'goa_constituency_coverage.csv')
+    print(f"\nLoading rural constituency mappings from: {coverage_file}")
+    
+    # Create a mapping of villages to constituencies
+    village_constituency_map = {}
+    with open(coverage_file, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row['Entity Type'] == 'Village':
+                village_code = row['Entity Code']
+                parliament_code = row['Parliament Constituency Code']
+                parliament_name = row['Parliament Constituency Name']
+                assembly_code = row['Assembly Constituency Code']
+                assembly_name = row['Assembly Constituency Name']
+                
+                village_constituency_map[village_code] = (
+                    parliament_code,
+                    parliament_name,
+                    assembly_code,
+                    assembly_name
+                )
+    
+    # Debug: Print column names
+    print("\nRural body villages columns:")
+    print(rural_body_villages.columns.tolist())
+    
+    # For rural bodies, map based on their villages
+    for _, row in rural_body_villages.iterrows():
+        if pd.notna(row['Code']) and pd.notna(row['Village Code']):  # Changed from 'Local Body Code'
+            body_code = str(int(row['Code']))  # Changed from 'Local Body Code'
+            village_code = str(row['Village Code'])
+            
+            if village_code in village_constituency_map:
+                rural_ward_constituency_map[body_code] = village_constituency_map[village_code]
+    
+    print(f"\nLoaded {len(urban_ward_constituency_map)} urban and {len(rural_ward_constituency_map)} rural constituency mappings")
+
+def process_row(row):
+    # Add constituency fields with defaults
+    parliament_code = ''
+    parliament_name = ''
+    assembly_code = ''
+    assembly_name = ''
+    
+    body_code = str(row['Code'])
+    
+    # Debug: Print row info
+    print(f"\nProcessing {row['Type']} body: {row['Name']} (Code: {body_code})")
+    
+    # For urban bodies, use the ward mapping
+    if row['Type'] in URBAN_BODY_TYPES.values():
+        body_wards = urban_body_wards[urban_body_wards['Code'] == row['Code']]
+        if not body_wards.empty:
+            first_ward = body_wards.iloc[0]
+            ward_code = str(first_ward['Ward Code'])
+            if ward_code in urban_ward_constituency_map:
+                parliament_code, parliament_name, assembly_code, assembly_name = urban_ward_constituency_map[ward_code]
+                print(f"Found urban mapping: {parliament_name} / {assembly_name}")
+    
+    # For rural bodies, use the direct mapping
+    elif body_code in rural_ward_constituency_map:
+        parliament_code, parliament_name, assembly_code, assembly_name = rural_ward_constituency_map[body_code]
+        print(f"Found rural mapping: {parliament_name} / {assembly_name}")
+    else:
+        print("No constituency mapping found")
+    
+    # Add new fields to row
+    row['Parliament Constituency code'] = parliament_code
+    row['Parliament Constituency Name'] = parliament_name 
+    row['Assembly Constituency Code'] = assembly_code
+    row['Assembly Constituency Name'] = assembly_name
+    
+    return row
+
+# Load constituency mappings before processing
+print("Loading constituency mappings...")
+load_constituency_mappings()
+
+# Apply constituency mapping to each row
+print("Adding constituency information...")
+all_bodies = all_bodies.apply(process_row, axis=1)
+
+# Before saving, rename Panaji
+all_bodies.loc[all_bodies['Name'] == 'City Corporation Panaji', 'Name'] = 'Panaji'
+
+def get_village_pincodes():
+    # Read the pincode villages file
+    pincode_villages = {}  # Map village code to pincode
+    with open('./filtered/goa_pincode_villages.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            village_code = row['Village Code']
+            pincode = row['Pincode']
+            pincode_villages[village_code] = pincode
+
+    # Read the GP mapping file to get village to GP mapping
+    village_to_gp = {}  # Map village code to GP code
+    with open('./filtered/goa_gp_mapping.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            village_code = row['Village Code']
+            gp_code = row['Local Body Code']
+            if village_code and gp_code:  # Skip empty codes
+                village_to_gp[village_code] = gp_code
+
+    # Build mapping of GP to pincodes
+    gp_pincodes = {}  # Map GP code to set of pincodes
+    for village_code, pincode in pincode_villages.items():
+        if village_code in village_to_gp:
+            gp_code = village_to_gp[village_code]
+            if gp_code not in gp_pincodes:
+                gp_pincodes[gp_code] = set()
+            gp_pincodes[gp_code].add(pincode)
+
+    return gp_pincodes
+
+def update_local_bodies():
+    gp_pincodes = get_village_pincodes()
+    
+    # Read and update local bodies file
+    rows = []
+    with open('./goa_local_body_lookup.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        headers = reader.fieldnames
+        for row in reader:
+            gp_code = row['Code']
+            if gp_code in gp_pincodes:
+                pincodes = sorted(gp_pincodes[gp_code])
+                row['Pincodes'] = ', '.join(pincodes)
+            rows.append(row)
+
+    # Write updated file
+    with open('./goa_local_body_lookup.csv', 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(rows)
+
+if __name__ == '__main__':
+    update_local_bodies()
 
