@@ -1,4 +1,4 @@
-import { convertToKML, gstableToArray } from './map-utils.js';
+import { convertToKML, gstableToArray, fillInFieldTemplates } from './map-utils.js';
 
 class MapLayerControl {
     constructor(options) {
@@ -1468,7 +1468,8 @@ class MapLayerControl {
         if (group.inspect?.customHtml) {
             const customContent = document.createElement('div');
             customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
-            customContent.innerHTML = group.inspect.customHtml;
+            const customHtml = fillInFieldTemplates(group.inspect.customHtml, feature.properties);
+            customContent.innerHTML = customHtml;
             content.appendChild(customContent);
         }
 

@@ -103,3 +103,12 @@ export function gstableToArray(tableData) {
     });
     return result;
 } 
+
+/**
+ * fill in field templates enclosed in square brackets with values from feature properties
+ */
+export function fillInFieldTemplates(str, properties) {
+    return str.replace(/\[([^\]]+)\]/g, (match, key) => {
+        return properties.hasOwnProperty(key) ? properties[key] : match;
+    });
+}
