@@ -544,6 +544,7 @@ sl-drawer::part(panel) {
     backdrop-filter: blur(8px);
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     width: 400px;
+    z-index: 50;
 }
 
 /* Update opacity toggle button styles */
@@ -618,8 +619,4 @@ sl-details.map-controls-group::part(base) {
 }
 sl-details.map-controls-group::part(content) {
     padding-top: 0;
-}
-
-sl-details.map-controls-group::part(header) {
-    /* padding: 0; */
 }
