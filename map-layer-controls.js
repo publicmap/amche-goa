@@ -223,7 +223,7 @@ class MapLayerControl {
 
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
-                class: 'source-control mt-3 pl-11'
+                class: 'source-control mt-3'
             });
 
             $container.append($groupHeader);
@@ -501,6 +501,7 @@ class MapLayerControl {
 
                 $contoursContainer.append($contoursLabel);
                 $sourceControl.append($contoursContainer);
+                $groupHeader.append($sourceControl);
 
                 const $exaggerationSlider = $('<input>', {
                     type: 'range',
