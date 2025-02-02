@@ -126,6 +126,25 @@ class MapLayerControl {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
             });
+            this._sourceControls[groupIndex] = $groupHeader[0];
+
+            // Add sl-show/hide listeners to sync checkbox with sl-details
+            $groupHeader[0].addEventListener('sl-show', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+                this._toggleSourceControl(groupIndex, true);
+                $opacityButton.toggleClass('hidden', false);
+            });
+
+            $groupHeader[0].addEventListener('sl-hide', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+                this._toggleSourceControl(groupIndex, false);
+                $opacityButton.toggleClass('hidden', true);
+            });
+            
+
+
 
 
             // Add empty slots to remove the icons
@@ -228,11 +247,8 @@ class MapLayerControl {
             $opacityButton.attr('data-opacity', newOpacity);
             $opacityButton.title = `Toggle opacity`;
             
-            // Update icon and color based on opacity
+            // Update icon based on opacity
             $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
-            $opacityButton.css({
-                'color': newOpacity === 0.95 ? '#ffffff' : '#999999'
-            });
             
             if (group.type === 'layer-group') {
                 const allLayers = this._map.getStyle().layers.map(layer => layer.id);

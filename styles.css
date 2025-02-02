@@ -710,3 +710,22 @@ sl-details.map-controls-group::part(content) {
 .terrain-control-container .flex.items-center {
     gap: 8px;
 }
+
+sl-details::part(base) {
+    /* Remove focus ring */
+    --sl-focus-ring: none;
+    /* Remove any background color change on focus */
+    background: transparent !important;
+}
+
+sl-details::part(header) {
+    /* Remove any background color change on focus/active states */
+    background: transparent !important;
+}
+
+sl-details::part(summary) {
+    /* Remove any background highlight on focus/active states */
+    background: transparent !important;
+    /* Remove outline on focus */
+    outline: none;
+}
