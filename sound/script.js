@@ -264,7 +264,8 @@ function initializeAudio() {
                                 ],
                                 db: db,
                                 accuracy: Math.round(locationAccuracy), // accuracy rounded to integer
-                                timestamp: firebase.database.ServerValue.TIMESTAMP
+                                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                                userAgent: navigator.userAgent // Add user agent information
                             });
 
                             lastUpdateTime = timestamp;
