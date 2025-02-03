@@ -102,33 +102,50 @@
         document.getElementById('exportBtn').addEventListener('click', function() {
             console.log("Export button clicked");
             
-            // Assuming 'map' is your Mapbox GL JS map object
-            if (map && map.getSource('noise-data')) {
-                let geoJsonData = map.getSource('noise-data')._data;
+            if (map && map.getSource('noise')) {
+                let geoJsonData = map.getSource('noise')._data;
                 console.log("GeoJSON data:", geoJsonData);
                 
                 if (geoJsonData && geoJsonData.features && geoJsonData.features.length > 0) {
-                    // Convert GeoJSON object to a JSON string
-                    let dataStr = JSON.stringify(geoJsonData);
+                    const csvRows = [
+                        ['Latitude', 'Longitude', 'Decibels', 'Accuracy', 'Timestamp'].join(',')
+                    ];
+
+                    // Sort features by timestamp in descending order
+                    const sortedFeatures = [...geoJsonData.features].sort((a, b) => 
+                        b.properties.timestamp - a.properties.timestamp
+                    );
+
+                    sortedFeatures.forEach(feature => {
+                        const row = [
+                            feature.geometry.coordinates[1],
+                            feature.geometry.coordinates[0],
+                            feature.properties.db,
+                            feature.properties.accuracy,
+                            new Date(feature.properties.timestamp).toISOString()
+                        ].join(',');
+                        csvRows.push(row);
+                    });
+
+                    const csvContent = csvRows.join('\n');
+                    const dataBlob = new Blob([csvContent], {type: 'text/csv'});
                     
-                    // Create a Blob with the data
-                    let dataBlob = new Blob([dataStr], {type: 'application/json'});
-                    
-                    // Create a download link and trigger the download
-                    let url = URL.createObjectURL(dataBlob);
-                    let link = document.createElement("a");
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement("a");
                     link.setAttribute("href", url);
-                    link.setAttribute("download", "noise_data.geojson");
+                    link.setAttribute("download", "noise_data.csv");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
-                    console.log("GeoJSON download initiated");
+                    console.log("CSV download initiated");
                 } else {
-                    console.log("No features found in the GeoJSON data");
+                    console.log("No features found in the data");
+                    alert("No data available to export");
                 }
             } else {
-                console.log("Map or noise-data source not found");
+                console.log("Map or noise source not found");
+                alert("No data available to export");
             }
         });
     </script>

@@ -258,9 +258,12 @@ function initializeAudio() {
 
                             // Update Firebase with the user's current noise level, location, and accuracy
                             database.ref('users/' + userId).set({
-                                location: userLocation,
+                                location: [
+                                    Number(userLocation[0].toFixed(4)), // longitude rounded to 4 decimals
+                                    Number(userLocation[1].toFixed(4))  // latitude rounded to 4 decimals
+                                ],
                                 db: db,
-                                accuracy: locationAccuracy,
+                                accuracy: Math.round(locationAccuracy), // accuracy rounded to integer
                                 timestamp: firebase.database.ServerValue.TIMESTAMP
                             });
 
