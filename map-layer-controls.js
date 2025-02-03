@@ -142,10 +142,17 @@ class MapLayerControl {
                 this._toggleSourceControl(groupIndex, false);
                 $opacityButton.toggleClass('hidden', true);
             });
-            
 
-
-
+            // NEW CODE: If the group is initially checked, we need to explicitly toggle the source control
+            if (group.initiallyChecked) {
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    this._toggleSourceControl(groupIndex, true);
+                    if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                        $opacityButton.toggleClass('hidden', false);
+                    }
+                });
+            }
 
             // Add empty slots to remove the icons
             $groupHeader.append(
