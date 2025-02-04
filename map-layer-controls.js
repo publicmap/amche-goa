@@ -86,8 +86,6 @@ class MapLayerControl {
         MapLayerControl.instances = (MapLayerControl.instances || 0) + 1;
         this._instanceId = MapLayerControl.instances;
         this._initialized = false;
-        this._animationTimeouts = [];
-        this._collapsed = window.innerWidth < 768;
         this._sourceControls = [];
         this._editMode = false;
         const editModeToggle = document.getElementById('edit-mode-toggle');
@@ -100,188 +98,340 @@ class MapLayerControl {
         }
     }
 
-    onAdd(map) {
+    renderToContainer(container, map) {
         this._map = map;
-
-        this._wrapper = $('<div>', {
-            class: 'mapboxgl-ctrl mapboxgl-ctrl-group layer-control-wrapper'
-        })[0];
-
-        this._toggleButton = $('<button>', {
-            class: 'layer-control-toggle' + (this._collapsed ? '' : ' is-open'),
-            html: this._collapsed ? '≡' : '×',
-            click: (e) => {
-                e.stopPropagation();
-                this._toggleCollapse();
-            }
-        })[0];
-
-        this._container = $('<div>', {
-            class: 'mapboxgl-ctrl layer-control' + (this._collapsed ? ' collapsed' : '')
-        })[0];
-
-        this._wrapper.appendChild(this._toggleButton);
-        this._wrapper.appendChild(this._container);
-
+        this._container = container;
+        
+        const $controlContainer = $('<div>', {
+            class: 'layer-control'
+        });
+        
         if (this._map.isStyleLoaded()) {
-            this._initializeControl();
+            this._initializeControl($controlContainer);
         } else {
             this._map.on('style.load', () => {
-                this._initializeControl();
+                this._initializeControl($controlContainer);
             });
         }
-
-        if (window.innerWidth < 768) {
-            $(this._container).addClass('collapsed no-transition');
-            setTimeout(() => {
-                $(this._container).removeClass('no-transition');
-            }, 100);
-        }
-
-        return this._wrapper;
+        
+        $(container).append($controlContainer);
     }
 
-    _toggleCollapse() {
-        this._collapsed = !this._collapsed;
-        $(this._container).toggleClass('collapsed');
-        $(this._toggleButton)
-            .toggleClass('is-open')
-            .html(this._collapsed ? '≡' : '×');
-    }
-
-    _handleResize() {
-        if (this._resizeTimeout) {
-            clearTimeout(this._resizeTimeout);
-        }
-        this._resizeTimeout = setTimeout(() => {
-            if (window.innerWidth < 768 && !this._collapsed) {
-                this._toggleCollapse();
-            }
-        }, 250);
-    }
-
-    _initializeControl() {
+    _initializeControl($container) {
         this._initializeLayers();
 
         this._options.groups.forEach((group, groupIndex) => {
-            const $groupContainer = $('<div>', { class: 'layer-group' });
-            const $groupHeader = $('<div>', { class: 'group-header' });
-            const $sourceControl = $('<div>', { class: 'source-control collapsed' });
-            this._sourceControls[groupIndex] = $sourceControl[0];
 
-            if (group.headerImage) {
-                $groupHeader.css({
-                    backgroundImage: `url(${group.headerImage})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    position: 'relative'
-                });
+            const $groupHeader = $('<sl-details>', {
+                class: 'group-header w-full map-controls-group',
+                open: group.initiallyChecked || false
+            });
+            this._sourceControls[groupIndex] = $groupHeader[0];
 
-                $('<div>', { class: 'header-overlay' }).appendTo($groupHeader);
-            }
-
-            const $label = $('<label>', { class: 'header-label' });
-            const $checkbox = $('<input>', {
-                type: 'checkbox',
-                checked: false
+            // Add sl-show/hide listeners to sync checkbox with sl-details
+            $groupHeader[0].addEventListener('sl-show', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+                this._toggleSourceControl(groupIndex, true);
+                $opacityButton.toggleClass('hidden', false);
             });
 
-            const $titleSpan = $('<span>', { text: group.title });
-            if (group.headerImage) {
-                $titleSpan.css({
-                    color: 'white',
-                    position: 'relative',
-                    zIndex: '1'
-                });
-            }
+            $groupHeader[0].addEventListener('sl-hide', (event) => {
+                const checkbox = event.target.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+                this._toggleSourceControl(groupIndex, false);
+                $opacityButton.toggleClass('hidden', true);
+            });
 
-            // Create opacity button if layer type supports it
-            let $opacityButton;
-            if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
-                $opacityButton = $('<button>', {
-                    class: 'opacity-toggle hidden',
-                    'data-opacity': '0.95',
-                    title: '95% opacity'
-                });
-                
-                // Add click handler for opacity button
-                $opacityButton.on('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
-                    const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
-                    $opacityButton.attr('data-opacity', newOpacity);
-                    $opacityButton.attr('title', `${newOpacity * 100}% opacity`);
-                    
-                    // Update layer opacity based on layer type
-                    if (group.type === 'layer-group') {
-                        const allLayers = this._map.getStyle().layers.map(layer => layer.id);
-                        group.groups.forEach(subGroup => {
-                            const matchingLayers = allLayers.filter(layerId => 
-                                layerId === subGroup.id || 
-                                layerId.startsWith(`${subGroup.id}-`) ||
-                                layerId.startsWith(`${subGroup.id} `)
-                            );
-                            
-                            matchingLayers.forEach(layerId => {
-                                if (this._map.getLayer(layerId)) {
-                                    const layer = this._map.getLayer(layerId);
-                                    // Apply opacity based on layer type
-                                    if (layer.type === 'fill') {
-                                        this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
-                                    } else if (layer.type === 'line') {
-                                        this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
-                                    } else if (layer.type === 'symbol') {
-                                        this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
-                                    } else if (layer.type === 'raster') {
-                                        this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
-                                    }
-                                }
-                            });
-                        });
-                    } else if (group.type === 'geojson') {
-                        const sourceId = `geojson-${group.id}`;
-                        if (this._map.getLayer(`${sourceId}-fill`)) {
-                            this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
-                        }
-                        if (this._map.getLayer(`${sourceId}-line`)) {
-                            this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
-                        }
-                        if (this._map.getLayer(`${sourceId}-label`)) {
-                            this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
-                        }
-                    } else if (group.type === 'tms') {
-                        const layerId = `tms-layer-${group.id}`;
-                        if (this._map.getLayer(layerId)) {
-                            this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
-                        }
-                    } else if (group.type === 'vector') {
-                        const layerId = `vector-layer-${group.id}`;
-                        if (this._map.getLayer(layerId)) {
-                            this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
-                            this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
-                        }
+            // NEW CODE: If the group is initially checked, we need to explicitly toggle the source control
+            if (group.initiallyChecked) {
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    this._toggleSourceControl(groupIndex, true);
+                    if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                        $opacityButton.toggleClass('hidden', false);
                     }
                 });
-            } else {
-                // For unsupported types, create an empty span instead
-                $opacityButton = $('<span>');
             }
 
-            // Update checkbox change handler
-            $checkbox.on('change', () => {
-                const isChecked = $checkbox.prop('checked');
-                if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
-                    $opacityButton.toggleClass('hidden', !isChecked);
-                }
-                this._toggleSourceControl(groupIndex, isChecked);
+            // Add empty slots to remove the icons
+            $groupHeader.append(
+                $('<span>', { slot: 'expand-icon' }),
+                $('<span>', { slot: 'collapse-icon' })
+            );
+
+            const $summary = $('<div>', {
+                slot: 'summary',
+                class: 'flex items-center gap-2 relative w-full h-12'
             });
 
-            // Append elements in the correct order
-            $label.append($checkbox, $titleSpan, $opacityButton);
-            $groupHeader.append($label);
-            $groupContainer.append($groupHeader);
-            $groupContainer.append($sourceControl);
+            const $contentWrapper = $('<div>', {
+                class: 'flex items-center gap-2 relative z-10 w-full p-2'
+            });
+
+            const $checkbox = $('<input>', {
+                type: 'checkbox',
+                checked: group.initiallyChecked || false,
+                class: 'w-4 h-4'
+            });
+    
+        // Update checkbox click handler
+        $checkbox.on('click', (e) => {
+            // Stop event propagation to prevent any interference  
+            e.stopPropagation();
+            
+            // Get current state and toggle it
+            const currentState = $checkbox.prop('checked');
+            
+            // Update checkbox state
+            $checkbox.prop('checked', currentState);
+            
+            // Show/hide opacity switch for supported layer types
+            if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                $opacityButton.toggleClass('hidden', !currentState);
+            }
+            
+            // Update sl-details and layer visibility
+            if (currentState) {
+                $groupHeader[0].show();
+                // If group has radio buttons, select the first radio button by default
+                const $firstRadio = $groupHeader.find('input[type="radio"]').first();
+                if ($firstRadio.length) {
+                    $firstRadio.prop('checked', true);
+                    if (group.type === 'layer-group') {
+                        this._handleLayerGroupChange($firstRadio.val(), group.groups);
+                    } else {
+                        this._handleLayerChange($firstRadio.val(), group.layers);
+                    }
+                }
+            } else {
+                $groupHeader[0].hide();
+                // Hide all layers in the group
+                if (group.type === 'layer-group') {
+                    group.groups.forEach(subGroup => {
+                        const allLayers = this._map.getStyle().layers
+                            .map(layer => layer.id)
+                            .filter(id => 
+                                id === subGroup.id || 
+                                id.startsWith(`${subGroup.id}-`) ||
+                                id.startsWith(`${subGroup.id} `)
+                            );
+                        this._updateLayerVisibility(allLayers, false);
+                    });
+                } else if (group.layers) {
+                    group.layers.forEach(layer => {
+                        if (this._map.getLayer(layer.id)) {
+                            this._map.setLayoutProperty(layer.id, 'visibility', 'none');
+                        }
+                    });
+                }
+            }
+            this._toggleSourceControl(groupIndex, currentState);
+        });
+
+
+        const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+                ? $('<sl-icon-button>', {
+                    class: 'opacity-toggle hidden ml-auto',
+                    'data-opacity': '0.95',
+                    title: 'Toggle opacity',
+                    name: 'layers-fill', // Start with filled icon
+                    'font-size': '2.5rem'
+                }).css({
+                    '--sl-color-neutral-600': '#ffffff', // Start with white for full opacity
+                    '--sl-color-primary-600': 'currentColor', // Use current color instead of hover effect
+                    '--sl-color-primary-500': 'currentColor',
+                    'color': '#ffffff' // Set initial color
+                })
+                : $('<span>');
+
+        $opacityButton[0]?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
+
+            const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
+            $opacityButton.attr('data-opacity', newOpacity);
+            $opacityButton.title = `Toggle opacity`;
+            
+            // Update icon based on opacity
+            $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
+            
+            if (group.type === 'layer-group') {
+                const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                group.groups.forEach(subGroup => {
+                    const matchingLayers = allLayers.filter(layerId => 
+                        layerId === subGroup.id || 
+                        layerId.startsWith(`${subGroup.id}-`) ||
+                        layerId.startsWith(`${subGroup.id} `)
+                    );
+                    
+                    matchingLayers.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            const layer = this._map.getLayer(layerId);
+                            if (layer.type === 'fill') {
+                                this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                            } else if (layer.type === 'line') {
+                                this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
+                            } else if (layer.type === 'symbol') {
+                                this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
+                            } else if (layer.type === 'raster') {
+                                this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                            }
+                        }
+                    });
+                });
+            } else if (group.type === 'geojson') {
+                const sourceId = `geojson-${group.id}`;
+                if (this._map.getLayer(`${sourceId}-fill`)) {
+                    this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
+                }
+                if (this._map.getLayer(`${sourceId}-line`)) {
+                    this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
+                }
+                if (this._map.getLayer(`${sourceId}-label`)) {
+                    this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
+                }
+            } else if (group.type === 'tms') {
+                const layerId = `tms-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                }
+            } else if (group.type === 'vector') {
+                const layerId = `vector-layer-${group.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                    this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
+                }
+            }
+        });
+
+          
+            const $titleSpan = $('<span>', { 
+                text: group.title,
+                class: 'control-title text-sm font-medium font-bold text-white'
+            });
+
+            // Add header background if exists
+            if (group.headerImage) {
+                const $headerBg = $('<div>', {
+                    class: 'absolute top-0 left-0 right-0 w-full h-full bg-cover bg-center bg-no-repeat',
+                    style: `background-image: url('${group.headerImage}')`
+                });
+                
+                const $headerOverlay = $('<div>', {
+                    class: 'absolute top-0 left-0 right-0 w-full h-full bg-black bg-opacity-40'
+                });
+                
+                $summary.append($headerBg, $headerOverlay, $contentWrapper);
+            } else {
+                $summary.append($contentWrapper);
+            }
+
+            $contentWrapper.append($checkbox, $titleSpan, $opacityButton);
+            $groupHeader.append($summary);
+
+            // Add source control to sl-details content
+            const $sourceControl = $('<div>', {
+                class: 'source-control mt-3 terrain-control-container' // Add terrain-control-container class
+            });
+
+            $container.append($groupHeader);
+
+            const $opacityContainer = $('<div>', {
+                class: 'opacity-control mt-2 px-2'
+            });
+
+            const $opacitySlider = $('<input>', {
+                type: 'range',
+                min: '0',
+                max: '1',
+                step: '0.1',
+                value: '1',
+                class: 'w-full'
+            });
+
+            const $opacityValue = $('<span>', {
+                class: 'text-sm text-gray-600 ml-2',
+                text: '100%'
+            });
+
+            $opacitySlider.on('input', (e) => {
+                const value = parseFloat(e.target.value);
+                $opacityValue.text(`${Math.round(value * 100)}%`);
+
+                if (group.type === 'geojson') {
+                    const sourceId = `geojson-${group.id}`;
+                    if (this._map.getLayer(`${sourceId}-fill`)) {
+                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', value * 0.5);
+                    }
+                    if (this._map.getLayer(`${sourceId}-line`)) {
+                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', value);
+                    }
+                    if (this._map.getLayer(`${sourceId}-label`)) {
+                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', value);
+                    }
+                } else if (group.type === 'tms') {
+                    const layerId = `tms-layer-${group.id}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setPaintProperty(layerId, 'raster-opacity', value);
+                    }
+                } else if (group.layers) {
+                    group.layers.forEach(layer => {
+                        if (this._map.getLayer(layer.id)) {
+                            const layerType = this._map.getLayer(layer.id).type;
+                            switch (layerType) {
+                                case 'raster':
+                                    this._map.setPaintProperty(layer.id, 'raster-opacity', value);
+                                    break;
+                                case 'fill':
+                                    this._map.setPaintProperty(layer.id, 'fill-opacity', value);
+                                    break;
+                                case 'line':
+                                    this._map.setPaintProperty(layer.id, 'line-opacity', value);
+                                    break;
+                                case 'symbol':
+                                    this._map.setPaintProperty(layer.id, 'text-opacity', value);
+                                    this._map.setPaintProperty(layer.id, 'icon-opacity', value);
+                                    break;
+                            }
+                        }
+                    });
+                } else if (group.type === 'vector') {
+                    const layerId = `vector-layer-${group.id}`;
+
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setPaintProperty(layerId, 'fill-opacity', value * (group.style?.fillOpacity || 0.1));
+                        this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
+                    }
+                } else {
+                    const $radioGroup = $('<div>', { class: 'radio-group' });
+
+                    group.layers.forEach((layer, index) => {
+                        const $radioLabel = $('<label>', { class: 'radio-label' });
+                        const $radio = $('<input>', {
+                            type: 'radio',
+                            name: `layer-group-${this._instanceId}-${groupIndex}`,
+                            value: layer.id,
+                            checked: index === 0
+                        });
+
+                        $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
+
+                        $radioLabel.append(
+                            $radio,
+                            $('<span>', { text: layer.label })
+                        );
+                        $radioGroup.append($radioLabel);
+                    });
+
+                    $sourceControl.append($radioGroup);
+                }
+            });
+
+            if (group.type !== 'terrain') {
+                $sourceControl.append($opacityContainer);
+            }
 
             if (group.description) {
                 const $description = $('<div>', {
@@ -293,6 +443,7 @@ class MapLayerControl {
 
             if (group.type === 'layer-group') {
                 const $radioGroup = $('<div>', { class: 'radio-group mt-2' });
+                const $contentArea = $('<div>');
 
                 group.groups.forEach((subGroup, index) => {
                     const $radioLabel = $('<label>', { class: 'radio-label' });
@@ -334,7 +485,11 @@ class MapLayerControl {
                     }
                 });
 
-                $sourceControl.append($radioGroup);
+                // Add radio group to content area
+                $contentArea.append($radioGroup);
+                
+                // Add content area to sl-details
+                $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 if (!this._map.getSource(sourceId)) {
@@ -408,13 +563,20 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'terrain') {
-                const $sliderContainer = $('<div>', { class: 'slider-container mt-2' });
+                const $sliderContainer = $('<div>', { 
+                    class: 'terrain-settings-section' // Add terrain-settings-section class
+                });
 
                 const $contoursContainer = $('<div>', { class: 'mb-4' });
                 const $contoursLabel = $('<label>', { class: 'flex items-center' });
@@ -451,6 +613,7 @@ class MapLayerControl {
 
                 $contoursContainer.append($contoursLabel);
                 $sourceControl.append($contoursContainer);
+                $groupHeader.append($sourceControl);
 
                 const $exaggerationSlider = $('<input>', {
                     type: 'range',
@@ -647,26 +810,33 @@ class MapLayerControl {
 
                 $colorContainer.append(
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'Fog Color'
                     }),
-                    $('<div>', { class: 'flex items-center' }).append($colorPicker, $colorValue),
+                    $('<div>', { class: 'flex items-center mb-3' }).append($colorPicker, $colorValue), // Add bottom margin
 
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'High Color'
                     }),
-                    $('<div>', { class: 'flex items-center' }).append($highColorPicker, $highColorValue),
+                    $('<div>', { class: 'flex items-center mb-3' }).append($highColorPicker, $highColorValue), // Add bottom margin
 
                     $('<label>', {
-                        class: 'block text-sm text-gray-700 mb-1 mt-2',
+                        class: 'block text-sm text-gray-700 mb-2', // Increase bottom margin
                         text: 'Space Color'
                     }),
                     $('<div>', { class: 'flex items-center' }).append($spaceColorPicker, $spaceColorValue)
                 );
 
-                const $fogSettingsContainer = $('<div>', { class: 'mt-4' });
-                const $fogSettingsLabel = $('<label>', { class: 'flex items-center' });
+                // Update the fog settings container and controls
+                const $fogSettingsContainer = $('<div>', { 
+                    class: 'mt-4 mb-4' // Add bottom margin
+                });
+
+                const $fogSettingsLabel = $('<label>', { 
+                    class: 'flex items-center mb-2' // Add margin bottom
+                });
+
                 const $fogSettingsCheckbox = $('<input>', {
                     type: 'checkbox',
                     class: 'mr-2',
@@ -681,8 +851,9 @@ class MapLayerControl {
                     })
                 );
 
+                // Update the fog settings content container
                 const $fogSettingsContent = $('<div>', {
-                    class: 'fog-settings-content mt-2 hidden'
+                    class: 'fog-settings-content mt-2 hidden pb-4 terrain-settings-section' // Add terrain-settings-section class
                 });
 
                 $fogSettingsContent.append(
@@ -691,10 +862,12 @@ class MapLayerControl {
                     $colorContainer
                 );
 
+                // Add the toggle behavior back
                 $fogSettingsCheckbox.on('change', (e) => {
                     $fogSettingsContent.toggleClass('hidden', !e.target.checked);
                 });
 
+                // Append everything to the container
                 $fogSettingsContainer.append($fogSettingsLabel, $fogSettingsContent);
 
                 $sourceControl.append(
@@ -726,10 +899,15 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
@@ -934,10 +1112,15 @@ class MapLayerControl {
                 }
 
                 if (group.attribution) {
-                    $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2 px-2',
+                    const $attribution = $('<div>', {
+                        class: 'text-sm text-gray-600 mt-2',
                         html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    }).appendTo($sourceControl);
+                    });
+                    
+                    // Add attribution to sl-details content area instead of source control
+                    const $contentArea = $('<div>');
+                    $contentArea.append($attribution);
+                    $groupHeader.append($contentArea);
                 }
             } else if (group.type === 'markers' && group.dataUrl) {
                 fetch(group.dataUrl)
@@ -974,10 +1157,15 @@ class MapLayerControl {
                             });
 
                             if (group.attribution) {
-                                $('<div>', {
-                                    class: 'text-sm text-gray-600 mt-2 px-2',
+                                const $attribution = $('<div>', {
+                                    class: 'text-sm text-gray-600 mt-2',
                                     html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                                }).appendTo($sourceControl);
+                                });
+                                
+                                // Add attribution to sl-details content area instead of source control
+                                const $contentArea = $('<div>');
+                                $contentArea.append($attribution);
+                                $groupHeader.append($contentArea);
                             }
 
                             this._map.on('click', `${sourceId}-circles`, (e) => {
@@ -1025,52 +1213,20 @@ class MapLayerControl {
                     class: 'legend-container mt-4 px-2'
                 });
 
+                const $legendToggle = $('<button>', {
+                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
+                    html: '<span class="legend-icon">▼</span> Show Legend'
+                });
+
                 const $legendImage = $('<img>', {
                     src: group.legendImage,
                     class: 'w-full rounded-lg shadow-sm cursor-pointer',
                     alt: 'Layer Legend'
                 });
 
-                const $legendToggle = $('<button>', {
-                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
-                    html: '<span class="legend-icon">▼</span> Show Legend'
-                });
-
                 const $legendContent = $('<div>', {
                     class: 'legend-content hidden'
                 }).append($legendImage);
-
-                const $modal = $('<div>', {
-                    class: 'legend-modal hidden',
-                    click: (e) => {
-                        if (e.target === $modal[0]) {
-                            $modal.addClass('hidden');
-                        }
-                    }
-                });
-
-                const $modalContent = $('<div>', {
-                    class: 'legend-modal-content'
-                });
-
-                const $modalImage = $('<img>', {
-                    src: group.legendImage,
-                    alt: 'Layer Legend (Full Size)'
-                });
-
-                const $closeButton = $('<button>', {
-                    class: 'legend-modal-close',
-                    html: '×',
-                    click: () => $modal.addClass('hidden')
-                });
-
-                $modalContent.append($closeButton, $modalImage);
-                $modal.append($modalContent);
-                $('body').append($modal);
-
-                $legendImage.on('click', () => {
-                    $modal.removeClass('hidden');
-                });
 
                 $legendToggle.on('click', () => {
                     $legendContent.toggleClass('hidden');
@@ -1080,23 +1236,18 @@ class MapLayerControl {
                 });
 
                 $legendContainer.append($legendToggle, $legendContent);
-                $sourceControl.append($legendContainer);
+                
+                // Add legend to sl-details content area
+                const $contentArea = $('<div>');
+                $contentArea.append($legendContainer);
+                $groupHeader.append($contentArea);
             }
 
-            $groupContainer.append($sourceControl);
-            $(this._container).append($groupContainer);
-
-            $checkbox.on('change', () => {
-                const isChecked = $checkbox.prop('checked');
-                this._toggleSourceControl(groupIndex, isChecked);
-            });
         });
 
         if (!this._initialized) {
             this._initializeWithAnimation();
         }
-
-        window.addEventListener('resize', () => this._handleResize());
     }
 
     _initializeLayers() {
@@ -1115,21 +1266,48 @@ class MapLayerControl {
         });
     }
 
-    _toggleSourceControl(groupIndex, isChecked) {
-        const sourceControl = this._sourceControls[groupIndex];
+    _toggleSourceControl(groupIndex, checked) {
         const group = this._options.groups[groupIndex];
+        const $sourceControl = $(this._sourceControls[groupIndex]);
 
-        if (isChecked) {
-            sourceControl.classList.remove('collapsed');
+        if (checked) {
+            if (group.type === 'vector') {
+                const sourceId = `vector-source-${group.id}`;
+                if (!this._map.getSource(sourceId)) {
+                    this._map.addSource(sourceId, {
+                        type: 'vector',
+                        url: group.url,
+                        maxzoom: group.maxzoom
+                    });
+                }
 
-            if (group.type === 'terrain') {
-                // Enable terrain with default settings
+                const layerId = `vector-layer-${group.id}`;
+                if (!this._map.getLayer(layerId)) {
+                    this._map.addLayer({
+                        id: layerId,
+                        type: 'fill',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer,
+                        paint: group.style?.fill || this._defaultStyles.vector.fill
+                    });
+
+                    this._map.addLayer({
+                        id: `${layerId}-outline`,
+                        type: 'line',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer,
+                        paint: group.style?.line || this._defaultStyles.vector.line
+                    });
+                }
+
+                this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
+            } else if (group.type === 'terrain') {
                 this._map.setTerrain({ 
                     'source': 'mapbox-dem',
                     'exaggeration': 1.5 
                 });
                 
-                // Get existing fog settings or use defaults
                 const existingFog = this._map.getFog() || {
                     'range': [-1, 2],
                     'horizon-blend': 0.3,
@@ -1139,10 +1317,8 @@ class MapLayerControl {
                     'star-intensity': 0.0
                 };
 
-                // Set fog using existing or default values
                 this._map.setFog(existingFog);
 
-                // Update the UI controls to match existing values
                 const $fogStartSlider = $(`#fog-start-${this._instanceId}`);
                 const $fogEndSlider = $(`#fog-end-${this._instanceId}`);
                 const $horizonSlider = $(`#horizon-blend-${this._instanceId}`);
@@ -1153,14 +1329,13 @@ class MapLayerControl {
                 if ($fogStartSlider.length && $fogEndSlider.length) {
                     $fogStartSlider.val(existingFog.range[0]);
                     $fogEndSlider.val(existingFog.range[1]);
-                    $(sourceControl).find('.fog-range-slider').next().find('span')
+                    $sourceControl.find('.fog-range-slider').next().find('span')
                         .text(`[${existingFog.range[0]}, ${existingFog.range[1]}]`);
                 }
 
                 if ($horizonSlider.length) {
-                    // Handle interpolated horizon-blend values
                     const horizonBlend = Array.isArray(existingFog['horizon-blend']) 
-                        ? existingFog['horizon-blend'][4] // Use the first value from interpolation
+                        ? existingFog['horizon-blend'][4]
                         : existingFog['horizon-blend'];
                     
                     $horizonSlider.val(horizonBlend);
@@ -1171,10 +1346,10 @@ class MapLayerControl {
                 if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
                 if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
             } else if (group.type === 'layer-group') {
-                const firstRadio = sourceControl.querySelector('input[type="radio"]');
-                if (firstRadio) {
-                    firstRadio.checked = true;
-                    this._handleLayerGroupChange(firstRadio.value, group.groups);
+                const firstRadio = $sourceControl.find('input[type="radio"]').first();
+                if (firstRadio.length) {
+                    firstRadio.prop('checked', true);
+                    this._handleLayerGroupChange(firstRadio.val(), group.groups);
                 }
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
@@ -1193,11 +1368,20 @@ class MapLayerControl {
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', 'visible');
                 }
-            } else if (group.type === 'vector') {
-                const layerId = `vector-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'visible');
-                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
+            } else if (group.layers && group.layers.length > 0) {
+                const firstLayer = group.layers[0];
+                if (this._map.getLayer(firstLayer.id)) {
+                    this._map.setLayoutProperty(
+                        firstLayer.id,
+                        'visibility',
+                        'visible'
+                    );
+
+                    const firstRadio = $sourceControl.find(`input[value="${firstLayer.id}"]`);
+                    if (firstRadio.length) {
+                        firstRadio.prop('checked', true);
+                        this._handleLayerChange(firstLayer.id, group.layers);
+                    }
                 }
             } else if (group.type === 'markers') {
                 const sourceId = `markers-${group.id}`;
@@ -1205,23 +1389,19 @@ class MapLayerControl {
                     this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
                 }
             } else if (group.layers) {
-                const firstRadio = sourceControl.querySelector('input[type="radio"]');
-                if (firstRadio) {
-                    firstRadio.checked = true;
-                    this._handleLayerChange(firstRadio.value, group.layers);
+                const firstRadio = $sourceControl.find('input[type="radio"]').first();
+                if (firstRadio.length) {
+                    firstRadio.prop('checked', true);
+                    this._handleLayerChange(firstRadio.val(), group.layers);
                 }
             }
         } else {
-            sourceControl.classList.add('collapsed');
 
             if (group.type === 'terrain') {
-                // Disable terrain
                 this._map.setTerrain(null);
                 
-                // Reset fog
                 this._map.setFog(null);
                 
-                // Hide contour layers if they exist
                 const contourLayers = ['contour lines', 'contour labels'];
                 contourLayers.forEach(layerId => {
                     if (this._map.getLayer(layerId)) {
@@ -1285,7 +1465,6 @@ class MapLayerControl {
         const allLayers = this._map.getStyle().layers.map(layer => layer.id);
         
         layers.forEach(layer => {
-            // Find all layers that start with this ID
             const matchingLayers = allLayers.filter(layerId => 
                 layerId === layer.id || layerId.startsWith(`${layer.id} `)
             );
@@ -1360,14 +1539,29 @@ class MapLayerControl {
             checkbox.dispatchEvent(new Event('change'));
         });
 
-        this._initialized = true;
+        if (!this._initialized) {
+            // Add no-transition class initially
+            this._container.classList.add('no-transition');
+            // Force a reflow
+            void this._container.offsetWidth;
+            // Remove no-transition class
+            this._container.classList.remove('no-transition');
+            
+            this._initialized = true;
+        }
+        
+        // Add collapsed class after a brief delay to ensure initial render is complete
+        requestAnimationFrame(() => {
+            this._container.classList.add('collapsed');
+        });
     }
 
-    onRemove() {
-        this._cleanup();
-        this._container.parentNode.removeChild(this._container);
-        this._map = undefined;
-        window.removeEventListener('resize', () => this._handleResize());
+    toggleControl() {
+        // Ensure smooth animation by using requestAnimationFrame
+        requestAnimationFrame(() => {
+            this._container.classList.toggle('collapsed');
+        });
+        this._toggleButton.classList.toggle('is-open');
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
@@ -1392,7 +1586,6 @@ class MapLayerControl {
                 labelDiv.textContent = labelValue;
                 content.appendChild(labelDiv);
 
-                // Add additional fields if configured
                 if (group.inspect?.fields) {
                     group.inspect.fields.forEach(field => {
                         const value = feature.properties[field];
@@ -1529,8 +1722,7 @@ class MapLayerControl {
         linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
-        // Add KML export button before the navigation links
-        if (this._map.getZoom() >= 14) { // Only show export option at zoom 14 or higher
+        if (this._map.getZoom() >= 14) {
             const $exportContainer = $('<div>', {
                 class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
             });
@@ -1547,7 +1739,6 @@ class MapLayerControl {
             
             $exportButton.on('click', () => {
                 try {
-                    // Generate KML content
                     const fieldValues = group.inspect?.fields
                         ? group.inspect.fields
                             .map(field => feature.properties[field])
@@ -1562,7 +1753,6 @@ class MapLayerControl {
                     
                     const kmlContent = convertToKML(feature, {title, description});
                     
-                    // Create and trigger download
                     const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
                     const url = URL.createObjectURL(blob);
                     
@@ -1571,9 +1761,8 @@ class MapLayerControl {
                         download: `${title}.kml`
                     });
                     
-                    // Append to body, click, and cleanup
                     $('body').append($downloadLink);
-                    $downloadLink[0].click(); // Use native click() on the DOM element
+                    $downloadLink[0].click();
                     $downloadLink.remove();
                     URL.revokeObjectURL(url);
                     
@@ -1688,8 +1877,6 @@ class MapLayerControl {
         if (this._resizeTimeout) {
             clearTimeout(this._resizeTimeout);
         }
-        this._animationTimeouts.forEach(clearTimeout);
-        this._animationTimeouts = [];
     }
 }
 

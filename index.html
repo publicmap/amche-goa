@@ -57,6 +57,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
 
+    <!-- Shoelace Components -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/light.css" />
+
     <link rel="stylesheet" href="styles.css">
 
     <!-- Add jQuery -->
@@ -67,7 +71,7 @@
 
 </head>
 
-<body class="flex flex-col">
+<body class="flex flex-col h-screen">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
@@ -86,17 +90,39 @@
         </div>
     </header>
 
-    <!-- Map Container -->
-    <main class="flex-grow relative">
-        <div id="map"></div>
-        <div id="edit-mode-control"
-            class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
-            <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"
-                title="Toggle Edit Mode">
-                📌
-            </button>
-        </div>
-    </main>
+    <!-- Add the floating drawer toggle button -->
+    <sl-icon-button 
+        name="list" 
+        id="open-drawer" 
+        class="fixed top-20 left-4 z-10 bg-white rounded-full shadow-lg hover:bg-gray-100" 
+        style="font-size: 1.5rem; padding: 8px;"
+    ></sl-icon-button>
+
+    <!-- Wrap main content in a container -->
+    <div class="flex flex-grow relative h-full">
+        <!-- Map Container -->
+        <main class="flex-grow relative h-full">
+            <div id="map" style="width: 100%; height: 100%;"></div>
+            <!-- Add drawer inside the map container -->
+            <sl-drawer id="map-controls-drawer" label="Map controls" placement="start" class="drawer-placement-start" contained>
+                <!-- Loading state using Shoelace components -->
+                <div id="layer-controls-loader" class="p-4">
+                    <div class="flex flex-col gap-4" id="skeleton-container">
+                        <!-- Skeletons will be added here dynamically -->
+                    </div>
+                </div>
+                <div id="layer-controls-container" class="hidden"></div>
+            </sl-drawer>
+            
+            <div id="edit-mode-control"
+                class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
+                <button id="edit-mode-toggle" class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"
+                    title="Toggle Edit Mode">
+                    📌
+                </button>
+            </div>
+        </main>
+    </div>
 
     <script>
 
@@ -245,7 +271,8 @@ function getQueryParameters() {
                                     title: 'Bhuvan Panchayat',
                                     attribution: 'https://grammanchitra.gov.in/gm4MVC',
                                 }
-                            ]
+                            ],
+                            initiallyChecked: true,
                         },
                         {
                             id: 'slope-zones',
@@ -459,9 +486,37 @@ function getQueryParameters() {
                     // Add layer control with multiple groups including GeoJSON
                     const layerControl = new MapLayerControl(layersConfig);
 
-                    map.addControl(layerControl, 'top-left');
+                    const container = document.getElementById('layer-controls-container');
+                    
+                    // Hide loader and show controls
+                    document.getElementById('layer-controls-loader').classList.add('hidden');
+                    container.classList.remove('hidden');
+                    
+                    layerControl.renderToContainer(container, map);
+
+                    // Initialize controls for layers that should be initially checked
+                    const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
+                    console.log('Initially checked layers:', initiallyCheckedLayers.map(l => l.title));
+
+                    initiallyCheckedLayers.forEach(layer => {
+                        // Find the checkbox for this layer using jQuery
+                        const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
+                        if ($checkbox.length && !$checkbox.prop('checked')) {
+                            $checkbox.prop('checked', true);
+                            $checkbox.trigger('change');
+                        }
+                    });
                 })
-                .catch(error => console.error('Error loading GeoJSON:', error));
+                .catch(error => {
+                    console.error('Error loading GeoJSON:', error);
+                    // Show error state in drawer
+                    document.getElementById('layer-controls-loader').innerHTML = `
+                        <div class="text-red-500">
+                            <sl-icon name="exclamation-triangle"></sl-icon>
+                            Error loading map layers. Please try refreshing the page.
+                        </div>
+                    `;
+                });
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl({
@@ -484,14 +539,6 @@ function getQueryParameters() {
                     });
                 }, 2000);
             }
-
-            // Update the load event handler to click both buttons
-            setTimeout(() => {
-                const controls = document.querySelectorAll('.layer-control button');
-                controls.forEach(button => button.click());
-            }, 500);
-
-
         });
     </script>
     <!-- Google tag (gtag.js) -->
@@ -524,6 +571,44 @@ function getQueryParameters() {
             const baseUrl = window.location.origin;
             window.location.href = `${baseUrl}/sound/${currentHash}`;
         }
+    </script>
+    <!-- Modify the drawer initialization script -->
+    <script>
+        // Initialize drawer functionality after Shoelace components are ready
+        customElements.whenDefined('sl-drawer').then(() => {
+            const drawer = document.querySelector('.drawer-placement-start');
+            const openButton = document.querySelector('#open-drawer');
+
+            // Function to handle drawer state based on screen size
+            function handleDrawerState() {
+                if (window.innerWidth > 768) { // Desktop
+                    drawer.show();
+                } else { // Mobile
+                    drawer.hide();
+                }
+            }
+
+            // Initial state
+            handleDrawerState();
+
+            // Listen for window resize
+            window.addEventListener('resize', handleDrawerState);
+
+            // Toggle drawer when button is clicked
+            openButton.addEventListener('click', () => drawer.show());
+        });
+    </script>
+    <script>
+        // Add this after your existing scripts
+        const skeletonContainer = document.getElementById('skeleton-container');
+        const numberOfSkeletons = 15;
+        
+        Array.from({ length: numberOfSkeletons }).forEach(() => {
+            const skeleton = document.createElement('sl-skeleton');
+            skeleton.className = 'skeleton-map-controls';
+            skeleton.setAttribute('effect', 'pulse');
+            skeletonContainer.appendChild(skeleton);
+        });
     </script>
 </body>
 
