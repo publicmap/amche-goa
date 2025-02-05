@@ -52,8 +52,9 @@
         type="text/css">
 
     <!-- Open Sans font -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-        rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
 
     <!-- Shoelace Components -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace.js"></script>
@@ -278,11 +279,12 @@ function getQueryParameters() {
                             description: 'Urban Local Body Ward Boundaries',
                             type: 'vector',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'sbm_wards',
-                            attribution: 'Source: Swachh Bharat Mission GIS',
+                            sourceLayer: 'SBM_Wards',
+                            attribution: 'Source: <a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a>',
                             style: {
                                 'fill-color': 'red',
-                                'line-width': 5,
+                                'fill-opacity': 0.1,
+                                'line-width': 1,
                                 'line-opacity': 0.8
                             },
                             inspect: {
