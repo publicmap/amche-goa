@@ -260,6 +260,57 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Plot Boundaries',
+                            description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
+                            headerImage: 'assets/map-layer-survey.png',
+                            type: 'vector',
+                            id: 'goa-cadastral',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Goa_Bhunaksha_Cadastrals',
+                            maxzoom: 16,
+                            attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    15, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        2,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1.5,
+                                        0
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        .5
+                                    ]
+                                ]
+                            },
+                            initiallyChecked: true,
+                            inspect: {
+                                id: 'id',
+                                title: 'Survey Number',
+                                label: 'kide',
+                                fields: ['VillageNam', 'TalName'],
+                                fieldTitles: ['Village', 'Taluk'],
+                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                            }
+                        },
+                        {
                             id: 'goa-local-body',
                             title: 'Local Body Boundaries',
                             description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
@@ -322,85 +373,7 @@ function getQueryParameters() {
                                 fieldTitles: ['Urban Local Body']
                             }
                         },
-                        {
-                            id: 'slope-zones',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Partial)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                },
-                                {
-                                    id: 'aster slope',
-                                    title: 'NASA Aster 30m (Goa Coast)',
-                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Survey Plot Boundaries',
-                            description: 'Cadastral Boundaries. Property plan shows the general position, not the exact line of the boundaries.',
-                            headerImage: 'assets/map-layer-survey.png',
-                            type: 'vector',
-                            id: 'goa-cadastral',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'Goa_Bhunaksha_Cadastrals',
-                            maxzoom: 16,
-                            attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'fill-color': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    16, 'rgba(0, 0, 0, 0.05)',
-                                    18, 'rgba(0, 0, 0, 0.1)'
-                                ],
-                                'line-color': 'black',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    15, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        2,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        1.5,
-                                        0
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        6,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        .5
-                                    ]
-                                ]
-                            },
-                            initiallyChecked: true,
-                            inspect: {
-                                id: 'id',
-                                title: 'Survey Number',
-                                label: 'kide',
-                                fields: ['VillageNam', 'TalName'],
-                                fieldTitles: ['Village', 'Taluk'],
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
-                            }
-                        },
+                        
                         {
                             title: 'Reserve Forests',
                             description: 'Forest beat boundaries',
@@ -443,6 +416,35 @@ function getQueryParameters() {
                                 fields: ['Range'],
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
                             }
+                        },
+
+                        {
+                            id: 'slope-zones',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Partial)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                },
+                                {
+                                    id: 'aster slope',
+                                    title: 'NASA Aster 30m (Goa Coast)',
+                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    location: 'Panaji'
+                                }
+                            ]
                         },
                         {
                             title: 'Landuse Zoning Plans',

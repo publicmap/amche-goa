@@ -436,9 +436,12 @@ class MapLayerControl {
             if (group.description) {
                 const $description = $('<div>', {
                     class: 'text-sm text-gray-600 mb-2 px-2',
-                    html: group.description  // Changed from text: to html:
+                    html: group.description  // Using html instead of text to allow HTML in descriptions
                 });
-                $sourceControl.append($description);
+                // Add description directly after the group header content
+                const $contentArea = $('<div>', { class: 'description-area' });
+                $contentArea.append($description);
+                $groupHeader.append($contentArea);
             }
 
             if (group.type === 'layer-group') {
