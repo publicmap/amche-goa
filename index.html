@@ -234,7 +234,7 @@ function getQueryParameters() {
 
             // First fetch the GeoJSON data
             fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
-                .then(response => response.text())
+                .then(response => response.json())
                 .then(e => 
                 {
 
@@ -281,12 +281,38 @@ function getQueryParameters() {
                             type: 'vector',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
                             sourceLayer: 'SBM_Wards',
+                            maxzoom: 12,
                             attribution: 'Source: <a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a>',
                             style: {
-                                'fill-color': 'red',
-                                'fill-opacity': 0.1,
-                                'line-width': 1,
-                                'line-opacity': 0.8
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'hsl(278, 82%, 57%)',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        4,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        3
+                                    ]
+                                ]
                             },
                             inspect: {
                                 title: 'Ward Number',
