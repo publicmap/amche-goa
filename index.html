@@ -234,8 +234,9 @@ function getQueryParameters() {
 
             // First fetch the GeoJSON data
             fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
-                .then(response => response.json())
-                .then(geojsonData => {
+                .then(response => response.text())
+                .then(e => 
+                {
 
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
@@ -325,7 +326,7 @@ function getQueryParameters() {
                         },
                         {
                             title: 'Survey Plot Boundaries',
-                            description: 'Cadastral Boundaries',
+                            description: 'Cadastral Boundaries. Property plan shows the general position, not the exact line of the boundaries.',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
                             id: 'goa-cadastral',
@@ -338,15 +339,15 @@ function getQueryParameters() {
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    13, 'rgba(0, 0, 0, 0)',
-                                    16, 'rgba(0, 0, 0, 0.5)'
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
                                 ],
                                 'line-color': 'black',
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    14, [
+                                    15, [
                                         'case',
                                         ['boolean', ['feature-state', 'selected'], false],
                                         2,
@@ -468,7 +469,7 @@ function getQueryParameters() {
                             headerImage: 'assets/map-layer-construction.png',
                             type: 'geojson',
                             id: 'construction-sites',
-                            data: geojsonData,
+                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson',
                             attribution: 'Construction project sites in Goa',
                             style: {
                                 fill: false,
@@ -528,16 +529,7 @@ function getQueryParameters() {
                         }
                     });
                 })
-                .catch(error => {
-                    console.error('Error loading GeoJSON:', error);
-                    // Show error state in drawer
-                    document.getElementById('layer-controls-loader').innerHTML = `
-                        <div class="text-red-500">
-                            <sl-icon name="exclamation-triangle"></sl-icon>
-                            Error loading map layers. Please try refreshing the page.
-                        </div>
-                    `;
-                });
+                
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl({

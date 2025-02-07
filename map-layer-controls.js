@@ -492,10 +492,15 @@ class MapLayerControl {
                 $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
+                
+                // Initialize source with empty FeatureCollection
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
                         type: 'geojson',
-                        data: group.data
+                        data: {
+                            type: 'FeatureCollection',
+                            features: []
+                        }
                     });
 
                     const style = {
@@ -513,6 +518,7 @@ class MapLayerControl {
                         }
                     };
 
+                    // Add layers with empty source
                     if (style.fill !== false) {
                         this._map.addLayer({
                             id: `${sourceId}-fill`,
@@ -560,6 +566,22 @@ class MapLayerControl {
                             'text-halo-width': style.label?.['text-halo-width'] || 2
                         }
                     });
+                    
+                    // Load data asynchronously if URL is provided
+                    if (group.url) {
+                        fetch(group.url)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Update source with loaded data
+                                this._map.getSource(sourceId).setData(data);
+                            })
+                            .catch(error => {
+                                console.error(`Error loading GeoJSON for ${group.id}:`, error);
+                            });
+                    } else if (group.data) {
+                        // Support existing direct data assignment
+                        this._map.getSource(sourceId).setData(group.data);
+                    }
                 }
 
                 if (group.attribution) {
