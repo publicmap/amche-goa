@@ -1590,6 +1590,11 @@ class MapLayerControl {
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
+        // Disable hover popups on mobile devices
+        if (isHover && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+            return null;
+        }
+        
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
