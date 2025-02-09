@@ -1093,6 +1093,9 @@ class MapLayerControl {
                                 }
 
                                 if (e.features.length > 0) {
+                                    // Remove hover popup when clicking
+                                    hoverPopup.remove();
+                                    
                                     const feature = e.features[0];
 
                                     if (selectedFeatureId !== null) {
