@@ -1636,6 +1636,20 @@ class MapLayerControl {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
+        // If there's a header image, add it as a background
+        if (group.headerImage) {
+            content.style.backgroundImage = `linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 1) 60px), url('${group.headerImage}')`;
+            content.style.backgroundSize = 'auto';  // Use original image size
+            content.style.backgroundPosition = 'left top';  // Align to top left
+            content.style.backgroundRepeat = 'no-repeat';  // Don't repeat the image
+        }
+
+        // Add layer name at the top
+        const layerName = document.createElement('div');
+        layerName.className = 'text-xs uppercase tracking-wider mb-2 text-gray-400 font-medium';
+        layerName.textContent = group.title;
+        content.appendChild(layerName);
+
         if (group.inspect?.title) {
             const title = document.createElement('h3');
             title.className = 'text-xs uppercase tracking-wider mb-3 text-gray-500 font-medium';
@@ -1644,7 +1658,7 @@ class MapLayerControl {
         }
 
         const grid = document.createElement('div');
-        grid.className = 'grid gap-4 mb-4';
+        grid.className = 'grid mb-4';
 
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
@@ -1658,7 +1672,7 @@ class MapLayerControl {
 
         if (group.inspect?.fields) {
             const fieldsGrid = document.createElement('div');
-            fieldsGrid.className = 'grid grid-cols-2 gap-3 text-sm';
+            fieldsGrid.className = 'grid grid-cols-2 text-sm';
 
             group.inspect.fields.forEach((field, index) => {
                 if (feature.properties.hasOwnProperty(field) && field !== group.inspect.label) {
