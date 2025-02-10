@@ -436,9 +436,12 @@ class MapLayerControl {
             if (group.description) {
                 const $description = $('<div>', {
                     class: 'text-sm text-gray-600 mb-2 px-2',
-                    html: group.description  // Changed from text: to html:
+                    html: group.description  // Using html instead of text to allow HTML in descriptions
                 });
-                $sourceControl.append($description);
+                // Add description directly after the group header content
+                const $contentArea = $('<div>', { class: 'description-area' });
+                $contentArea.append($description);
+                $groupHeader.append($contentArea);
             }
 
             if (group.type === 'layer-group') {
@@ -492,10 +495,15 @@ class MapLayerControl {
                 $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
+                
+                // Initialize source with empty FeatureCollection
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
                         type: 'geojson',
-                        data: group.data
+                        data: {
+                            type: 'FeatureCollection',
+                            features: []
+                        }
                     });
 
                     const style = {
@@ -513,6 +521,7 @@ class MapLayerControl {
                         }
                     };
 
+                    // Add layers with empty source
                     if (style.fill !== false) {
                         this._map.addLayer({
                             id: `${sourceId}-fill`,
@@ -560,6 +569,22 @@ class MapLayerControl {
                             'text-halo-width': style.label?.['text-halo-width'] || 2
                         }
                     });
+                    
+                    // Load data asynchronously if URL is provided
+                    if (group.url) {
+                        fetch(group.url)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Update source with loaded data
+                                this._map.getSource(sourceId).setData(data);
+                            })
+                            .catch(error => {
+                                console.error(`Error loading GeoJSON for ${group.id}:`, error);
+                            });
+                    } else if (group.data) {
+                        // Support existing direct data assignment
+                        this._map.getSource(sourceId).setData(group.data);
+                    }
                 }
 
                 if (group.attribution) {
@@ -1068,6 +1093,9 @@ class MapLayerControl {
                                 }
 
                                 if (e.features.length > 0) {
+                                    // Remove hover popup when clicking
+                                    hoverPopup.remove();
+                                    
                                     const feature = e.features[0];
 
                                     if (selectedFeatureId !== null) {
@@ -1565,6 +1593,11 @@ class MapLayerControl {
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
+        // Disable hover popups on mobile devices
+        if (isHover && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+            return null;
+        }
+        
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
@@ -1606,6 +1639,20 @@ class MapLayerControl {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
+        // If there's a header image, add it as a background
+        if (group.headerImage) {
+            content.style.backgroundImage = `linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 1) 60px), url('${group.headerImage}')`;
+            content.style.backgroundSize = 'auto';  // Use original image size
+            content.style.backgroundPosition = 'left top';  // Align to top left
+            content.style.backgroundRepeat = 'no-repeat';  // Don't repeat the image
+        }
+
+        // Add layer name at the top
+        const layerName = document.createElement('div');
+        layerName.className = 'text-xs uppercase tracking-wider mb-2 text-gray-400 font-medium';
+        layerName.textContent = group.title;
+        content.appendChild(layerName);
+
         if (group.inspect?.title) {
             const title = document.createElement('h3');
             title.className = 'text-xs uppercase tracking-wider mb-3 text-gray-500 font-medium';
@@ -1614,7 +1661,7 @@ class MapLayerControl {
         }
 
         const grid = document.createElement('div');
-        grid.className = 'grid gap-4 mb-4';
+        grid.className = 'grid mb-4';
 
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
@@ -1628,7 +1675,7 @@ class MapLayerControl {
 
         if (group.inspect?.fields) {
             const fieldsGrid = document.createElement('div');
-            fieldsGrid.className = 'grid grid-cols-2 gap-3 text-sm';
+            fieldsGrid.className = 'grid grid-cols-2 text-sm';
 
             group.inspect.fields.forEach((field, index) => {
                 if (feature.properties.hasOwnProperty(field) && field !== group.inspect.label) {

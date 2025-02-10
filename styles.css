@@ -346,15 +346,20 @@ header h1 {
 }
 
 /* Popup styles */
-.map-popup {
-    max-width: 320px;
-}
-
 .mapboxgl-popup-content {
     padding: 0;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ensure text remains readable over the background image */
+.map-popup {
+    position: relative;
+    z-index: 1;
+    background: transparent;
 }
 
 .mapboxgl-popup-close-button {
@@ -365,6 +370,8 @@ header h1 {
     font-size: 16px;
     right: 6px;
     top: 6px;
+    z-index: 2;
+    background: none;
 }
 
 .mapboxgl-popup-close-button:hover {

@@ -41,8 +41,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Mapbox GL JS -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js'></script>
 
     <!-- Add Mapbox Geocoder CSS and JS -->
     <script
@@ -54,8 +54,7 @@
     <!-- Open Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
 
     <!-- Shoelace Components -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace.js"></script>
@@ -104,7 +103,7 @@
         <main class="flex-grow relative h-full">
             <div id="map" style="width: 100%; height: 100%;"></div>
             <!-- Add drawer inside the map container -->
-            <sl-drawer id="map-controls-drawer" label="Map controls" placement="start" class="drawer-placement-start" contained>
+            <sl-drawer id="map-controls-drawer" label="Map layers" placement="start" class="drawer-placement-start" contained>
                 <!-- Loading state using Shoelace components -->
                 <div id="layer-controls-loader" class="p-4">
                     <div class="flex flex-col gap-4" id="skeleton-container">
@@ -141,7 +140,7 @@ function getQueryParameters() {
 }
 
 
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ'; // Mapbox Token by @planemad. Migrate to community token.
+        mapboxgl.accessToken = 'pk.eyJ1Ijoib3NtaW5kaWEiLCJhIjoiY202czRpbWdpMDNyZjJwczJqZXdkMGR1eSJ9.eQQf--msfqtZIamJN-KKVQ'; // Mapbox Token by OpenStreetMap India community via @planemad
 
         // Initialize the map
         // Mapbox Studio style https://www.mapbox.com/studio/styles/planemad/cm3gyibd3004x01qz08rohcsg/
@@ -236,7 +235,8 @@ function getQueryParameters() {
             // First fetch the GeoJSON data
             fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
                 .then(response => response.json())
-                .then(geojsonData => {
+                .then(e => 
+                {
 
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
@@ -259,52 +259,10 @@ function getQueryParameters() {
                                 fieldTitles: ['Name', 'Notes', 'Added'],
                             }
                         },
+                        
                         {
-                            id: 'goa-local-body',
-                            title: 'Local Body Boundaries',
-                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
-                            headerImage: 'assets/map-layer-local-boundaries.png',
-                            type: 'layer-group',
-                            groups: [
-                                {
-                                    id: 'goa-local-body',
-                                    title: 'Bhuvan Panchayat',
-                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
-                                }
-                            ],
-                            initiallyChecked: true,
-                        },
-                        {
-                            id: 'slope-zones',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Partial)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                },
-                                {
-                                    id: 'aster slope',
-                                    title: 'NASA Aster 30m (Goa Coast)',
-                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Survey Plot Boundaries',
-                            description: 'Cadastral Boundaries',
+                            title: 'Plot Boundaries',
+                            description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
                             id: 'goa-cadastral',
@@ -317,15 +275,15 @@ function getQueryParameters() {
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    13, 'rgba(0, 0, 0, 0)',
-                                    16, 'rgba(0, 0, 0, 0.5)'
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
                                 ],
                                 'line-color': 'black',
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    14, [
+                                    15, [
                                         'case',
                                         ['boolean', ['feature-state', 'selected'], false],
                                         2,
@@ -353,6 +311,121 @@ function getQueryParameters() {
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
                             }
                         },
+                        {
+                            id: 'revenue-village',
+                            title: 'Village Boundaries',
+                            headerImage: 'assets/map-layer-village.png',
+                            description: 'Revenue village boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/villages/lgd/{z}/{x}/{y}.pbf ',
+                            sourceLayer: 'LGD_Villages',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        4,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        3
+                                    ]
+                                ]
+                            },
+                            inspect: {
+                                title: 'Village',
+                                label: 'vilnam_soi',
+                                id: 'OBJECTID',
+                                fields: ['vil_lgd','gp_name','block_name','sdtname','dtname'],
+                                fieldTitles: ['Village Code','Gram Panchayat','Block','Sub District','District']
+                            }
+                        },
+                        {
+                            id: 'municipal-wards',
+                            title: 'Municipal Ward Boundaries',
+                            headerImage: 'assets/map-layer-ulb-wards.png',
+                            description: 'Ward boundaries for Panaji Municipal Corporation and Municipal Councils (partial coverage)',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'SBM_Wards',
+                            maxzoom: 12,
+                            attribution: 'Source: <a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'hsl(278, 82%, 57%)',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        4,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        3
+                                    ]
+                                ]
+                            },
+                            inspect: {
+                                title: 'Ward Number',
+                                label: 'wardcode',
+                                id: 'objectid',
+                                fields: ['ulbname'],
+                                fieldTitles: ['Urban Local Body']
+                            }
+                        },
+                        {
+                            id: 'goa-local-body',
+                            title: 'Local Body Boundaries',
+                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                            headerImage: 'assets/map-layer-local-boundaries.png',
+                            type: 'layer-group',
+                            groups: [
+                                {
+                                    id: 'goa-local-body',
+                                    title: 'Bhuvan Panchayat',
+                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
+                                }
+                            ],
+                            initiallyChecked: true,
+                        },
+                        
+                        
                         {
                             title: 'Reserve Forests',
                             description: 'Forest beat boundaries',
@@ -395,6 +468,35 @@ function getQueryParameters() {
                                 fields: ['Range'],
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
                             }
+                        },
+
+                        {
+                            id: 'slope-zones',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Partial)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                },
+                                {
+                                    id: 'aster slope',
+                                    title: 'NASA Aster 30m (Goa Coast)',
+                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
+                                    location: 'Panaji'
+                                }
+                            ]
                         },
                         {
                             title: 'Landuse Zoning Plans',
@@ -447,7 +549,7 @@ function getQueryParameters() {
                             headerImage: 'assets/map-layer-construction.png',
                             type: 'geojson',
                             id: 'construction-sites',
-                            data: geojsonData,
+                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
                             attribution: 'Construction project sites in Goa',
                             style: {
                                 fill: false,
@@ -507,16 +609,7 @@ function getQueryParameters() {
                         }
                     });
                 })
-                .catch(error => {
-                    console.error('Error loading GeoJSON:', error);
-                    // Show error state in drawer
-                    document.getElementById('layer-controls-loader').innerHTML = `
-                        <div class="text-red-500">
-                            <sl-icon name="exclamation-triangle"></sl-icon>
-                            Error loading map layers. Please try refreshing the page.
-                        </div>
-                    `;
-                });
+                
 
             // Add navigation controls
             map.addControl(new mapboxgl.NavigationControl({
