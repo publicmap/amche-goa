@@ -120,6 +120,69 @@ class MapLayerControl {
             navigator.clipboard.writeText(url.toString()).then(() => {
                 // Show toast notification
                 this._showToast('Link copied to clipboard!');
+                
+                // Generate QR code
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url.toString())}`;
+                
+                // Create QR code image for button
+                const qrCode = document.createElement('img');
+                qrCode.src = qrCodeUrl;
+                qrCode.alt = 'QR Code';
+                qrCode.style.width = '30px';
+                qrCode.style.height = '30px';
+                qrCode.style.cursor = 'pointer';
+                
+                // Store original button content
+                const originalContent = shareButton.innerHTML;
+                
+                // Replace button content with QR code
+                shareButton.innerHTML = '';
+                shareButton.appendChild(qrCode);
+                
+                // Add click handler to QR code to show full screen overlay
+                qrCode.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Create full screen overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                    overlay.style.display = 'flex';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.alignItems = 'center';
+                    overlay.style.zIndex = '9999';
+                    overlay.style.cursor = 'pointer';
+                    overlay.style.padding = '10px'; // Add padding to ensure some space from edges
+                    
+                    // Create large QR code
+                    const largeQRCode = document.createElement('img');
+                    largeQRCode.src = qrCodeUrl; // Use the same high-res QR code
+                    largeQRCode.alt = 'QR Code';
+                    largeQRCode.style.width = 'auto';
+                    largeQRCode.style.height = 'auto';
+                    largeQRCode.style.maxWidth = 'min(500px, 90vw)'; // Use the smaller of 500px or 90% viewport width
+                    largeQRCode.style.maxHeight = '90vh'; // Maximum 90% of viewport height
+                    largeQRCode.style.objectFit = 'contain'; // Maintain aspect ratio
+                    
+                    // Close overlay when clicked
+                    overlay.addEventListener('click', () => {
+                        document.body.removeChild(overlay);
+                    });
+                    
+                    overlay.appendChild(largeQRCode);
+                    document.body.appendChild(overlay);
+                });
+                
+                // Auto-revert after 30 seconds
+                setTimeout(() => {
+                    if (shareButton.contains(qrCode)) {
+                        shareButton.innerHTML = originalContent;
+                    }
+                }, 30000);
             }).catch(err => {
                 console.error('Failed to copy link:', err);
                 this._showToast('Failed to copy link', 'error');
