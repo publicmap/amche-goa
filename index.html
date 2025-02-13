@@ -269,7 +269,15 @@ function getQueryParameters() {
                                 fieldTitles: ['Name', 'Notes', 'Added'],
                             }
                         },
-                        
+                        {
+                            title: 'Community Maps',
+                            description: 'Sketches, maps and plans by the people of Goa',
+                            headerImage: 'assets/map-layer-community-maps.png',
+                            type: 'tms',
+                            id: 'community-maps',
+                            url: 'https://mapwarper.net/mosaics/tile/2157/{z}/{x}/{y}.png',
+                            attribution: '<a href="https://mapwarper.net/layers/2157">CC-BY-SA Mapwarper community maps of Goa</a>'
+                        },
                         {
                             title: 'Plot Boundaries',
                             description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
@@ -538,15 +546,6 @@ function getQueryParameters() {
                             id: 'goa-czmp-map',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
                             attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
-                        },
-                        {
-                            title: 'Community Maps',
-                            description: 'Sketches, maps and plans by the people of Goa',
-                            headerImage: 'assets/map-layer-community-maps.png',
-                            type: 'tms',
-                            id: 'community-maps',
-                            url: 'https://mapwarper.net/maps/tile/89528/{z}/{x}/{y}.png',
-                            attribution: 'CC-BY-SA Goan Community'
                         },
                         {
                             title: 'OpenStreetMap',
