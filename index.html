@@ -104,6 +104,16 @@
             <div id="map" style="width: 100%; height: 100%;"></div>
             <!-- Add drawer inside the map container -->
             <sl-drawer id="map-controls-drawer" label="Map layers" placement="start" class="drawer-placement-start" contained>
+                <!-- Add this div for the header with flex layout -->
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-md">Choose layers</h2>
+                    <button id="share-link" class="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                        </svg>
+                        Share Link
+                    </button>
+                </div>
                 <!-- Loading state using Shoelace components -->
                 <div id="layer-controls-loader" class="p-4">
                     <div class="flex flex-col gap-4" id="skeleton-container">
@@ -275,7 +285,7 @@ function getQueryParameters() {
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    15, 'rgba(0, 0, 0, 0.05)',
                                     18, 'rgba(0, 0, 0, 0.1)'
                                 ],
                                 'line-color': 'black',
@@ -528,6 +538,15 @@ function getQueryParameters() {
                             id: 'goa-czmp-map',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
                             attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
+                        },
+                        {
+                            title: 'Community Maps',
+                            description: 'Sketches, maps and plans by the people of Goa',
+                            headerImage: 'assets/map-layer-community-maps.png',
+                            type: 'tms',
+                            id: 'community-maps',
+                            url: 'https://mapwarper.net/maps/tile/89528/{z}/{x}/{y}.png',
+                            attribution: 'CC-BY-SA Goan Community'
                         },
                         {
                             title: 'OpenStreetMap',
