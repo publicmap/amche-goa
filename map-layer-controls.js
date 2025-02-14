@@ -96,6 +96,158 @@ class MapLayerControl {
                 editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
             });
         }
+        
+        // Add share link handler
+        this._initializeShareLink();
+    }
+
+    _initializeShareLink() {
+        const shareButton = document.getElementById('share-link');
+        if (!shareButton) return;
+
+        shareButton.addEventListener('click', () => {
+            // Get all visible layers
+            const visibleLayers = this._getVisibleLayers();
+            
+            // Create new URL with layers parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('layers', visibleLayers.join(','));
+            
+            // Update browser URL without reloading the page
+            window.history.replaceState({}, '', url.toString());
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                // Show toast notification
+                this._showToast('Link copied to clipboard!');
+                
+                // Generate QR code
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url.toString())}`;
+                
+                // Create QR code image for button
+                const qrCode = document.createElement('img');
+                qrCode.src = qrCodeUrl;
+                qrCode.alt = 'QR Code';
+                qrCode.style.width = '30px';
+                qrCode.style.height = '30px';
+                qrCode.style.cursor = 'pointer';
+                
+                // Store original button content
+                const originalContent = shareButton.innerHTML;
+                
+                // Replace button content with QR code
+                shareButton.innerHTML = '';
+                shareButton.appendChild(qrCode);
+                
+                // Add click handler to QR code to show full screen overlay
+                qrCode.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Create full screen overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                    overlay.style.display = 'flex';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.alignItems = 'center';
+                    overlay.style.zIndex = '9999';
+                    overlay.style.cursor = 'pointer';
+                    overlay.style.padding = '10px'; // Add padding to ensure some space from edges
+                    
+                    // Create large QR code
+                    const largeQRCode = document.createElement('img');
+                    largeQRCode.src = qrCodeUrl; // Use the same high-res QR code
+                    largeQRCode.alt = 'QR Code';
+                    largeQRCode.style.width = 'auto';
+                    largeQRCode.style.height = 'auto';
+                    largeQRCode.style.maxWidth = 'min(500px, 90vw)'; // Use the smaller of 500px or 90% viewport width
+                    largeQRCode.style.maxHeight = '90vh'; // Maximum 90% of viewport height
+                    largeQRCode.style.objectFit = 'contain'; // Maintain aspect ratio
+                    
+                    // Close overlay when clicked
+                    overlay.addEventListener('click', () => {
+                        document.body.removeChild(overlay);
+                    });
+                    
+                    overlay.appendChild(largeQRCode);
+                    document.body.appendChild(overlay);
+                });
+                
+                // Auto-revert after 30 seconds
+                setTimeout(() => {
+                    if (shareButton.contains(qrCode)) {
+                        shareButton.innerHTML = originalContent;
+                    }
+                }, 30000);
+            }).catch(err => {
+                console.error('Failed to copy link:', err);
+                this._showToast('Failed to copy link', 'error');
+            });
+        });
+    }
+
+    _showToast(message, type = 'success') {
+        // Create toast element if it doesn't exist
+        let toast = document.querySelector('.toast-notification');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+        }
+
+        // Set message and style based on type
+        toast.textContent = message;
+        toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+
+        // Show toast
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                
+                // Remove element after animation
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        });
+    }
+
+    _getVisibleLayers() {
+        const visibleLayers = [];
+        
+        this._options.groups.forEach((group, index) => {
+            // Find the checkbox within the group header
+            const groupHeader = this._sourceControls[index]?.closest('.group-header');
+            const checkbox = groupHeader?.querySelector('input[type="checkbox"]');
+            
+            if (checkbox?.checked) {
+                if (group.type === 'terrain') {
+                    visibleLayers.push('terrain');
+                } else if (group.type === 'vector') {
+                    visibleLayers.push(group.id);
+                } else if (group.type === 'tms') {
+                    visibleLayers.push(group.id);
+                } else if (group.type === 'markers') {
+                    visibleLayers.push(group.id);
+                } else if (group.layers) {
+                    // For layer groups, check which radio button is selected
+                    const radioGroup = this._sourceControls[index]?.querySelector('.radio-group');
+                    const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
+                    if (selectedRadio) {
+                        visibleLayers.push(selectedRadio.value);
+                    }
+                }
+            }
+        });
+
+        return visibleLayers;
     }
 
     renderToContainer(container, map) {
@@ -1845,36 +1997,6 @@ class MapLayerControl {
         }
 
         return undefined;
-    }
-
-    _getVisibleLayers() {
-        return this._options.groups.flatMap(group => {
-            const isLayerVisible = (id) =>
-                this._map.getLayer(id) &&
-                this._map.getLayoutProperty(id, 'visibility') === 'visible';
-
-            switch (group.type) {
-                case 'layer-group':
-                    return group.groups
-                        .map(subGroup => subGroup.id)
-                        .filter(isLayerVisible);
-                case 'vector':
-                    const vectorId = `vector-layer-${group.id}`;
-                    return isLayerVisible(vectorId) ? [vectorId] : [];
-                case 'geojson':
-                    const baseId = `geojson-${group.id}`;
-                    return ['fill', 'line', 'label']
-                        .map(type => `${baseId}-${type}`)
-                        .filter(isLayerVisible);
-                case 'tms':
-                    const tmsId = `tms-layer-${group.id}`;
-                    return isLayerVisible(tmsId) ? [tmsId] : [];
-                default:
-                    return (group.layers || [])
-                        .map(layer => layer.id)
-                        .filter(isLayerVisible);
-            }
-        });
     }
 
     _handleLayerGroupChange(selectedId, groups) {
