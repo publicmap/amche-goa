@@ -557,18 +557,14 @@ function getQueryParameters() {
                             attribution: 'Source: <a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
                         },
                         {
+                            id: 'osm',
                             title: 'OpenStreetMap',
                             description: 'OpenStreetMap Data',
                             headerImage: 'assets/map-layer-osm.png',
-                            type: 'osm',
-                            layers: [
-                                {
-                                    id: 'osm-tiles',
-                                    label: 'OpenStreetMap',
-                                    sourceUrl: 'https://www.openstreetmap.org/copyright',
-                                    location: 'Panaji'
-                                }
-                            ]
+                            type: 'tms',
+                            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
+                            attribution: '© OpenStreetMap contributors'
                         },
                         {
                             title: 'Construction Sites',

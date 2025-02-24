@@ -1988,10 +1988,9 @@ class MapLayerControl {
             return undefined;
         }
 
-        if (type === 'tms' || type === 'osm' || type === 'raster') {
+        if (type === 'tms' || type === 'raster') {  // Remove 'osm' since it's now handled as 'tms'
             if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
                 const insertBeforeId = layers[baseLayerIndex + 1].id;
-
                 return insertBeforeId;
             }
         }
