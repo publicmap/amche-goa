@@ -1667,9 +1667,6 @@ class MapLayerControl {
 
                 if (isVisible) {
                     const links = [];
-                    if (layer.sourceUrl) {
-                        links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
-                    }
                     if (layer.location) {
                         links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
                     }
