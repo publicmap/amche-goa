@@ -330,43 +330,43 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'revenue-village',
+                            id: 'village',
                             title: 'Village Boundaries',
                             headerImage: 'assets/map-layer-village.png',
-                            description: 'Revenue village boundaries',
+                            description: 'Revenue village boundaries with <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory</a> attributes.',
                             type: 'vector',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/villages/lgd/{z}/{x}/{y}.pbf ',
                             sourceLayer: 'LGD_Villages',
                             maxzoom: 10,
-                            attribution: 'Source: <a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: 'Source: <a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a>, <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory, Ministry of Panchayati Raj</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    16, 'rgba(0, 0, 0, 0.05)',
-                                    18, 'rgba(0, 0, 0, 0.1)'
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
                                 ],
                                 'line-color': 'black',
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        1.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1,
+                                        0
+                                    ],
                                     12, [
                                         'case',
                                         ['boolean', ['feature-state', 'selected'], false],
-                                        4,
+                                        3,
                                         ['boolean', ['feature-state', 'hover'], false],
-                                        4,
+                                        2,
                                         1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        6,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        3
                                     ]
                                 ]
                             },
@@ -548,18 +548,23 @@ function getQueryParameters() {
                             attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
                         },
                         {
+                            title: 'AMS Maps (1970s)',
+                            description: '1:250000 maps from the U.S. Army Map Service created 1955-1970s',
+                            headerImage: 'assets/map-layer-ams.png',
+                            type: 'tms',
+                            id: 'goa-ams-map',
+                            url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
+                            attribution: 'Source: <a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
+                        },
+                        {
+                            id: 'osm',
                             title: 'OpenStreetMap',
                             description: 'OpenStreetMap Data',
                             headerImage: 'assets/map-layer-osm.png',
-                            type: 'osm',
-                            layers: [
-                                {
-                                    id: 'osm-tiles',
-                                    label: 'OpenStreetMap',
-                                    sourceUrl: 'https://www.openstreetmap.org/copyright',
-                                    location: 'Panaji'
-                                }
-                            ]
+                            type: 'tms',
+                            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
+                            attribution: '© OpenStreetMap contributors'
                         },
                         {
                             title: 'Construction Sites',

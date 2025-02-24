@@ -1667,9 +1667,6 @@ class MapLayerControl {
 
                 if (isVisible) {
                     const links = [];
-                    if (layer.sourceUrl) {
-                        links.push(`<a href="${layer.sourceUrl}" target="_blank" class="hover:underline">Source</a>`);
-                    }
                     if (layer.location) {
                         links.push(`<a href="#" class="hover:underline view-link" data-location="${layer.location}">View</a>`);
                     }
@@ -1988,10 +1985,9 @@ class MapLayerControl {
             return undefined;
         }
 
-        if (type === 'tms' || type === 'osm' || type === 'raster') {
+        if (type === 'tms' || type === 'raster') {  // Remove 'osm' since it's now handled as 'tms'
             if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
                 const insertBeforeId = layers[baseLayerIndex + 1].id;
-
                 return insertBeforeId;
             }
         }
