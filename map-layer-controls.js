@@ -711,6 +711,34 @@ class MapLayerControl {
                     $contentArea.append($attribution);
                     $groupHeader.append($contentArea);
                 }
+
+                // Add label layer if label style is defined
+                if (group.style?.label) {
+                    this._map.addLayer({
+                        id: `${sourceId}-labels`,
+                        type: 'symbol',
+                        source: sourceId,
+                        layout: {
+                            'visibility': 'none',
+                            'text-field': ['get', 'name'],
+                            'text-size': group.style.label['text-size'] || this._defaultStyles.geojson.label['text-size'],
+                            'text-allow-overlap': false,
+                            'text-ignore-placement': false
+                        },
+                        paint: {
+                            'text-color': group.style.label['text-color'] || this._defaultStyles.geojson.label['text-color'],
+                            'text-halo-color': group.style.label['text-halo-color'] || this._defaultStyles.geojson.label['text-halo-color'],
+                            'text-halo-width': group.style.label['text-halo-width'] || this._defaultStyles.geojson.label['text-halo-width']
+                        }
+                    }, this._getInsertPosition('vector'));
+                }
+
+                // Update the layer visibility handling to include labels
+                [sourceId, `${sourceId}-fill`, `${sourceId}-line`, `${sourceId}-labels`].forEach(id => {
+                    if (this._map.getLayer(id)) {
+                        this._map.setLayoutProperty(id, 'visibility', 'visible');
+                    }
+                });
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { 
                     class: 'terrain-settings-section' // Add terrain-settings-section class
@@ -1263,6 +1291,35 @@ class MapLayerControl {
                     $contentArea.append($attribution);
                     $groupHeader.append($contentArea);
                 }
+
+                // Add label layer if label style is defined
+                if (group.style?.label) {
+                    this._map.addLayer({
+                        id: `${layerId}-labels`,
+                        type: 'symbol',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer || 'default',
+                        layout: {
+                            'visibility': 'none',
+                            'text-field': ['get', 'name'],
+                            'text-size': group.style.label['text-size'] || this._defaultStyles.geojson.label['text-size'],
+                            'text-allow-overlap': false,
+                            'text-ignore-placement': false
+                        },
+                        paint: {
+                            'text-color': group.style.label['text-color'] || this._defaultStyles.geojson.label['text-color'],
+                            'text-halo-color': group.style.label['text-halo-color'] || this._defaultStyles.geojson.label['text-halo-color'],
+                            'text-halo-width': group.style.label['text-halo-width'] || this._defaultStyles.geojson.label['text-halo-width']
+                        }
+                    }, this._getInsertPosition('vector'));
+                }
+
+                // Update the layer visibility handling to include labels
+                [layerId, `${layerId}-outline`, `${layerId}-labels`].forEach(id => {
+                    if (this._map.getLayer(id)) {
+                        this._map.setLayoutProperty(id, 'visibility', 'visible');
+                    }
+                });
             } else if (group.type === 'markers' && group.dataUrl) {
                 fetch(group.dataUrl)
                     .then(response => response.text())
