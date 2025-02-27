@@ -236,6 +236,8 @@ class MapLayerControl {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'markers') {
                     visibleLayers.push(group.id);
+                } else if (group.type === 'geojson') {  // Add handling for geojson type
+                    visibleLayers.push(group.id);
                 } else if (group.layers) {
                     // For layer groups, check which radio button is selected
                     const radioGroup = this._sourceControls[index]?.querySelector('.radio-group');
