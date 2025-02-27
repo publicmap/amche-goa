@@ -442,7 +442,47 @@ function getQueryParameters() {
                             ],
                             initiallyChecked: true,
                         },
-                        
+                        {
+                            title: 'Water Bodies',
+                            description: 'Water body boundaries',
+                            headerImage: 'assets/map-layer-water-bodies.png',
+                            type: 'geojson',
+                            id: 'water-bodies',
+                            url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        .5
+                                    ]
+                                ],
+                                'fill-color': 'green'
+                            },
+                            inspect: {
+                                id: 'id',
+                                title: 'Name',
+                                label: 'name',
+                                fields: ['name'],
+                                customHtml: 'Source: Goa WRD'
+                            }
+                        },
                         
                         {
                             title: 'Reserve Forests',
@@ -487,7 +527,6 @@ function getQueryParameters() {
                                 customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
                             }
                         },
-
                         {
                             id: 'slope-zones',
                             title: 'Slope Zoning',

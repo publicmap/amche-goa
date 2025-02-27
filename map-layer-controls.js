@@ -648,96 +648,55 @@ class MapLayerControl {
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 
-                // Initialize source with empty FeatureCollection
-                if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'geojson',
-                        data: {
-                            type: 'FeatureCollection',
-                            features: []
-                        }
-                    });
+                // Add source first
+                this._map.addSource(sourceId, {
+                    type: 'geojson',
+                    data: group.url
+                });
 
-                    const style = {
-                        fill: {
-                            ...this._defaultStyles.geojson.fill,
-                            ...(group.style?.fill || {})
-                        },
-                        line: {
-                            ...this._defaultStyles.geojson.line,
-                            ...(group.style?.line || {})
-                        },
-                        label: {
-                            ...this._defaultStyles.geojson.label,
-                            ...(group.style?.label || {})
-                        }
-                    };
-
-                    // Add layers with empty source
-                    if (style.fill !== false) {
-                        this._map.addLayer({
-                            id: `${sourceId}-fill`,
-                            type: 'fill',
-                            source: sourceId,
-                            paint: {
-                                'fill-color': style.fill?.['fill-color'] || '#ff0000',
-                                'fill-opacity': style.fill?.['fill-opacity'] || 0.95
-                            },
-                            layout: {
-                                'visibility': 'none'
-                            }
-                        });
+                // Merge default styles with custom styles
+                const style = {
+                    fill: group.style?.['fill-color'] ? {
+                        'fill-color': group.style['fill-color'],
+                        'fill-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            0.2,
+                            ['boolean', ['feature-state', 'hover'], false],
+                            0.8,
+                            0.5
+                        ]
+                    } : false,
+                    line: {
+                        'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
+                        'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
+                        'line-opacity': 1
                     }
+                };
 
+                // Add fill layer if not explicitly disabled
+                if (style.fill !== false) {
                     this._map.addLayer({
-                        id: `${sourceId}-line`,
-                        type: 'line',
+                        id: `${sourceId}-fill`,
+                        type: 'fill',
                         source: sourceId,
-                        paint: {
-                            'line-color': style.line?.['line-color'] || '#ff0000',
-                            'line-width': style.line?.['line-width'] || 2
-                        },
+                        paint: style.fill,
                         layout: {
                             'visibility': 'none'
                         }
                     });
-
-                    this._map.addLayer({
-                        id: `${sourceId}-label`,
-                        type: 'symbol',
-                        source: sourceId,
-                        layout: {
-                            'visibility': 'none',
-                            'text-field': ['get', 'name'],
-                            'text-size': style.label?.['text-size'] || 12,
-                            'text-anchor': 'center',
-                            'text-offset': [0, 0],
-                            'text-allow-overlap': false,
-                            'text-ignore-placement': false
-                        },
-                        paint: {
-                            'text-color': style.label?.['text-color'] || '#000000',
-                            'text-halo-color': style.label?.['text-halo-color'] || '#ffffff',
-                            'text-halo-width': style.label?.['text-halo-width'] || 2
-                        }
-                    });
-                    
-                    // Load data asynchronously if URL is provided
-                    if (group.url) {
-                        fetch(group.url)
-                            .then(response => response.json())
-                            .then(data => {
-                                // Update source with loaded data
-                                this._map.getSource(sourceId).setData(data);
-                            })
-                            .catch(error => {
-                                console.error(`Error loading GeoJSON for ${group.id}:`, error);
-                            });
-                    } else if (group.data) {
-                        // Support existing direct data assignment
-                        this._map.getSource(sourceId).setData(group.data);
-                    }
                 }
+
+                // Add line layer
+                this._map.addLayer({
+                    id: `${sourceId}-line`,
+                    type: 'line',
+                    source: sourceId,
+                    paint: style.line,
+                    layout: {
+                        'visibility': 'none'
+                    }
+                });
 
                 if (group.attribution) {
                     const $attribution = $('<div>', {
