@@ -451,33 +451,14 @@ function getQueryParameters() {
                             url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
                             attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                    'text-color': 'white',
-                                    'text-halo-color': 'blue',
-                                    'text-halo-width': 2,
-                                    'text-size': 12,
+                                'text-color': 'white',
+                                'text-halo-color': 'blue',
+                                'text-halo-width': 2,
+                                'text-size': 12,
                                 'line-color': 'blue',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        .5
-                                    ]
-                                ],
-                                'fill-color': 'blue'
+                                'line-width': 2,
+                                'fill-color': 'blue',
+                                'fill-opacity': 0.3
                             },
                             inspect: {
                                 id: 'id',

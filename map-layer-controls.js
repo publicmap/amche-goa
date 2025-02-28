@@ -693,10 +693,13 @@ class MapLayerControl {
                         paint: {
                             'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
                             'line-width': [
-                                'case',
-                                ['boolean', ['feature-state', 'hover'], false],
-                                4,
-                                group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                10,
+                                group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
+                                16,
+                                (group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']) * 2
                             ]
                         },
                         layout: {
