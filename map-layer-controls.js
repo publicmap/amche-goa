@@ -662,7 +662,8 @@ class MapLayerControl {
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
                         type: 'geojson',
-                        data: group.url
+                        data: group.url,
+                        generateId: true  // Add this to automatically generate feature IDs
                     });
 
                     // Add fill layer
@@ -672,7 +673,12 @@ class MapLayerControl {
                         source: sourceId,
                         paint: {
                             'fill-color': group.style?.['fill-color'] || this._defaultStyles.geojson.fill['fill-color'],
-                            'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.geojson.fill['fill-opacity']
+                            'fill-opacity': [
+                                'case',
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.8,
+                                group.style?.['fill-opacity'] || this._defaultStyles.geojson.fill['fill-opacity']
+                            ]
                         },
                         layout: {
                             visibility: 'none'
@@ -686,7 +692,12 @@ class MapLayerControl {
                         source: sourceId,
                         paint: {
                             'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
-                            'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']
+                            'line-width': [
+                                'case',
+                                ['boolean', ['feature-state', 'hover'], false],
+                                4,
+                                group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']
+                            ]
                         },
                         layout: {
                             visibility: 'none'
@@ -741,17 +752,33 @@ class MapLayerControl {
                             // Add hover state
                             this._map.on('mousemove', layerId, (e) => {
                                 if (e.features.length > 0) {
+                                    const feature = e.features[0];
+                                    
                                     if (hoveredFeatureId !== null) {
                                         this._map.setFeatureState(
                                             { source: sourceId, id: hoveredFeatureId },
                                             { hover: false }
                                         );
                                     }
-                                    hoveredFeatureId = e.features[0].id;
-                                    this._map.setFeatureState(
-                                        { source: sourceId, id: hoveredFeatureId },
-                                        { hover: true }
-                                    );
+                                    
+                                    if (feature.id !== undefined) {  // Check if feature has an ID
+                                        hoveredFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { source: sourceId, id: hoveredFeatureId },
+                                            { hover: true }
+                                        );
+                                    }
+
+                                    // Show hover popup if configured
+                                    if (group.inspect?.label) {
+                                        const content = this._createPopupContent(feature, group, true);
+                                        if (content) {
+                                            hoverPopup
+                                                .setLngLat(e.lngLat)
+                                                .setDOMContent(content)
+                                                .addTo(this._map);
+                                        }
+                                    }
                                 }
                             });
 
@@ -764,14 +791,49 @@ class MapLayerControl {
                                     );
                                     hoveredFeatureId = null;
                                 }
+                                hoverPopup.remove();
                             });
 
                             // Handle click events
                             this._map.on('click', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
-                                    // ... rest of your click handling code ...
+                                    
+                                    // Remove hover popup
+                                    hoverPopup.remove();
+
+                                    if (selectedFeatureId !== null) {
+                                        this._map.setFeatureState(
+                                            { source: sourceId, id: selectedFeatureId },
+                                            { selected: false }
+                                        );
+                                    }
+
+                                    if (feature.id !== undefined) {
+                                        selectedFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { source: sourceId, id: selectedFeatureId },
+                                            { selected: true }
+                                        );
+                                    }
+
+                                    const content = this._createPopupContent(feature, group, false, e.lngLat);
+                                    if (content) {
+                                        popup
+                                            .setLngLat(e.lngLat)
+                                            .setDOMContent(content)
+                                            .addTo(this._map);
+                                    }
                                 }
+                            });
+
+                            // Add pointer cursor
+                            this._map.on('mouseenter', layerId, () => {
+                                this._map.getCanvas().style.cursor = 'pointer';
+                            });
+
+                            this._map.on('mouseleave', layerId, () => {
+                                this._map.getCanvas().style.cursor = '';
                             });
                         });
                     }

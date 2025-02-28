@@ -451,12 +451,10 @@ function getQueryParameters() {
                             url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
                             attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                label: {
                                     'text-color': 'white',
                                     'text-halo-color': 'blue',
                                     'text-halo-width': 2,
-                                    'text-size': 12
-                                },
+                                    'text-size': 12,
                                 'line-color': 'blue',
                                 'line-width': [
                                     'interpolate',
@@ -485,7 +483,8 @@ function getQueryParameters() {
                                 id: 'id',
                                 title: 'Name',
                                 label: 'name',
-                                fields: ['name'],
+                                fields: ['owner_type','condition','construction','purpose'],
+                                fieldTitles: ['Owner Type','Condition','Construction','Purpose',],
                                 customHtml: 'Source: Goa WRD'
                             }
                         },
