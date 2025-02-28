@@ -272,10 +272,8 @@ class MapLayerControl {
     }
 
     _initializeControl($container) {
-        this._initializeLayers();
-
+        // Move layer initialization after URL parameter handling
         this._options.groups.forEach((group, groupIndex) => {
-
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
@@ -297,7 +295,7 @@ class MapLayerControl {
                 $opacityButton.toggleClass('hidden', true);
             });
 
-            // NEW CODE: If the group is initially checked, we need to explicitly toggle the source control
+            // Initialize layers only if they should be visible
             if (group.initiallyChecked) {
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
@@ -305,6 +303,11 @@ class MapLayerControl {
                     if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
                     }
+                });
+            } else {
+                // Ensure layers are hidden if not initially checked
+                requestAnimationFrame(() => {
+                    this._toggleSourceControl(groupIndex, false);
                 });
             }
 
@@ -1448,207 +1451,41 @@ class MapLayerControl {
         });
     }
 
-    _toggleSourceControl(groupIndex, checked) {
+    _toggleSourceControl(groupIndex, visible) {
         const group = this._options.groups[groupIndex];
-        const $sourceControl = $(this._sourceControls[groupIndex]);
-
-        if (checked) {
-            if (group.type === 'vector') {
-                const sourceId = `vector-source-${group.id}`;
-                if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'vector',
-                        url: group.url,
-                        maxzoom: group.maxzoom
-                    });
-                }
-
-                const layerId = `vector-layer-${group.id}`;
-                if (!this._map.getLayer(layerId)) {
-                    this._map.addLayer({
-                        id: layerId,
-                        type: 'fill',
-                        source: sourceId,
-                        'source-layer': group.sourceLayer,
-                        paint: group.style?.fill || this._defaultStyles.vector.fill
-                    });
-
-                    this._map.addLayer({
-                        id: `${layerId}-outline`,
-                        type: 'line',
-                        source: sourceId,
-                        'source-layer': group.sourceLayer,
-                        paint: group.style?.line || this._defaultStyles.vector.line
-                    });
-                }
-
-                this._map.setLayoutProperty(layerId, 'visibility', 'visible');
-                this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'visible');
-            } else if (group.type === 'terrain') {
-                this._map.setTerrain({ 
-                    'source': 'mapbox-dem',
-                    'exaggeration': 1.5 
-                });
-                
-                const existingFog = this._map.getFog() || {
-                    'range': [-1, 2],
-                    'horizon-blend': 0.3,
-                    'color': '#ffffff',
-                    'high-color': '#add8e6',
-                    'space-color': '#d8f2ff',
-                    'star-intensity': 0.0
-                };
-
-                this._map.setFog(existingFog);
-
-                const $fogStartSlider = $(`#fog-start-${this._instanceId}`);
-                const $fogEndSlider = $(`#fog-end-${this._instanceId}`);
-                const $horizonSlider = $(`#horizon-blend-${this._instanceId}`);
-                const $colorPicker = $(`#fog-color-${this._instanceId}`);
-                const $highColorPicker = $(`#fog-high-color-${this._instanceId}`);
-                const $spaceColorPicker = $(`#fog-space-color-${this._instanceId}`);
-
-                if ($fogStartSlider.length && $fogEndSlider.length) {
-                    $fogStartSlider.val(existingFog.range[0]);
-                    $fogEndSlider.val(existingFog.range[1]);
-                    $sourceControl.find('.fog-range-slider').next().find('span')
-                        .text(`[${existingFog.range[0]}, ${existingFog.range[1]}]`);
-                }
-
-                if ($horizonSlider.length) {
-                    const horizonBlend = Array.isArray(existingFog['horizon-blend']) 
-                        ? existingFog['horizon-blend'][4]
-                        : existingFog['horizon-blend'];
-                    
-                    $horizonSlider.val(horizonBlend);
-                    $horizonSlider.next('span').text(horizonBlend.toFixed(2));
-                }
-
-                if ($colorPicker.length) $colorPicker.val(existingFog.color);
-                if ($highColorPicker.length) $highColorPicker.val(existingFog['high-color']);
-                if ($spaceColorPicker.length) $spaceColorPicker.val(existingFog['space-color']);
-            } else if (group.type === 'layer-group') {
-                const firstRadio = $sourceControl.find('input[type="radio"]').first();
-                if (firstRadio.length) {
-                    firstRadio.prop('checked', true);
-                    this._handleLayerGroupChange(firstRadio.val(), group.groups);
-                }
-            } else if (group.type === 'geojson') {
-                const sourceId = `geojson-${group.id}`;
-                ['fill', 'line', 'label'].forEach(type => {
-                    const layerId = `${sourceId}-${type}`;
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setLayoutProperty(
-                            layerId,
-                            'visibility',
-                            'visible'
-                        );
-                    }
-                });
-            } else if (group.type === 'tms') {
-                const layerId = `tms-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'visible');
-                }
-            } else if (group.layers && group.layers.length > 0) {
-                const firstLayer = group.layers[0];
-                if (this._map.getLayer(firstLayer.id)) {
-                    this._map.setLayoutProperty(
-                        firstLayer.id,
-                        'visibility',
-                        'visible'
+        
+        if (group.type === 'layer-group') {
+            group.groups.forEach(subGroup => {
+                const allLayers = this._map.getStyle().layers
+                    .map(layer => layer.id)
+                    .filter(id => 
+                        id === subGroup.id || 
+                        id.startsWith(`${subGroup.id}-`) ||
+                        id.startsWith(`${subGroup.id} `)
                     );
-
-                    const firstRadio = $sourceControl.find(`input[value="${firstLayer.id}"]`);
-                    if (firstRadio.length) {
-                        firstRadio.prop('checked', true);
-                        this._handleLayerChange(firstLayer.id, group.layers);
-                    }
+                this._updateLayerVisibility(allLayers, visible);
+            });
+        } else if (group.type === 'geojson') {
+            const sourceId = `geojson-${group.id}`;
+            ['fill', 'line', 'label'].forEach(type => {
+                const layerId = `${sourceId}-${type}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
                 }
-            } else if (group.type === 'markers') {
-                const sourceId = `markers-${group.id}`;
-                if (this._map.getLayer(`${sourceId}-circles`)) {
-                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'visible');
-                }
-            } else if (group.layers) {
-                const firstRadio = $sourceControl.find('input[type="radio"]').first();
-                if (firstRadio.length) {
-                    firstRadio.prop('checked', true);
-                    this._handleLayerChange(firstRadio.val(), group.layers);
-                }
+            });
+        } else if (group.type === 'tms') {
+            const layerId = `tms-layer-${group.id}`;
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
             }
-        } else {
-            if (group.type === 'terrain') {
-                this._map.setTerrain(null);
-                
-                this._map.setFog(null);
-                
-                const contourLayers = ['contour lines', 'contour labels'];
-                contourLayers.forEach(layerId => {
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setLayoutProperty(
-                            layerId,
-                            'visibility',
-                            'none'
-                        );
-                    }
-                });
-            } else if (group.type === 'layer-group') {
-                const allLayers = this._map.getStyle().layers.map(layer => layer.id);
-                group.groups.forEach(subGroup => {
-                    const matchingLayers = allLayers.filter(layerId => 
-                        layerId === subGroup.id || 
-                        layerId.startsWith(`${subGroup.id}-`) ||
-                        layerId.startsWith(`${subGroup.id} `)
-                    );
-                    
-                    matchingLayers.forEach(layerId => {
-                        if (this._map.getLayer(layerId)) {
-                            this._map.setLayoutProperty(layerId, 'visibility', 'none');
-                        }
-                    });
-                });
-            } else if (group.type === 'geojson') {
-                const sourceId = `geojson-${group.id}`;
-                ['fill', 'line', 'label'].forEach(type => {
-                    const layerId = `${sourceId}-${type}`;
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setLayoutProperty(layerId, 'visibility', 'none');
-                    }
-                });
-            } else if (group.type === 'tms') {
-                const layerId = `tms-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
+        } else if (group.type === 'vector') {
+            const layerId = `vector-layer-${group.id}`;
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', visible ? 'visible' : 'none');
+                if (this._map.getLayer(`${layerId}-label`)) {
+                    this._map.setLayoutProperty(`${layerId}-label`, 'visibility', visible ? 'visible' : 'none');
                 }
-            } else if (group.type === 'vector') {
-                const layerId = `vector-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    // Disable layer interactivity when hidden
-                    this._map.off('mousemove', layerId);
-                    this._map.off('mouseleave', layerId);
-                    this._map.off('click', layerId);
-                    
-                    // Also disable interactivity for the outline layer
-                    this._map.off('mousemove', `${layerId}-outline`);
-                    this._map.off('mouseleave', `${layerId}-outline`);
-                    this._map.off('click', `${layerId}-outline`);
-                    
-                    // Set visibility to none
-                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
-                    this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'none');
-                }
-            } else if (group.type === 'markers') {
-                const sourceId = `markers-${group.id}`;
-                if (this._map.getLayer(`${sourceId}-circles`)) {
-                    this._map.setLayoutProperty(`${sourceId}-circles`, 'visibility', 'none');
-                }
-            } else if (group.layers) {
-                group.layers.forEach(layer => {
-                    if (this._map.getLayer(layer.id)) {
-                        this._map.setLayoutProperty(layer.id, 'visibility', 'none');
-                    }
-                });
             }
         }
     }
