@@ -676,6 +676,9 @@ class MapLayerControl {
                     }
                 };
 
+                // Set initial visibility based on initiallyChecked
+                const initialVisibility = group.initiallyChecked ? 'visible' : 'none';
+
                 // Add fill layer if not explicitly disabled
                 if (style.fill !== false) {
                     this._map.addLayer({
@@ -684,7 +687,7 @@ class MapLayerControl {
                         source: sourceId,
                         paint: style.fill,
                         layout: {
-                            'visibility': 'none'
+                            'visibility': initialVisibility
                         }
                     });
                 }
@@ -696,30 +699,18 @@ class MapLayerControl {
                     source: sourceId,
                     paint: style.line,
                     layout: {
-                        'visibility': 'none'
+                        'visibility': initialVisibility
                     }
                 });
-
-                if (group.attribution) {
-                    const $attribution = $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2',
-                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    });
-                    
-                    // Add attribution to sl-details content area instead of source control
-                    const $contentArea = $('<div>');
-                    $contentArea.append($attribution);
-                    $groupHeader.append($contentArea);
-                }
 
                 // Add label layer if label style is defined
                 if (group.style?.label) {
                     this._map.addLayer({
-                        id: `${sourceId}-labels`,
+                        id: `${sourceId}-label`,
                         type: 'symbol',
                         source: sourceId,
                         layout: {
-                            'visibility': 'none',
+                            'visibility': initialVisibility,
                             'text-field': ['get', 'name'],
                             'text-size': group.style.label['text-size'] || this._defaultStyles.geojson.label['text-size'],
                             'text-allow-overlap': false,
@@ -732,13 +723,6 @@ class MapLayerControl {
                         }
                     }, this._getInsertPosition('vector'));
                 }
-
-                // Update the layer visibility handling to include labels
-                [sourceId, `${sourceId}-fill`, `${sourceId}-line`, `${sourceId}-labels`].forEach(id => {
-                    if (this._map.getLayer(id)) {
-                        this._map.setLayoutProperty(id, 'visibility', 'visible');
-                    }
-                });
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { 
                     class: 'terrain-settings-section' // Add terrain-settings-section class
@@ -1295,7 +1279,7 @@ class MapLayerControl {
                 // Add label layer if label style is defined
                 if (group.style?.label) {
                     this._map.addLayer({
-                        id: `${layerId}-labels`,
+                        id: `${layerId}-label`,
                         type: 'symbol',
                         source: sourceId,
                         'source-layer': group.sourceLayer || 'default',
@@ -1315,7 +1299,7 @@ class MapLayerControl {
                 }
 
                 // Update the layer visibility handling to include labels
-                [layerId, `${layerId}-outline`, `${layerId}-labels`].forEach(id => {
+                [layerId, `${layerId}-outline`, `${layerId}-label`].forEach(id => {
                     if (this._map.getLayer(id)) {
                         this._map.setLayoutProperty(id, 'visibility', 'visible');
                     }
@@ -1594,7 +1578,6 @@ class MapLayerControl {
                 }
             }
         } else {
-
             if (group.type === 'terrain') {
                 this._map.setTerrain(null);
                 
@@ -1641,6 +1624,17 @@ class MapLayerControl {
             } else if (group.type === 'vector') {
                 const layerId = `vector-layer-${group.id}`;
                 if (this._map.getLayer(layerId)) {
+                    // Disable layer interactivity when hidden
+                    this._map.off('mousemove', layerId);
+                    this._map.off('mouseleave', layerId);
+                    this._map.off('click', layerId);
+                    
+                    // Also disable interactivity for the outline layer
+                    this._map.off('mousemove', `${layerId}-outline`);
+                    this._map.off('mouseleave', `${layerId}-outline`);
+                    this._map.off('click', `${layerId}-outline`);
+                    
+                    // Set visibility to none
                     this._map.setLayoutProperty(layerId, 'visibility', 'none');
                     this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', 'none');
                 }
