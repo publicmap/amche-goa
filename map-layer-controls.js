@@ -696,14 +696,13 @@ class MapLayerControl {
                                 'interpolate',
                                 ['linear'],
                                 ['zoom'],
-                                10,
-                                group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
-                                16,
-                                (group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']) * 2
+                                10, 1,  // At zoom level 10, line width will be 1
+                                16, 3,  // At zoom level 16, line width will be 3
+                                22, 5   // At zoom level 22, line width will be 5
                             ]
                         },
                         layout: {
-                            visibility: 'none'
+                            'visibility': 'none'
                         }
                     });
 
