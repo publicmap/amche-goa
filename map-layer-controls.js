@@ -653,78 +653,149 @@ class MapLayerControl {
             } else if (group.type === 'geojson') {
                 const sourceId = `geojson-${group.id}`;
                 
-                // Add source first
-                this._map.addSource(sourceId, {
-                    type: 'geojson',
-                    data: group.url
-                });
+                // Add source if it doesn't exist
+                if (!this._map.getSource(sourceId)) {
+                    this._map.addSource(sourceId, {
+                        type: 'geojson',
+                        data: group.url
+                    });
+                }
 
-                // Merge default styles with custom styles
-                const style = {
-                    fill: group.style?.['fill-color'] ? {
-                        'fill-color': group.style['fill-color'],
+                // Add fill layer
+                const fillLayerId = `${sourceId}-fill`;
+                this._map.addLayer({
+                    id: fillLayerId,
+                    type: 'fill',
+                    source: sourceId,
+                    layout: {
+                        visibility: 'none'
+                    },
+                    paint: {
+                        'fill-color': group.style?.fill?.color || '#FF0000',
                         'fill-opacity': [
                             'case',
                             ['boolean', ['feature-state', 'selected'], false],
                             0.2,
                             ['boolean', ['feature-state', 'hover'], false],
                             0.8,
-                            0.5
+                            0.03
                         ]
-                    } : false,
-                    line: {
-                        'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
-                        'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
-                        'line-opacity': 1
-                    }
-                };
-
-                // Set initial visibility based on initiallyChecked
-                const initialVisibility = group.initiallyChecked ? 'visible' : 'none';
-
-                // Add fill layer if not explicitly disabled
-                if (style.fill !== false) {
-                    this._map.addLayer({
-                        id: `${sourceId}-fill`,
-                        type: 'fill',
-                        source: sourceId,
-                        paint: style.fill,
-                        layout: {
-                            'visibility': initialVisibility
-                        }
-                    });
-                }
-
-                // Add line layer
-                this._map.addLayer({
-                    id: `${sourceId}-line`,
-                    type: 'line',
-                    source: sourceId,
-                    paint: style.line,
-                    layout: {
-                        'visibility': initialVisibility
                     }
                 });
 
-                // Add label layer if label style is defined
-                if (group.style?.label) {
-                    this._map.addLayer({
-                        id: `${sourceId}-label`,
-                        type: 'symbol',
-                        source: sourceId,
-                        layout: {
-                            'visibility': initialVisibility,
-                            'text-field': ['get', 'name'],
-                            'text-size': group.style.label['text-size'] || this._defaultStyles.geojson.label['text-size'],
-                            'text-allow-overlap': false,
-                            'text-ignore-placement': false
-                        },
-                        paint: {
-                            'text-color': group.style.label['text-color'] || this._defaultStyles.geojson.label['text-color'],
-                            'text-halo-color': group.style.label['text-halo-color'] || this._defaultStyles.geojson.label['text-halo-color'],
-                            'text-halo-width': group.style.label['text-halo-width'] || this._defaultStyles.geojson.label['text-halo-width']
+                // Add line layer
+                const lineLayerId = `${sourceId}-line`;
+                this._map.addLayer({
+                    id: lineLayerId,
+                    type: 'line',
+                    source: sourceId,
+                    layout: {
+                        visibility: 'none'
+                    },
+                    paint: {
+                        'line-color': group.style?.line?.color || '#FF0000',
+                        'line-width': group.style?.line?.width || 1,
+                        'line-opacity': 1
+                    }
+                });
+
+                // Add inspection functionality if configured
+                if (group.inspect) {
+                    const popup = new mapboxgl.Popup({
+                        closeButton: true,
+                        closeOnClick: true
+                    });
+
+                    const hoverPopup = new mapboxgl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                        className: 'hover-popup'
+                    });
+
+                    let hoveredFeatureId = null;
+                    let selectedFeatureId = null;
+
+                    // Add hover handlers
+                    this._map.on('mousemove', fillLayerId, (e) => {
+                        if (e.features.length > 0) {
+                            const feature = e.features[0];
+
+                            if (hoveredFeatureId !== null) {
+                                this._map.setFeatureState(
+                                    { source: sourceId, id: hoveredFeatureId },
+                                    { hover: false }
+                                );
+                            }
+                            hoveredFeatureId = feature.id;
+                            this._map.setFeatureState(
+                                { source: sourceId, id: hoveredFeatureId },
+                                { hover: true }
+                            );
+
+                            if (group.inspect?.label) {
+                                const labelValue = feature.properties[group.inspect.label];
+                                if (labelValue) {
+                                    hoverPopup
+                                        .setLngLat(e.lngLat)
+                                        .setDOMContent(this._createPopupContent(feature, group, true))
+                                        .addTo(this._map);
+                                }
+                            }
                         }
-                    }, this._getInsertPosition('vector'));
+                    });
+
+                    this._map.on('mouseleave', fillLayerId, () => {
+                        if (hoveredFeatureId !== null) {
+                            this._map.setFeatureState(
+                                { source: sourceId, id: hoveredFeatureId },
+                                { hover: false }
+                            );
+                        }
+                        hoveredFeatureId = null;
+                        hoverPopup.remove();
+                    });
+
+                    // Add click handlers
+                    this._map.on('click', fillLayerId, (e) => {
+                        if (this._editMode) {
+                            // Handle edit mode click
+                            const lat = e.lngLat.lat.toFixed(6);
+                            const lng = e.lngLat.lng.toFixed(6);
+                            const visibleLayers = this._getVisibleLayers();
+                            const layersParam = encodeURIComponent(JSON.stringify(visibleLayers));
+                            const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}&entry.650960474=${layersParam}`;
+
+                            new mapboxgl.Popup()
+                                .setLngLat(e.lngLat)
+                                .setHTML(`
+                                    <div class="p-2">
+                                        <p class="mb-2">Location: ${lat}, ${lng}</p>
+                                        <p class="mb-2 text-xs text-gray-600">Visible layers: ${visibleLayers}</p>
+                                        <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Add note for this location</a>
+                                    </div>
+                                `)
+                                .addTo(this._map);
+                            return;
+                        }
+
+                        const feature = e.features[0];
+                        if (selectedFeatureId !== null) {
+                            this._map.setFeatureState(
+                                { source: sourceId, id: selectedFeatureId },
+                                { selected: false }
+                            );
+                        }
+                        selectedFeatureId = feature.id;
+                        this._map.setFeatureState(
+                            { source: sourceId, id: selectedFeatureId },
+                            { selected: true }
+                        );
+
+                        popup
+                            .setLngLat(e.lngLat)
+                            .setDOMContent(this._createPopupContent(feature, group))
+                            .addTo(this._map);
+                    });
                 }
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { 
