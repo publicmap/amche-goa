@@ -620,17 +620,34 @@ function getQueryParameters() {
                             url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
                             attribution: 'Construction project sites in Goa',
                             style: {
-                                fill: false,
-                                line: {
-                                    color: '#ff0000',
-                                    width: 2
-                                },
-                                label: {
-                                    color: '#000000',
-                                    size: 12,
-                                    haloColor: '#ffffff',
-                                    haloWidth: 2
-                                }
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
                             }
                         },
                         {
