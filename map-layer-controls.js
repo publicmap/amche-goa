@@ -460,13 +460,14 @@ class MapLayerControl {
                     this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
                 }
             } else if (group.type === 'vector') {
-                const layerId = `vector-layer-${group.id}`;
-                // Check each layer type before setting opacity
-                if (this._map.getLayer(layerId)) {
-                    this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                const layerConfig = group._layerConfig;
+                if (!layerConfig) return;
+
+                if (layerConfig.hasFillStyles) {
+                    this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', newOpacity * 0.5);
                 }
-                if (this._map.getLayer(`${layerId}-outline`)) {
-                    this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', newOpacity);
+                if (layerConfig.hasLineStyles) {
+                    this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', newOpacity);
                 }
             }
         });
@@ -526,14 +527,14 @@ class MapLayerControl {
                 $opacityValue.text(`${Math.round(value * 100)}%`);
 
                 if (group.type === 'vector') {
-                    const layerId = `vector-layer-${group.id}`;
-                    // Check if fill layer exists before trying to set its opacity
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'fill-opacity', value * 0.5);
+                    const layerConfig = group._layerConfig;
+                    if (!layerConfig) return;
+
+                    if (layerConfig.hasFillStyles) {
+                        this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', value * 0.5);
                     }
-                    // Set line opacity for the outline layer
-                    if (this._map.getLayer(`${layerId}-outline`)) {
-                        this._map.setPaintProperty(`${layerId}-outline`, 'line-opacity', value);
+                    if (layerConfig.hasLineStyles) {
+                        this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', value);
                     }
                 } else if (group.type === 'geojson') {
                     const sourceId = `geojson-${group.id}`;
@@ -1175,7 +1176,11 @@ class MapLayerControl {
                 }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
-                const layerId = `vector-layer-${group.id}`;
+                const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
+                const hasLineStyles = group.style && (group.style['line-color'] || group.style['line-width']);
+                
+                // Determine the main layer ID based on the primary style type
+                const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
                 if (!this._map.getSource(sourceId)) {
                     this._map.addSource(sourceId, {
@@ -1186,18 +1191,15 @@ class MapLayerControl {
                         maxzoom: group.maxzoom || 14
                     });
 
-                    // Check if fill styles are defined
-                    const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
-
                     // Only add fill layer if fill styles are defined
                     if (hasFillStyles) {
                         this._map.addLayer({
-                            id: layerId,
+                            id: `vector-layer-${group.id}`,
                             type: 'fill',
                             source: sourceId,
                             'source-layer': group.sourceLayer || 'default',
                             layout: {
-                                visibility: 'none'  // Start hidden by default
+                                visibility: 'none'
                             },
                             paint: {
                                 'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
@@ -1206,22 +1208,25 @@ class MapLayerControl {
                         }, this._getInsertPosition('vector'));
                     }
 
-                    // Add line layer
-                    this._map.addLayer({
-                        id: `${layerId}-outline`,
-                        type: 'line',
-                        source: sourceId,
-                        'source-layer': group.sourceLayer || 'default',
-                        layout: {
-                            visibility: 'none'  // Start hidden by default
-                        },
-                        paint: {
-                            'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
-                            'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
-                            'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
-                        }
-                    }, this._getInsertPosition('vector'));
+                    // Add line layer if line styles are defined
+                    if (hasLineStyles) {
+                        this._map.addLayer({
+                            id: `vector-layer-${group.id}-outline`,
+                            type: 'line',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none'
+                            },
+                            paint: {
+                                'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
+                                'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
+                                'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
+                            }
+                        }, this._getInsertPosition('vector'));
+                    }
 
+                    // Add inspect functionality if configured
                     if (group.inspect) {
                         const popup = new mapboxgl.Popup({
                             closeButton: true,
@@ -1237,190 +1242,108 @@ class MapLayerControl {
                         let hoveredFeatureId = null;
                         let selectedFeatureId = null;
 
-                        const sourceLayer = group.sourceLayer || 'default';
+                        // Add event listeners to both fill and line layers if they exist
+                        const layerIds = [];
+                        if (hasFillStyles) layerIds.push(`vector-layer-${group.id}`);
+                        if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
 
-                        [layerId, `${layerId}-outline`].forEach(id => {
-                            if (id === layerId) {
-                                this._map.setPaintProperty(id, 'fill-opacity', [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    0.2,
-                                    ['boolean', ['feature-state', 'hover'], false],
-                                    0.8,
-                                    0.95
-                                ]);
-                            } else {
-                                this._map.setPaintProperty(id, 'line-width', 
-                                    group.style?.['line-width'] || 1);
-
-                                this._map.setPaintProperty(id, 'line-color', [
-                                    'case',
-                                    ['boolean', ['feature-state', 'selected'], false],
-                                    group.style?.['line-color'] || '#000000',
-                                    group.style?.['line-color'] || '#FF0000'
-                                ]);
-                            }
-
-                            this._map.on('mousemove', id, (e) => {
+                        layerIds.forEach(layerId => {
+                            // Add hover state
+                            this._map.on('mousemove', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
-
+                                    
                                     if (hoveredFeatureId !== null) {
                                         this._map.setFeatureState(
-                                            {
-                                                source: sourceId,
-                                                sourceLayer: sourceLayer,
-                                                id: hoveredFeatureId
-                                            },
+                                            { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
                                             { hover: false }
                                         );
                                     }
-                                    hoveredFeatureId = feature.id;
-                                    this._map.setFeatureState(
-                                        {
-                                            source: sourceId,
-                                            sourceLayer: sourceLayer,
-                                            id: hoveredFeatureId
-                                        },
-                                        { hover: true }
-                                    );
+                                    
+                                    if (feature.id !== undefined) {
+                                        hoveredFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
+                                            { hover: true }
+                                        );
+                                    }
 
+                                    // Show hover popup if configured
                                     if (group.inspect?.label) {
-                                        const labelValue = feature.properties[group.inspect.label];
-                                        if (labelValue) {
+                                        const content = this._createPopupContent(feature, group, true);
+                                        if (content) {
                                             hoverPopup
                                                 .setLngLat(e.lngLat)
-                                                .setDOMContent(this._createPopupContent(feature, group, true))
+                                                .setDOMContent(content)
                                                 .addTo(this._map);
+                                        }
                                     }
                                 }
-                            }
                             });
 
-                            this._map.on('mouseleave', id, () => {
+                            // Remove hover state
+                            this._map.on('mouseleave', layerId, () => {
                                 if (hoveredFeatureId !== null) {
                                     this._map.setFeatureState(
-                                        {
-                                            source: sourceId,
-                                            sourceLayer: sourceLayer,
-                                            id: hoveredFeatureId
-                                        },
+                                        { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
                                         { hover: false }
                                     );
                                     hoveredFeatureId = null;
                                 }
-
                                 hoverPopup.remove();
                             });
 
-                            this._map.on('click', id, (e) => {
-                                if (this._editMode) {
-                                    const lat = e.lngLat.lat.toFixed(6);
-                                    const lng = e.lngLat.lng.toFixed(6);
-                                    const visibleLayers = this._getVisibleLayers();
-                                    const layersParam = encodeURIComponent(JSON.stringify(visibleLayers));
-                                    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScdWsTn3VnG8Xwh_zF7euRTyXirZ-v55yhQVLsGeWGwtX6MSQ/viewform?usp=pp_url&entry.1264011794=${lat}&entry.1677697288=${lng}&entry.650960474=${layersParam}`;
-
-                                    new mapboxgl.Popup()
-                                        .setLngLat(e.lngLat)
-                                        .setHTML(`
-                                            <div class="p-2">
-                                                <p class="mb-2">Location: ${lat}, ${lng}</p>
-                                                <p class="mb-2 text-xs text-gray-600">Visible layers: ${visibleLayers}</p>
-                                                <a href="${formUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Add note for this location</a>
-                                            </div>
-                                        `)
-                                        .addTo(this._map);
-                                    return;
-                                }
-
+                            // Handle click events
+                            this._map.on('click', layerId, (e) => {
                                 if (e.features.length > 0) {
-                                    // Remove hover popup when clicking
-                                    hoverPopup.remove();
-                                    
                                     const feature = e.features[0];
+                                    
+                                    // Remove hover popup
+                                    hoverPopup.remove();
 
                                     if (selectedFeatureId !== null) {
                                         this._map.setFeatureState(
-                                            {
-                                                source: sourceId,
-                                                sourceLayer: sourceLayer,
-                                                id: selectedFeatureId
-                                            },
+                                            { source: sourceId, id: selectedFeatureId, sourceLayer: group.sourceLayer },
                                             { selected: false }
                                         );
                                     }
 
-                                    selectedFeatureId = feature.id;
-                                    this._map.setFeatureState(
-                                        {
-                                            source: sourceId,
-                                            sourceLayer: sourceLayer,
-                                            id: selectedFeatureId
-                                        },
-                                        { selected: true }
-                                    );
+                                    if (feature.id !== undefined) {
+                                        selectedFeatureId = feature.id;
+                                        this._map.setFeatureState(
+                                            { source: sourceId, id: selectedFeatureId, sourceLayer: group.sourceLayer },
+                                            { selected: true }
+                                        );
+                                    }
 
                                     const content = this._createPopupContent(feature, group, false, e.lngLat);
-
-                                    popup
-                                        .setLngLat(e.lngLat)
-                                        .setDOMContent(content)
-                                        .addTo(this._map);
+                                    if (content) {
+                                        popup
+                                            .setLngLat(e.lngLat)
+                                            .setDOMContent(content)
+                                            .addTo(this._map);
+                                    }
                                 }
                             });
 
-                            this._map.on('mouseenter', id, () => {
+                            // Add pointer cursor
+                            this._map.on('mouseenter', layerId, () => {
                                 this._map.getCanvas().style.cursor = 'pointer';
                             });
 
-                            this._map.on('mouseleave', id, () => {
+                            this._map.on('mouseleave', layerId, () => {
                                 this._map.getCanvas().style.cursor = '';
                             });
                         });
                     }
                 }
 
-                if (group.attribution) {
-                    const $attribution = $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2',
-                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    });
-                    
-                    // Add attribution to sl-details content area instead of source control
-                    const $contentArea = $('<div>');
-                    $contentArea.append($attribution);
-                    $groupHeader.append($contentArea);
-                }
-
-                // Add label layer if label style is defined
-                if (group.style?.label) {
-                    this._map.addLayer({
-                        id: `${layerId}-label`,
-                        type: 'symbol',
-                        source: sourceId,
-                        'source-layer': group.sourceLayer || 'default',
-                        layout: {
-                            'visibility': 'none',
-                            'text-field': ['get', 'name'],
-                            'text-size': group.style.label['text-size'] || this._defaultStyles.geojson.label['text-size'],
-                            'text-allow-overlap': false,
-                            'text-ignore-placement': false
-                        },
-                        paint: {
-                            'text-color': group.style.label['text-color'] || this._defaultStyles.geojson.label['text-color'],
-                            'text-halo-color': group.style.label['text-halo-color'] || this._defaultStyles.geojson.label['text-halo-color'],
-                            'text-halo-width': group.style.label['text-halo-width'] || this._defaultStyles.geojson.label['text-halo-width']
-                        }
-                    }, this._getInsertPosition('vector'));
-                }
-
-                // Update the layer visibility handling to include labels
-                [layerId, `${layerId}-outline`, `${layerId}-label`].forEach(id => {
-                    if (this._map.getLayer(id)) {
-                        this._map.setLayoutProperty(id, 'visibility', 'visible');
-                    }
-                });
+                // Store the layer configuration for later use
+                group._layerConfig = {
+                    hasFillStyles,
+                    hasLineStyles,
+                    mainLayerId
+                };
             } else if (group.type === 'markers' && group.dataUrl) {
                 fetch(group.dataUrl)
                     .then(response => response.text())
@@ -1593,16 +1516,17 @@ class MapLayerControl {
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
             }
         } else if (group.type === 'vector') {
-            const layerId = `vector-layer-${group.id}`;
-            // Check each layer individually
-            if (this._map.getLayer(layerId)) {
-                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            const layerConfig = group._layerConfig;
+            if (!layerConfig) return;
+
+            if (layerConfig.hasFillStyles) {
+                const fillLayerId = `vector-layer-${group.id}`;
+                this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
             }
-            if (this._map.getLayer(`${layerId}-outline`)) {
-                this._map.setLayoutProperty(`${layerId}-outline`, 'visibility', visible ? 'visible' : 'none');
-            }
-            if (this._map.getLayer(`${layerId}-label`)) {
-                this._map.setLayoutProperty(`${layerId}-label`, 'visibility', visible ? 'visible' : 'none');
+            
+            if (layerConfig.hasLineStyles) {
+                const lineLayerId = `vector-layer-${group.id}-outline`;
+                this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
             }
         }
     }
