@@ -428,6 +428,52 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            id: 'micro-watersheds',
+                            title: 'Micro Watershed Boundaries',
+                            headerImage: 'assets/map-layer-micro-watersheds.png',
+                            description: 'Micro Watershed Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'SLUSI_Priority_MicroWatersheds',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="">SLSUI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    16, 'rgba(0, 0, 0, 0.05)',
+                                    18, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        4,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        6,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        3
+                                    ]
+                                ]
+                            },
+                            inspect: {
+                                title: 'Micro Watershed Code',
+                                label: 'HYDRO_UNIT'
+                            }
+                        },
+                        {
                             id: 'goa-local-body',
                             title: 'Local Body Boundaries',
                             description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
