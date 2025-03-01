@@ -258,8 +258,61 @@ class MapLayerControl {
     }
 
     renderToContainer(container, map) {
-        this._map = map;
         this._container = container;
+        this._map = map;
+
+        // Add basemap toggle at the top
+        const $basemapControl = $('<div>', {
+            class: 'mb-4 pb-4 border-b border-gray-200'
+        });
+
+        const $basemapLabel = $('<label>', { 
+            class: 'flex items-center' 
+        });
+
+        const $basemapCheckbox = $('<input>', {
+            type: 'checkbox',
+            class: 'mr-2',
+            checked: true // Default to showing basemap
+        });
+
+        $basemapLabel.append(
+            $basemapCheckbox,
+            $('<span>', {
+                class: 'text-sm text-gray-700',
+                text: 'Show Basemap'
+            })
+        );
+
+        // Handle basemap toggle
+        $basemapCheckbox.on('change', (e) => {
+            const style = this._map.getStyle();
+            const basemapLayers = style.layers.filter(layer => 
+                layer.source === 'mapbox' || 
+                layer.source === 'composite' ||
+                layer.source === 'mapbox-streets'
+            );
+
+            basemapLayers.forEach(layer => {
+                this._map.setLayoutProperty(
+                    layer.id,
+                    'visibility',
+                    e.target.checked ? 'visible' : 'none'
+                );
+            });
+
+            // Update URL parameter
+            const url = new URL(window.location.href);
+            if (!e.target.checked) {
+                url.searchParams.set('basemap', 'none');
+            } else {
+                url.searchParams.delete('basemap');
+            }
+            window.history.replaceState({}, '', url);
+        });
+
+        $basemapControl.append($basemapLabel);
+        $(container).prepend($basemapControl);
         
         const $controlContainer = $('<div>', {
             class: 'layer-control'

@@ -718,6 +718,33 @@ function getQueryParameters() {
                             $checkbox.trigger('change');
                         }
                     });
+
+                    // Check for basemap parameter
+                    if (queryParams.basemap === 'none') {
+                        // Hide basemap layers
+                        const style = map.getStyle();
+                        const basemapLayers = style.layers.filter(layer => 
+                            layer.source === 'mapbox' || 
+                            layer.source === 'composite' ||
+                            layer.source === 'mapbox-streets'
+                        );
+
+                        basemapLayers.forEach(layer => {
+                            map.setLayoutProperty(
+                                layer.id,
+                                'visibility',
+                                'none'
+                            );
+                        });
+
+                        // Update checkbox state after layer control is initialized
+                        setTimeout(() => {
+                            const $basemapCheckbox = $('#layer-controls-container input[type="checkbox"]:first');
+                            if ($basemapCheckbox.length) {
+                                $basemapCheckbox.prop('checked', false);
+                            }
+                        }, 100);
+                    }
                 })
                 
 
