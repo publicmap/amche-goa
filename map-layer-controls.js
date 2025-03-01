@@ -591,6 +591,24 @@ class MapLayerControl {
                 $groupHeader.append($contentArea);
             }
 
+            // Add attribution with proper styling
+            if (group.attribution) {
+                const $attribution = $('<div>', {
+                    class: 'layer-attribution',
+                    html: `Source: ${group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')}`
+                });
+                
+                // Add attribution to description area
+                const $descriptionArea = $groupHeader.find('.description-area');
+                if ($descriptionArea.length) {
+                    $descriptionArea.append($attribution);
+                } else {
+                    const $newDescriptionArea = $('<div>', { class: 'description-area' });
+                    $newDescriptionArea.append($attribution);
+                    $groupHeader.append($newDescriptionArea);
+                }
+            }
+
             if (group.type === 'layer-group') {
                 const $radioGroup = $('<div>', { class: 'radio-group mt-2' });
                 const $contentArea = $('<div>');
@@ -712,19 +730,6 @@ class MapLayerControl {
                                 'text-halo-width': group.style?.['text-halo-width'] || this._defaultStyles.geojson.text['text-halo-width']
                             }
                         });
-                    }
-
-                    // Add attribution if provided
-                    if (group.attribution) {
-                        const $attribution = $('<div>', {
-                            class: 'text-sm text-gray-600 mt-2',
-                            html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                        });
-                        
-                        // Add attribution to sl-details content area
-                        const $contentArea = $('<div>');
-                        $contentArea.append($attribution);
-                        $groupHeader.append($contentArea);
                     }
 
                     // Fix interactivity by adding event listeners to all layer types
@@ -1162,18 +1167,6 @@ class MapLayerControl {
                         }
                     }, this._getInsertPosition('tms'));
                 }
-
-                if (group.attribution) {
-                    const $attribution = $('<div>', {
-                        class: 'text-sm text-gray-600 mt-2',
-                        html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                    });
-                    
-                    // Add attribution to sl-details content area instead of source control
-                    const $contentArea = $('<div>');
-                    $contentArea.append($attribution);
-                    $groupHeader.append($contentArea);
-                }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
                 const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
@@ -1377,18 +1370,6 @@ class MapLayerControl {
                                     'visibility': 'none'
                                 }
                             });
-
-                            if (group.attribution) {
-                                const $attribution = $('<div>', {
-                                    class: 'text-sm text-gray-600 mt-2',
-                                    html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
-                                });
-                                
-                                // Add attribution to sl-details content area instead of source control
-                                const $contentArea = $('<div>');
-                                $contentArea.append($attribution);
-                                $groupHeader.append($contentArea);
-                            }
 
                             this._map.on('click', `${sourceId}-circles`, (e) => {
                                 if (e.features.length > 0) {
