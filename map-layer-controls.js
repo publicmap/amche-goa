@@ -1202,29 +1202,27 @@ class MapLayerControl {
                         maxzoom: group.maxzoom || 14
                     });
 
-                    // Update the fill layer paint properties
-                    this._map.addLayer({
-                        id: layerId,
-                        type: 'fill',
-                        source: sourceId,
-                        'source-layer': group.sourceLayer || 'default',
-                        layout: {
-                            visibility: 'none'
-                        },
-                        paint: {
-                            'fill-color': group.style?.['fill-color'] || '#FF0000',
-                            'fill-opacity': [
-                                'case',
-                                ['boolean', ['feature-state', 'selected'], false],
-                                0.2,
-                                ['boolean', ['feature-state', 'hover'], false],
-                                0.8,
-                                0.03
-                            ]
-                        }
-                    }, this._getInsertPosition('vector'));
+                    // Check if fill styles are defined
+                    const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
 
-                    // Update the outline layer paint properties
+                    // Only add fill layer if fill styles are defined
+                    if (hasFillStyles) {
+                        this._map.addLayer({
+                            id: layerId,
+                            type: 'fill',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none'
+                            },
+                            paint: {
+                                'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
+                                'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
+                            }
+                        }, this._getInsertPosition('vector'));
+                    }
+
+                    // Add line layer
                     this._map.addLayer({
                         id: `${layerId}-outline`,
                         type: 'line',
@@ -1232,6 +1230,11 @@ class MapLayerControl {
                         'source-layer': group.sourceLayer || 'default',
                         layout: {
                             visibility: 'none'
+                        },
+                        paint: {
+                            'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
+                            'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
+                            'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                         }
                     }, this._getInsertPosition('vector'));
 
