@@ -428,6 +428,21 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            id: 'goa-local-body',
+                            title: 'Local Body Boundaries',
+                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                            headerImage: 'assets/map-layer-local-boundaries.png',
+                            type: 'layer-group',
+                            groups: [
+                                {
+                                    id: 'goa-local-body',
+                                    title: 'Bhuvan Panchayat',
+                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
+                                }
+                            ],
+                            initiallyChecked: true,
+                        },
+                        {
                             id: 'micro-watersheds',
                             title: 'Micro Watershed Boundaries',
                             headerImage: 'assets/map-layer-micro-watersheds.png',
@@ -436,7 +451,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'SLUSI_Priority_MicroWatersheds',
                             maxzoom: 10,
-                            attribution: 'Source: <a href="">SLSUI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: 'Source: <a href="https://slusi.da.gov.in/dmwai/GOA/GOA.html">Soil and Land Use Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'interpolate',
@@ -456,7 +471,7 @@ function getQueryParameters() {
                                         4,
                                         ['boolean', ['feature-state', 'hover'], false],
                                         4,
-                                        1
+                                        3
                                     ],
                                     18, [
                                         'case',
@@ -474,28 +489,13 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'goa-local-body',
-                            title: 'Local Body Boundaries',
-                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
-                            headerImage: 'assets/map-layer-local-boundaries.png',
-                            type: 'layer-group',
-                            groups: [
-                                {
-                                    id: 'goa-local-body',
-                                    title: 'Bhuvan Panchayat',
-                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
-                                }
-                            ],
-                            initiallyChecked: true,
-                        },
-                        {
                             title: 'Water Bodies',
                             description: 'Water body boundaries',
                             headerImage: 'assets/map-layer-water-bodies.png',
                             type: 'geojson',
                             id: 'water-bodies',
                             url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
-                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: 'Source: <a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
                             style: {
                                 'text-color': 'white',
                                 'text-halo-color': 'blue',
@@ -515,7 +515,6 @@ function getQueryParameters() {
                                 customHtml: 'Source: Goa WRD'
                             }
                         },
-                        
                         {
                             title: 'Reserve Forests',
                             description: 'Forest beat boundaries',

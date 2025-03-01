@@ -729,6 +729,19 @@ class MapLayerControl {
                         });
                     }
 
+                    // Add attribution if provided
+                    if (group.attribution) {
+                        const $attribution = $('<div>', {
+                            class: 'text-sm text-gray-600 mt-2',
+                            html: group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+                        });
+                        
+                        // Add attribution to sl-details content area
+                        const $contentArea = $('<div>');
+                        $contentArea.append($attribution);
+                        $groupHeader.append($contentArea);
+                    }
+
                     // Fix interactivity by adding event listeners to all layer types
                     const layerIds = [`${sourceId}-fill`, `${sourceId}-line`];
                     if (group.style?.['text-field'] || group.style?.['text-size']) {
