@@ -442,14 +442,12 @@ function getQueryParameters() {
                             ],
                             initiallyChecked: true,
                         },
-                        
-                        
                         {
                             title: 'Reserve Forests',
                             description: 'Forest beat boundaries',
                             headerImage: 'assets/map-layer-forest.png',
                             type: 'vector',
-                            id: 'india-forest',
+                            id: 'forests',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'FSI_Beats',
                             maxzoom: 11,
@@ -474,20 +472,155 @@ function getQueryParameters() {
                                         8,
                                         ['boolean', ['feature-state', 'hover'], false],
                                         5,
-                                        .5
+                                        2
                                     ]
                                 ],
-                                'fill-color': 'green'
+                                'fill-color': 'green',
+                                'fill-opacity': 0.7
                             },
                             inspect: {
                                 id: 'OBJECTID_12',
                                 title: 'Forest Range',
                                 label: 'Beat_Name',
                                 fields: ['Range'],
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bharatmaps</a>'
                             }
                         },
-
+                        {
+                            title: 'Rivers',
+                            description: 'Rivers and streams with stream order',
+                            headerImage: 'assets/map-layer-rivers.png',
+                            type: 'vector',
+                            id: 'rivers',
+                            url: 'https://indianopenmaps.fly.dev/streams/wris/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'wris_streams',
+                            maxzoom: 11,
+                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/">India WRIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': '#0084f7',
+                                'line-opacity': 0.8,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['has', 'ordsh'],
+                                        ['*', 0.5, ['to-number', ['get', 'ordsh']]],
+                                        0  // default width for undefined stream order
+                                    ],
+                                    14, [
+                                        'case',
+                                        ['has', 'ordsh'],
+                                        ['*', 2, ['to-number', ['get', 'ordsh']]],
+                                        1  // default width for undefined stream order
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['has', 'ordsh'],
+                                        ['*', 1, ['to-number', ['get', 'ordsh']]],
+                                        1  // default width for undefined stream order
+                                    ]
+                                ]
+                            },
+                            inspect: {
+                                title: 'Name',
+                                label: 'rivname',
+                                fields: ['bacode','ordsh'],
+                                fieldTitles: ['Basin Code','Stream Order']                         }
+                        },
+                        {
+                            id: 'watersheds',
+                            title: 'Watershed Boundaries',
+                            headerImage: 'assets/map-layer-watersheds.png',
+                            description: 'Watershed Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/watersheds/wris/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'wris_watershed',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/#/riverBasins">India Water Resources Information System, Ministry of Jal Shakti</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': 'rgba(0, 0, 0, 0)',
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, 5,
+                                    18, 9
+                                ]
+                            },
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Watershed Code',
+                                label: 'wsconc'
+                            }
+                        },
+                        {
+                            id: 'micro-watersheds',
+                            title: 'Micro Watershed Boundaries',
+                            headerImage: 'assets/map-layer-micro-watersheds.png',
+                            description: 'Micro Watershed Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'SLUSI_Priority_MicroWatersheds',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="https://soilhealth.dac.gov.in/slusi-visualisation/">Soil and Land Use Survey of India, Ministry of Agriculture and Farmers Welfare</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Priority'],
+                                    'Very High', 'rgba(255, 0, 0, 0.8)',      // Bright red - most visible
+                                    'High', 'rgba(255, 140, 0, 0.7)',         // Orange
+                                    'Medium', 'rgba(255, 255, 0, 0.6)',       // Yellow
+                                    'Low', 'rgba(144, 238, 144, 0.5)',        // Light green
+                                    'Very Low', 'rgba(0, 100, 0, 0.4)',       // Dark green - least visible
+                                    'rgba(128, 128, 128, 0.5)'                // Default gray for unknown values
+                                ],
+                                'fill-opacity': 0.4,
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, 2,
+                                    18, 4
+                                ]
+                            },
+                            inspect: {
+                                title: 'Micro Watershed Code',
+                                label: 'HYDRO_UNIT',
+                                fields: ['Priority'],
+                                fieldTitles: ['Watershed Priority']
+                            }
+                        },
+                       
+                        {
+                            title: 'Water Bodies',
+                            description: 'Water body boundaries',
+                            headerImage: 'assets/map-layer-water-bodies.png',
+                            type: 'geojson',
+                            id: 'water-bodies',
+                            url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
+                            attribution: 'Source: <a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
+                            style: {
+                                'text-color': 'white',
+                                'text-halo-color': '#0084f7',
+                                'text-halo-width': 2,
+                                'text-size': 12,
+                                'line-color': '#0084f7',
+                                'line-width': 2,
+                                'fill-color': '#0084f7',
+                                'fill-opacity': 0.3
+                            },
+                            inspect: {
+                                id: 'id',
+                                title: 'Name',
+                                label: 'name',
+                                fields: ['village','owner_type','condition','construction','purpose'],
+                                fieldTitles: ['Village','Owner Type','Condition','Construction','Purpose',],
+                            }
+                        },
+                        
                         {
                             id: 'slope-zones',
                             title: 'Slope Zoning',
@@ -575,17 +708,34 @@ function getQueryParameters() {
                             url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
                             attribution: 'Construction project sites in Goa',
                             style: {
-                                fill: false,
-                                line: {
-                                    color: '#ff0000',
-                                    width: 2
-                                },
-                                label: {
-                                    color: '#000000',
-                                    size: 12,
-                                    haloColor: '#ffffff',
-                                    haloWidth: 2
-                                }
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
                             }
                         },
                         {
