@@ -240,10 +240,37 @@ main {
     overflow: hidden;
 }
 
-/* Style the checkbox for better visibility on dark backgrounds */
+/* Style the checkbox for consistent appearance across systems */
 .group-header input[type="checkbox"] {
     margin: 0;
-    filter: brightness(2);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid hsl(0, 0%, 100%);
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+}
+
+.group-header input[type="checkbox"]:checked {
+    background-color: hsl(0, 0%, 100%);
+    border: 2px solid hsl(0, 0%, 100%);
+
+    border-color: hsl(0, 0%, 100%);
+}
+
+.group-header input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid #050505;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 /* Add styles for the layer info section */
