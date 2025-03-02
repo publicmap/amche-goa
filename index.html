@@ -486,85 +486,6 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'micro-watersheds',
-                            title: 'Micro Watershed Boundaries',
-                            headerImage: 'assets/map-layer-micro-watersheds.png',
-                            description: 'Micro Watershed Boundaries',
-                            type: 'vector',
-                            url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'SLUSI_Priority_MicroWatersheds',
-                            maxzoom: 10,
-                            attribution: 'Source: <a href="https://soilhealth.dac.gov.in/slusi-visualisation/">Soil and Land Use Survey of India, Ministry of Agriculture and Farmers Welfare</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'fill-color': 'rgba(0, 0, 0, 0)',
-                                'line-color': 'blue',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    12, 2,
-                                    18, 4
-                                ]
-                            },
-                            inspect: {
-                                title: 'Micro Watershed Code',
-                                label: 'HYDRO_UNIT'
-                            }
-                        },
-                        {
-                            id: 'watersheds',
-                            title: 'Watershed Boundaries',
-                            headerImage: 'assets/map-layer-watersheds.png',
-                            description: 'Watershed Boundaries',
-                            type: 'vector',
-                            url: 'https://indianopenmaps.fly.dev/watersheds/wris/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'wris_watershed',
-                            maxzoom: 10,
-                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/#/riverBasins">India Water Resources Information System, Ministry of Jal Shakti</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'fill-color': 'rgba(0, 0, 0, 0)',
-                                'line-color': 'blue',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    12, 5,
-                                    18, 9
-                                ]
-                            },
-                            inspect: {
-                                id: 'objectid',
-                                title: 'Watershed Code',
-                                label: 'wsconc'
-                            }
-                        },
-                        {
-                            title: 'Water Bodies',
-                            description: 'Water body boundaries',
-                            headerImage: 'assets/map-layer-water-bodies.png',
-                            type: 'geojson',
-                            id: 'water-bodies',
-                            url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
-                            attribution: 'Source: <a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
-                            style: {
-                                'text-color': 'white',
-                                'text-halo-color': '#0084f7',
-                                'text-halo-width': 2,
-                                'text-size': 12,
-                                'line-color': '#0084f7',
-                                'line-width': 2,
-                                'fill-color': '#0084f7',
-                                'fill-opacity': 0.3
-                            },
-                            inspect: {
-                                id: 'id',
-                                title: 'Name',
-                                label: 'name',
-                                fields: ['village','owner_type','condition','construction','purpose'],
-                                fieldTitles: ['Village','Owner Type','Condition','Construction','Purpose',],
-                            }
-                        },
-                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
@@ -607,6 +528,99 @@ function getQueryParameters() {
                                 fields: ['bacode','ordsh'],
                                 fieldTitles: ['Basin Code','Stream Order']                         }
                         },
+                        {
+                            id: 'watersheds',
+                            title: 'Watershed Boundaries',
+                            headerImage: 'assets/map-layer-watersheds.png',
+                            description: 'Watershed Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/watersheds/wris/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'wris_watershed',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/#/riverBasins">India Water Resources Information System, Ministry of Jal Shakti</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': 'rgba(0, 0, 0, 0)',
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, 5,
+                                    18, 9
+                                ]
+                            },
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Watershed Code',
+                                label: 'wsconc'
+                            }
+                        },
+                        {
+                            id: 'micro-watersheds',
+                            title: 'Micro Watershed Boundaries',
+                            headerImage: 'assets/map-layer-micro-watersheds.png',
+                            description: 'Micro Watershed Boundaries',
+                            type: 'vector',
+                            url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'SLUSI_Priority_MicroWatersheds',
+                            maxzoom: 10,
+                            attribution: 'Source: <a href="https://soilhealth.dac.gov.in/slusi-visualisation/">Soil and Land Use Survey of India, Ministry of Agriculture and Farmers Welfare</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Priority'],
+                                    'Very High', 'rgba(255, 0, 0, 0.8)',      // Bright red - most visible
+                                    'High', 'rgba(255, 140, 0, 0.7)',         // Orange
+                                    'Medium', 'rgba(255, 255, 0, 0.6)',       // Yellow
+                                    'Low', 'rgba(144, 238, 144, 0.5)',        // Light green
+                                    'Very Low', 'rgba(0, 100, 0, 0.4)',       // Dark green - least visible
+                                    'rgba(128, 128, 128, 0.5)'                // Default gray for unknown values
+                                ],
+                                'fill-opacity': 0.4,
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    12, 2,
+                                    18, 4
+                                ]
+                            },
+                            inspect: {
+                                title: 'Micro Watershed Code',
+                                label: 'HYDRO_UNIT',
+                                fields: ['Priority'],
+                                fieldTitles: ['Watershed Priority']
+                            }
+                        },
+                       
+                        {
+                            title: 'Water Bodies',
+                            description: 'Water body boundaries',
+                            headerImage: 'assets/map-layer-water-bodies.png',
+                            type: 'geojson',
+                            id: 'water-bodies',
+                            url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
+                            attribution: 'Source: <a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
+                            style: {
+                                'text-color': 'white',
+                                'text-halo-color': '#0084f7',
+                                'text-halo-width': 2,
+                                'text-size': 12,
+                                'line-color': '#0084f7',
+                                'line-width': 2,
+                                'fill-color': '#0084f7',
+                                'fill-opacity': 0.3
+                            },
+                            inspect: {
+                                id: 'id',
+                                title: 'Name',
+                                label: 'name',
+                                fields: ['village','owner_type','condition','construction','purpose'],
+                                fieldTitles: ['Village','Owner Type','Condition','Construction','Purpose',],
+                            }
+                        },
+                        
                         {
                             id: 'slope-zones',
                             title: 'Slope Zoning',
