@@ -822,8 +822,8 @@ sl-details.map-controls-group::part(header) {
     padding: 0;
 }
 
-/* Add these styles for the basemap control */
-.basemap-control {
+/* Update basemap control to overlay control */
+.overlay-control {
     background: rgba(255, 255, 255, 0.9);
     padding: 12px;
     margin-bottom: 16px;
@@ -831,19 +831,19 @@ sl-details.map-controls-group::part(header) {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.basemap-control label {
+.overlay-control label {
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
 }
 
-.basemap-control input[type="checkbox"] {
+.overlay-control input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
 }
 
-.basemap-control span {
+.overlay-control span {
     font-size: 14px;
     color: #333;
 }
@@ -852,16 +852,15 @@ sl-details.map-controls-group::part(header) {
 .mapboxgl-ctrl.layer-control {
     display: flex;
     flex-direction: column;
-    /* ... existing styles ... */
 }
 
-/* Ensure the basemap control stays at the top */
-.layer-control > .basemap-control {
-    flex-shrink: 0; /* Prevents the basemap control from shrinking */
+/* Ensure the overlay control stays at the top */
+.layer-control > .overlay-control {
+    flex-shrink: 0;
 }
 
 /* Update the container for the rest of the controls */
-.layer-control > div:not(.basemap-control) {
+.layer-control > div:not(.overlay-control) {
     flex-grow: 1;
     overflow-y: auto;
 }

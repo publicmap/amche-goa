@@ -261,39 +261,39 @@ class MapLayerControl {
         this._container = container;
         this._map = map;
 
-        // Add basemap toggle at the top
-        const $basemapControl = $('<div>', {
+        // Update basemap toggle to overlay toggle
+        const $overlayControl = $('<div>', {
             class: 'mb-4 pb-4 border-b border-gray-200'
         });
 
-        const $basemapLabel = $('<label>', { 
+        const $overlayLabel = $('<label>', { 
             class: 'flex items-center' 
         });
 
-        const $basemapCheckbox = $('<input>', {
+        const $overlayCheckbox = $('<input>', {
             type: 'checkbox',
             class: 'mr-2',
-            checked: true // Default to showing basemap
+            checked: true // Default to showing overlay
         });
 
-        $basemapLabel.append(
-            $basemapCheckbox,
+        $overlayLabel.append(
+            $overlayCheckbox,
             $('<span>', {
                 class: 'text-sm text-gray-700',
-                text: 'Show Basemap'
+                text: 'Show Overlay'
             })
         );
 
-        // Handle basemap toggle
-        $basemapCheckbox.on('change', (e) => {
+        // Handle overlay toggle
+        $overlayCheckbox.on('change', (e) => {
             const style = this._map.getStyle();
-            const basemapLayers = style.layers.filter(layer => 
+            const overlayLayers = style.layers.filter(layer => 
                 layer.source === 'mapbox' || 
                 layer.source === 'composite' ||
                 layer.source === 'mapbox-streets'
             );
 
-            basemapLayers.forEach(layer => {
+            overlayLayers.forEach(layer => {
                 this._map.setLayoutProperty(
                     layer.id,
                     'visibility',
@@ -304,15 +304,15 @@ class MapLayerControl {
             // Update URL parameter
             const url = new URL(window.location.href);
             if (!e.target.checked) {
-                url.searchParams.set('basemap', 'none');
+                url.searchParams.set('overlay', 'none');
             } else {
-                url.searchParams.delete('basemap');
+                url.searchParams.delete('overlay');
             }
             window.history.replaceState({}, '', url);
         });
 
-        $basemapControl.append($basemapLabel);
-        $(container).prepend($basemapControl);
+        $overlayControl.append($overlayLabel);
+        $(container).prepend($overlayControl);
         
         const $controlContainer = $('<div>', {
             class: 'layer-control'
