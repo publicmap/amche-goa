@@ -753,8 +753,17 @@ sl-details::part(base) {
 }
 
 sl-details::part(header) {
+    /* Remove padding from sl-details header */
+    padding: 0;
     /* Remove any background color change on focus/active states */
     background: transparent !important;
+    /* Ensure other header styles are preserved */
+    display: flex;
+    align-items: center;
+    border-radius: inherit;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
 }
 
 sl-details::part(summary) {
@@ -807,4 +816,8 @@ sl-details::part(summary) {
 .description-area {
     padding: 8px 12px;
     background: rgba(255, 255, 255, 0.8);
+}
+
+sl-details.map-controls-group::part(header) {
+    padding: 0;
 }
