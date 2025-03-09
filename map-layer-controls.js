@@ -635,7 +635,7 @@ class MapLayerControl {
 
             if (group.description) {
                 const $description = $('<div>', {
-                    class: 'text-sm text-gray-600 mb-2 px-2',
+                    class: 'text-sm text-gray-600',
                     html: group.description  // Using html instead of text to allow HTML in descriptions
                 });
                 // Add description directly after the group header content

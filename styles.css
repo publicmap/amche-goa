@@ -796,10 +796,8 @@ sl-details::part(summary) {
 /* Add these attribution-specific styles */
 .layer-attribution {
     font-size: 12px;
-    color: #666;
+    color: #777;
     margin-top: 8px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.8);
     border-radius: 4px;
 }
 
@@ -815,7 +813,6 @@ sl-details::part(summary) {
 /* Ensure attribution container is visible */
 .description-area {
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.8);
 }
 
 sl-details.map-controls-group::part(header) {
