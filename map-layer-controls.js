@@ -280,7 +280,7 @@ class MapLayerControl {
             $overlayCheckbox,
             $('<span>', {
                 class: 'text-sm text-gray-700',
-                text: 'Show Overlay'
+                text: 'Overlay Map Features'
             })
         );
 
