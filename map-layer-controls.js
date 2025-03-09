@@ -116,18 +116,28 @@ class MapLayerControl {
             
             // Create new URL with layers parameter
             const url = new URL(window.location.href);
-            url.searchParams.set('layers', visibleLayers.join(','));
+            if (visibleLayers.length > 0) {
+                // Join layers with unencoded commas
+                const layersParam = visibleLayers.join(',');
+                url.searchParams.set('layers', layersParam);
+            } else {
+                url.searchParams.delete('layers');
+            }
+            
+            // Create pretty URL by manually replacing encoded characters
+            const prettyUrl = decodeURIComponent(url.toString())
+                .replace(/\+/g, ' '); // Replace plus signs with spaces if needed
             
             // Update browser URL without reloading the page
-            window.history.replaceState({}, '', url.toString());
+            window.history.replaceState({}, '', prettyUrl);
             
             // Copy to clipboard
-            navigator.clipboard.writeText(url.toString()).then(() => {
+            navigator.clipboard.writeText(prettyUrl).then(() => {
                 // Show toast notification
                 this._showToast('Link copied to clipboard!');
                 
-                // Generate QR code
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url.toString())}`;
+                // Generate QR code using the pretty URL
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(prettyUrl)}`;
                 
                 // Create QR code image for button
                 const qrCode = document.createElement('img');
@@ -241,7 +251,7 @@ class MapLayerControl {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'markers') {
                     visibleLayers.push(group.id);
-                } else if (group.type === 'geojson') {  // Add handling for geojson type
+                } else if (group.type === 'geojson') {
                     visibleLayers.push(group.id);
                 } else if (group.layers) {
                     // For layer groups, check which radio button is selected
