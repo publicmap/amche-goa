@@ -253,6 +253,7 @@ main {
     border-radius: 3px;
     position: relative;
     cursor: pointer;
+    background-color: #e1e1e1;
 }
 
 .group-header input[type="checkbox"]:checked {
