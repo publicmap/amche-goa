@@ -273,7 +273,7 @@ class MapLayerControl {
 
         // Update basemap toggle to overlay toggle
         const $overlayControl = $('<div>', {
-            class: 'mb-4 pb-4 border-b border-gray-200'
+            class: 'pb-4'
         });
 
         const $overlayLabel = $('<label>', { 
@@ -289,8 +289,8 @@ class MapLayerControl {
         $overlayLabel.append(
             $overlayCheckbox,
             $('<span>', {
-                class: 'text-sm text-gray-700',
-                text: 'Overlay Map Features'
+                class: 'text-sm',
+                text: 'Local Map थळावो नकासो'
             })
         );
 

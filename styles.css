@@ -549,11 +549,7 @@ sl-drawer::part(panel) {
 }
 
 sl-drawer::part(close-button) {
-    color: #ff920c;
-    font-size: 1.5rem;
-}
-sl-drawer::part(close-button):hover {
-    color: red;
+    color: #fdfdfd;
     font-size: 1.5rem;
 }
 
@@ -805,9 +801,8 @@ sl-details.map-controls-group::part(base) {
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
     font-size: 0.875rem;
-    color: #4a5568;
-    background-color: #f7fafc;
-    border: 1px solid #e2e8f0;
+    color: hsl(0, 0%, 77%);
+    border: 1px solid #929292;
     border-radius: 0.375rem;
     transition: all 0.2s;
 }
