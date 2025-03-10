@@ -486,6 +486,55 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Wetlands',
+                            description: 'Wetlands and low lying estuarine areas',
+                            headerImage: 'assets/map-layer-wetland.png',
+                            type: 'vector',
+                            id: 'wetland',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/wetlands/parivesh/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bharatmaps_Parivesh_Wetland_Boundaries',
+                            maxzoom: 11,
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'descr'],
+                                    'Inland - Natural - River/Stream', 'blue',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.7
+                            },
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Wetland Name',
+                                label: 'wetname',
+                                fields: ['descr','aqveg','turbidity'],
+                                fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
+                            }
+                        },
+                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
