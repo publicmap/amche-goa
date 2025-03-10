@@ -271,6 +271,9 @@ class MapLayerControl {
         this._container = container;
         this._map = map;
 
+        // Initialize visibility cache if not exists
+        this._visibilityCache = new Map();
+
         // Update basemap toggle to overlay toggle
         const $overlayControl = $('<div>', {
             class: 'pb-4'
@@ -290,11 +293,11 @@ class MapLayerControl {
             $overlayCheckbox,
             $('<span>', {
                 class: 'text-sm',
-                text: 'Local Map थळावो नकासो'
+                text: 'Street Map रस्त्याचो नकासो'
             })
         );
 
-        // Handle overlay toggle
+        // Handle overlay toggle with visibility state management
         $overlayCheckbox.on('change', (e) => {
             const style = this._map.getStyle();
             const overlayLayers = style.layers.filter(layer => 
@@ -303,13 +306,20 @@ class MapLayerControl {
                 layer.source === 'mapbox-streets'
             );
 
-            overlayLayers.forEach(layer => {
-                this._map.setLayoutProperty(
-                    layer.id,
-                    'visibility',
-                    e.target.checked ? 'visible' : 'none'
-                );
-            });
+            if (!e.target.checked) {
+                // Save current visibility state before hiding
+                overlayLayers.forEach(layer => {
+                    const currentVisibility = this._map.getLayoutProperty(layer.id, 'visibility');
+                    this._visibilityCache.set(layer.id, currentVisibility);
+                    this._map.setLayoutProperty(layer.id, 'visibility', 'none');
+                });
+            } else {
+                // Restore previous visibility state
+                overlayLayers.forEach(layer => {
+                    const previousVisibility = this._visibilityCache.get(layer.id) || 'visible';
+                    this._map.setLayoutProperty(layer.id, 'visibility', previousVisibility);
+                });
+            }
 
             // Update URL parameter
             const url = new URL(window.location.href);
