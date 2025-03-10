@@ -274,66 +274,6 @@ class MapLayerControl {
         // Initialize visibility cache if not exists
         this._visibilityCache = new Map();
 
-        // Update basemap toggle to overlay toggle
-        const $overlayControl = $('<div>', {
-            class: 'pb-4'
-        });
-
-        const $overlayLabel = $('<label>', { 
-            class: 'flex items-center' 
-        });
-
-        const $overlayCheckbox = $('<input>', {
-            type: 'checkbox',
-            class: 'mr-2',
-            checked: true // Default to showing overlay
-        });
-
-        $overlayLabel.append(
-            $overlayCheckbox,
-            $('<span>', {
-                class: 'text-sm',
-                text: 'Street Map रस्त्याचो नकासो'
-            })
-        );
-
-        // Handle overlay toggle with visibility state management
-        $overlayCheckbox.on('change', (e) => {
-            const style = this._map.getStyle();
-            const overlayLayers = style.layers.filter(layer => 
-                layer.source === 'mapbox' || 
-                layer.source === 'composite' ||
-                layer.source === 'mapbox-streets'
-            );
-
-            if (!e.target.checked) {
-                // Save current visibility state before hiding
-                overlayLayers.forEach(layer => {
-                    const currentVisibility = this._map.getLayoutProperty(layer.id, 'visibility');
-                    this._visibilityCache.set(layer.id, currentVisibility);
-                    this._map.setLayoutProperty(layer.id, 'visibility', 'none');
-                });
-            } else {
-                // Restore previous visibility state
-                overlayLayers.forEach(layer => {
-                    const previousVisibility = this._visibilityCache.get(layer.id) || 'visible';
-                    this._map.setLayoutProperty(layer.id, 'visibility', previousVisibility);
-                });
-            }
-
-            // Update URL parameter
-            const url = new URL(window.location.href);
-            if (!e.target.checked) {
-                url.searchParams.set('overlay', 'none');
-            } else {
-                url.searchParams.delete('overlay');
-            }
-            window.history.replaceState({}, '', url);
-        });
-
-        $overlayControl.append($overlayLabel);
-        $(container).prepend($overlayControl);
-        
         const $controlContainer = $('<div>', {
             class: 'layer-control'
         });
@@ -350,8 +290,17 @@ class MapLayerControl {
     }
 
     _initializeControl($container) {
-        // Move layer initialization after URL parameter handling
+        // Add URL parameter handling at the start
+        const urlParams = new URLSearchParams(window.location.search);
+        const streetmapParam = urlParams.get('streetmap');
+        const showStreetmap = streetmapParam === 'true';
+
         this._options.groups.forEach((group, groupIndex) => {
+            // Update initiallyChecked based on URL parameter for streetmap
+            if (group.type === 'style') {
+                group.initiallyChecked = showStreetmap;
+            }
+
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
@@ -404,68 +353,25 @@ class MapLayerControl {
                 class: 'flex items-center gap-2 relative z-10 w-full p-2'
             });
 
+            // Replace the existing checkbox creation with this:
+            const $checkboxLabel = $('<label>', {
+                class: 'flex items-center gap-2 cursor-pointer'
+            });
+
             const $checkbox = $('<input>', {
                 type: 'checkbox',
                 checked: group.initiallyChecked || false,
                 class: 'w-4 h-4'
             });
-    
-        // Update checkbox click handler
-        $checkbox.on('click', (e) => {
-            // Stop event propagation to prevent any interference  
-            e.stopPropagation();
-            
-            // Get current state and toggle it
-            const currentState = $checkbox.prop('checked');
-            
-            // Update checkbox state
-            $checkbox.prop('checked', currentState);
-            
-            // Show/hide opacity switch for supported layer types
-            if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
-                $opacityButton.toggleClass('hidden', !currentState);
-            }
-            
-            // Update sl-details and layer visibility
-            if (currentState) {
-                $groupHeader[0].show();
-                // If group has radio buttons, select the first radio button by default
-                const $firstRadio = $groupHeader.find('input[type="radio"]').first();
-                if ($firstRadio.length) {
-                    $firstRadio.prop('checked', true);
-                    if (group.type === 'layer-group') {
-                        this._handleLayerGroupChange($firstRadio.val(), group.groups);
-                    } else {
-                        this._handleLayerChange($firstRadio.val(), group.layers);
-                    }
-                }
-            } else {
-                $groupHeader[0].hide();
-                // Hide all layers in the group
-                if (group.type === 'layer-group') {
-                    group.groups.forEach(subGroup => {
-                        const allLayers = this._map.getStyle().layers
-                            .map(layer => layer.id)
-                            .filter(id => 
-                                id === subGroup.id || 
-                                id.startsWith(`${subGroup.id}-`) ||
-                                id.startsWith(`${subGroup.id} `)
-                            );
-                        this._updateLayerVisibility(allLayers, false);
-                    });
-                } else if (group.layers) {
-                    group.layers.forEach(layer => {
-                        if (this._map.getLayer(layer.id)) {
-                            this._map.setLayoutProperty(layer.id, 'visibility', 'none');
-                        }
-                    });
-                }
-            }
-            this._toggleSourceControl(groupIndex, currentState);
-        });
 
+            const $titleSpan = $('<span>', {
+                text: group.title,
+                class: 'control-title text-sm font-medium font-bold text-white'
+            });
 
-        const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+            $checkboxLabel.append($checkbox, $titleSpan);
+
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden ml-auto',
                     'data-opacity': '0.95',
@@ -480,77 +386,72 @@ class MapLayerControl {
                 })
                 : $('<span>');
 
-        $opacityButton[0]?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
+            $opacityButton[0]?.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
 
-            const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
-            $opacityButton.attr('data-opacity', newOpacity);
-            $opacityButton.title = `Toggle opacity`;
-            
-            // Update icon based on opacity
-            $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
-            
-            if (group.type === 'layer-group') {
-                const allLayers = this._map.getStyle().layers.map(layer => layer.id);
-                group.groups.forEach(subGroup => {
-                    const matchingLayers = allLayers.filter(layerId => 
-                        layerId === subGroup.id || 
-                        layerId.startsWith(`${subGroup.id}-`) ||
-                        layerId.startsWith(`${subGroup.id} `)
-                    );
-                    
-                    matchingLayers.forEach(layerId => {
-                        if (this._map.getLayer(layerId)) {
-                            const layer = this._map.getLayer(layerId);
-                            if (layer.type === 'fill') {
-                                this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
-                            } else if (layer.type === 'line') {
-                                this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
-                            } else if (layer.type === 'symbol') {
-                                this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
-                            } else if (layer.type === 'raster') {
-                                this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
+                $opacityButton.attr('data-opacity', newOpacity);
+                $opacityButton.title = `Toggle opacity`;
+                
+                // Update icon based on opacity
+                $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
+                
+                if (group.type === 'layer-group') {
+                    const allLayers = this._map.getStyle().layers.map(layer => layer.id);
+                    group.groups.forEach(subGroup => {
+                        const matchingLayers = allLayers.filter(layerId => 
+                            layerId === subGroup.id || 
+                            layerId.startsWith(`${subGroup.id}-`) ||
+                            layerId.startsWith(`${subGroup.id} `)
+                        );
+                        
+                        matchingLayers.forEach(layerId => {
+                            if (this._map.getLayer(layerId)) {
+                                const layer = this._map.getLayer(layerId);
+                                if (layer.type === 'fill') {
+                                    this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                                } else if (layer.type === 'line') {
+                                    this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
+                                } else if (layer.type === 'symbol') {
+                                    this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
+                                } else if (layer.type === 'raster') {
+                                    this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                                }
                             }
-                        }
+                        });
                     });
-                });
-            } else if (group.type === 'geojson') {
-                const sourceId = `geojson-${group.id}`;
-                if (this._map.getLayer(`${sourceId}-fill`)) {
-                    this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
-                }
-                if (this._map.getLayer(`${sourceId}-line`)) {
-                    this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
-                }
-                if (this._map.getLayer(`${sourceId}-label`)) {
-                    this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
-                }
-            } else if (group.type === 'tms') {
-                const layerId = `tms-layer-${group.id}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
-                }
-            } else if (group.type === 'vector') {
-                const layerConfig = group._layerConfig;
-                if (!layerConfig) return;
+                } else if (group.type === 'geojson') {
+                    const sourceId = `geojson-${group.id}`;
+                    if (this._map.getLayer(`${sourceId}-fill`)) {
+                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
+                    }
+                    if (this._map.getLayer(`${sourceId}-line`)) {
+                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
+                    }
+                    if (this._map.getLayer(`${sourceId}-label`)) {
+                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
+                    }
+                } else if (group.type === 'tms') {
+                    const layerId = `tms-layer-${group.id}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                    }
+                } else if (group.type === 'vector') {
+                    const layerConfig = group._layerConfig;
+                    if (!layerConfig) return;
 
-                if (layerConfig.hasFillStyles) {
-                    this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', newOpacity * 0.5);
+                    if (layerConfig.hasFillStyles) {
+                        this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', newOpacity * 0.5);
+                    }
+                    if (layerConfig.hasLineStyles) {
+                        this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', newOpacity);
+                    }
                 }
-                if (layerConfig.hasLineStyles) {
-                    this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', newOpacity);
-                }
-            }
-        });
-
-          
-            const $titleSpan = $('<span>', { 
-                text: group.title,
-                class: 'control-title text-sm font-medium font-bold text-white'
             });
 
+          
             // Add header background if exists
             if (group.headerImage) {
                 const $headerBg = $('<div>', {
@@ -567,7 +468,7 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($checkbox, $titleSpan, $opacityButton);
+            $contentWrapper.append($checkboxLabel, $opacityButton);
             $groupHeader.append($summary);
 
             // Add source control to sl-details content
@@ -1519,6 +1420,56 @@ class MapLayerControl {
                 $groupHeader.append($contentArea);
             }
 
+            // Add sublayer controls for style type
+            if (group.type === 'style' && group.layers) {
+                const $layerControls = $('<div>', {
+                    class: 'layer-controls mt-3 px-4'
+                });
+
+                $layerControls.append(group.layers.map((layer, index) => {
+                    const layerId = `sublayer-${groupIndex}-${index}`;
+                    const $layerControl = $('<div>', {
+                        class: 'flex items-center gap-2 mb-2 text-black'
+                    });
+
+                    const $sublayerCheckbox = $('<input>', {
+                        type: 'checkbox',
+                        id: layerId,
+                        class: 'sublayer-checkbox w-4 h-4',
+                        checked: group.initiallyChecked || false
+                    });
+
+                    // Add change event listener for the checkbox
+                    $sublayerCheckbox.on('change', (e) => {
+                        const styleLayers = this._map.getStyle().layers;
+                        const layersToToggle = styleLayers
+                            .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                            .map(styleLayer => styleLayer.id);
+
+                        layersToToggle.forEach(toggleLayerId => {
+                            if (this._map.getLayer(toggleLayerId)) {
+                                this._map.setLayoutProperty(
+                                    toggleLayerId,
+                                    'visibility',
+                                    e.target.checked ? 'visible' : 'none'
+                                );
+                            }
+                        });
+                    });
+
+                    const $label = $('<label>', {
+                        for: layerId,
+                        class: 'text-sm',
+                        text: layer.title
+                    });
+
+                    $layerControl.append($sublayerCheckbox, $label);
+                    return $layerControl;
+                }));
+
+                $groupHeader.append($layerControls);
+            }
+
         });
 
         if (!this._initialized) {
@@ -1544,6 +1495,35 @@ class MapLayerControl {
 
     _toggleSourceControl(groupIndex, visible) {
         const group = this._options.groups[groupIndex];
+        
+        if (group.type === 'style') {
+            // Get all style layers
+            const styleLayers = this._map.getStyle().layers;
+            
+            // If group has specific layers defined, use those
+            if (group.layers) {
+                group.layers.forEach(layer => {
+                    const layerIds = styleLayers
+                        .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                        .map(styleLayer => styleLayer.id);
+                    
+                    layerIds.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                        }
+                    });
+                });
+            } 
+            // If sourceLayers are defined, use those
+            else if (group.sourceLayers) {
+                styleLayers.forEach(layer => {
+                    if (layer['source-layer'] && group.sourceLayers.includes(layer['source-layer'])) {
+                        this._map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            }
+            return; // Exit after handling style layers
+        }
         
         if (group.type === 'layer-group') {
             group.groups.forEach(subGroup => {

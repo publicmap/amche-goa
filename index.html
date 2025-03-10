@@ -246,6 +246,24 @@ function getQueryParameters() {
 
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
+                    {
+                            id: 'streetmap',
+                            title: 'Street Map रस्त्याचो नकासो',
+                            description: 'Current Street Map sourced from OpenStreetMap and other data sources via Mapbox vector tiles.',
+                            type: 'style',
+                            headerImage: 'assets/map-layer-streetmap.png',
+                            initiallyChecked: true,
+                            layers: [
+                                { title: 'Places', sourceLayer: 'place_label' },
+                                { title: 'Points of Interest', sourceLayer: 'poi_label' },
+                                { title: 'Roads', sourceLayer: 'road' },
+                                { title: 'Buildings', sourceLayer: 'building' },
+                                { title: 'Water', sourceLayer: 'water' },
+                                { title: 'Wetlands and National Parks', sourceLayer: 'landuse_overlay' },
+                                { title: 'Land Use', sourceLayer: 'landuse' },
+                                { title: 'Places', sourceLayer: 'place_label' },
+                            ]
+                        },
                         {
                             title: 'Community Pins',
                             description: 'Pin your notes on the map for the rest of the community to see',
@@ -740,7 +758,7 @@ function getQueryParameters() {
                             headerImage: 'assets/map-layer-terrain.png',
                             type: 'terrain',
                             initiallyChecked: true
-                        }
+                        }                        
                     ];
                     
                     // if the layers= query parameter is set, handle setting initiallyChecked on those layers
