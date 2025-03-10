@@ -1459,7 +1459,7 @@ class MapLayerControl {
             // Add sublayer controls for style type
             if (group.type === 'style' && group.layers) {
                 const $layerControls = $('<div>', {
-                    class: 'layer-controls mt-3 px-4'
+                    class: 'layer-controls mt-3'
                 });
 
                 $layerControls.append(group.layers.map((layer, index) => {

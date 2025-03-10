@@ -236,9 +236,9 @@ main {
     align-items: center;
     position: relative;
     min-height: 48px;
-    border-radius: 12px;
+    border-radius: 15px;
     overflow: hidden;
-    background: rgb(225, 225, 225);
+    margin-bottom: 8px;
 }
 
 /* Style the checkbox for consistent appearance across systems */
@@ -273,21 +273,6 @@ main {
     transform: rotate(45deg);
 }
 
-/* Add styles for the layer info section */
-.layer-info {
-    font-size: 0.75rem;
-    color: #e0e0e0;
-    margin-top: 2px;
-}
-
-.layer-info a {
-    color: #e0e0e0;
-    text-decoration: none;
-}
-
-.layer-info a:hover {
-    text-decoration: underline;
-}
 
 /* Add existing styles from index.html */
 .layer-control-wrapper {
@@ -546,7 +531,7 @@ sl-drawer::part(panel) {
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     width: 400px;
     z-index: 50;
-    color: white;
+    padding: 5px 10px;
 }
 
 sl-drawer::part(close-button) {
@@ -592,7 +577,8 @@ button.opacity-toggle.hidden {
 /* Style all skeleton loaders in the drawer */
 #layer-controls-loader sl-skeleton::part(base) {
     --border-radius: 0;
-    height: 60px;
+    height: 50px;
+    width: 100%;
 }
 
 /* Add hover effect */
@@ -745,9 +731,9 @@ sl-details.map-controls-group::part(base) {
     text-decoration: underline;
 }
 
-/* Ensure attribution container is visible */
-.description-area {
-    padding: 8px 12px;
+
+.description-area a{
+    text-decoration: underline;
 }
 
 
@@ -818,11 +804,6 @@ sl-details.map-controls-group::part(base) {
     height: 1rem;
 }
 
-/* Update drawer header spacing */
-sl-drawer .details__header {
-    padding: 0;
-    background-color: hsl(0, 0%, 13%);
-}
 
 
 /* Style the open drawer button and its icon */
@@ -849,4 +830,8 @@ sl-details::part(base) {
     padding: 0;
     border: 1px solid #535353;
     box-shadow: inset 0px 0px 3px rgb(69 69 69);
+}
+sl-details::part(content) {
+    box-shadow: inset 0px 0px 3px rgb(69 69 69);
+    background-color: rgb(255, 251, 243);
 }
