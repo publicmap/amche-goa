@@ -387,7 +387,7 @@ class MapLayerControl {
 
             const $summary = $('<div>', {
                 slot: 'summary',
-                class: 'flex items-center gap-2 relative w-full h-12'
+                class: 'flex items-center relative w-full h-12'
             });
 
             const $contentWrapper = $('<div>', {
