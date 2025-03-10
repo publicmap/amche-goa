@@ -116,12 +116,24 @@ class MapLayerControl {
             
             // Create new URL with layers parameter
             const url = new URL(window.location.href);
-            if (visibleLayers.length > 0) {
-                // Join layers with unencoded commas
-                const layersParam = visibleLayers.join(',');
-                url.searchParams.set('layers', layersParam);
+            
+            // Handle streetmap parameter separately
+            if (visibleLayers.includes('streetmap')) {
+                url.searchParams.set('streetmap', 'true');
+                // Remove streetmap from layers array
+                const layersWithoutStreetmap = visibleLayers.filter(layer => layer !== 'streetmap');
+                if (layersWithoutStreetmap.length > 0) {
+                    url.searchParams.set('layers', layersWithoutStreetmap.join(','));
+                } else {
+                    url.searchParams.delete('layers');
+                }
             } else {
-                url.searchParams.delete('layers');
+                url.searchParams.delete('streetmap');
+                if (visibleLayers.length > 0) {
+                    url.searchParams.set('layers', visibleLayers.join(','));
+                } else {
+                    url.searchParams.delete('layers');
+                }
             }
             
             // Create pretty URL by manually replacing encoded characters
@@ -253,6 +265,9 @@ class MapLayerControl {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'geojson') {
                     visibleLayers.push(group.id);
+                } else if (group.type === 'style') {
+                    // Add streetmap parameter if style layer is visible
+                    visibleLayers.push('streetmap');
                 } else if (group.layers) {
                     // For layer groups, check which radio button is selected
                     const radioGroup = this._sourceControls[index]?.querySelector('.radio-group');
@@ -307,19 +322,23 @@ class MapLayerControl {
             });
             this._sourceControls[groupIndex] = $groupHeader[0];
 
-            // Add sl-show/hide listeners to sync checkbox with sl-details
+            // Update the sl-show/hide event handlers to properly sync checkbox state
             $groupHeader[0].addEventListener('sl-show', (event) => {
                 const checkbox = event.target.querySelector('input[type="checkbox"]');
-                checkbox.checked = true;
-                this._toggleSourceControl(groupIndex, true);
-                $opacityButton.toggleClass('hidden', false);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    this._toggleSourceControl(groupIndex, true);
+                    $opacityButton.toggleClass('hidden', false);
+                }
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
                 const checkbox = event.target.querySelector('input[type="checkbox"]');
-                checkbox.checked = false;
-                this._toggleSourceControl(groupIndex, false);
-                $opacityButton.toggleClass('hidden', true);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    this._toggleSourceControl(groupIndex, false);
+                    $opacityButton.toggleClass('hidden', true);
+                }
             });
 
             // Initialize layers only if they should be visible
@@ -362,6 +381,11 @@ class MapLayerControl {
                 type: 'checkbox',
                 checked: group.initiallyChecked || false,
                 class: 'w-4 h-4'
+            }).on('change', (e) => {
+                const isChecked = e.target.checked;
+                if (isChecked !== $groupHeader[0].open) {
+                    $groupHeader[0].open = isChecked;
+                }
             });
 
             const $titleSpan = $('<span>', {

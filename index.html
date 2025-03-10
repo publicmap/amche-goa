@@ -785,8 +785,6 @@ function getQueryParameters() {
 
                     // Initialize controls for layers that should be initially checked
                     const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
-                    console.log('Initially checked layers:', initiallyCheckedLayers.map(l => l.title));
-
                     initiallyCheckedLayers.forEach(layer => {
                         // Find the checkbox for this layer using jQuery
                         const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
@@ -796,32 +794,6 @@ function getQueryParameters() {
                         }
                     });
 
-                    // Check for basemap parameter
-                    if (queryParams.basemap === 'none') {
-                        // Hide basemap layers
-                        const style = map.getStyle();
-                        const basemapLayers = style.layers.filter(layer => 
-                            layer.source === 'mapbox' || 
-                            layer.source === 'composite' ||
-                            layer.source === 'mapbox-streets'
-                        );
-
-                        basemapLayers.forEach(layer => {
-                            map.setLayoutProperty(
-                                layer.id,
-                                'visibility',
-                                'none'
-                            );
-                        });
-
-                        // Update checkbox state after layer control is initialized
-                        setTimeout(() => {
-                            const $basemapCheckbox = $('#layer-controls-container input[type="checkbox"]:first');
-                            if ($basemapCheckbox.length) {
-                                $basemapCheckbox.prop('checked', false);
-                            }
-                        }, 100);
-                    }
                 })
                 
 
