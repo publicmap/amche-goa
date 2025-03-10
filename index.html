@@ -131,7 +131,6 @@
 
     <script>
 
-//FIXME: move this function to a utils
 function getQueryParameters() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -142,7 +141,7 @@ function getQueryParameters() {
         params[key] = value;
     }
 
-    return params; // Return the object containing all query parameters
+    return params;
 }
 
 
@@ -767,7 +766,12 @@ function getQueryParameters() {
                         const activeLayers = queryParams.layers.split(',').map(s => s.trim());
                         console.log('active layers', activeLayers);
                         layersConfig = layersConfig.map(layer => {
-                            layer.initiallyChecked = activeLayers.includes(layer.id);
+                            // Handle both streetmap and other layers
+                            if (layer.type === 'style') {
+                                layer.initiallyChecked = activeLayers.includes('streetmap');
+                            } else {
+                                layer.initiallyChecked = activeLayers.includes(layer.id);
+                            }
                             return layer;
                         });
                     }

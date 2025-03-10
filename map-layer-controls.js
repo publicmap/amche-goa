@@ -117,24 +117,15 @@ class MapLayerControl {
             // Create new URL with layers parameter
             const url = new URL(window.location.href);
             
-            // Handle streetmap parameter separately
-            if (visibleLayers.includes('streetmap')) {
-                url.searchParams.set('streetmap', 'true');
-                // Remove streetmap from layers array
-                const layersWithoutStreetmap = visibleLayers.filter(layer => layer !== 'streetmap');
-                if (layersWithoutStreetmap.length > 0) {
-                    url.searchParams.set('layers', layersWithoutStreetmap.join(','));
-                } else {
-                    url.searchParams.delete('layers');
-                }
+            // Set layers parameter with all visible layers including streetmap
+            if (visibleLayers.length > 0) {
+                url.searchParams.set('layers', visibleLayers.join(','));
             } else {
-                url.searchParams.delete('streetmap');
-                if (visibleLayers.length > 0) {
-                    url.searchParams.set('layers', visibleLayers.join(','));
-                } else {
-                    url.searchParams.delete('layers');
-                }
+                url.searchParams.delete('layers');
             }
+            
+            // Remove streetmap parameter if it exists (since we're now using layers)
+            url.searchParams.delete('streetmap');
             
             // Create pretty URL by manually replacing encoded characters
             const prettyUrl = decodeURIComponent(url.toString())
@@ -307,13 +298,15 @@ class MapLayerControl {
     _initializeControl($container) {
         // Add URL parameter handling at the start
         const urlParams = new URLSearchParams(window.location.search);
-        const streetmapParam = urlParams.get('streetmap');
-        const showStreetmap = streetmapParam === 'true';
-
+        const layersParam = urlParams.get('layers');
+        const activeLayers = layersParam ? layersParam.split(',').map(s => s.trim()) : [];
+        
         this._options.groups.forEach((group, groupIndex) => {
-            // Update initiallyChecked based on URL parameter for streetmap
+            // Update initiallyChecked based on URL parameter for all layers including streetmap
             if (group.type === 'style') {
-                group.initiallyChecked = showStreetmap;
+                group.initiallyChecked = activeLayers.includes('streetmap');
+            } else {
+                group.initiallyChecked = activeLayers.includes(group.id);
             }
 
             const $groupHeader = $('<sl-details>', {
