@@ -1,5 +1,14 @@
 import { convertToKML, gstableToArray } from './map-utils.js';
 
+// Update the getQueryParameters function to handle empty parameters correctly
+function getQueryParameters() {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    
+    // Return the URLSearchParams object directly
+    return urlParams;
+}
+
 class MapLayerControl {
     constructor(options) {
         this._defaultStyles = {
@@ -297,17 +306,27 @@ class MapLayerControl {
 
     _initializeControl($container) {
         // Add URL parameter handling at the start
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = getQueryParameters();
         const layersParam = urlParams.get('layers');
-        const activeLayers = layersParam ? layersParam.split(',').map(s => s.trim()) : [];
         
+        // If no layers parameter is specified, treat all initiallyChecked layers as active
+        const activeLayers = layersParam ? 
+            layersParam.split(',').map(s => s.trim()) : 
+            this._options.groups
+                .filter(group => group.initiallyChecked)
+                .map(group => group.type === 'style' ? 'streetmap' : group.id);
+
         this._options.groups.forEach((group, groupIndex) => {
-            // Update initiallyChecked based on URL parameter for all layers including streetmap
-            if (group.type === 'style') {
-                group.initiallyChecked = activeLayers.includes('streetmap');
-            } else {
-                group.initiallyChecked = activeLayers.includes(group.id);
+            // Update initiallyChecked based on URL parameter or original setting
+            if (layersParam) {
+                // If layers parameter exists, use it to determine initial state
+                if (group.type === 'style') {
+                    group.initiallyChecked = activeLayers.includes('streetmap');
+                } else {
+                    group.initiallyChecked = activeLayers.includes(group.id);
+                }
             }
+            // If no layers parameter, use the original initiallyChecked value
 
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
