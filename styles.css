@@ -845,9 +845,7 @@ sl-details::part(header):hover {
     opacity: 1;
 }
 sl-details::part(base) {
-    /* Your styles here */
     padding: 0;
-    border: 1px solid #7f7f7f;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-
+    border: 1px solid #535353;
+    box-shadow: inset 0px 0px 3px rgb(69 69 69);
 }
