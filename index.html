@@ -486,83 +486,6 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Wetlands',
-                            description: 'Wetlands and low lying estuarine areas',
-                            headerImage: 'assets/map-layer-wetland.png',
-                            type: 'vector',
-                            id: 'wetland',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/wetlands/parivesh/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'Bharatmaps_Parivesh_Wetland_Boundaries',
-                            maxzoom: 11,
-                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'line-color': 'blue',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'fill-color': [
-                                    'match',
-                                    ['get', 'descr'],
-                                    'Inland - Natural - Waterlogged', 
-                                    '#0084f7',
-                                    'Inland - Natural - River/Stream', 
-                                    '#0084f7',
-                                    'Inland - Man-made - Tank/Pond', 
-                                    '#0084f7',
-                                    'Inland - Natural - Lake/Pond', 
-                                    '#0084f7',
-                                    'Inland - Man-made - Reservoir/Barrage', 
-                                    '#0084f7',
-                                    'Inland - Man-made - Waterlogged', 
-                                    '#0084f7',
-                                    
-                                    'Coastal - Natural - Creek', 
-                                    '#0084f7',
-                                    'Coastal - Natural - Lagoon', 
-                                    '#0084f7',
-                                    'Coastal - Natural - Mangrove', 
-                                    'green',
-                                    'Coastal - Natural - Inter-tidal Mud-flat', 
-                                    'brown',
-                                    'Coastal - Man-made - Salt Pan', 
-                                    'cyan',
-                                    'Coastal - Man-made - Aquaculture Pond', 
-                                    'cyan',
-                                    'Coastal - Natural - Sand/Beach', 
-                                    'orange',
-                                    'Others (non-wetland area)', 
-                                    'grey',
-                                    'red'  // default color for all other cases
-                                ],
-                                'fill-opacity': 0.7
-                            },
-                            inspect: {
-                                id: 'objectid',
-                                title: 'Wetland Name',
-                                label: 'wetname',
-                                fields: ['descr','aqveg','turbidity'],
-                                fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
-                            }
-                        },
-                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
@@ -697,7 +620,90 @@ function getQueryParameters() {
                                 fieldTitles: ['Village','Owner Type','Condition','Construction','Purpose',],
                             }
                         },
-                        
+                        {
+                            title: 'Wetlands',
+                            description: 'Wetlands and low lying estuarine areas',
+                            headerImage: 'assets/map-layer-wetland.png',
+                            type: 'vector',
+                            id: 'wetland',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/wetlands/parivesh/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bharatmaps_Parivesh_Wetland_Boundaries',
+                            maxzoom: 11,
+                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'descr'],
+                                    'Inland - Natural - Waterlogged', 
+                                    '#0084f7',
+                                    'Inland - Natural - River/Stream', 
+                                    '#0084f7',
+                                    'Inland - Man-made - Tank/Pond', 
+                                    '#0084f7',
+                                    'Inland - Natural - Lake/Pond', 
+                                    '#0084f7',
+                                    'Inland - Man-made - Reservoir/Barrage', 
+                                    '#0084f7',
+                                    
+                                    'Inland - Man-made - Waterlogged', 
+                                    '#0084f7',
+                                    
+                                    'Coastal - Natural - Creek', 
+                                    '#0084f7',
+                                    'Coastal - Natural - Lagoon', 
+                                    '#0084f7',
+                                    'Inland - Natural - Ox-bow Lake / Cut-off me', 
+                                    '#0084f7',
+                                    'Coastal - Natural - Mangrove', 
+                                    'green',
+                                    'Coastal - Natural - Inter-tidal Mud-flat', 
+                                    'brown',
+                                    'Coastal - Natural - Salt Marsh', 
+                                    'brown',
+                                    'Coastal - Man-made - Salt Pan', 
+                                    'cyan',
+                                    'Inland - Man-made - Salt Pan', 
+                                    'cyan',
+                                    'Coastal - Man-made - Aquaculture Pond', 
+                                    'cyan',
+                                    'Coastal - Natural - Sand/Beach', 
+                                    'orange',
+                                    'Others (non-wetland area)', 
+                                    'grey',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.5
+                            },
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Wetland Name',
+                                label: 'wetname',
+                                fields: ['descr','aqveg','turbidity'],
+                                fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
+                            }
+                        },
                         {
                             id: 'slope-zones',
                             title: 'Slope Zoning',
