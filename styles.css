@@ -236,8 +236,9 @@ main {
     align-items: center;
     position: relative;
     min-height: 48px;
-    border-radius: 4px;
+    border-radius: 15px;
     overflow: hidden;
+    margin-bottom: 8px;
 }
 
 /* Style the checkbox for consistent appearance across systems */
@@ -248,17 +249,16 @@ main {
     appearance: none;
     width: 16px;
     height: 16px;
-    border: 1px solid hsl(0, 0%, 100%);
+    border: 1px solid #ffffff;
     border-radius: 3px;
     position: relative;
     cursor: pointer;
+    background-color: #e1e1e1;
 }
 
 .group-header input[type="checkbox"]:checked {
-    background-color: hsl(0, 0%, 100%);
-    border: 2px solid hsl(0, 0%, 100%);
-
-    border-color: hsl(0, 0%, 100%);
+    background-color: #ffffff;
+    border: 2px solid #ffffff;
 }
 
 .group-header input[type="checkbox"]:checked::after {
@@ -273,21 +273,6 @@ main {
     transform: rotate(45deg);
 }
 
-/* Add styles for the layer info section */
-.layer-info {
-    font-size: 0.75rem;
-    color: #666;
-    margin-top: 2px;
-}
-
-.layer-info a {
-    color: #666;
-    text-decoration: none;
-}
-
-.layer-info a:hover {
-    text-decoration: underline;
-}
 
 /* Add existing styles from index.html */
 .layer-control-wrapper {
@@ -308,39 +293,6 @@ main {
     top: 0;
     left: 0;
     z-index: 1;
-}
-button.layer-control-toggle {
-    width: 50px;
-    height: 50px;
-}
-.layer-control-toggle {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50px;
-    height: 50px;
-    padding: 0;
-    background: #fff;
-    border: none;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-    cursor: pointer;
-    font-size: 18px;
-    color: #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    z-index: 2;
-}
-
-.layer-control-toggle:hover {
-    background: #f8f8f8;
-}
-
-.layer-control-toggle.is-open {
-    background: #f8f8f8;
-    color: #000;
 }
 
 .mapboxgl-ctrl.layer-control.no-transition {
@@ -364,13 +316,8 @@ button.layer-control-toggle {
 /* Update header font style */
 header h1 {
     font-family: 'Open Sans', sans-serif;
-    font-weight: 600;  /* Semi-bold weight */
 }
 
-/* Add new style for close state */
-.layer-control-toggle.is-open {
-    font-size: 20px;  /* Slightly smaller for the × symbol */
-}
 
 /* Popup styles */
 .mapboxgl-popup-content {
@@ -397,7 +344,7 @@ header h1 {
     padding: 0;
     width: 24px;
     height: 24px;
-    color: #666;
+    color: hsl(0, 0%, 0%);
     font-size: 16px;
     right: 6px;
     top: 6px;
@@ -571,18 +518,29 @@ header h1 {
     opacity: 0.9;
 }
 
-/* Update drawer styles to prevent closing on outside click */
+
+sl-drawer{
+    --header-spacing: 5px;
+    --body-spacing:5px;
+    color: white;
+}
 sl-drawer::part(overlay) {
     background: none;
     pointer-events: none; /* Prevent overlay from capturing clicks */
 }
 
 sl-drawer::part(panel) {
-    background: rgba(255, 255, 255, 0.9);
+    background: hsla(0, 0%, 35%, 0.902);
     backdrop-filter: blur(8px);
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     width: 400px;
     z-index: 50;
+    padding: 5px 10px;
+}
+
+sl-drawer::part(close-button) {
+    color: #fdfdfd;
+    font-size: 1.5rem;
 }
 
 /* Update opacity toggle button styles */
@@ -623,7 +581,8 @@ button.opacity-toggle.hidden {
 /* Style all skeleton loaders in the drawer */
 #layer-controls-loader sl-skeleton::part(base) {
     --border-radius: 0;
-    height: 100px;
+    height: 50px;
+    width: 100%;
 }
 
 /* Add hover effect */
@@ -633,14 +592,6 @@ button.opacity-toggle.hidden {
 
 #layer-controls-loader sl-skeleton:hover {
     opacity: 1;
-}
-
-/* Update drawer styles for contained mode */
-sl-drawer::part(panel) {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(8px);
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
-    width: 400px;
 }
 
 /* Ensure main container is properly positioned for contained drawer */
@@ -654,9 +605,6 @@ sl-drawer::part(panel) {
 
 sl-details.map-controls-group::part(base) {
     width: 100%;
-}
-sl-details.map-controls-group::part(content) {
-    padding-top: 0;
 }
 
 /* Add styles to ensure proper spacing and scrolling for fog settings */
@@ -749,24 +697,6 @@ sl-details.map-controls-group::part(content) {
     gap: 8px;
 }
 
-sl-details::part(base) {
-    /* Remove focus ring */
-    --sl-focus-ring: none;
-    /* Remove any background color change on focus */
-    background: transparent !important;
-}
-
-sl-details::part(header) {
-    /* Remove any background color change on focus/active states */
-    background: transparent !important;
-}
-
-sl-details::part(summary) {
-    /* Remove any background highlight on focus/active states */
-    background: transparent !important;
-    /* Remove outline on focus */
-    outline: none;
-}
 
 /* Add toast notification styles */
 .toast-notification {
@@ -791,10 +721,8 @@ sl-details::part(summary) {
 /* Add these attribution-specific styles */
 .layer-attribution {
     font-size: 12px;
-    color: #666;
+    color: #777;
     margin-top: 8px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.8);
     border-radius: 4px;
 }
 
@@ -807,10 +735,109 @@ sl-details::part(summary) {
     text-decoration: underline;
 }
 
-/* Ensure attribution container is visible */
-.description-area {
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.8);
+
+.description-area a{
+    text-decoration: underline;
+}
+
+
+
+/* Update basemap control to overlay control */
+.overlay-control {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.overlay-control label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.overlay-control input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.overlay-control span {
+    font-size: 14px;
+    color: #333;
+}
+
+/* Update the layer control styles to ensure proper scrolling */
+.mapboxgl-ctrl.layer-control {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure the overlay control stays at the top */
+.layer-control > .overlay-control {
+    flex-shrink: 0;
+}
+
+/* Update the container for the rest of the controls */
+.layer-control > div:not(.overlay-control) {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Style the share button */
+.share-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 77%);
+    border: 1px solid #929292;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.share-button:hover {
+    background-color: #edf2f7;
+    color: #1a202c;
+}
+
+.share-button svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+
+
+/* Style the open drawer button and its icon */
+#open-drawer {
+    background-color: #000000;
+}
+
+#open-drawer::part(base) {
+    background-color: #000000;
+}
+
+header .icon-button {
+    color: #ffffff !important;
+}
+
+sl-details::part(header) {
+    padding: 0;
+    opacity: 0.9;
+}
+sl-details::part(header):hover {
+    opacity: 1;
+}
+sl-details::part(base) {
+    padding: 0;
+    border: 1px solid #535353;
+    box-shadow: inset 0px 0px 3px rgb(69 69 69);
+}
+sl-details::part(content) {
+    box-shadow: inset 0px 0px 3px rgb(69 69 69);
+    background-color: rgb(255, 251, 243);
 }
 
 /* Add these styles for the attribution section in popups */

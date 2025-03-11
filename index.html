@@ -93,8 +93,8 @@
     <sl-icon-button 
         name="list" 
         id="open-drawer" 
-        class="fixed top-20 left-4 z-10 bg-white rounded-full shadow-lg hover:bg-gray-100" 
-        style="font-size: 1.5rem; padding: 8px;"
+        class="fixed top-20 left-4 z-10 rounded-full shadow-lg" 
+        style="font-size: 1.5rem; padding: 8px;color:orange"
     ></sl-icon-button>
 
     <!-- Wrap main content in a container -->
@@ -103,22 +103,18 @@
         <main class="flex-grow relative h-full">
             <div id="map" style="width: 100%; height: 100%;"></div>
             <!-- Add drawer inside the map container -->
-            <sl-drawer id="map-controls-drawer" label="Map layers" placement="start" class="drawer-placement-start" contained>
-                <!-- Add this div for the header with flex layout -->
+            <sl-drawer id="map-controls-drawer" label="Maps नकासो" placement="start" class="drawer-placement-start">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-md">Choose layers</h2>
-                    <button id="share-link" class="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    
+                    <button id="share-link" class="share-button">
+                        <svg class="w-4 h-4" fill="none" stroke="orange" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                         </svg>
-                        Share Link
+                        Share वांटो
                     </button>
                 </div>
-                <!-- Loading state using Shoelace components -->
                 <div id="layer-controls-loader" class="p-4">
-                    <div class="flex flex-col gap-4" id="skeleton-container">
-                        <!-- Skeletons will be added here dynamically -->
-                    </div>
+                    <div class="flex flex-col gap-4" id="skeleton-container"></div>
                 </div>
                 <div id="layer-controls-container" class="hidden"></div>
             </sl-drawer>
@@ -135,7 +131,6 @@
 
     <script>
 
-//FIXME: move this function to a utils
 function getQueryParameters() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -146,7 +141,7 @@ function getQueryParameters() {
         params[key] = value;
     }
 
-    return params; // Return the object containing all query parameters
+    return params;
 }
 
 
@@ -250,6 +245,24 @@ function getQueryParameters() {
 
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
+                    {
+                            id: 'streetmap',
+                            title: 'Street Map रस्त्याचो नकासो',
+                            description: 'Detailed street map sourced from <a href="https://www.openstreetmap.org/#map=11/15.4054/73.9280" target="_blank">OpenStreetMap contributors</a> and other data sources via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/" target="_blank">Mapbox Streets</a> vector tiles.',
+                            type: 'style',
+                            headerImage: 'assets/map-layer-streetmap.png',
+                            initiallyChecked: true,
+                            layers: [
+                                { title: 'Places', sourceLayer: 'place_label' },
+                                { title: 'Landmarks', sourceLayer: 'poi_label' },
+                                { title: 'Buildings', sourceLayer: 'building' },
+                                { title: 'Roads', sourceLayer: 'road' },
+                                { title: 'Landuse & Landcover', sourceLayer: 'landuse' },
+                                { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
+                                { title: 'Water', sourceLayer: 'water' },
+
+                            ]
+                        },
                         {
                             title: 'Community Pins',
                             description: 'Pin your notes on the map for the rest of the community to see',
@@ -279,15 +292,15 @@ function getQueryParameters() {
                             attribution: '<a href="https://mapwarper.net/layers/2157">CC-BY-SA Mapwarper community maps of Goa</a>'
                         },
                         {
-                            title: 'Plot Boundaries',
+                            title: 'Cadastral Parcel Boundaries',
                             description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
-                            id: 'goa-cadastral',
+                            id: 'cadastral',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
                             maxzoom: 16,
-                            attribution: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'interpolate',
@@ -338,7 +351,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/not-so-open/villages/lgd/{z}/{x}/{y}.pbf ',
                             sourceLayer: 'LGD_Villages',
                             maxzoom: 10,
-                            attribution: 'Source: <a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a>, <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory, Ministry of Panchayati Raj</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a>, <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory, Ministry of Panchayati Raj</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'interpolate',
@@ -387,7 +400,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
                             sourceLayer: 'SBM_Wards',
                             maxzoom: 12,
-                            attribution: 'Source: <a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'interpolate',
@@ -451,7 +464,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'FSI_Beats',
                             maxzoom: 11,
-                            attribution: 'Source: <a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'line-color': '#006400',
                                 'line-width': [
@@ -494,7 +507,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/streams/wris/{z}/{x}/{y}.pbf',
                             sourceLayer: 'wris_streams',
                             maxzoom: 11,
-                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/">India WRIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://indiawris.gov.in/wris/">India WRIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'line-color': '#0084f7',
                                 'line-opacity': 0.8,
@@ -537,7 +550,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/watersheds/wris/{z}/{x}/{y}.pbf',
                             sourceLayer: 'wris_watershed',
                             maxzoom: 10,
-                            attribution: 'Source: <a href="https://indiawris.gov.in/wris/#/riverBasins">India Water Resources Information System, Ministry of Jal Shakti</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://indiawris.gov.in/wris/#/riverBasins">India Water Resources Information System, Ministry of Jal Shakti</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': 'rgba(0, 0, 0, 0)',
                                 'line-color': 'blue',
@@ -564,7 +577,7 @@ function getQueryParameters() {
                             url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'SLUSI_Priority_MicroWatersheds',
                             maxzoom: 10,
-                            attribution: 'Source: <a href="https://soilhealth.dac.gov.in/slusi-visualisation/">Soil and Land Use Survey of India, Ministry of Agriculture and Farmers Welfare</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://soilhealth.dac.gov.in/slusi-visualisation/">Soil and Land Use Survey of India, Ministry of Agriculture and Farmers Welfare</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
                                 'fill-color': [
                                     'match',
@@ -601,7 +614,7 @@ function getQueryParameters() {
                             type: 'geojson',
                             id: 'water-bodies',
                             url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
-                            attribution: 'Source: <a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
+                            attribution: '<a href="https://goawrd.gov.in/">Water Body Atlas Of Goa, Department of Water Resources</a>',
                             style: {
                                 'text-color': 'white',
                                 'text-halo-color': '#0084f7',
@@ -738,7 +751,7 @@ function getQueryParameters() {
                             headerImage: 'assets/map-layer-rdp.png',
                             legendImage: 'assets/map-layer-rdp-legend.jpg',
                             type: 'tms',
-                            id: 'goa-rdp-map',
+                            id: 'rpg2021',
                             url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
                             attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
                             initiallyChecked: true
@@ -751,7 +764,7 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-soi-map',
                             url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
-                            attribution: 'Open Series Toposheets from Survey of India https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx',
+                            attribution: '<a href="https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx">Open Series Toposheets from Survey of India</a>',
                         },
                         {
                             title: 'Goa CZMP',
@@ -761,7 +774,7 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-czmp-map',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
-                            attribution: 'Source: <a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
+                            attribution: '<a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
                         },
                         {
                             title: 'AMS Maps (1970s)',
@@ -770,7 +783,7 @@ function getQueryParameters() {
                             type: 'tms',
                             id: 'goa-ams-map',
                             url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
-                            attribution: 'Source: <a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
+                            attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
                         },
                         {
                             id: 'osm',
@@ -827,7 +840,7 @@ function getQueryParameters() {
                             headerImage: 'assets/map-layer-terrain.png',
                             type: 'terrain',
                             initiallyChecked: true
-                        }
+                        }                        
                     ];
                     
                     // if the layers= query parameter is set, handle setting initiallyChecked on those layers
@@ -836,7 +849,12 @@ function getQueryParameters() {
                         const activeLayers = queryParams.layers.split(',').map(s => s.trim());
                         console.log('active layers', activeLayers);
                         layersConfig = layersConfig.map(layer => {
-                            layer.initiallyChecked = activeLayers.includes(layer.id);
+                            // Handle both streetmap and other layers
+                            if (layer.type === 'style') {
+                                layer.initiallyChecked = activeLayers.includes('streetmap');
+                            } else {
+                                layer.initiallyChecked = activeLayers.includes(layer.id);
+                            }
                             return layer;
                         });
                     }
@@ -854,8 +872,6 @@ function getQueryParameters() {
 
                     // Initialize controls for layers that should be initially checked
                     const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
-                    console.log('Initially checked layers:', initiallyCheckedLayers.map(l => l.title));
-
                     initiallyCheckedLayers.forEach(layer => {
                         // Find the checkbox for this layer using jQuery
                         const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
@@ -864,6 +880,7 @@ function getQueryParameters() {
                             $checkbox.trigger('change');
                         }
                     });
+
                 })
                 
 
@@ -881,7 +898,7 @@ function getQueryParameters() {
                         zoom: 9,
                         pitch: 28,
                         bearing: 0,
-                        duration: 4000,
+                        duration: 3000,
                         essential: true,
                         curve: 1.42,
                         speed: 0.6
