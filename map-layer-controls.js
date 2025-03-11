@@ -1710,16 +1710,53 @@ class MapLayerControl {
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
+        
+        return this._createDetailedPopupContent(feature, group, lngLat);
+    }
 
+    _createHoverPopupContent(feature, group) {
+        if (!this._hoverTemplate) {
+            this._hoverTemplate = document.createElement('div');
+            this._hoverTemplate.className = 'map-popup p-0 font-sans';
+        }
+        const content = this._hoverTemplate.cloneNode(true);
+
+        if (group.inspect?.label) {
+            const labelValue = feature.properties[group.inspect.label];
+            if (labelValue) {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'text-base font-medium';
+                labelDiv.textContent = labelValue;
+                content.appendChild(labelDiv);
+
+                if (group.inspect?.fields) {
+                    group.inspect.fields.forEach(field => {
+                        const value = feature.properties[field];
+                        if (value) {
+                            const fieldDiv = document.createElement('div');
+                            fieldDiv.className = 'text-sm';
+                            fieldDiv.textContent = value;
+                            content.appendChild(fieldDiv);
+                        }
+                    });
+                }
+            }
+        }
+        return content;
+    }
+
+    _createDetailedPopupContent(feature, group, lngLat = null) {
+        // ... existing detailed popup content code ...
+        // Copy all the code that was previously in _createPopupContent after the isHover check
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
         // If there's a header image, add it as a background
         if (group.headerImage) {
             content.style.backgroundImage = `linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 1) 60px), url('${group.headerImage}')`;
-            content.style.backgroundSize = 'auto';  // Use original image size
-            content.style.backgroundPosition = 'left top';  // Align to top left
-            content.style.backgroundRepeat = 'no-repeat';  // Don't repeat the image
+            content.style.backgroundSize = 'auto';
+            content.style.backgroundPosition = 'left top';
+            content.style.backgroundRepeat = 'no-repeat';
         }
 
         // Add layer name at the top
