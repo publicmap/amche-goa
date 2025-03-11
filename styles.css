@@ -808,3 +808,30 @@ sl-details::part(summary) {
     padding: 8px 12px;
     background: rgba(255, 255, 255, 0.8);
 }
+
+/* Add these styles for the attribution section in popups */
+.attribution-container {
+    position: relative;
+}
+
+.attribution-content {
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.attribution-content.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.expand-attribution {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 2px 0;
+}
+
+.expand-attribution:hover {
+    text-decoration: underline;
+}

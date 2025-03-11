@@ -1621,41 +1621,7 @@ class MapLayerControl {
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
-        return this._createDetailedPopupContent(feature, group, lngLat);
-    }
 
-    _createHoverPopupContent(feature, group) {
-        if (!this._hoverTemplate) {
-            this._hoverTemplate = document.createElement('div');
-            this._hoverTemplate.className = 'map-popup p-0 font-sans';
-        }
-        const content = this._hoverTemplate.cloneNode(true);
-        
-        if (group.inspect?.label) {
-            const labelValue = feature.properties[group.inspect.label];
-            if (labelValue) {
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'text-base font-medium';
-                labelDiv.textContent = labelValue;
-                content.appendChild(labelDiv);
-
-                if (group.inspect?.fields) {
-                    group.inspect.fields.forEach(field => {
-                        const value = feature.properties[field];
-                        if (value) {
-                            const fieldDiv = document.createElement('div');
-                            fieldDiv.className = 'text-sm';
-                            fieldDiv.textContent = value;
-                            content.appendChild(fieldDiv);
-                        }
-                    });
-                }
-            }
-        }
-        return content;
-    }
-
-    _createDetailedPopupContent(feature, group, lngLat = null) {
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
@@ -1681,7 +1647,7 @@ class MapLayerControl {
         }
 
         const grid = document.createElement('div');
-        grid.className = 'grid mb-4';
+        grid.className = 'grid';
 
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
@@ -1725,11 +1691,48 @@ class MapLayerControl {
 
         content.appendChild(grid);
 
+        // Add custom HTML if it exists
         if (group.inspect?.customHtml) {
             const customContent = document.createElement('div');
             customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
             customContent.innerHTML = group.inspect.customHtml;
             content.appendChild(customContent);
+        }
+
+        // Add attribution section if it exists
+        if (group.attribution) {
+            const attributionContainer = document.createElement('div');
+            attributionContainer.className = 'text-xs text-gray-600 pt-3 border-t border-gray-200 attribution-container';
+            
+            const attributionContent = document.createElement('div');
+            attributionContent.className = 'attribution-content line-clamp-2'; // Initially show 2 lines
+            attributionContent.innerHTML = `Source: ${group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')}`;
+            
+            const expandButton = document.createElement('button');
+            expandButton.className = 'text-blue-600 hover:text-blue-800 text-xs mt-1 hidden expand-attribution';
+            expandButton.textContent = 'Show more';
+            
+            attributionContainer.appendChild(attributionContent);
+            attributionContainer.appendChild(expandButton);
+            
+            // Check if content needs expand button
+            setTimeout(() => {
+                if (attributionContent.scrollHeight > attributionContent.clientHeight) {
+                    expandButton.classList.remove('hidden');
+                    
+                    expandButton.addEventListener('click', () => {
+                        if (attributionContent.classList.contains('line-clamp-2')) {
+                            attributionContent.classList.remove('line-clamp-2');
+                            expandButton.textContent = 'Show less';
+                        } else {
+                            attributionContent.classList.add('line-clamp-2');
+                            expandButton.textContent = 'Show more';
+                        }
+                    });
+                }
+            }, 0);
+            
+            content.appendChild(attributionContainer);
         }
 
         const lat = lngLat ? lngLat.lat : feature.geometry.coordinates[1];
