@@ -1694,7 +1694,7 @@ class MapLayerControl {
         // Add custom HTML if it exists
         if (group.inspect?.customHtml) {
             const customContent = document.createElement('div');
-            customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
+            customContent.className = 'text-xs text-gray-600 pt-3 pb-3 border-t border-gray-200';
             customContent.innerHTML = group.inspect.customHtml;
             content.appendChild(customContent);
         }

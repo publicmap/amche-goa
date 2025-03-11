@@ -382,6 +382,10 @@ header h1 {
     overflow: hidden;
 }
 
+.mapboxgl-popup-content a{
+    text-decoration: underline;
+}
+
 /* Ensure text remains readable over the background image */
 .map-popup {
     position: relative;
