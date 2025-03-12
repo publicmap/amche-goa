@@ -11,9 +11,10 @@ Usage:
        - ./src/alos_30m/
        - ./src/nasadem_30m/
 
-    - curl -X 'GET' \
-  'https://portal.opentopography.org/API/globaldem?demtype=NASADEM&south=15&north=16&west=73&east=75&outputFormat=GTiff&API_Key=demoapikeyot2022' \
-  -H 'accept: */*'
+    - NASADEM:
+curl -X 'GET' \
+  'https://portal.opentopography.org/API/globaldem?demtype=NASADEM&south=14.5&north=16&west=73&east=75&outputFormat=GTiff&API_Key=demoapikeyot2022' \
+  -H 'accept: */*' --output src/nasadem_30m/goa_nasadem_30m.tif
     
     2. Run the script:
        python3 dem_slope_processor.py <dem_type>
@@ -75,9 +76,9 @@ DEM_CONFIGS = {
     },
     "nasadem_30m": {
         "dem_offset": 0,
-        "dem_water_value": -255,
+        "dem_water_value": 0,
         "input_folder": "./src/nasadem_30m",
-        "contour_interval": 5.0
+        "contour_interval": 10
     }
 }
 
@@ -157,36 +158,27 @@ def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float,
         print(f"Max elevation: {np.nanmax(dem_data)}")
         
         dem_data = dem_data.astype(np.float32)
-        dem_data = np.where(dem_data == dem_water_value, np.nan, dem_data)
-        dem_data = dem_data + dem_offset
+        
+        # Only replace water values with NaN if dem_water_value is not 0
+        if dem_water_value != 0:
+            dem_data = np.where(dem_data == dem_water_value, np.nan, dem_data)
+        
+        # Apply offset if not 0
+        if dem_offset != 0:
+            dem_data = dem_data + dem_offset
         
         print("\nAfter normalization:")
         print(f"Min elevation: {np.nanmin(dem_data)}")
         print(f"Max elevation: {np.nanmax(dem_data)}")
         
-        # Scale the data to 0-255 range for 8-bit output
-        valid_mask = ~np.isnan(dem_data)
-        min_elev = np.min(dem_data[valid_mask])
-        max_elev = np.max(dem_data[valid_mask])
-        
-        # Scale to 0-255 range, preserving NaN values
-        dem_data = np.where(
-            valid_mask,
-            ((dem_data - min_elev) / (max_elev - min_elev) * 255).clip(0, 255),
-            0  # Set NaN values to 0
-        )
-        
-        # Convert to 8-bit integer
-        dem_data = dem_data.astype(np.uint8)
-        
-        # Create output file with 8-bit type
+        # Create output file with Float32 type instead of 8-bit
         driver = gdal.GetDriverByName('GTiff')
         out_ds = driver.Create(output_file, 
                              vrt.RasterXSize, 
                              vrt.RasterYSize, 
                              1, 
-                             gdal.GDT_Byte,  # Changed to 8-bit
-                             options=['COMPRESS=DEFLATE', 'PREDICTOR=2'])
+                             gdal.GDT_Float32,  # Changed to Float32
+                             options=['COMPRESS=DEFLATE', 'PREDICTOR=3'])
         
         out_ds.SetGeoTransform(vrt.GetGeoTransform())
         out_ds.SetProjection(vrt.GetProjection())
