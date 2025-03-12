@@ -268,9 +268,9 @@ class MapLayerControl {
                 } else if (group.type === 'style') {
                     // Add streetmap parameter if style layer is visible
                     visibleLayers.push('streetmap');
-                } else if (group.layers) {
-                    // For layer groups, check which radio button is selected
-                    const radioGroup = this._sourceControls[index]?.querySelector('.radio-group');
+                } else if (group.type === 'layer-group') {
+                    // Find which radio button is selected in this group
+                    const radioGroup = groupHeader?.querySelector('.radio-group');
                     const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
                     if (selectedRadio) {
                         visibleLayers.push(selectedRadio.value);
@@ -319,14 +319,18 @@ class MapLayerControl {
         this._options.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
             if (layersParam) {
-                // If layers parameter exists, use it to determine initial state
                 if (group.type === 'style') {
                     group.initiallyChecked = activeLayers.includes('streetmap');
+                } else if (group.type === 'layer-group') {
+                    // For layer groups, check if any of its subgroups are active
+                    const hasActiveSubgroup = group.groups.some(subgroup => 
+                        activeLayers.includes(subgroup.id)
+                    );
+                    group.initiallyChecked = hasActiveSubgroup;
                 } else {
                     group.initiallyChecked = activeLayers.includes(group.id);
                 }
             }
-            // If no layers parameter, use the original initiallyChecked value
 
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
@@ -1504,6 +1508,24 @@ class MapLayerControl {
                 }));
 
                 $groupHeader.append($layerControls);
+            }
+
+            // Add this after creating the radio group for layer-group types
+            if (group.type === 'layer-group' && group.initiallyChecked) {
+                // Find which subgroup should be selected based on URL parameters
+                const activeSubgroupId = group.groups.find(subgroup => 
+                    activeLayers.includes(subgroup.id)
+                )?.id || group.groups[0].id;
+
+                // Set the correct radio button as checked
+                requestAnimationFrame(() => {
+                    const radioGroup = $groupHeader.find('.radio-group');
+                    const radio = radioGroup.find(`input[value="${activeSubgroupId}"]`);
+                    if (radio.length) {
+                        radio.prop('checked', true);
+                        this._handleLayerGroupChange(activeSubgroupId, group.groups);
+                    }
+                });
             }
 
         });
