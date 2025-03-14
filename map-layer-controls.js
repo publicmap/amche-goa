@@ -1560,6 +1560,11 @@ class MapLayerControl {
             
             // If group has specific layers defined, use those
             if (group.layers) {
+                // Update sublayer checkboxes to match parent visibility
+                const $groupHeader = $(this._sourceControls[groupIndex]);
+                const $sublayerCheckboxes = $groupHeader.find('.sublayer-checkbox');
+                $sublayerCheckboxes.prop('checked', visible);
+
                 group.layers.forEach(layer => {
                     const layerIds = styleLayers
                         .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
