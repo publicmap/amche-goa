@@ -329,6 +329,10 @@ header h1 {
     overflow: hidden;
 }
 
+.mapboxgl-popup-content a{
+    text-decoration: underline;
+}
+
 /* Ensure text remains readable over the background image */
 .map-popup {
     position: relative;
@@ -834,4 +838,31 @@ sl-details::part(base) {
 sl-details::part(content) {
     box-shadow: inset 0px 0px 3px rgb(69 69 69);
     background-color: rgb(255, 251, 243);
+}
+
+/* Add these styles for the attribution section in popups */
+.attribution-container {
+    position: relative;
+}
+
+.attribution-content {
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.attribution-content.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.expand-attribution {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 2px 0;
+}
+
+.expand-attribution:hover {
+    text-decoration: underline;
 }
