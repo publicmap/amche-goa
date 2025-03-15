@@ -866,6 +866,100 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Geomorphological Ecozones',
+                            description: 'Geomorphological landforms based on <a href="https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf">genesis based classification schema</a>.',
+                            headerImage: 'assets/map-layer-geomorphology.png',
+                            type: 'vector',
+                            id: 'geomorphology',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/geomorphology/50k/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_Geomorphology_50k_0506',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        0.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        0.1,
+                                        0
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Des'],
+                                    [
+                                        'Structural Origin-Moderately Dissected Hills and Valleys',
+                                        'Structural Origin-Highly Dissected Hills and Valleys',
+                                        'Structural Origin-Low Dissected Hills and Valleys',
+                                        'Denudational Origin-Moderately Dissected Hills and Valleys',
+                                        'Denudational Origin-Highly Dissected Hills and Valleys',
+                                        'Denudational Origin-Piedmont Slope'],
+                                        '#d7ba8c',
+                                        [
+                                            'Structural Origin-Highly Dissected Lower Plateau',
+                                            'Structural Origin-Moderately Dissected Lower Plateau',
+                                        'Structural Origin-Moderately Dissected Upper Plateau',
+                                        'Structural Origin-Low Dissected Upper Plateau',
+                                        'Structural Origin-Highly Dissected Upper Plateau',
+                                        'Denudational Origin-Moderately Dissected Lower Plateau',
+                                        'Denudational Origin-Moderately Dissected Upper Plateau',
+                                        'Structural Origin-Low Dissected Lower Plateau',
+                                        'Denudational Origin-Low Dissected Lower Plateau',
+                                        'Denudational Origin-Low Dissected Upper Plateau',
+                                    'Denudational Origin-Highly Dissected Upper Plateau'],
+                                    '#f9f33d',
+                                    ['Coastal Origin-Older Deltaic Plain',
+                                    'Coastal Origin-Older Coastal Plain',
+                                    'Denudational Origin-Pediment-PediPlain Complex',
+                                    'Denudational Origin-Low Dissected Hills and Valleys',
+                                    'Fluvial Origin-Piedmont Alluvial Plain',
+                                    'Fluvial Origin-Younger Alluvial Plain',
+                                    'Fluvial Origin-Bajada',
+                                    'Fluvial Origin-Older Alluvial Plain',
+                                    'Denudational Origin-Mass Wasting Products',
+                                    'Fluvial Origin-Older Flood Plain',
+                                'Lacustrine Origin-Lacustrine Terrain',
+                            'Aeolian Origin-Aeolian Plain'],
+                                    '#caf1cc',
+                                    ['Coastal Origin-Younger Coastal Plain',
+                                    'Fluvial Origin-Active Flood Plain',
+                                    'Coastal Origin-Younger Deltaic Plain',
+                                    'Coastal Origin-Offshore Island'
+                                    
+                                ],
+                                    '#81c8ff',
+                                    ['Water Bodies-River',
+                                    'Water Bodies-Pond',
+                                    'Water Bodies-Others',
+                                    'Water Bodies-Lake'],
+                                    '#0780bd',
+                                    ['Anthropogenic Origin-Anthropogenic Terrain'],
+                                    'rgba(0, 0, 0, 0)',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 1
+                            },
+                            inspect: {
+                                id: 'test',
+                                title: 'Description',
+                                label: 'Des'
+                            }
+                        },
+                        {
                             title: '3D Terrain',
                             description: 'Terrain Controls',
                             headerImage: 'assets/map-layer-terrain.png',
