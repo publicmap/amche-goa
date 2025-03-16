@@ -1553,6 +1553,7 @@ class MapLayerControl {
 
     _toggleSourceControl(groupIndex, visible) {
         const group = this._options.groups[groupIndex];
+        this._currentGroup = group; // Store current group being processed
         
         if (group.type === 'style') {
             // Get all style layers
@@ -2004,22 +2005,56 @@ class MapLayerControl {
 
     _getInsertPosition(type) {
         const layers = this._map.getStyle().layers;
-        const baseLayerIndex = layers.findIndex(layer =>
-            layer.type === 'raster' && layer.id.includes('satellite')
+        
+        // Get the layer groups in their defined order
+        const orderedGroups = this._options.groups;
+        
+        // Find current layer's index in the configuration
+        const currentGroupIndex = orderedGroups.findIndex(group => 
+            group.id === this._currentGroup?.id
         );
 
-        if (type === 'vector') {
-            return undefined;
-        }
-
-        if (type === 'tms' || type === 'raster') {  // Remove 'osm' since it's now handled as 'tms'
-            if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
-                const insertBeforeId = layers[baseLayerIndex + 1].id;
-                return insertBeforeId;
+        // Find the next layer of the same type that should be above this one
+        let insertBeforeId;
+        for (let i = currentGroupIndex - 1; i >= 0; i--) {
+            const group = orderedGroups[i];
+            if (group.type === type || 
+                (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
+                (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
+                
+                // Find the actual layer ID in the map style
+                const matchingLayer = layers.find(layer => {
+                    const groupId = group.id;
+                    return layer.id === groupId || 
+                           layer.id === `vector-layer-${groupId}` ||
+                           layer.id === `vector-layer-${groupId}-outline` ||
+                           layer.id === `geojson-${groupId}-fill` ||
+                           layer.id === `geojson-${groupId}-line` ||
+                           layer.id === `tms-layer-${groupId}`;
+                });
+                
+                if (matchingLayer) {
+                    insertBeforeId = matchingLayer.id;
+                    break;
+                }
             }
         }
 
-        return undefined;
+        // Special handling for raster/tms layers to ensure they're above satellite
+        if (type === 'tms' || type === 'raster') {
+            const baseLayerIndex = layers.findIndex(layer =>
+                layer.type === 'raster' && layer.id.includes('satellite')
+            );
+            
+            if (baseLayerIndex !== -1) {
+                const nextLayerId = layers[baseLayerIndex + 1]?.id;
+                if (nextLayerId && (!insertBeforeId || layers.findIndex(l => l.id === insertBeforeId) < baseLayerIndex)) {
+                    insertBeforeId = nextLayerId;
+                }
+            }
+        }
+
+        return insertBeforeId;
     }
 
     _handleLayerGroupChange(selectedId, groups) {
