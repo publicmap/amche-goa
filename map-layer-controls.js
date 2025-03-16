@@ -1923,7 +1923,7 @@ class MapLayerControl {
             {
                 name: 'Bharatmaps',
                 url: `https://bharatmaps.gov.in/BharatMaps/Home/Map?long=${lat}&lat=${lng}`,
-                icon: 'https://bharatmaps.in/static/images/bharatmaps-logo.png'
+                text: 'BM'
             },
             {
                 name: 'One Map Goa',
