@@ -1921,6 +1921,11 @@ class MapLayerControl {
                 icon: 'https://bhuvan.nrsc.gov.in/home/images/bhuvanlite.png'
             },
             {
+                name: 'Bharatmaps',
+                url: `https://bharatmaps.gov.in/BharatMaps/Home/Map?long=${lat}&lat=${lng}`,
+                icon: 'https://bharatmaps.in/static/images/bharatmaps-logo.png'
+            },
+            {
                 name: 'One Map Goa',
                 url: `https://onemapgoagis.goa.gov.in/map/?ct=LayerTree${oneMapGoaLayerList}&bl=mmi_hybrid&t=goa_default&c=${mercatorCoords.x}%2C${mercatorCoords.y}&s=500`,
                 icon: 'https://onemapgoagis.goa.gov.in/static/images/oneMapGoaLogo1mb.gif'
