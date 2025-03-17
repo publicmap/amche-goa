@@ -164,7 +164,6 @@ def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float,
         # Replace nodata values with water values if dem_nodata_value is specified
         if dem_nodata_value is not None:
             dem_data = np.where(dem_data == dem_nodata_value, dem_water_value, dem_data)
-        
         # Only replace water values with NaN if dem_water_value is not 0
         if dem_water_value != 0:
             dem_data = np.where(dem_data == dem_water_value, np.nan, dem_data)

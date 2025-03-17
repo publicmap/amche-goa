@@ -331,7 +331,6 @@ class MapLayerControl {
                     group.initiallyChecked = activeLayers.includes(group.id);
                 }
             }
-
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
@@ -1527,7 +1526,6 @@ class MapLayerControl {
                     }
                 });
             }
-
         });
 
         if (!this._initialized) {
@@ -1566,6 +1564,35 @@ class MapLayerControl {
                 const $sublayerCheckboxes = $groupHeader.find('.sublayer-checkbox');
                 $sublayerCheckboxes.prop('checked', visible);
 
+                group.layers.forEach(layer => {
+                    const layerIds = styleLayers
+                        .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                        .map(styleLayer => styleLayer.id);
+                    
+                    layerIds.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                        }
+                    });
+                });
+            } 
+            // If sourceLayers are defined, use those
+            else if (group.sourceLayers) {
+                styleLayers.forEach(layer => {
+                    if (layer['source-layer'] && group.sourceLayers.includes(layer['source-layer'])) {
+                        this._map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            }
+            return; // Exit after handling style layers
+        }
+        
+        if (group.type === 'style') {
+            // Get all style layers
+            const styleLayers = this._map.getStyle().layers;
+            
+            // If group has specific layers defined, use those
+            if (group.layers) {
                 group.layers.forEach(layer => {
                     const layerIds = styleLayers
                         .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
