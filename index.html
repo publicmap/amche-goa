@@ -443,19 +443,56 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'goa-local-body',
                             title: 'Local Body Boundaries',
-                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                            description: 'Municipal and Panchayat local body boundaries. Please see <a href="https://grammanchitra.gov.in/gm4MVC" target="_blank">Gramanchiitra</a> for panchayat demographic profile and information on elected representatives.',
                             headerImage: 'assets/map-layer-local-boundaries.png',
-                            type: 'layer-group',
-                            groups: [
-                                {
-                                    id: 'goa-local-body',
-                                    title: 'Bhuvan Panchayat',
-                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
-                                }
-                            ],
+                            type: 'vector',
+                            id: 'local-body',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/panchayats/lgd/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'LGD_Panchayats',
+                            maxzoom: 10,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             initiallyChecked: true,
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a>, <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory, Ministry of Panchayati Raj</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'purple',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        1.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1,
+                                        .1
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        3.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        2.5,
+                                        1.5
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Local Body Name',
+                                label: 'gp_name',
+                                id: 'OBJECTID',
+                                fields: ['vilname11','blkname','sdtname','dtname','stname'],
+                                fieldTitles: ['Village','Block','Sub District','District','State']
+                            }
                         },
                         {
                             title: 'Goa Mask',
@@ -499,6 +536,49 @@ function getQueryParameters() {
                             type: 'vector',
                             id: 'forests',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'FSI_Beats',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'green',
+                                'fill-opacity': 0.7
+                            },
+                            inspect: {
+                                id: 'OBJECTID_12',
+                                title: 'Forest Range',
+                                label: 'Beat_Name',
+                                fields: ['Range'],
+                            }
+                        },
+                        {
+                            title: 'Mining Leases',
+                            description: 'Active mining lease boundaries',
+                            headerImage: 'assets/map-layer-mining-leases.png',
+                            type: 'vector',
+                            id: 'mining',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/mining/leases/fsi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'FSI_Beats',
                             maxzoom: 11,
                             attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
