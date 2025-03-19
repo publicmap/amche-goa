@@ -213,30 +213,6 @@ function getQueryParameters() {
             // Add view control
             map.addControl(new ViewControl(), 'top-right');
 
-            // Add OpenStreetMap source and layer
-            map.addSource('osm', {
-                'type': 'raster',
-                'tiles': [
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                ],
-                'tileSize': 512,
-                'attribution': '© OpenStreetMap contributors'
-            });
-
-            map.addLayer({
-                'id': 'osm-tiles',
-                'type': 'raster',
-                'source': 'osm',
-                'layout': {
-                    'visibility': 'none'  // Hidden by default
-                },
-                'paint': {
-                    'raster-opacity': 1
-                }
-            });  // Insert before building layer to show 3D buildings on top
-
-
-
             // First fetch the GeoJSON data
             fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
                 .then(response => response.json())
