@@ -494,6 +494,106 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Assembly Constituencies',
+                            description: 'Members of Legislative Assembly (MLA) constituencies.',
+                            headerImage: 'assets/map-layer-assembly-boundaries.png',
+                            type: 'vector',
+                            id: 'assembly-constituencies',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/assembly/lgd/{z}/{x}/{y}.pbf ',
+                            sourceLayer: 'LGD_Assembly_Constituencies',
+                            maxzoom: 10,
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/2">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'blue',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        1.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1,
+                                        .1
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        3.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        2.5,
+                                        1.5
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Name',
+                                label: 'ac_name',
+                                id: 'OBJECTID',
+                                fields: ['AC_ID','pc_name','dist_name','st_name'],
+                                fieldTitles: ['Constituency Code','Parliamentary Constituency','District','State']
+                            }
+                        },
+                        {
+                            title: 'Parliamentary Constituencies',
+                            description: 'Members of Parliament (MP) constituencies',
+                            headerImage: 'assets/map-layer-parliament-boundaries.png',
+                            type: 'vector',
+                            id: 'parliamentary-constituencies',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/parliament/lgd/{z}/{x}/{y}.pbf ',
+                            sourceLayer: 'LGD_Parliament_Constituencies',
+                            maxzoom: 10,
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/1">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'blue',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        2,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1.5,
+                                        .5
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        2
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Name',
+                                label: 'pc_name',
+                                id: 'OBJECTID',
+                                fields: ['dist_name','st_name'],
+                                fieldTitles: ['District','State']
+                            }
+                        },
+                        {
                             title: 'Goa Mask',
                             description: 'Mask for the state of Goa',
                             headerImage: 'assets/map-layer-mask.png',
@@ -618,7 +718,7 @@ function getQueryParameters() {
                             description: 'Active mining lease boundaries',
                             headerImage: 'assets/map-layer-mining-leases.png',
                             type: 'vector',
-                            id: 'mining',
+                            id: 'mines',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/mining/leases/fsi/{z}/{x}/{y}.pbf',
                             sourceLayer: 'FSI_Beats',
                             maxzoom: 11,
