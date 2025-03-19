@@ -213,12 +213,6 @@ function getQueryParameters() {
             // Add view control
             map.addControl(new ViewControl(), 'top-right');
 
-            // First fetch the GeoJSON data
-            fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
-                .then(response => response.json())
-                .then(e => 
-                {
-
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
                     {
@@ -1206,7 +1200,7 @@ function getQueryParameters() {
                         }
                     });
 
-                })
+
                 
 
             // Add navigation controls
