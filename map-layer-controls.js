@@ -1189,17 +1189,25 @@ class MapLayerControl {
                 const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
                 if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'vector',
-                        tiles: [group.url],
-                        promoteId: group.inspect?.id || 'id',
-                        minzoom: group.minzoom || 8,
-                        maxzoom: group.maxzoom || 14
-                    });
+                    // Check if it's a Mapbox hosted tileset
+                    if (group.url.startsWith('mapbox://')) {
+                        this._map.addSource(sourceId, {
+                            type: 'vector',
+                            url: group.url,  // Keep the mapbox:// URL as is
+                            maxzoom: group.maxzoom || 22
+                        });
+                    } else {
+                        // Handle other vector tile sources
+                        this._map.addSource(sourceId, {
+                            type: 'vector',
+                            tiles: [group.url],
+                            maxzoom: group.maxzoom || 22
+                        });
+                    }
 
                     // Only add fill layer if fill styles are defined
                     if (hasFillStyles) {
-                        this._map.addLayer({
+                        const fillLayerConfig = {
                             id: `vector-layer-${group.id}`,
                             type: 'fill',
                             source: sourceId,
@@ -1210,15 +1218,20 @@ class MapLayerControl {
                             paint: {
                                 'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
                                 'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
-                            },
-                            // Add filter if defined
-                            filter: group.filter || undefined
-                        }, this._getInsertPosition('vector'));
+                            }
+                        };
+                        
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            fillLayerConfig.filter = group.filter;
+                        }
+                        
+                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector'));
                     }
 
                     // Add line layer if line styles are defined
                     if (hasLineStyles) {
-                        this._map.addLayer({
+                        const lineLayerConfig = {
                             id: `vector-layer-${group.id}-outline`,
                             type: 'line',
                             source: sourceId,
@@ -1230,10 +1243,15 @@ class MapLayerControl {
                                 'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
                                 'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
                                 'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
-                            },
-                            // Add filter if defined
-                            filter: group.filter || undefined
-                        }, this._getInsertPosition('vector'));
+                            }
+                        };
+                        
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            lineLayerConfig.filter = group.filter;
+                        }
+                        
+                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector'));
                     }
 
                     // Add inspect functionality if configured

@@ -770,7 +770,7 @@ function getQueryParameters() {
                                 fieldTitles: ['Basin Code','Stream Order']                         }
                         },
                         {
-                            id: 'watersheds',
+                            id: 'watershed',
                             title: 'Watershed Boundaries',
                             headerImage: 'assets/map-layer-watersheds.png',
                             description: 'Watershed Boundaries',
@@ -1101,8 +1101,8 @@ function getQueryParameters() {
                                         'Denudational Origin-Piedmont Slope'],
                                         '#d7ba8c',
                                         [
-                                            'Structural Origin-Highly Dissected Lower Plateau',
-                                            'Structural Origin-Moderately Dissected Lower Plateau',
+                                        'Structural Origin-Highly Dissected Lower Plateau',
+                                        'Structural Origin-Moderately Dissected Lower Plateau',
                                         'Structural Origin-Moderately Dissected Upper Plateau',
                                         'Structural Origin-Low Dissected Upper Plateau',
                                         'Structural Origin-Highly Dissected Upper Plateau',
@@ -1166,7 +1166,6 @@ function getQueryParameters() {
                     const queryParams = getQueryParameters();
                     if (queryParams.layers) {
                         const activeLayers = queryParams.layers.split(',').map(s => s.trim());
-                        console.log('active layers', activeLayers);
                         layersConfig = layersConfig.map(layer => {
                             // Handle both streetmap and other layers
                             if (layer.type === 'style') {
@@ -1178,7 +1177,7 @@ function getQueryParameters() {
                         });
                     }
                     console.log('layers config', layersConfig);
-                    // Add layer control with multiple groups including GeoJSON
+                    
                     const layerControl = new MapLayerControl(layersConfig);
 
                     const container = document.getElementById('layer-controls-container');
