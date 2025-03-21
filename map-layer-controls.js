@@ -1210,7 +1210,9 @@ class MapLayerControl {
                             paint: {
                                 'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
                                 'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
-                            }
+                            },
+                            // Add filter if defined
+                            filter: group.filter || undefined
                         }, this._getInsertPosition('vector'));
                     }
 
@@ -1228,7 +1230,9 @@ class MapLayerControl {
                                 'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
                                 'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
                                 'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
-                            }
+                            },
+                            // Add filter if defined
+                            filter: group.filter || undefined
                         }, this._getInsertPosition('vector'));
                     }
 
@@ -1539,11 +1543,18 @@ class MapLayerControl {
 
             group.layers.forEach(layer => {
                 if (this._map.getLayer(layer.id)) {
+                    // Set initial visibility
                     this._map.setLayoutProperty(
                         layer.id,
                         'visibility',
                         'none'
                     );
+                    
+                    // Apply filter if defined in group config
+                    if (group.filter) {
+                        console.log(group.filter)
+                        this._map.setFilter(layer.id, group.filter);
+                    }
                 }
             });
         });
@@ -1551,7 +1562,7 @@ class MapLayerControl {
 
     _toggleSourceControl(groupIndex, visible) {
         const group = this._options.groups[groupIndex];
-        this._currentGroup = group; // Store current group being processed
+        this._currentGroup = group;
         
         if (group.type === 'style') {
             // Get all style layers
