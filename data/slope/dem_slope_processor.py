@@ -22,8 +22,11 @@ curl -X 'GET' \
     The script will:
     - Unzip source files into tiff files
     - Merge and normalize DEM files
+        - Stitch tiles, fix data offset, normalize elevation values
     - Generate slope rasters (in percent). See https://en.wikipedia.org/wiki/Grade_(slope) 
+        - Algorithm: [gdaldem slope](https://gis.stackexchange.com/questions/344201/technical-documentation-for-gdal-slope)
     - Create slope vector zones based on defined slope bands
+        - Algorighm: [gdal_polygonize](https://gdal.org/programs/gdal_polygonize.html)
     
     Output files will be created in:
     - ./dem/ (merged DEM .tiff )
@@ -77,6 +80,7 @@ DEM_CONFIGS = {
     "nasadem_30m": {
         "dem_offset": 0,
         "dem_water_value": 0,
+        "dem_nodata_value": -32768,
         "input_folder": "./src/nasadem_30m",
         "contour_interval": 10
     }
@@ -120,7 +124,7 @@ def unzip_dem_files(input_folder: str) -> None:
         except Exception as e:
             print(f"Error unzipping {zip_file}: {str(e)}")
 
-def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float, dem_offset: float) -> None:
+def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float, dem_offset: float, dem_nodata_value: float = None) -> None:
     """
     Merge all TIF files in the input folder and normalize elevation values
     
@@ -129,6 +133,7 @@ def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float,
         output_file (str): Path for output merged file
         dem_water_value (float): Value representing water in the DEM
         dem_offset (float): Offset to apply to elevation values
+        dem_nodata_value (float, optional): Value representing no data in the DEM
     """
     try:
         # Find all TIF files recursively
@@ -159,6 +164,9 @@ def merge_dem_files(input_folder: str, output_file: str, dem_water_value: float,
         
         dem_data = dem_data.astype(np.float32)
         
+        # Replace nodata values with water values if dem_nodata_value is specified
+        if dem_nodata_value is not None:
+            dem_data = np.where(dem_data == dem_nodata_value, dem_water_value, dem_data)
         # Only replace water values with NaN if dem_water_value is not 0
         if dem_water_value != 0:
             dem_data = np.where(dem_data == dem_water_value, np.nan, dem_data)
@@ -530,7 +538,8 @@ def process_dem(dem_type: str) -> None:
         config["input_folder"],
         config["dem_file"],
         config["dem_water_value"],
-        config["dem_offset"]
+        config["dem_offset"],
+        config.get("dem_nodata_value")  # Get nodata value if it exists
     )
     
     print("\nCreating slope raster...")

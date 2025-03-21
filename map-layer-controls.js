@@ -268,9 +268,9 @@ class MapLayerControl {
                 } else if (group.type === 'style') {
                     // Add streetmap parameter if style layer is visible
                     visibleLayers.push('streetmap');
-                } else if (group.layers) {
-                    // For layer groups, check which radio button is selected
-                    const radioGroup = this._sourceControls[index]?.querySelector('.radio-group');
+                } else if (group.type === 'layer-group') {
+                    // Find which radio button is selected in this group
+                    const radioGroup = groupHeader?.querySelector('.radio-group');
                     const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
                     if (selectedRadio) {
                         visibleLayers.push(selectedRadio.value);
@@ -319,15 +319,18 @@ class MapLayerControl {
         this._options.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
             if (layersParam) {
-                // If layers parameter exists, use it to determine initial state
                 if (group.type === 'style') {
                     group.initiallyChecked = activeLayers.includes('streetmap');
+                } else if (group.type === 'layer-group') {
+                    // For layer groups, check if any of its subgroups are active
+                    const hasActiveSubgroup = group.groups.some(subgroup => 
+                        activeLayers.includes(subgroup.id)
+                    );
+                    group.initiallyChecked = hasActiveSubgroup;
                 } else {
                     group.initiallyChecked = activeLayers.includes(group.id);
                 }
             }
-            // If no layers parameter, use the original initiallyChecked value
-
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
@@ -1186,17 +1189,25 @@ class MapLayerControl {
                 const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
                 if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'vector',
-                        tiles: [group.url],
-                        promoteId: group.inspect?.id || 'id',
-                        minzoom: group.minzoom || 8,
-                        maxzoom: group.maxzoom || 14
-                    });
+                    // Check if it's a Mapbox hosted tileset
+                    if (group.url.startsWith('mapbox://')) {
+                        this._map.addSource(sourceId, {
+                            type: 'vector',
+                            url: group.url,  // Keep the mapbox:// URL as is
+                            maxzoom: group.maxzoom || 22
+                        });
+                    } else {
+                        // Handle other vector tile sources
+                        this._map.addSource(sourceId, {
+                            type: 'vector',
+                            tiles: [group.url],
+                            maxzoom: group.maxzoom || 22
+                        });
+                    }
 
                     // Only add fill layer if fill styles are defined
                     if (hasFillStyles) {
-                        this._map.addLayer({
+                        const fillLayerConfig = {
                             id: `vector-layer-${group.id}`,
                             type: 'fill',
                             source: sourceId,
@@ -1208,12 +1219,19 @@ class MapLayerControl {
                                 'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
                                 'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
                             }
-                        }, this._getInsertPosition('vector'));
+                        };
+                        
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            fillLayerConfig.filter = group.filter;
+                        }
+                        
+                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector'));
                     }
 
                     // Add line layer if line styles are defined
                     if (hasLineStyles) {
-                        this._map.addLayer({
+                        const lineLayerConfig = {
                             id: `vector-layer-${group.id}-outline`,
                             type: 'line',
                             source: sourceId,
@@ -1226,7 +1244,14 @@ class MapLayerControl {
                                 'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
                                 'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                             }
-                        }, this._getInsertPosition('vector'));
+                        };
+                        
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            lineLayerConfig.filter = group.filter;
+                        }
+                        
+                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector'));
                     }
 
                     // Add inspect functionality if configured
@@ -1506,6 +1531,23 @@ class MapLayerControl {
                 $groupHeader.append($layerControls);
             }
 
+            // Add this after creating the radio group for layer-group types
+            if (group.type === 'layer-group' && group.initiallyChecked) {
+                // Find which subgroup should be selected based on URL parameters
+                const activeSubgroupId = group.groups.find(subgroup => 
+                    activeLayers.includes(subgroup.id)
+                )?.id || group.groups[0].id;
+
+                // Set the correct radio button as checked
+                requestAnimationFrame(() => {
+                    const radioGroup = $groupHeader.find('.radio-group');
+                    const radio = radioGroup.find(`input[value="${activeSubgroupId}"]`);
+                    if (radio.length) {
+                        radio.prop('checked', true);
+                        this._handleLayerGroupChange(activeSubgroupId, group.groups);
+                    }
+                });
+            }
         });
 
         if (!this._initialized) {
@@ -1519,11 +1561,18 @@ class MapLayerControl {
 
             group.layers.forEach(layer => {
                 if (this._map.getLayer(layer.id)) {
+                    // Set initial visibility
                     this._map.setLayoutProperty(
                         layer.id,
                         'visibility',
                         'none'
                     );
+                    
+                    // Apply filter if defined in group config
+                    if (group.filter) {
+                        console.log(group.filter)
+                        this._map.setFilter(layer.id, group.filter);
+                    }
                 }
             });
         });
@@ -1531,6 +1580,41 @@ class MapLayerControl {
 
     _toggleSourceControl(groupIndex, visible) {
         const group = this._options.groups[groupIndex];
+        this._currentGroup = group;
+        
+        if (group.type === 'style') {
+            // Get all style layers
+            const styleLayers = this._map.getStyle().layers;
+            
+            // If group has specific layers defined, use those
+            if (group.layers) {
+                // Update sublayer checkboxes to match parent visibility
+                const $groupHeader = $(this._sourceControls[groupIndex]);
+                const $sublayerCheckboxes = $groupHeader.find('.sublayer-checkbox');
+                $sublayerCheckboxes.prop('checked', visible);
+
+                group.layers.forEach(layer => {
+                    const layerIds = styleLayers
+                        .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                        .map(styleLayer => styleLayer.id);
+                    
+                    layerIds.forEach(layerId => {
+                        if (this._map.getLayer(layerId)) {
+                            this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                        }
+                    });
+                });
+            } 
+            // If sourceLayers are defined, use those
+            else if (group.sourceLayers) {
+                styleLayers.forEach(layer => {
+                    if (layer['source-layer'] && group.sourceLayers.includes(layer['source-layer'])) {
+                        this._map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            }
+            return; // Exit after handling style layers
+        }
         
         if (group.type === 'style') {
             // Get all style layers
@@ -1710,6 +1794,7 @@ class MapLayerControl {
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
+        
         return this._createDetailedPopupContent(feature, group, lngLat);
     }
 
@@ -1719,7 +1804,7 @@ class MapLayerControl {
             this._hoverTemplate.className = 'map-popup p-0 font-sans';
         }
         const content = this._hoverTemplate.cloneNode(true);
-        
+
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
             if (labelValue) {
@@ -1745,15 +1830,17 @@ class MapLayerControl {
     }
 
     _createDetailedPopupContent(feature, group, lngLat = null) {
+        // ... existing detailed popup content code ...
+        // Copy all the code that was previously in _createPopupContent after the isHover check
         const content = document.createElement('div');
         content.className = 'map-popup p-4 font-sans';
 
         // If there's a header image, add it as a background
         if (group.headerImage) {
             content.style.backgroundImage = `linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 1) 60px), url('${group.headerImage}')`;
-            content.style.backgroundSize = 'auto';  // Use original image size
-            content.style.backgroundPosition = 'left top';  // Align to top left
-            content.style.backgroundRepeat = 'no-repeat';  // Don't repeat the image
+            content.style.backgroundSize = 'auto';
+            content.style.backgroundPosition = 'left top';
+            content.style.backgroundRepeat = 'no-repeat';
         }
 
         // Add layer name at the top
@@ -1770,7 +1857,7 @@ class MapLayerControl {
         }
 
         const grid = document.createElement('div');
-        grid.className = 'grid mb-4';
+        grid.className = 'grid';
 
         if (group.inspect?.label) {
             const labelValue = feature.properties[group.inspect.label];
@@ -1814,11 +1901,48 @@ class MapLayerControl {
 
         content.appendChild(grid);
 
+        // Add custom HTML if it exists
         if (group.inspect?.customHtml) {
             const customContent = document.createElement('div');
-            customContent.className = 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200';
+            customContent.className = 'text-xs text-gray-600 pt-3 pb-3 border-t border-gray-200';
             customContent.innerHTML = group.inspect.customHtml;
             content.appendChild(customContent);
+        }
+
+        // Add attribution section if it exists
+        if (group.attribution) {
+            const attributionContainer = document.createElement('div');
+            attributionContainer.className = 'text-xs text-gray-600 pt-3 border-t border-gray-200 attribution-container';
+            
+            const attributionContent = document.createElement('div');
+            attributionContent.className = 'attribution-content line-clamp-2'; // Initially show 2 lines
+            attributionContent.innerHTML = `Source: ${group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')}`;
+            
+            const expandButton = document.createElement('button');
+            expandButton.className = 'text-blue-600 hover:text-blue-800 text-xs mt-1 hidden expand-attribution';
+            expandButton.textContent = 'Show more';
+            
+            attributionContainer.appendChild(attributionContent);
+            attributionContainer.appendChild(expandButton);
+            
+            // Check if content needs expand button
+            setTimeout(() => {
+                if (attributionContent.scrollHeight > attributionContent.clientHeight) {
+                    expandButton.classList.remove('hidden');
+                    
+                    expandButton.addEventListener('click', () => {
+                        if (attributionContent.classList.contains('line-clamp-2')) {
+                            attributionContent.classList.remove('line-clamp-2');
+                            expandButton.textContent = 'Show less';
+                        } else {
+                            attributionContent.classList.add('line-clamp-2');
+                            expandButton.textContent = 'Show more';
+                        }
+                    });
+                }
+            }, 0);
+            
+            content.appendChild(attributionContainer);
         }
 
         const lat = lngLat ? lngLat.lat : feature.geometry.coordinates[1];
@@ -1851,6 +1975,11 @@ class MapLayerControl {
                 name: 'Bhuvan',
                 url: `https://bhuvanmaps.nrsc.gov.in/?mode=Hybrid#18/${lat}/${lng}`,
                 icon: 'https://bhuvan.nrsc.gov.in/home/images/bhuvanlite.png'
+            },
+            {
+                name: 'Bharatmaps',
+                url: `https://bharatmaps.gov.in/BharatMaps/Home/Map?long=${lat}&lat=${lng}`,
+                text: 'BM'
             },
             {
                 name: 'One Map Goa',
@@ -1937,22 +2066,56 @@ class MapLayerControl {
 
     _getInsertPosition(type) {
         const layers = this._map.getStyle().layers;
-        const baseLayerIndex = layers.findIndex(layer =>
-            layer.type === 'raster' && layer.id.includes('satellite')
+        
+        // Get the layer groups in their defined order
+        const orderedGroups = this._options.groups;
+        
+        // Find current layer's index in the configuration
+        const currentGroupIndex = orderedGroups.findIndex(group => 
+            group.id === this._currentGroup?.id
         );
 
-        if (type === 'vector') {
-            return undefined;
-        }
-
-        if (type === 'tms' || type === 'raster') {  // Remove 'osm' since it's now handled as 'tms'
-            if (baseLayerIndex !== -1 && baseLayerIndex + 1 < layers.length) {
-                const insertBeforeId = layers[baseLayerIndex + 1].id;
-                return insertBeforeId;
+        // Find the next layer of the same type that should be above this one
+        let insertBeforeId;
+        for (let i = currentGroupIndex - 1; i >= 0; i--) {
+            const group = orderedGroups[i];
+            if (group.type === type || 
+                (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
+                (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
+                
+                // Find the actual layer ID in the map style
+                const matchingLayer = layers.find(layer => {
+                    const groupId = group.id;
+                    return layer.id === groupId || 
+                           layer.id === `vector-layer-${groupId}` ||
+                           layer.id === `vector-layer-${groupId}-outline` ||
+                           layer.id === `geojson-${groupId}-fill` ||
+                           layer.id === `geojson-${groupId}-line` ||
+                           layer.id === `tms-layer-${groupId}`;
+                });
+                
+                if (matchingLayer) {
+                    insertBeforeId = matchingLayer.id;
+                    break;
+                }
             }
         }
 
-        return undefined;
+        // Special handling for raster/tms layers to ensure they're above satellite
+        if (type === 'tms' || type === 'raster') {
+            const baseLayerIndex = layers.findIndex(layer =>
+                layer.type === 'raster' && layer.id.includes('satellite')
+            );
+            
+            if (baseLayerIndex !== -1) {
+                const nextLayerId = layers[baseLayerIndex + 1]?.id;
+                if (nextLayerId && (!insertBeforeId || layers.findIndex(l => l.id === insertBeforeId) < baseLayerIndex)) {
+                    insertBeforeId = nextLayerId;
+                }
+            }
+        }
+
+        return insertBeforeId;
     }
 
     _handleLayerGroupChange(selectedId, groups) {
