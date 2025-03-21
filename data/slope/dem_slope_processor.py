@@ -22,8 +22,11 @@ curl -X 'GET' \
     The script will:
     - Unzip source files into tiff files
     - Merge and normalize DEM files
+        - Stitch tiles, fix data offset, normalize elevation values
     - Generate slope rasters (in percent). See https://en.wikipedia.org/wiki/Grade_(slope) 
+        - Algorithm: [gdaldem slope](https://gis.stackexchange.com/questions/344201/technical-documentation-for-gdal-slope)
     - Create slope vector zones based on defined slope bands
+        - Algorighm: [gdal_polygonize](https://gdal.org/programs/gdal_polygonize.html)
     
     Output files will be created in:
     - ./dem/ (merged DEM .tiff )
