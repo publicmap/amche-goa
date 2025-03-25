@@ -679,7 +679,7 @@ class MapLayerControl {
                     this._map.addSource(sourceId, {
                         type: 'geojson',
                         data: group.url,
-                        generateId: true  // Add this to automatically generate feature IDs
+                        promoteId: group.inspect?.id // Add this line to promote property to feature ID
                     });
 
                     // Add fill layer
@@ -751,104 +751,7 @@ class MapLayerControl {
                         layerIds.push(`${sourceId}-label`);
                     }
 
-                    if (group.inspect) {
-                        const popup = new mapboxgl.Popup({
-                            closeButton: true,
-                            closeOnClick: true
-                        });
-
-                        const hoverPopup = new mapboxgl.Popup({
-                            closeButton: false,
-                            closeOnClick: false,
-                            className: 'hover-popup'
-                        });
-
-                        let hoveredFeatureId = null;
-                        let selectedFeatureId = null;
-
-                        // Single event handler for all layer types
-                        layerIds.forEach(layerId => {
-                            // Mousemove handler
-                            this._map.on('mousemove', layerId, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    
-                                    if (hoveredFeatureId !== null) {
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: hoveredFeatureId },
-                                            { hover: false }
-                                        );
-                                    }
-                                    
-                                    if (feature.id !== undefined) {
-                                        hoveredFeatureId = feature.id;
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: hoveredFeatureId },
-                                            { hover: true }
-                                        );
-                                    }
-
-                                    // Show hover popup if configured
-                                    if (group.inspect?.label) {
-                                        const content = this._createPopupContent(feature, group, true);
-                                        if (content) {
-                                            hoverPopup
-                                                .setLngLat(e.lngLat)
-                                                .setDOMContent(content)
-                                                .addTo(this._map);
-                                        }
-                                    }
-                                }
-                            });
-
-                            // Single mouseleave handler
-                            this._map.on('mouseleave', layerId, () => {
-                                if (hoveredFeatureId !== null) {
-                                    this._map.setFeatureState(
-                                        { source: sourceId, id: hoveredFeatureId },
-                                        { hover: false }
-                                    );
-                                    hoveredFeatureId = null;
-                                }
-                                hoverPopup.remove();
-                            });
-
-                            // Single click handler
-                            this._map.on('click', layerId, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    
-                                    // Remove hover popup
-                                    hoverPopup.remove();
-
-                                    // Clear previous selection
-                                    if (selectedFeatureId !== null) {
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: selectedFeatureId },
-                                            { selected: false }
-                                        );
-                                    }
-
-                                    // Set new selection
-                                    if (feature.id !== undefined) {
-                                        selectedFeatureId = feature.id;
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: selectedFeatureId },
-                                            { selected: true }
-                                        );
-                                    }
-
-                                    const content = this._createPopupContent(feature, group, false, e.lngLat);
-                                    if (content) {
-                                        popup
-                                            .setLngLat(e.lngLat)
-                                            .setDOMContent(content)
-                                            .addTo(this._map);
-                                    }
-                                }
-                            });
-                        });
-                    }
+                    this._setupLayerInteractivity(group, layerIds, sourceId);
                 }
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { 
@@ -1188,14 +1091,20 @@ class MapLayerControl {
                         this._map.addSource(sourceId, {
                             type: 'vector',
                             url: group.url,  // Keep the mapbox:// URL as is
-                            maxzoom: group.maxzoom || 22
+                            maxzoom: group.maxzoom || 22,
+                            promoteId: {
+                                [group.sourceLayer]: group.inspect?.id // Add this line for vector tiles
+                            }
                         });
                     } else {
                         // Handle other vector tile sources
                         this._map.addSource(sourceId, {
                             type: 'vector',
                             tiles: [group.url],
-                            maxzoom: group.maxzoom || 22
+                            maxzoom: group.maxzoom || 22,
+                            promoteId: {
+                                [group.sourceLayer]: group.inspect?.id // Add this line for vector tiles
+                            }
                         });
                     }
 
@@ -1269,87 +1178,7 @@ class MapLayerControl {
                         if (hasFillStyles) layerIds.push(`vector-layer-${group.id}`);
                         if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
 
-                        layerIds.forEach(layerId => {
-                            // Single mousemove handler
-                            this._map.on('mousemove', layerId, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    
-                                    if (hoveredFeatureId !== null) {
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
-                                            { hover: false }
-                                        );
-                                    }
-                                    
-                                    if (feature.id !== undefined) {
-                                        hoveredFeatureId = feature.id;
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
-                                            { hover: true }
-                                        );
-                                    }
-
-                                    // Show hover popup if configured
-                                    if (group.inspect?.label) {
-                                        const content = this._createPopupContent(feature, group, true);
-                                        if (content) {
-                                            hoverPopup
-                                                .setLngLat(e.lngLat)
-                                                .setDOMContent(content)
-                                                .addTo(this._map);
-                                        }
-                                    }
-                                }
-                            });
-
-                            // Single mouseleave handler
-                            this._map.on('mouseleave', layerId, () => {
-                                if (hoveredFeatureId !== null) {
-                                    this._map.setFeatureState(
-                                        { source: sourceId, id: hoveredFeatureId, sourceLayer: group.sourceLayer },
-                                        { hover: false }
-                                    );
-                                    hoveredFeatureId = null;
-                                }
-                                hoverPopup.remove();
-                            });
-
-                            // Single click handler
-                            this._map.on('click', layerId, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    
-                                    // Remove hover popup
-                                    hoverPopup.remove();
-
-                                    // Clear previous selection
-                                    if (selectedFeatureId !== null) {
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: selectedFeatureId, sourceLayer: group.sourceLayer },
-                                            { selected: false }
-                                        );
-                                    }
-
-                                    // Set new selection
-                                    if (feature.id !== undefined) {
-                                        selectedFeatureId = feature.id;
-                                        this._map.setFeatureState(
-                                            { source: sourceId, id: selectedFeatureId, sourceLayer: group.sourceLayer },
-                                            { selected: true }
-                                        );
-                                    }
-
-                                    const content = this._createPopupContent(feature, group, false, e.lngLat);
-                                    if (content) {
-                                        popup
-                                            .setLngLat(e.lngLat)
-                                            .setDOMContent(content)
-                                            .addTo(this._map);
-                                    }
-                                }
-                            });
-                        });
+                        this._setupLayerInteractivity(group, layerIds, sourceId);
                     }
                 }
 
@@ -1376,7 +1205,8 @@ class MapLayerControl {
                                         geometry: { type: 'Point', coordinates: [item.Longitude, item.Latitude] },
                                         properties: item
                                     }))
-                                }
+                                },
+                                promoteId: group.inspect?.id // Add this line for marker layers
                             });
 
                             this._map.addLayer({
@@ -2152,6 +1982,125 @@ class MapLayerControl {
         if (this._resizeTimeout) {
             clearTimeout(this._resizeTimeout);
         }
+    }
+
+    _setupLayerInteractivity(group, layerIds, sourceId) {
+        if (!group.inspect) return;
+
+        const popup = new mapboxgl.Popup({
+            closeButton: true,
+            closeOnClick: true
+        });
+
+        const hoverPopup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            className: 'hover-popup'
+        });
+
+        let hoveredFeatureId = null;
+        let selectedFeatureId = null;
+
+        // Helper function to create feature state params based on layer type
+        const getFeatureStateParams = (id) => {
+            const params = { source: sourceId, id };
+            if (group.type === 'vector') {
+                params.sourceLayer = group.sourceLayer;
+            }
+            return params;
+        };
+
+        layerIds.forEach(layerId => {
+            // Mousemove handler
+            this._map.on('mousemove', layerId, (e) => {
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    
+                    if (hoveredFeatureId !== null) {
+                        this._map.setFeatureState(
+                            getFeatureStateParams(hoveredFeatureId),
+                            { hover: false }
+                        );
+                    }
+
+                    if (feature.id !== undefined) {
+                        hoveredFeatureId = feature.id;
+                        this._map.setFeatureState(
+                            getFeatureStateParams(hoveredFeatureId),
+                            { hover: true }
+                        );
+                        console.log(getFeatureStateParams(hoveredFeatureId));
+                    }
+
+                    // Show hover popup if configured
+                    if (group.inspect?.label) {
+                        const content = this._createPopupContent(feature, group, true);
+                        if (content) {
+                            hoverPopup
+                                .setLngLat(e.lngLat)
+                                .setDOMContent(content)
+                                .addTo(this._map);
+                        }
+                    }
+                }
+            });
+
+            // Mouseleave handler
+            this._map.on('mouseleave', layerId, () => {
+                if (hoveredFeatureId !== null) {
+                    this._map.setFeatureState(
+                        getFeatureStateParams(hoveredFeatureId),
+                        { hover: false }
+                    );
+                    hoveredFeatureId = null;
+                }
+                hoverPopup.remove();
+            });
+
+            // Click handler
+            this._map.on('click', layerId, (e) => {
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    
+                    // Remove hover popup
+                    hoverPopup.remove();
+
+                    // Clear previous selection
+                    if (selectedFeatureId !== null) {
+                        this._map.setFeatureState(
+                            getFeatureStateParams(selectedFeatureId),
+                            { selected: false }
+                        );
+                    }
+
+                    // Set new selection
+                    if (feature.id !== undefined) {
+                        selectedFeatureId = feature.id;
+                        this._map.setFeatureState(
+                            getFeatureStateParams(selectedFeatureId),
+                            { selected: true }
+                        );
+                    }
+
+                    const content = this._createPopupContent(feature, group, false, e.lngLat);
+                    if (content) {
+                        popup
+                            .setLngLat(e.lngLat)
+                            .setDOMContent(content)
+                            .addTo(this._map);
+                    }
+                }
+            });
+
+            // Add pointer cursor
+            this._map.on('mouseenter', layerId, () => {
+                this._map.getCanvas().style.cursor = 'pointer';
+            });
+
+            this._map.on('mouseleave', layerId, () => {
+                this._map.getCanvas().style.cursor = '';
+            });
+        });
     }
 }
 
