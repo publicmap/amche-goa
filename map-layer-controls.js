@@ -766,8 +766,9 @@ class MapLayerControl {
                         let hoveredFeatureId = null;
                         let selectedFeatureId = null;
 
+                        // Single event handler for all layer types
                         layerIds.forEach(layerId => {
-                            // Add hover state
+                            // Mousemove handler
                             this._map.on('mousemove', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -779,7 +780,7 @@ class MapLayerControl {
                                         );
                                     }
                                     
-                                    if (feature.id !== undefined) {  // Check if feature has an ID
+                                    if (feature.id !== undefined) {
                                         hoveredFeatureId = feature.id;
                                         this._map.setFeatureState(
                                             { source: sourceId, id: hoveredFeatureId },
@@ -800,7 +801,7 @@ class MapLayerControl {
                                 }
                             });
 
-                            // Remove hover state
+                            // Single mouseleave handler
                             this._map.on('mouseleave', layerId, () => {
                                 if (hoveredFeatureId !== null) {
                                     this._map.setFeatureState(
@@ -812,7 +813,7 @@ class MapLayerControl {
                                 hoverPopup.remove();
                             });
 
-                            // Handle click events
+                            // Single click handler
                             this._map.on('click', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -820,6 +821,7 @@ class MapLayerControl {
                                     // Remove hover popup
                                     hoverPopup.remove();
 
+                                    // Clear previous selection
                                     if (selectedFeatureId !== null) {
                                         this._map.setFeatureState(
                                             { source: sourceId, id: selectedFeatureId },
@@ -827,6 +829,7 @@ class MapLayerControl {
                                         );
                                     }
 
+                                    // Set new selection
                                     if (feature.id !== undefined) {
                                         selectedFeatureId = feature.id;
                                         this._map.setFeatureState(
@@ -843,15 +846,6 @@ class MapLayerControl {
                                             .addTo(this._map);
                                     }
                                 }
-                            });
-
-                            // Add pointer cursor
-                            this._map.on('mouseenter', layerId, () => {
-                                this._map.getCanvas().style.cursor = 'pointer';
-                            });
-
-                            this._map.on('mouseleave', layerId, () => {
-                                this._map.getCanvas().style.cursor = '';
                             });
                         });
                     }
@@ -1276,7 +1270,7 @@ class MapLayerControl {
                         if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
 
                         layerIds.forEach(layerId => {
-                            // Add hover state
+                            // Single mousemove handler
                             this._map.on('mousemove', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -1309,7 +1303,7 @@ class MapLayerControl {
                                 }
                             });
 
-                            // Remove hover state
+                            // Single mouseleave handler
                             this._map.on('mouseleave', layerId, () => {
                                 if (hoveredFeatureId !== null) {
                                     this._map.setFeatureState(
@@ -1321,7 +1315,7 @@ class MapLayerControl {
                                 hoverPopup.remove();
                             });
 
-                            // Handle click events
+                            // Single click handler
                             this._map.on('click', layerId, (e) => {
                                 if (e.features.length > 0) {
                                     const feature = e.features[0];
@@ -1329,6 +1323,7 @@ class MapLayerControl {
                                     // Remove hover popup
                                     hoverPopup.remove();
 
+                                    // Clear previous selection
                                     if (selectedFeatureId !== null) {
                                         this._map.setFeatureState(
                                             { source: sourceId, id: selectedFeatureId, sourceLayer: group.sourceLayer },
@@ -1336,6 +1331,7 @@ class MapLayerControl {
                                         );
                                     }
 
+                                    // Set new selection
                                     if (feature.id !== undefined) {
                                         selectedFeatureId = feature.id;
                                         this._map.setFeatureState(
@@ -1352,15 +1348,6 @@ class MapLayerControl {
                                             .addTo(this._map);
                                     }
                                 }
-                            });
-
-                            // Add pointer cursor
-                            this._map.on('mouseenter', layerId, () => {
-                                this._map.getCanvas().style.cursor = 'pointer';
-                            });
-
-                            this._map.on('mouseleave', layerId, () => {
-                                this._map.getCanvas().style.cursor = '';
                             });
                         });
                     }
