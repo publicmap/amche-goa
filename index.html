@@ -1162,7 +1162,7 @@ function getQueryParameters() {
                         }                        
                     ];
                     
-                    // if the layers= query parameter is set, handle setting initiallyChecked on those layers
+                    // First, apply URL parameters to modify initiallyChecked
                     const queryParams = getQueryParameters();
                     if (queryParams.layers) {
                         const activeLayers = queryParams.layers.split(',').map(s => s.trim());
@@ -1186,19 +1186,8 @@ function getQueryParameters() {
                     document.getElementById('layer-controls-loader').classList.add('hidden');
                     container.classList.remove('hidden');
                     
+                    // Let MapLayerControl handle initial checkbox states based on initiallyChecked
                     layerControl.renderToContainer(container, map);
-
-                    // Initialize controls for layers that should be initially checked
-                    const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
-                    initiallyCheckedLayers.forEach(layer => {
-                        // Find the checkbox for this layer using jQuery
-                        const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
-                        if ($checkbox.length && !$checkbox.prop('checked')) {
-                            $checkbox.prop('checked', true);
-                            $checkbox.trigger('change');
-                        }
-                    });
-
 
                 
 
