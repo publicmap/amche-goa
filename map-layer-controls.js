@@ -1812,6 +1812,68 @@ class MapLayerControl {
                 name: 'Timelapse',
                 url: `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`,
                 text: 'TL'
+            },
+            {
+                name: 'Global Forest Watch',
+                url: `https://www.globalforestwatch.org/map/?map=${encodeURIComponent(JSON.stringify({
+                    center: {
+                        lat: lat,
+                        lng: lng
+                    },
+                    zoom: 18,
+                    basemap: {
+                        value: "satellite",
+                        color: "",
+                        name: "planet_medres_visual_2025-02_mosaic",
+                        imageType: "analytic"
+                    },
+                    datasets: [
+                        {
+                            dataset: "political-boundaries",
+                            layers: ["disputed-political-boundaries", "political-boundaries"],
+                            boundary: true,
+                            opacity: 1,
+                            visibility: true
+                        },
+                        {
+                            dataset: "DIST_alerts",
+                            opacity: 1,
+                            visibility: true,
+                            layers: ["DIST_alerts_all"]
+                        },
+                        {
+                            dataset: "tree-cover-loss",
+                            layers: ["tree-cover-loss"],
+                            opacity: 1,
+                            visibility: true,
+                            timelineParams: {
+                                startDate: "2002-01-01",
+                                endDate: "2023-12-31",
+                                trimEndDate: "2023-12-31"
+                            },
+                            params: {
+                                threshold: 30,
+                                visibility: true,
+                                adm_level: "adm0"
+                            }
+                        },
+                        {
+                            opacity: 0.7,
+                            visibility: true,
+                            dataset: "primary-forests",
+                            layers: ["primary-forests-2001"]
+                        },
+                        {
+                            dataset: "umd-tree-height",
+                            opacity: 0.58,
+                            visibility: true,
+                            layers: ["umd-tree-height-2020"]
+                        }
+                    ]
+                }))}&mapMenu=${encodeURIComponent(JSON.stringify({
+                    datasetCategory: "landCover"
+                }))}`,
+                text: 'FW'
             }
         ];
 
