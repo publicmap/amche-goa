@@ -113,6 +113,7 @@ class MapLayerControl {
         
         // Add share link handler
         this._initializeShareLink();
+        this.hiddenBaseLayers = new Set(); // Add this to store hidden layers
     }
 
     _initializeShareLink() {
@@ -283,8 +284,18 @@ class MapLayerControl {
     }
 
     renderToContainer(container, map) {
+        this.map = map;
+        
+        // Record hidden layers once the style is loaded
+        if (this.map.isStyleLoaded()) {
+            this._recordHiddenBaseLayers();
+        } else {
+            this.map.once('style.load', () => {
+                this._recordHiddenBaseLayers();
+            });
+        }
+
         this._container = container;
-        this._map = map;
 
         // Initialize visibility cache if not exists
         this._visibilityCache = new Map();
@@ -293,10 +304,10 @@ class MapLayerControl {
             class: 'layer-control'
         });
         
-        if (this._map.isStyleLoaded()) {
+        if (this.map.isStyleLoaded()) {
             this._initializeControl($controlContainer);
         } else {
-            this._map.on('style.load', () => {
+            this.map.on('style.load', () => {
                 this._initializeControl($controlContainer);
             });
         }

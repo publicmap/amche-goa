@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="canonical" href="https://amche.in" />
-	<title>amche.in - Interactive Map of Goa</title>
+	<title>amche.in - Free Maps of Goa</title>
 
 	<!-- SEO and Social Media Meta Tags -->
 	<meta
@@ -231,6 +231,7 @@ function getQueryParameters() {
                                 { title: 'Landcover', sourceLayer: 'landcover' },
                                 { title: 'Landuse', sourceLayer: 'landuse' },
                                 { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
+                                { title: 'Waterways', sourceLayer: 'waterway' },
                                 { title: 'Water', sourceLayer: 'water' },
 
                             ]
@@ -727,6 +728,123 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            id: 'slope',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Bardez)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                }
+                            ]
+                        },
+                        {
+                            title: 'Construction Sites',
+                            description: 'Construction Project Sites',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'construction-sites',
+                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
+                            attribution: 'Construction project sites in Goa',
+                            style: {
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
+                            }
+                        },
+                        {
+                            title: 'Landuse Zone Changes',
+                            description: 'Parcels applied for landuse zone changes under <a href="https://goaprintingpress.gov.in/downloads/2324/2324-47-SI-EOG-1.pdf">Section 39A</a> and <a href="https://tcp.goa.gov.in/procedure-to-obtain-the-permission-under-section-17a/">Section 17(2)</a> of the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>. ',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'landuse-change',
+                            url: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/885bafc69a45a9dbe8bdcb879151e57bb6b0d810/goa-land-conversion-sites.geojson',
+                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Gazette</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/73">Amche.in Community</a>',
+                            style: {
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
+                            },
+                            inspect: {
+                                id: 'Sr.',
+                                title: 'Survey No.',
+                                label: 'Plot',
+                                fields: [' Village','Taluka','Area sought for Conversion','Total Area','Original Zone','New Zone','Gazette Reference'],
+                            }
+                        },
+                        {
+                            title: 'Landuse Zoning Plans',
+                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
+                            headerImage: 'assets/map-layer-rdp.png',
+                            legendImage: 'assets/map-layer-rdp-legend.jpg',
+                            type: 'tms',
+                            id: 'rpg2021',
+                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
+                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
+                            initiallyChecked: true
+                        },
+                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
@@ -944,40 +1062,7 @@ function getQueryParameters() {
                                 fields: ['descr','aqveg','turbidity'],
                                 fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
                             }
-                        },
-                        {
-                            id: 'slope',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Bardez)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Landuse Zoning Plans',
-                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per <a href="https://indiankanoon.org/doc/3192342/">The Goa, Daman and Diu Town and Country Planning Act 1974</a>',
-                            headerImage: 'assets/map-layer-rdp.png',
-                            legendImage: 'assets/map-layer-rdp-legend.jpg',
-                            type: 'tms',
-                            id: 'rpg2021',
-                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
-                            initiallyChecked: true
-                        },
+                        },                       
                         {
                             title: 'SOI Toposheets',
                             description: 'Survey of India',
@@ -1016,45 +1101,6 @@ function getQueryParameters() {
                             url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
                             attribution: '© OpenStreetMap contributors'
-                        },
-                        {
-                            title: 'Construction Sites',
-                            description: 'Construction Project Sites',
-                            headerImage: 'assets/map-layer-construction.png',
-                            type: 'geojson',
-                            id: 'construction-sites',
-                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
-                            attribution: 'Construction project sites in Goa',
-                            style: {
-                                'line-color': 'red',
-                                'fill-color': 'red',
-                                'fill-color-opacity': 0.5,
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'text-color': 'white',
-                                'text-halo-color': 'red',
-                                'text-halo-width': 2,
-                                'text-size': 12
-                            }
                         },
                         {
                             title: 'Geomorphological Ecozones',
