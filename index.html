@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="canonical" href="https://amche.in" />
-	<title>amche.in - Interactive Map of Goa</title>
+	<title>amche.in - Free Maps of Goa</title>
 
 	<!-- SEO and Social Media Meta Tags -->
 	<meta
@@ -41,8 +41,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Mapbox GL JS -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js'></script>
 
     <!-- Add Mapbox Geocoder CSS and JS -->
     <script
@@ -213,36 +213,6 @@ function getQueryParameters() {
             // Add view control
             map.addControl(new ViewControl(), 'top-right');
 
-            // Add OpenStreetMap source and layer
-            map.addSource('osm', {
-                'type': 'raster',
-                'tiles': [
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                ],
-                'tileSize': 512,
-                'attribution': '© OpenStreetMap contributors'
-            });
-
-            map.addLayer({
-                'id': 'osm-tiles',
-                'type': 'raster',
-                'source': 'osm',
-                'layout': {
-                    'visibility': 'none'  // Hidden by default
-                },
-                'paint': {
-                    'raster-opacity': 1
-                }
-            });  // Insert before building layer to show 3D buildings on top
-
-
-
-            // First fetch the GeoJSON data
-            fetch('https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/46846b9da3964febabc044786a9b7a3b72840720/goa-construction-project-sites.geojson')
-                .then(response => response.json())
-                .then(e => 
-                {
-
                     // Put Layers in a variable, we may want to move this to a separate file or so.
                     let layersConfig = [
                     {
@@ -257,10 +227,11 @@ function getQueryParameters() {
                                 { title: 'Landmarks', sourceLayer: 'poi_label' },
                                 { title: 'Buildings', sourceLayer: 'building' },
                                 { title: 'Roads', sourceLayer: 'road' },
-                                { title: 'Landuse & Landcover', sourceLayer: 'landuse' },
+                                { title: 'Hillshading', sourceLayer: 'hillshade' },
+                                { title: 'Landcover', sourceLayer: 'landcover' },
+                                { title: 'Landuse', sourceLayer: 'landuse' },
                                 { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
-                                { title: 'Water', sourceLayer: 'water' },
-
+                                { title: 'Waterways', sourceLayer: 'waterway' },
                             ]
                         },
                         {
@@ -292,11 +263,11 @@ function getQueryParameters() {
                             attribution: '<a href="https://mapwarper.net/layers/2157">CC-BY-SA Mapwarper community maps of Goa</a>'
                         },
                         {
-                            title: 'Cadastral Parcel Boundaries',
+                            title: 'Cadastral Plot Boundaries',
                             description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
                             headerImage: 'assets/map-layer-survey.png',
                             type: 'vector',
-                            id: 'cadastral',
+                            id: 'plot',
                             url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/bhunaksha/{z}/{x}/{y}.pbf',
                             sourceLayer: 'Goa_Bhunaksha_Cadastrals',
                             maxzoom: 16,
@@ -339,7 +310,7 @@ function getQueryParameters() {
                                 label: 'kide',
                                 fields: ['VillageNam', 'TalName'],
                                 fieldTitles: ['Village', 'Taluk'],
-                                customHtml: 'Source: <a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
+                                customHtml: '<a href="https://bhunaksha.goa.gov.in/bhunaksha/" target="_blank">View in Bhunaksha Goa</a> | <a href="https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31" target="_blank">View RoR</a>'
                             }
                         },
                         {
@@ -441,19 +412,197 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            id: 'goa-local-body',
                             title: 'Local Body Boundaries',
-                            description: '<span style="display: inline-block; width: 30px; height: 12px; border: 3px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Municipal Boundaries <br><span style="display: inline-block; width: 30px; height: 12px; border: 1px dashed hsl(269, 100%, 45%);margin-right:5px"></span>Panchayat Boundaries',
+                            description: 'Municipal and Panchayat local body boundaries. Please see <a href="https://grammanchitra.gov.in/gm4MVC" target="_blank">Gramanchiitra</a> for panchayat demographic profile and information on elected representatives.',
                             headerImage: 'assets/map-layer-local-boundaries.png',
-                            type: 'layer-group',
-                            groups: [
-                                {
-                                    id: 'goa-local-body',
-                                    title: 'Bhuvan Panchayat',
-                                    attribution: 'https://grammanchitra.gov.in/gm4MVC',
-                                }
-                            ],
+                            type: 'vector',
+                            id: 'local-body',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/panchayats/lgd/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'LGD_Panchayats',
+                            maxzoom: 10,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             initiallyChecked: true,
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'purple',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        1.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1,
+                                        .1
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        3.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        2.5,
+                                        1.5
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Local Body Name',
+                                label: 'gp_name',
+                                id: 'OBJECTID',
+                                fields: ['vilname11','blkname','sdtname','dtname','stname'],
+                                fieldTitles: ['Village','Block','Sub District','District','State']
+                            }
+                        },
+                        {
+                            title: 'Assembly Constituencies',
+                            description: 'Members of Legislative Assembly (MLA) constituencies.',
+                            headerImage: 'assets/map-layer-assembly-boundaries.png',
+                            type: 'vector',
+                            id: 'assembly-constituencies',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/assembly/lgd/{z}/{x}/{y}.pbf ',
+                            sourceLayer: 'LGD_Assembly_Constituencies',
+                            maxzoom: 10,
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/2">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'blue',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        1.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1,
+                                        .1
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        3.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        2.5,
+                                        1.5
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Name',
+                                label: 'ac_name',
+                                id: 'OBJECTID',
+                                fields: ['AC_ID','pc_name','dist_name','st_name'],
+                                fieldTitles: ['Constituency Code','Parliamentary Constituency','District','State']
+                            }
+                        },
+                        {
+                            title: 'Parliamentary Constituencies',
+                            description: 'Members of Parliament (MP) constituencies',
+                            headerImage: 'assets/map-layer-parliament-boundaries.png',
+                            type: 'vector',
+                            id: 'parliamentary-constituencies',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/parliament/lgd/{z}/{x}/{y}.pbf ',
+                            sourceLayer: 'LGD_Parliament_Constituencies',
+                            maxzoom: 10,
+                            attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/1">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, 'rgba(0, 0, 0, 0)',
+                                    12, 'rgba(0, 0, 0, 0.1)'
+                                ],
+                                'line-color': 'blue',
+                                'line-dasharray': [6, 6],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    8, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        2,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        1.5,
+                                        .5
+                                    ],
+                                    12, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        2
+                                    ]
+                                ],
+                            },
+                            inspect: {
+                                title: 'Name',
+                                label: 'pc_name',
+                                id: 'OBJECTID',
+                                fields: ['dist_name','st_name'],
+                                fieldTitles: ['District','State']
+                            }
+                        },
+                        {
+                            title: 'Private Forests',
+                            description: 'Private forests identified by Thomas and Arujao expert committees',
+                            headerImage: 'assets/map-layer-forest.png',
+                            type: 'geojson',
+                            id: 'private-forests',
+                            url: 'https://gist.githubusercontent.com/planemad/54b84c11fc0325889f1127e49b5740db/raw/6b4df018b298f37b1789f1c40405c8d9aee0aadd/goa_private_forest_plots.geojson',
+                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Private Forest Plots</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/75">Amche.in Community</a>',
+                            style: {
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'green',
+                                'fill-opacity': 0.7
+                            },
+                            inspect: {
+                                id: 'id',
+                                title: 'Reference Number',
+                                label: 'id',
+                                fields: ['kide','village'],
+                                fieldTitles: ['Survey Number','Village']
+                            }
                         },
                         {
                             title: 'Reserve Forests',
@@ -499,6 +648,167 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Major Mines',
+                            description: 'Major mining lease boundaries',
+                            headerImage: 'assets/map-layer-mines.png',
+                            type: 'vector',
+                            id: 'major-mines',
+                            url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'NCOG_Major_Mining_Leases',
+                            maxzoom: 11,
+                            attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'grey',
+                                'fill-opacity': 0.3
+                            },
+                            inspect: {
+                                id: 'mine_code',
+                                title: 'Mine Name',
+                                label: 'mine_name',
+                                fields: ['mineral_na','name_of_le','reg_no','vil_name11','mine_code'],
+                                fieldTitles: ['Mineral Name','Name of Leasee','Registration Number','Village Name','Mine Code']
+                            }
+                        },
+                        {
+                            id: 'slope',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Bardez)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                }
+                            ]
+                        },
+                        {
+                            title: 'Construction Sites',
+                            description: 'Construction Project Sites',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'construction-sites',
+                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
+                            attribution: 'Construction project sites in Goa',
+                            style: {
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
+                            }
+                        },
+                        {
+                            title: 'Landuse Zone Changes',
+                            description: 'Parcels applied for landuse zone changes under <a href="https://goaprintingpress.gov.in/downloads/2324/2324-47-SI-EOG-1.pdf">Section 39A</a> and <a href="https://tcp.goa.gov.in/procedure-to-obtain-the-permission-under-section-17a/">Section 17(2)</a> of the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>. ',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'landuse-change',
+                            url: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/885bafc69a45a9dbe8bdcb879151e57bb6b0d810/goa-land-conversion-sites.geojson',
+                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Gazette</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/73">Amche.in Community</a>',
+                            style: {
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
+                            },
+                            inspect: {
+                                id: 'Sr.',
+                                title: 'Survey No.',
+                                label: 'Plot',
+                                fields: [' Village','Taluka','Area sought for Conversion','Total Area','Original Zone','New Zone','Gazette Reference'],
+                            }
+                        },
+                        {
+                            title: 'Landuse Zoning Plans',
+                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
+                            headerImage: 'assets/map-layer-rdp.png',
+                            legendImage: 'assets/map-layer-rdp-legend.jpg',
+                            type: 'tms',
+                            id: 'rpg2021',
+                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
+                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
+                            initiallyChecked: true
+                        },
+                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
@@ -542,7 +852,7 @@ function getQueryParameters() {
                                 fieldTitles: ['Basin Code','Stream Order']                         }
                         },
                         {
-                            id: 'watersheds',
+                            id: 'watershed',
                             title: 'Watershed Boundaries',
                             headerImage: 'assets/map-layer-watersheds.png',
                             description: 'Watershed Boundaries',
@@ -633,45 +943,124 @@ function getQueryParameters() {
                                 fieldTitles: ['Village','Owner Type','Condition','Construction','Purpose',],
                             }
                         },
-                        
                         {
-                            id: 'slope-zones',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Partial)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                },
-                                {
-                                    id: 'aster slope',
-                                    title: 'NASA Aster 30m (Goa Coast)',
-                                    attribution: 'https://gdemdl.aster.jspacesystems.or.jp/index_en.html',
-                                    location: 'Panaji'
-                                }
-                            ]
+                            title: 'Wetlands',
+                            description: 'Wetlands and low lying estuarine areas classified from remote sensing imagery. For methodological details, see <a href="https://vedas.sac.gov.in/static/downloads/atlas/Wetlands/NWIA_Goa_Atlas.pdf">2009 National Wetland Atlas of Goa, Space Applications Centre, ISRO / Ministry of Environment and Forests</a>.',
+                            headerImage: 'assets/map-layer-wetland.png',
+                            type: 'vector',
+                            id: 'wetland',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/wetlands/parivesh/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bharatmaps_Parivesh_Wetland_Boundaries',
+                            maxzoom: 11,
+                            attribution: '<a href="https://vedas.sac.gov.in/wetlands/index.html">1:10k Wetland Polygons (2019), Space Applications Centre, ISRO</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'descr'],
+                                    'Inland - Natural - Waterlogged', 
+                                    '#0084f7',
+                                    'Inland - Natural - River/Stream', 
+                                    '#0084f7',
+                                    'Inland - Natural - Lake/Pond', 
+                                    '#0084f7',
+                                    'Inland - Man-made - Tank/Pond', 
+                                    '#0084f7',
+                                    'Inland - Man-made - Reservoir/Barrage', 
+                                    '#0084f7',
+                                    'Inland - Man-made - Waterlogged', 
+                                    '#0084f7',
+                                    'Coastal - Natural - Creek', 
+                                    '#0084f7',
+                                    'Coastal - Natural - Lagoon', 
+                                    '#0084f7',
+                                    'Inland - Natural - Ox-bow Lake / Cut-off me', 
+                                    '#0084f7',
+                                    'Coastal - Natural - Mangrove', 
+                                    'green',
+                                    'Coastal - Natural - Inter-tidal Mud-flat', 
+                                    'brown',
+                                    'Coastal - Natural - Salt Marsh', 
+                                    'brown',
+                                    'Coastal - Man-made - Salt Pan', 
+                                    'cyan',
+                                    'Inland - Man-made - Salt Pan', 
+                                    'cyan',
+                                    'Coastal - Man-made - Aquaculture Pond', 
+                                    'cyan',
+                                    'Coastal - Natural - Sand/Beach', 
+                                    'orange',
+                                    'Others (non-wetland area)', 
+                                    'grey',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.5
+                            },
+                            // Add a filter to exclude "Others (non-wetland area)"
+                            filter: ['!=', ['get', 'descr'], 'Others (non-wetland area)'],
+                            inspect: {
+                                id: 'objectid',
+                                title: 'Wetland Name',
+                                label: 'wetname',
+                                fields: ['descr','aqveg','turbidity'],
+                                fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
+                            }
                         },
                         {
-                            title: 'Landuse Zoning Plans',
-                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per <a href="https://indiankanoon.org/doc/3192342/">The Goa, Daman and Diu Town and Country Planning Act 1974</a>',
-                            headerImage: 'assets/map-layer-rdp.png',
-                            legendImage: 'assets/map-layer-rdp-legend.jpg',
-                            type: 'tms',
-                            id: 'rpg2021',
-                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
-                            initiallyChecked: true
+                            title: 'Goa Mask',
+                            description: 'Mask for the state of Goa',
+                            headerImage: 'assets/map-layer-mask.png',
+                            type: 'vector',
+                            id: 'mask',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/states/lgd/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'LGD_States',
+                            maxzoom: 10,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            initiallyChecked: true,
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    0, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 1)'
+                                    ],
+                                    8, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 1)'
+                                    ],
+                                    12, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 0.1)'
+                                    ]
+                                ],
+                                'fill-opacity': 0.7
+                            }
                         },
                         {
                             title: 'SOI Toposheets',
@@ -713,17 +1102,17 @@ function getQueryParameters() {
                             attribution: '© OpenStreetMap contributors'
                         },
                         {
-                            title: 'Construction Sites',
-                            description: 'Construction Project Sites',
-                            headerImage: 'assets/map-layer-construction.png',
-                            type: 'geojson',
-                            id: 'construction-sites',
-                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
-                            attribution: 'Construction project sites in Goa',
+                            title: 'Geomorphological Ecozones',
+                            description: 'Geomorphological landforms based on <a href="https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf">genesis based classification schema</a>.',
+                            headerImage: 'assets/map-layer-geomorphology.png',
+                            type: 'vector',
+                            id: 'geomorphology',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/geomorphology/50k/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_Geomorphology_50k_0506',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php">Bhuvan</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                'line-color': 'red',
-                                'fill-color': 'red',
-                                'fill-color-opacity': 0.5,
+                                'line-color': 'black',
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
@@ -731,10 +1120,10 @@ function getQueryParameters() {
                                     14, [
                                         'case',
                                         ['boolean', ['feature-state', 'selected'], false],
-                                        4,
+                                        0.5,
                                         ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
+                                        0.1,
+                                        0
                                     ],
                                     18, [
                                         'case',
@@ -745,10 +1134,68 @@ function getQueryParameters() {
                                         2
                                     ]
                                 ],
-                                'text-color': 'white',
-                                'text-halo-color': 'red',
-                                'text-halo-width': 2,
-                                'text-size': 12
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Des'],
+                                    [
+                                        'Structural Origin-Moderately Dissected Hills and Valleys',
+                                        'Structural Origin-Highly Dissected Hills and Valleys',
+                                        'Structural Origin-Low Dissected Hills and Valleys',
+                                        'Denudational Origin-Moderately Dissected Hills and Valleys',
+                                        'Denudational Origin-Highly Dissected Hills and Valleys',
+                                        'Denudational Origin-Piedmont Slope'],
+                                        '#d7ba8c',
+                                        [
+                                        'Structural Origin-Highly Dissected Lower Plateau',
+                                        'Structural Origin-Moderately Dissected Lower Plateau',
+                                        'Structural Origin-Moderately Dissected Upper Plateau',
+                                        'Structural Origin-Low Dissected Upper Plateau',
+                                        'Structural Origin-Highly Dissected Upper Plateau',
+                                        'Denudational Origin-Moderately Dissected Lower Plateau',
+                                        'Denudational Origin-Moderately Dissected Upper Plateau',
+                                        'Structural Origin-Low Dissected Lower Plateau',
+                                        'Denudational Origin-Low Dissected Lower Plateau',
+                                        'Denudational Origin-Low Dissected Upper Plateau',
+                                        'Denudational Origin-Highly Dissected Lower Plateau',
+                                    'Denudational Origin-Highly Dissected Upper Plateau'],
+                                    '#f9f33d',
+                                    ['Coastal Origin-Older Deltaic Plain',
+                                    'Coastal Origin-Older Coastal Plain',
+                                    'Denudational Origin-Pediment-PediPlain Complex',
+                                    'Denudational Origin-Low Dissected Hills and Valleys',
+                                    'Fluvial Origin-Piedmont Alluvial Plain',
+                                    'Fluvial Origin-Younger Alluvial Plain',
+                                    'Fluvial Origin-Bajada',
+                                    'Fluvial Origin-Older Alluvial Plain',
+                                    'Denudational Origin-Mass Wasting Products',
+                                    'Fluvial Origin-Older Flood Plain',
+                                'Lacustrine Origin-Lacustrine Terrain',
+                            'Aeolian Origin-Aeolian Plain'],
+                                    '#caf1cc',
+                                    ['Coastal Origin-Younger Coastal Plain',
+                                    'Fluvial Origin-Active Flood Plain',
+                                    'Coastal Origin-Younger Deltaic Plain',
+                                    'Coastal Origin-Offshore Island'
+                                    
+                                ],
+                                    '#81c8ff',
+                                    ['Water Bodies-River',
+                                    'Water Bodies-Pond',
+                                    'Water Bodies-Others',
+                                    'Water Bodies-Lake'],
+                                    '#0780bd',
+                                    ['Glacial Origin-Snow Cover','Glacial Origin-Glacial Terrain'],
+                                    'white',
+                                    ['Anthropogenic Origin-Anthropogenic Terrain'],
+                                    'rgba(0, 0, 0, 0)',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.9
+                            },
+                            inspect: {
+                                id: 'test',
+                                title: 'Description',
+                                label: 'Des'
                             }
                         },
                         {
@@ -760,11 +1207,10 @@ function getQueryParameters() {
                         }                        
                     ];
                     
-                    // if the layers= query parameter is set, handle setting initiallyChecked on those layers
+                    // First, apply URL parameters to modify initiallyChecked
                     const queryParams = getQueryParameters();
                     if (queryParams.layers) {
                         const activeLayers = queryParams.layers.split(',').map(s => s.trim());
-                        console.log('active layers', activeLayers);
                         layersConfig = layersConfig.map(layer => {
                             // Handle both streetmap and other layers
                             if (layer.type === 'style') {
@@ -775,8 +1221,7 @@ function getQueryParameters() {
                             return layer;
                         });
                     }
-                    console.log('layers config', layersConfig);
-                    // Add layer control with multiple groups including GeoJSON
+                    
                     const layerControl = new MapLayerControl(layersConfig);
 
                     const container = document.getElementById('layer-controls-container');
@@ -785,20 +1230,9 @@ function getQueryParameters() {
                     document.getElementById('layer-controls-loader').classList.add('hidden');
                     container.classList.remove('hidden');
                     
+                    // Let MapLayerControl handle initial checkbox states based on initiallyChecked
                     layerControl.renderToContainer(container, map);
 
-                    // Initialize controls for layers that should be initially checked
-                    const initiallyCheckedLayers = layersConfig.filter(layer => layer.initiallyChecked);
-                    initiallyCheckedLayers.forEach(layer => {
-                        // Find the checkbox for this layer using jQuery
-                        const $checkbox = $(`label:has(span:contains("${layer.title}")) input[type="checkbox"]`);
-                        if ($checkbox.length && !$checkbox.prop('checked')) {
-                            $checkbox.prop('checked', true);
-                            $checkbox.trigger('change');
-                        }
-                    });
-
-                })
                 
 
             // Add navigation controls
