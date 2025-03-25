@@ -687,15 +687,15 @@ function getQueryParameters() {
                         {
                             title: 'Mining Leases',
                             description: 'Active mining lease boundaries',
-                            headerImage: 'assets/map-layer-mining-leases.png',
+                            headerImage: 'assets/map-layer-mines.png',
                             type: 'vector',
                             id: 'mines',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/mining/leases/fsi/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'FSI_Beats',
+                            url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'NCOG_Major_Mining_Leases',
                             maxzoom: 11,
-                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                'line-color': '#006400',
+                                'line-color': 'black',
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
@@ -717,14 +717,15 @@ function getQueryParameters() {
                                         2
                                     ]
                                 ],
-                                'fill-color': 'green',
-                                'fill-opacity': 0.7
+                                'fill-color': 'grey',
+                                'fill-opacity': 0.3
                             },
                             inspect: {
-                                id: 'OBJECTID_12',
-                                title: 'Forest Range',
-                                label: 'Beat_Name',
-                                fields: ['Range'],
+                                id: 'mine_code',
+                                title: 'Mine Name',
+                                label: 'mine_name',
+                                fields: ['mineral_na','name_of_le','reg_no','vil_name11','mine_code'],
+                                fieldTitles: ['Mineral Name','Name of Leasee','Registration Number','Village Name','Mine Code']
                             }
                         },
                         {
