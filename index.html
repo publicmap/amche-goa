@@ -753,51 +753,6 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Landuse Zone Changes',
-                            description: 'Parcels applied for landuse zone changes under <a href="https://goaprintingpress.gov.in/downloads/2324/2324-47-SI-EOG-1.pdf">Section 39A</a> and <a href="https://tcp.goa.gov.in/procedure-to-obtain-the-permission-under-section-17a/">Section 17(2)</a> of the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>. ',
-                            headerImage: 'assets/map-layer-construction.png',
-                            type: 'geojson',
-                            id: 'landuse-change',
-                            url: 'https://gist.githubusercontent.com/planemad/ed5912abfac1ecb633747b41bcc5ed24/raw/885bafc69a45a9dbe8bdcb879151e57bb6b0d810/goa-land-conversion-sites.geojson',
-                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Gazette</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/73">Amche.in Community</a>',
-                            style: {
-                                'line-color': 'red',
-                                'fill-color': 'red',
-                                'fill-color-opacity': 0.5,
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'text-color': 'white',
-                                'text-halo-color': 'red',
-                                'text-halo-width': 2,
-                                'text-size': 12
-                            },
-                            inspect: {
-                                id: 'Sr.',
-                                title: 'Survey No.',
-                                label: 'Plot',
-                                fields: [' Village','Taluka','Area sought for Conversion','Total Area','Original Zone','New Zone','Gazette Reference'],
-                            }
-                        },
-                        {
                             title: 'Landuse Zoning Plans',
                             description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
                             headerImage: 'assets/map-layer-rdp.png',
