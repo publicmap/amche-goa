@@ -2091,7 +2091,6 @@ class MapLayerControl {
                             getFeatureStateParams(hoveredFeatureId),
                             { hover: true }
                         );
-                        console.log(getFeatureStateParams(hoveredFeatureId));
                     }
 
                     // Show hover popup if configured

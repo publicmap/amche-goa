@@ -563,207 +563,6 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Private Forests',
-                            description: 'Private forests identified by Thomas and Arujao expert committees',
-                            headerImage: 'assets/map-layer-forest.png',
-                            type: 'geojson',
-                            id: 'private-forests',
-                            url: 'https://gist.githubusercontent.com/planemad/54b84c11fc0325889f1127e49b5740db/raw/6b4df018b298f37b1789f1c40405c8d9aee0aadd/goa_private_forest_plots.geojson',
-                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Private Forest Plots</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/75">Amche.in Community</a>',
-                            style: {
-                                'line-color': '#006400',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'fill-color': 'green',
-                                'fill-opacity': 0.7
-                            },
-                            inspect: {
-                                id: 'id',
-                                title: 'Reference Number',
-                                label: 'id',
-                                fields: ['kide','village'],
-                                fieldTitles: ['Survey Number','Village']
-                            }
-                        },
-                        {
-                            title: 'Reserve Forests',
-                            description: 'Forest beat boundaries',
-                            headerImage: 'assets/map-layer-forest.png',
-                            type: 'vector',
-                            id: 'forests',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'FSI_Beats',
-                            maxzoom: 11,
-                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'line-color': '#006400',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'fill-color': 'green',
-                                'fill-opacity': 0.7
-                            },
-                            inspect: {
-                                id: 'OBJECTID_12',
-                                title: 'Forest Range',
-                                label: 'Beat_Name',
-                                fields: ['Range'],
-                            }
-                        },
-                        {
-                            title: 'Major Mines',
-                            description: 'Major mining lease boundaries',
-                            headerImage: 'assets/map-layer-mines.png',
-                            type: 'vector',
-                            id: 'major-mines',
-                            url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'NCOG_Major_Mining_Leases',
-                            maxzoom: 11,
-                            attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'line-color': 'black',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'fill-color': 'grey',
-                                'fill-opacity': 0.3
-                            },
-                            inspect: {
-                                id: 'mine_code',
-                                title: 'Mine Name',
-                                label: 'mine_name',
-                                fields: ['mineral_na','name_of_le','reg_no','vil_name11','mine_code'],
-                                fieldTitles: ['Mineral Name','Name of Leasee','Registration Number','Village Name','Mine Code']
-                            }
-                        },
-                        {
-                            id: 'slope',
-                            title: 'Slope Zoning',
-                            description: 'Slope zone classification using terrain data',
-                            type: 'layer-group',
-                            headerImage: 'assets/map-layer-slope.png',
-                            legendImage: 'assets/map-layer-slope-legend.png',
-                            groups: [
-                                {
-                                    id: 'nasadem-30-m',
-                                    title: 'NASA NASADEM 30m',
-                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
-                                    location: 'Goa'
-                                },
-                                {
-                                    id: 'cartodem-2-5-m',
-                                    title: 'ISRO CartoDEM 2.5m (Bardez)',
-                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
-                                    location: 'Guirim'
-                                }
-                            ]
-                        },
-                        {
-                            title: 'Construction Sites',
-                            description: 'Construction Project Sites',
-                            headerImage: 'assets/map-layer-construction.png',
-                            type: 'geojson',
-                            id: 'construction-sites',
-                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
-                            attribution: 'Construction project sites in Goa',
-                            style: {
-                                'line-color': 'red',
-                                'fill-color': 'red',
-                                'fill-color-opacity': 0.5,
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'text-color': 'white',
-                                'text-halo-color': 'red',
-                                'text-halo-width': 2,
-                                'text-size': 12
-                            }
-                        },
-                        {
-                            title: 'Landuse Zoning Plans',
-                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
-                            headerImage: 'assets/map-layer-rdp.png',
-                            legendImage: 'assets/map-layer-rdp-legend.jpg',
-                            type: 'tms',
-                            id: 'rpg2021',
-                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
-                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
-                            initiallyChecked: true
-                        },
-                        {
                             title: 'Rivers',
                             description: 'Rivers and streams with stream order',
                             headerImage: 'assets/map-layer-rivers.png',
@@ -981,6 +780,207 @@ function getQueryParameters() {
                                 fields: ['descr','aqveg','turbidity'],
                                 fieldTitles: ['Description','Aquatic Vegetation','Turbidity']
                             }
+                        },
+                        {
+                            title: 'Private Forests',
+                            description: 'Private forests identified by Thomas and Arujao expert committees',
+                            headerImage: 'assets/map-layer-forest.png',
+                            type: 'geojson',
+                            id: 'private-forests',
+                            url: 'https://gist.githubusercontent.com/planemad/54b84c11fc0325889f1127e49b5740db/raw/6b4df018b298f37b1789f1c40405c8d9aee0aadd/goa_private_forest_plots.geojson',
+                            attribution: '<a href="https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244">Goa Private Forest Plots</a> - Collected by <a href="https://github.com/publicmap/amche-goa/issues/75">Amche.in Community</a>',
+                            style: {
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'green',
+                                'fill-opacity': 0.7
+                            },
+                            inspect: {
+                                id: 'id',
+                                title: 'Reference Number',
+                                label: 'id',
+                                fields: ['kide','village'],
+                                fieldTitles: ['Survey Number','Village']
+                            }
+                        },
+                        {
+                            title: 'Reserve Forests',
+                            description: 'Forest beat boundaries',
+                            headerImage: 'assets/map-layer-forest.png',
+                            type: 'vector',
+                            id: 'forests',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'FSI_Beats',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Forest Survey of India</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': '#006400',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'green',
+                                'fill-opacity': 0.7
+                            },
+                            inspect: {
+                                id: 'OBJECTID_12',
+                                title: 'Forest Range',
+                                label: 'Beat_Name',
+                                fields: ['Range'],
+                            }
+                        },
+                        {
+                            title: 'Major Mines',
+                            description: 'Major mining lease boundaries',
+                            headerImage: 'assets/map-layer-mines.png',
+                            type: 'vector',
+                            id: 'major-mines',
+                            url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'NCOG_Major_Mining_Leases',
+                            maxzoom: 11,
+                            attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'black',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': 'grey',
+                                'fill-opacity': 0.3
+                            },
+                            inspect: {
+                                id: 'mine_code',
+                                title: 'Mine Name',
+                                label: 'mine_name',
+                                fields: ['mineral_na','name_of_le','reg_no','vil_name11','mine_code'],
+                                fieldTitles: ['Mineral Name','Name of Leasee','Registration Number','Village Name','Mine Code']
+                            }
+                        },
+                        {
+                            id: 'slope',
+                            title: 'Slope Zoning',
+                            description: 'Slope zone classification using terrain data',
+                            type: 'layer-group',
+                            headerImage: 'assets/map-layer-slope.png',
+                            legendImage: 'assets/map-layer-slope-legend.png',
+                            groups: [
+                                {
+                                    id: 'nasadem-30-m',
+                                    title: 'NASA NASADEM 30m',
+                                    attribution: 'https://asterweb.jpl.nasa.gov/gdem.asp',
+                                    location: 'Goa'
+                                },
+                                {
+                                    id: 'cartodem-2-5-m',
+                                    title: 'ISRO CartoDEM 2.5m (Bardez)',
+                                    attribution: 'https://bhuvan-app3.nrsc.gov.in/data/',
+                                    location: 'Guirim'
+                                }
+                            ]
+                        },
+                        {
+                            title: 'Construction Sites',
+                            description: 'Construction Project Sites',
+                            headerImage: 'assets/map-layer-construction.png',
+                            type: 'geojson',
+                            id: 'construction-sites',
+                            url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
+                            attribution: 'Construction project sites in Goa',
+                            style: {
+                                'line-color': 'red',
+                                'fill-color': 'red',
+                                'fill-color-opacity': 0.5,
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'text-color': 'white',
+                                'text-halo-color': 'red',
+                                'text-halo-width': 2,
+                                'text-size': 12
+                            }
+                        },
+                        {
+                            title: 'Landuse Zoning Plans',
+                            description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
+                            headerImage: 'assets/map-layer-rdp.png',
+                            legendImage: 'assets/map-layer-rdp-legend.jpg',
+                            type: 'tms',
+                            id: 'rpg2021',
+                            url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
+                            attribution: 'Regional Development Plan for Goa 2021, <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a>. Georeferenced using <a href="https://mapwarper.net/layers/2054#Show_tab">Mapwarper</a>',
+                            initiallyChecked: true
                         },
                         {
                             title: 'Landcover',
