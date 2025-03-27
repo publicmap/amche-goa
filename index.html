@@ -983,6 +983,64 @@ function getQueryParameters() {
                             }
                         },
                         {
+                            title: 'Landcover',
+                            description: 'Space based Information Support for Decentralized Planning (SISDP) Phase 2 10k Land Usage Land Cover data.',
+                            headerImage: 'assets/map-layer-landcover.png',
+                            type: 'vector',
+                            id: 'landcover',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/landuse/10k/sisdpv2/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_SISDP_V2_LULC_10k',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bhuvanpanchayat.nrsc.gov.in">Bhuvan Land Use Land Cover (10K):SIS-DP Phase2:2018-23</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'lc_code'],
+                                    'AGCR', 
+                                    'yellow',
+                                    ['BUUR','BURV','BURM','BUMN','BUUP','BURU','BURH','BUTP','BUUC'], 
+                                    'red',
+                                    ['WLSP','FRDE','FRMG','FRPL','AGPL','WLSD'], 
+                                    'green',
+                                    ['AGAQ'], 
+                                    'cyan',
+                                    ['WBRT','WLWL','WBRS'], 
+                                    'blue',
+                                    'black'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.5
+                            },
+                             inspect: {
+                                id: 'OBJECTID',
+                                title: 'Description',
+                                label: 'dscr3',
+                                fields: ['dscr1','dscr2','lc_code'],
+                                fieldTitles: ['Description 1','Description 2','Land Cover Code']
+                            }
+                        },
+                        {
                             title: 'Goa Mask',
                             description: 'Mask for the state of Goa',
                             headerImage: 'assets/map-layer-mask.png',
