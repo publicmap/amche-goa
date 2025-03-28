@@ -3,7 +3,7 @@
 - Homepage: https://amche.in/
 - Development preview: https://amche.in/dev
 
-A simple and powerful citizen map portal for the state of Goa, India. Made with the latest map data and tools. _Amche_ mean÷≥kjytrewq  s
+A simple and powerful citizen map portal for the state of Goa, India. Made with the latest map data and tools.
 
 ## Data
 
