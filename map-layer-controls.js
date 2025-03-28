@@ -1791,7 +1791,7 @@ class MapLayerControl {
             {
                 name: 'Bhuvan',
                 url: `https://bhuvanmaps.nrsc.gov.in/?mode=Hybrid#18/${lat}/${lng}`,
-                icon: 'https://bhuvan.nrsc.gov.in/home/images/bhuvanlite.png'
+                icon: './assets/icon-bhuvan.png'
             },
             {
                 name: 'Bharatmaps',
@@ -1801,7 +1801,7 @@ class MapLayerControl {
             {
                 name: 'One Map Goa',
                 url: `https://onemapgoagis.goa.gov.in/map/?ct=LayerTree${oneMapGoaLayerList}&bl=mmi_hybrid&t=goa_default&c=${mercatorCoords.x}%2C${mercatorCoords.y}&s=500`,
-                icon: 'https://onemapgoagis.goa.gov.in/static/images/oneMapGoaLogo1mb.gif'
+                icon: './assets/icon-onemapgoa.png'
             },
             {
                 name: 'Landcover',
@@ -1879,11 +1879,11 @@ class MapLayerControl {
 
         let linksHTML = navigationLinks.map(link =>
             `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
-                ${link.icon ? `<img src="${link.icon}" class="w-5 h-5" alt="${link.name}">` : ''}
+                ${link.icon ? `<img src="${link.icon}" class="w-5 h-5 !max-w-none" alt="${link.name}">` : ''}
                 ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
             </a>`
         ).join('');
-        linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3">${linksHTML}</div>`;
+        linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex flex-wrap gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
         if (this._map.getZoom() >= 14) {
