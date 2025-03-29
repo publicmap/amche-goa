@@ -984,7 +984,7 @@ function getQueryParameters() {
                         },
                         {
                             title: 'Landcover',
-                            description: 'Space based Information Support for Decentralized Planning (SISDP) Phase 2 10k Land Usage Land Cover data.',
+                            description: 'Space based Information Support for Decentralized Planning (SISDP) Phase 2 10k Land Usage Land Cover data. Check the <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">SISDP technical manual</a> for background about the project and <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">Bhuvan Panchayat Portal User Manual</a> for more details.',
                             headerImage: 'assets/map-layer-landcover.png',
                             type: 'vector',
                             id: 'landcover',
@@ -1041,78 +1041,44 @@ function getQueryParameters() {
                             }
                         },
                         {
-                            title: 'Goa Mask',
-                            description: 'Mask for the state of Goa',
-                            headerImage: 'assets/map-layer-mask.png',
+                            title: 'Geomorphological Lineaments',
+                            description: 'Geomorphological lineaments based on <a href="https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf">genesis based classification schema</a>.',
+                            headerImage: 'assets/map-layer-lineament.png',
                             type: 'vector',
-                            id: 'mask',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/states/lgd/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'LGD_States',
-                            maxzoom: 10,
-                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            initiallyChecked: true,
+                            id: 'lineament',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/lineament/50k/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_Lineament_50k_0506',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php">Bhuvan</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                'fill-color': [
+                                'line-color': 'black',
+                                'line-width': [
                                     'interpolate',
                                     ['linear'],
                                     ['zoom'],
-                                    0, ['case',
-                                        ['==', ['get', 'STNAME'], 'GOA'],
-                                        'rgba(0, 0, 0, 0)',
-                                        'rgba(255, 255, 255, 1)'
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        0.5,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        0.1,
+                                        0
                                     ],
-                                    8, ['case',
-                                        ['==', ['get', 'STNAME'], 'GOA'],
-                                        'rgba(0, 0, 0, 0)',
-                                        'rgba(255, 255, 255, 1)'
-                                    ],
-                                    12, ['case',
-                                        ['==', ['get', 'STNAME'], 'GOA'],
-                                        'rgba(0, 0, 0, 0)',
-                                        'rgba(255, 255, 255, 0.1)'
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
                                     ]
-                                ],
-                                'fill-opacity': 0.7
+                                ]
+                            },
+                            inspect: {
+                                id: 'test',
+                                title: 'Description',
+                                label: 'Des'
                             }
-                        },
-                        {
-                            title: 'SOI Toposheets',
-                            description: 'Survey of India',
-                            headerImage: 'assets/map-layer-soi.png',
-                            legendImage: 'assets/map-layer-soi-legend.png',
-                            type: 'tms',
-                            id: 'goa-soi-map',
-                            url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
-                            attribution: '<a href="https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx">Open Series Toposheets from Survey of India</a>',
-                        },
-                        {
-                            title: 'Goa CZMP',
-                            description: 'Coastal Zone Management Plan 2019',
-                            headerImage: 'assets/map-layer-czmp.png',
-                            legendImage: 'assets/map-layer-czmp-legend.jpg',
-                            type: 'tms',
-                            id: 'goa-czmp-map',
-                            url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
-                            attribution: '<a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
-                        },
-                        {
-                            title: 'AMS Maps (1970s)',
-                            description: '1:250000 maps from the U.S. Army Map Service created 1955-1970s',
-                            headerImage: 'assets/map-layer-ams.png',
-                            type: 'tms',
-                            id: 'goa-ams-map',
-                            url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
-                            attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
-                        },
-                        {
-                            id: 'osm',
-                            title: 'OpenStreetMap',
-                            description: 'OpenStreetMap Data',
-                            headerImage: 'assets/map-layer-osm.png',
-                            type: 'tms',
-                            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
-                            attribution: '© OpenStreetMap contributors'
                         },
                         {
                             title: 'Geomorphological Ecozones',
@@ -1211,6 +1177,137 @@ function getQueryParameters() {
                                 label: 'Des'
                             }
                         },
+                        {
+                            title: 'Groundwater Prospects',
+                            description: 'Groundwater prospect maps prepared at 1:50k scale. Groundwater Quality classification (potable/non-potable) is based on the <a href="https://www.cgwb.gov.in/old_website/wqstandards.html">10500:2015 BIS standard for drinking water</a>.<br>Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">user manual</a> and <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/disclaimer.html">data notes</a> for more details.',
+                            headerImage: 'assets/map-layer-groundwater.png',
+                            type: 'vector',
+                            id: 'groundwater',
+                            url: ' https://indianopenmaps.fly.dev/not-so-open/groundwater-prospects/lgeom/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_Groundwater_Prospects_LGEOM',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/gwis/">Bhuvan - Bhujal, Ministry of Drinking Water and Sanitation</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Des'],
+                                    [
+                                        'Structural Origin-Moderately Dissected Hills and Valleys',
+                                        'Structural Origin-Highly Dissected Hills and Valleys',
+                                        'Structural Origin-Low Dissected Hills and Valleys',
+                                        'Denudational Origin-Moderately Dissected Hills and Valleys',
+                                        'Denudational Origin-Highly Dissected Hills and Valleys',
+                                        'Denudational Origin-Piedmont Slope'],
+                                        '#d7ba8c',
+                                    'red'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.9
+                            },
+                            inspect: {
+                                id: 'OBJECTID',
+                                title: 'Hydrogeomorphic Unit',
+                                label: 'LG_2',
+                                fields: ['LG_13','LG_1', 'LG_3A', 'LG_3B', 'LG_4', 'LG_5A', 'LG_6A', 'LG_7A', 'LG_8A', 'LG_9', 'LG_10', 'LG_11', 'LG_12A', 'LG_12B'],
+                                fieldTitles: ['Groundwater Prospects','Rock Type', 'Well Type 1', 'Well Type 2', 'Yield', 'Water Resource', 'Depth to Water', 'Depth Range (m) Min', 'Depth Range (m) Max', 'Recharge', 'Quality (Potable/Non-Potable)', 'Salinity', 'Recharge Potential', 'Recharge Level']
+                            }
+                        },
+                        {
+                            title: 'Goa Mask',
+                            description: 'Mask for the state of Goa',
+                            headerImage: 'assets/map-layer-mask.png',
+                            type: 'vector',
+                            id: 'mask',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/states/lgd/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'LGD_States',
+                            maxzoom: 10,
+                            attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            initiallyChecked: true,
+                            style: {
+                                'fill-color': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    0, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 1)'
+                                    ],
+                                    8, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 1)'
+                                    ],
+                                    12, ['case',
+                                        ['==', ['get', 'STNAME'], 'GOA'],
+                                        'rgba(0, 0, 0, 0)',
+                                        'rgba(255, 255, 255, 0.1)'
+                                    ]
+                                ],
+                                'fill-opacity': 0.7
+                            }
+                        },
+                        {
+                            title: 'SOI Toposheets',
+                            description: 'Survey of India',
+                            headerImage: 'assets/map-layer-soi.png',
+                            legendImage: 'assets/map-layer-soi-legend.png',
+                            type: 'tms',
+                            id: 'goa-soi-map',
+                            url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
+                            attribution: '<a href="https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx">Open Series Toposheets from Survey of India</a>',
+                        },
+                        {
+                            title: 'Goa CZMP',
+                            description: 'Coastal Zone Management Plan 2019',
+                            headerImage: 'assets/map-layer-czmp.png',
+                            legendImage: 'assets/map-layer-czmp-legend.jpg',
+                            type: 'tms',
+                            id: 'goa-czmp-map',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
+                            attribution: '<a href="https://czmp.ncscm.res.in/">National Center For Sustainable Coastal Management</a> - Collected by <a href="https://datameet.org">Datameet Community</a>'
+                        },
+                        {
+                            title: 'AMS Maps (1970s)',
+                            description: '1:250000 maps from the U.S. Army Map Service created 1955-1970s',
+                            headerImage: 'assets/map-layer-ams.png',
+                            type: 'tms',
+                            id: 'goa-ams-map',
+                            url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
+                            attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
+                        },
+                        {
+                            id: 'osm',
+                            title: 'OpenStreetMap',
+                            description: 'OpenStreetMap Data',
+                            headerImage: 'assets/map-layer-osm.png',
+                            type: 'tms',
+                            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
+                            attribution: '© OpenStreetMap contributors'
+                        },
+                   
                         {
                             title: '3D Terrain',
                             description: 'Terrain Controls',
