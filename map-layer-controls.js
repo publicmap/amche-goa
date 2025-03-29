@@ -1393,6 +1393,40 @@ class MapLayerControl {
                 }
             });
         });
+
+        // Check if this is a vector layer type
+        if (group.type === 'vector') {
+            // Determine the geometry type of the layer based on style properties
+            const hasLineStyle = group.style && ('line-color' in group.style || 'line-width' in group.style);
+            const hasFillStyle = group.style && ('fill-color' in group.style || 'fill-opacity' in group.style);
+            
+            // For line-only layers (like lineaments), we only need to add a line layer
+            if (hasLineStyle && !hasFillStyle) {
+                // Add line layer only
+                this.map.addLayer({
+                    'id': layerId,
+                    'type': 'line',
+                    'source': sourceId,
+                    'source-layer': group.sourceLayer,
+                    'layout': {
+                        'visibility': visible ? 'visible' : 'none',
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': group.style['line-color'] || 'black',
+                        'line-width': group.style['line-width'] || 1,
+                        'line-opacity': group.style['line-opacity'] !== undefined ? group.style['line-opacity'] : 1
+                    },
+                    'filter': group.filter || null
+                }, this._getInsertPosition(group.type));
+                
+                this._setupLayerInteractivity(group, [layerId], sourceId);
+            } else {
+                // Add both fill and line layers as before for features with both types
+                // ... existing fill and line layer code ...
+            }
+        }
     }
 
     _toggleSourceControl(groupIndex, visible) {
