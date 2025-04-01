@@ -1059,6 +1059,18 @@ function getQueryParameters() {
                                     'orange'  // default color for all other cases
                                 ],
                                 'fill-extrusion-height': ['get', 'No_floors'],
+                                'fill-extrusion-color': 'brown',
+                                'fill-extrusion-opacity':[
+                                    "interpolate",
+                                        ["linear"],
+                                        ["zoom"],
+                                        15,
+                                        0,
+                                        17,
+                                        1,
+                                        19,
+                                        0.4
+                                        ],
                                 'fill-opacity': 0.9
                             },
                              inspect: {
