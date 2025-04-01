@@ -226,12 +226,14 @@ function getQueryParameters() {
                                 { title: 'Places', sourceLayer: 'place_label' },
                                 { title: 'Landmarks', sourceLayer: 'poi_label' },
                                 { title: 'Buildings', sourceLayer: 'building' },
+                                { title: 'Structures', sourceLayer: 'structure' },
                                 { title: 'Roads', sourceLayer: 'road' },
                                 { title: 'Hillshading', sourceLayer: 'hillshade' },
                                 { title: 'Landcover', sourceLayer: 'landcover' },
                                 { title: 'Landuse', sourceLayer: 'landuse' },
                                 { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
                                 { title: 'Waterways', sourceLayer: 'waterway' },
+                                { title: 'Waterbodies', sourceLayer: 'water' },
                             ]
                         },
                         {
@@ -983,6 +985,91 @@ function getQueryParameters() {
                             initiallyChecked: true
                         },
                         {
+                            title: 'Existing Landuse (AMRUT)',
+                            description: 'Landuse data for Panajim Urban Agglomeration collected for GIS based Master Plan formulation under Atal Mission for Rejuvenation and Urban Transformation (AMRUT)',
+                            headerImage: 'assets/map-layer-landuse-amrut.png',
+                            type: 'vector',
+                            id: 'landuse-amrut',
+                            url: 'https://indianopenmaps.fly.dev/not-so-open/goa/urban/land-use/amrut/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'GA_AMRUT_ULU',
+                            maxzoom: 14,
+                            attribution: '<a href="https://www.nrsc.gov.in/readmore_AMRUT">Bhuvan/AMRUT (2015-2023)</a> - Collected by <a href="https://github.com/ramSeraph/indian_land_features/releases/tag/urban-land-use">Datameet Community</a>',
+                            style: {
+                                'line-color': [
+                                    'match',
+                                    ['get', 'Sub_Class'],
+                                    ['Stream_filled','Lake_filled','River_filled'],
+                                    'blue',
+                                    ['Tree Clad Area'],
+                                    'green',
+                                    ['Play Ground','Park'],
+                                    'lightgreen',
+                                    ['Major City Road'], 
+                                    'red',
+                                    ['CG_Office','SG_Office','Bus stand /Terminus','School'], 
+                                    'red',
+                                    ['General Business','Retail'], 
+                                    'blue',
+                                    ['Port','Jetty','Storage Godown'], 
+                                    'purple',
+                                    ['Cropland'],
+                                    'yellow',
+                                    'transparent'  // default color for all other cases
+                                ],
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        2
+                                    ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'Sub_Class'],
+                                    ['Stream_filled','Lake_filled','River_filled'],
+                                    'blue',
+                                    ['Tree Clad Area'],
+                                    'green',
+                                    ['Play Ground','Park'],
+                                    'lightgreen',
+                                    ['Major City Road'], 
+                                    'red',
+                                    ['CG_Office','SG_Office','Bus stand /Terminus','School','Church','College','Temple','Govt. Hospital'], 
+                                    'red',
+                                    ['General Business','Retail','Commercial & Industrial','Hotel / Lodge / Restaurant','Residential & Commercial','Residential & Health Services','Private Hospital'], 
+                                    'blue',
+                                    ['Port','Jetty','Storage Godown'], 
+                                    'purple',
+                                    ['Cropland'],
+                                    'yellow',
+                                    'orange'  // default color for all other cases
+                                ],
+                                'fill-extrusion-height': ['get', 'No_floors'],
+                                'fill-opacity': 0.9
+                            },
+                             inspect: {
+                                id: 'OBJECTID',
+                                title: 'Description',
+                                label: 'Sub_Class',
+                                fields: ['Descr','Locality','Class','Code','No_floors'],
+                                fieldTitles: ['Name','Locality','Class','Code','Floors']
+                            }
+                        },
+                        {
                             title: 'Landcover',
                             description: 'Space based Information Support for Decentralized Planning (SISDP) Phase 2 10k Land Usage Land Cover data. Check the <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">SISDP technical manual</a> for background about the project and <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">Bhuvan Panchayat Portal User Manual</a> for more details.',
                             headerImage: 'assets/map-layer-landcover.png',
@@ -1051,7 +1138,16 @@ function getQueryParameters() {
                             maxzoom: 8,
                             attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php">Bhuvan</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                             style: {
-                                'line-color': 'black',
+                                'line-color': [
+                                    'match',
+                                    ['get', 'Des'],
+                                    ['Geomorphic Lineaments-Drainage Parallel','Geomorphic Lineaments-Drainage parallel'],
+                                        'blue',
+                                        'Structural Lineaments-Fault',
+                                        'red',
+                                        'Geomorphic Lineaments-Parallel to Shoreline',
+                                        'brown',
+                                        'black'],
                                 'line-width': [
                                     'interpolate',
                                     ['linear'],
@@ -1059,10 +1155,51 @@ function getQueryParameters() {
                                     14, [
                                         'case',
                                         ['boolean', ['feature-state', 'selected'], false],
-                                        0.5,
+                                        3,
                                         ['boolean', ['feature-state', 'hover'], false],
-                                        0.1,
+                                        2.5,
                                         2
+                                    ],
+                                    18, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        8,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        5,
+                                        4
+                                    ]
+                                ]
+                            },
+                            inspect: {
+                                id: 'LineaID',
+                                title: 'Description',
+                                label: 'Des'
+                            }
+                        },
+                        {
+                            title: 'Groundwater Prospects',
+                            description: 'Groundwater prospect maps prepared at 1:50k scale. Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">methodology</a> and <a href="https://www.nrsc.gov.in/sites/default/files/pdf/ebooks/RGNationalDrinkingWater_UserManual.pdf">user manual</a> for more details. Check <a href"https://ingres.iith.ac.in/gecdataonline/gis/INDIA">INDIA-Groundwater Resource Estimation System (IN-GRES)</a> for taluk level groundwater assessment reports.',
+                            headerImage: 'assets/map-layer-groundwater.png',
+                            legendImage: 'assets/map-layer-groundwater-legend.pdf',
+                            type: 'vector',
+                            id: 'groundwater',
+                            url: ' https://indianopenmaps.fly.dev/not-so-open/groundwater-prospects/lgeom/bhuvan/{z}/{x}/{y}.pbf',
+                            sourceLayer: 'Bhuvan_Groundwater_Prospects_LGEOM',
+                            maxzoom: 11,
+                            attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/gwis/">Bhuvan - Bhujal, Ministry of Drinking Water and Sanitation</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+                            style: {
+                                'line-color': 'blue',
+                                'line-width': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    14, [
+                                        'case',
+                                        ['boolean', ['feature-state', 'selected'], false],
+                                        4,
+                                        ['boolean', ['feature-state', 'hover'], false],
+                                        3,
+                                        1
                                     ],
                                     18, [
                                         'case',
@@ -1072,12 +1209,23 @@ function getQueryParameters() {
                                         5,
                                         2
                                     ]
-                                ]
+                                ],
+                                'fill-color': [
+                                    'match',
+                                    ['get', 'LG_4'],
+                                    'Good', '#03045E',
+                                    'Moderate', '#0077B6',
+                                    'Limited', '#00B4D8',
+                                    'grey'  // default color for all other cases
+                                ],
+                                'fill-opacity': 0.95
                             },
                             inspect: {
-                                id: 'test',
-                                title: 'Description',
-                                label: 'Des'
+                                id: 'OBJECTID',
+                                title: 'Hydrogeomorphic Landform',
+                                label: 'LG_2',
+                                fields: ['ALNUM_CODE', 'LG_13','LG_1', 'LG_3A', 'LG_3B', 'LG_4', 'LG_5A', 'LG_5B', 'LG_6A', 'LG_6B', 'LG_7A', 'LG_8A', 'LG_9', 'LG_10', 'LG_12A', 'LG_12B'],
+                                fieldTitles: ['Landform Code', 'Groundwater Prospects','Rock Type', 'Water Table Depth (summer avg.)', 'Number of Wells', 'Recharge Condition', 'Aquifier Material 1', 'Aquifier Material 2', 'Suggested Well Type 1', 'Suggested Well Type 2', 'Well Depth Range (m)', 'Expected Well Yield (m³/day)', 'Well Success Rate', 'Quality (Potable/Non-Potable)', 'Suitable Recharge Structures', 'Recharge Level']
                             }
                         },
                         {
@@ -1175,62 +1323,6 @@ function getQueryParameters() {
                                 id: 'test',
                                 title: 'Description',
                                 label: 'Des'
-                            }
-                        },
-                        {
-                            title: 'Groundwater Prospects',
-                            description: 'Groundwater prospect maps prepared at 1:50k scale. Groundwater Quality classification (potable/non-potable) is based on the <a href="https://www.cgwb.gov.in/old_website/wqstandards.html">10500:2015 BIS standard for drinking water</a>.<br>Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">user manual</a> and <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/disclaimer.html">data notes</a> for more details.',
-                            headerImage: 'assets/map-layer-groundwater.png',
-                            type: 'vector',
-                            id: 'groundwater',
-                            url: ' https://indianopenmaps.fly.dev/not-so-open/groundwater-prospects/lgeom/bhuvan/{z}/{x}/{y}.pbf',
-                            sourceLayer: 'Bhuvan_Groundwater_Prospects_LGEOM',
-                            maxzoom: 11,
-                            attribution: '<a href="https://bhuvan-app1.nrsc.gov.in/gwis/">Bhuvan - Bhujal, Ministry of Drinking Water and Sanitation</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
-                            style: {
-                                'line-color': 'blue',
-                                'line-width': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    14, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        4,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        3,
-                                        1
-                                    ],
-                                    18, [
-                                        'case',
-                                        ['boolean', ['feature-state', 'selected'], false],
-                                        8,
-                                        ['boolean', ['feature-state', 'hover'], false],
-                                        5,
-                                        2
-                                    ]
-                                ],
-                                'fill-color': [
-                                    'match',
-                                    ['get', 'Des'],
-                                    [
-                                        'Structural Origin-Moderately Dissected Hills and Valleys',
-                                        'Structural Origin-Highly Dissected Hills and Valleys',
-                                        'Structural Origin-Low Dissected Hills and Valleys',
-                                        'Denudational Origin-Moderately Dissected Hills and Valleys',
-                                        'Denudational Origin-Highly Dissected Hills and Valleys',
-                                        'Denudational Origin-Piedmont Slope'],
-                                        '#d7ba8c',
-                                    'red'  // default color for all other cases
-                                ],
-                                'fill-opacity': 0.9
-                            },
-                            inspect: {
-                                id: 'OBJECTID',
-                                title: 'Hydrogeomorphic Unit',
-                                label: 'LG_2',
-                                fields: ['LG_13','LG_1', 'LG_3A', 'LG_3B', 'LG_4', 'LG_5A', 'LG_6A', 'LG_7A', 'LG_8A', 'LG_9', 'LG_10', 'LG_11', 'LG_12A', 'LG_12B'],
-                                fieldTitles: ['Groundwater Prospects','Rock Type', 'Well Type 1', 'Well Type 2', 'Yield', 'Water Resource', 'Depth to Water', 'Depth Range (m) Min', 'Depth Range (m) Max', 'Recharge', 'Quality (Potable/Non-Potable)', 'Salinity', 'Recharge Potential', 'Recharge Level']
                             }
                         },
                         {

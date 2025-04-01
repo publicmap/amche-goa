@@ -1263,39 +1263,13 @@ class MapLayerControl {
                 $sourceControl.append($radioGroup);
             }
 
+            // When rendering legend images, we need to check if it's a PDF and handle it differently
             if (group.legendImage) {
-                const $legendContainer = $('<div>', {
-                    class: 'legend-container mt-4 px-2'
-                });
-
-                const $legendToggle = $('<button>', {
-                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
-                    html: '<span class="legend-icon">▼</span> Show Legend'
-                });
-
-                const $legendImage = $('<img>', {
-                    src: group.legendImage,
-                    class: 'w-full rounded-lg shadow-sm cursor-pointer',
-                    alt: 'Layer Legend'
-                });
-
-                const $legendContent = $('<div>', {
-                    class: 'legend-content hidden'
-                }).append($legendImage);
-
-                $legendToggle.on('click', () => {
-                    $legendContent.toggleClass('hidden');
-                    const $icon = $legendToggle.find('.legend-icon');
-                    $icon.text($legendContent.hasClass('hidden') ? '▼' : '▲');
-                    $legendToggle.html(`${$icon[0].outerHTML} ${$legendContent.hasClass('hidden') ? 'Show' : 'Hide'} Legend`);
-                });
-
-                $legendContainer.append($legendToggle, $legendContent);
-                
-                // Add legend to sl-details content area
-                const $contentArea = $('<div>');
-                $contentArea.append($legendContainer);
-                $groupHeader.append($contentArea);
+                $groupHeader.append(`
+                    <div class="legend-container">
+                        ${this._renderLegendImage(group.legendImage)}
+                    </div>
+                `);
             }
 
             // Add sublayer controls for style type
@@ -2196,6 +2170,26 @@ class MapLayerControl {
                 this._map.getCanvas().style.cursor = '';
             });
         });
+    }
+
+    // When rendering legend images, we need to check if it's a PDF and handle it differently
+    _renderLegendImage(legendImageUrl) {
+        if (!legendImageUrl) return '';
+        
+        // Check if the file is a PDF
+        if (legendImageUrl.toLowerCase().endsWith('.pdf')) {
+            return `
+                <div class="legend-pdf-container">
+                    <a href="${legendImageUrl}" target="_blank" class="pdf-legend-link">
+                        <sl-icon name="file-earmark-pdf" style="color: red; font-size: 1.5rem;"></sl-icon>
+                        <span>View Legend PDF</span>
+                    </a>
+                </div>
+            `;
+        } else {
+            // Handle regular image files as before
+            return `<img src="${legendImageUrl}" alt="Legend" class="legend-image">`;
+        }
     }
 }
 
