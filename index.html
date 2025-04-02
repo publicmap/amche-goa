@@ -180,7 +180,7 @@
             searchBox.addEventListener('input', (e) => {
                 if (e.target !== e.currentTarget) return;
                 const searchText = event.detail;
-                
+
                 // Update proximity with input map location
                 const center = map.getCenter();
 
@@ -295,6 +295,22 @@
                     maxzoom: 16,
                     attribution: '<a href="https://bhunaksha.goa.gov.in/bhunaksha/">Goa Bhunaksha</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-font': ['Open Sans Bold'],
+                        'text-field': [
+                            "step",
+                            ["zoom"],
+                            "",
+                            15,
+                            [
+                                "to-string",
+                                ['get', 'kide']
+                            ]
+                        ],
+                        'text-color': 'black',
+                        'text-halo-color': 'white',
+                        'text-halo-width': .5,
+                        'text-halo-blur': 1,
+                        'text-size': 13,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -346,6 +362,11 @@
                     maxzoom: 10,
                     attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0">NIC Bharatmaps GIS</a>, <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory, Ministry of Panchayati Raj</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-field': ['get', 'vilnam_soi'],
+                        'text-color': 'white',
+                        'text-halo-color': 'black',
+                        'text-halo-width': 5,
+                        'text-size': 14,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -395,6 +416,11 @@
                     maxzoom: 12,
                     attribution: '<a href="https://sbm-g-esriindia1.hub.arcgis.com/">Swachh Bharat Mission GIS</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-field': ['get', 'wardcode'],
+                        'text-color': 'white',
+                        'text-halo-color': 'purple',
+                        'text-halo-width': 5,
+                        'text-size': 14,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -445,6 +471,11 @@
                     attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     initiallyChecked: true,
                     style: {
+                        'text-field': ['get', 'gp_name'],
+                        'text-color': 'white',
+                        'text-halo-color': 'purple',
+                        'text-halo-width': 5,
+                        'text-size': 15,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -495,6 +526,11 @@
                     maxzoom: 10,
                     attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/2">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-field': ['get', 'ac_name'],
+                        'text-color': 'white',
+                        'text-halo-color': 'blue',
+                        'text-halo-width': 5,
+                        'text-size': 15,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -545,6 +581,11 @@
                     maxzoom: 10,
                     attribution: '<a href="https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/AC_PC/MapServer/1">LGD/Bharatmaps/ECI</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-field': ['get', 'pc_name'],
+                        'text-color': 'white',
+                        'text-halo-color': 'blue',
+                        'text-halo-width': 5,
+                        'text-size': 18,
                         'fill-color': [
                             'interpolate',
                             ['linear'],
@@ -561,18 +602,18 @@
                             8, [
                                 'case',
                                 ['boolean', ['feature-state', 'selected'], false],
-                                2,
+                                4,
                                 ['boolean', ['feature-state', 'hover'], false],
-                                1.5,
-                                .5
+                                4,
+                                3
                             ],
                             12, [
                                 'case',
                                 ['boolean', ['feature-state', 'selected'], false],
-                                4,
+                                6,
                                 ['boolean', ['feature-state', 'hover'], false],
-                                3,
-                                2
+                                6,
+                                5
                             ]
                         ],
                     },
@@ -890,16 +931,21 @@
                     }
                 },
                 {
-                    title: 'Major Mines',
+                    title: 'Mining Leases',
                     description: 'Major mining lease boundaries',
                     headerImage: 'assets/map-layer-mines.png',
                     type: 'vector',
-                    id: 'major-mines',
+                    id: 'mining',
                     url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
                     sourceLayer: 'NCOG_Major_Mining_Leases',
                     maxzoom: 11,
                     attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
+                        'text-field': ['get', 'mineral_na'],
+                        'text-color': 'white',
+                        'text-halo-color': 'red',
+                        'text-halo-width': 2,
+                        'text-size': 14,
                         'line-color': 'red',
                         'line-width': [
                             'interpolate',

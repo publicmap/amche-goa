@@ -766,6 +766,7 @@ class MapLayerControl {
                             type: 'symbol',
                             source: sourceId,
                             layout: {
+                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
                                 'text-field': group.style?.['text-field'] || this._defaultStyles.geojson.text['text-field'],
                                 'text-size': group.style?.['text-size'] || this._defaultStyles.geojson.text['text-size'],
                                 'text-anchor': group.style?.['text-anchor'] || this._defaultStyles.geojson.text['text-anchor'],
@@ -775,9 +776,10 @@ class MapLayerControl {
                                 visibility: 'none'
                             },
                             paint: {
-                                'text-color': group.style?.['text-color'] || this._defaultStyles.geojson.text['text-color'],
-                                'text-halo-color': group.style?.['text-halo-color'] || this._defaultStyles.geojson.text['text-halo-color'],
-                                'text-halo-width': group.style?.['text-halo-width'] || this._defaultStyles.geojson.text['text-halo-width']
+                                'text-color': group.style?.['text-color'] || '#000000',
+                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
                             }
                         }, this._getInsertPosition('geojson', 'symbol'));
                     }
@@ -1205,6 +1207,39 @@ class MapLayerControl {
                         this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
                     }
 
+                    // Add text layer if text styles are defined
+                    if (group.style?.['text-field']) {
+                        const textLayerConfig = {
+                            id: `vector-layer-${group.id}-text`,
+                            type: 'symbol',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none',
+                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
+                                'text-field': group.style['text-field'],
+                                'text-size': group.style?.['text-size'] || 12,
+                                'text-anchor': group.style?.['text-anchor'] || 'center',
+                                'text-justify': group.style?.['text-justify'] || 'center',
+                                'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
+                                'text-offset': group.style?.['text-offset'] || [0, 0]
+                            },
+                            paint: {
+                                'text-color': group.style?.['text-color'] || '#000000',
+                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
+                            }
+                        };
+
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            textLayerConfig.filter = group.filter;
+                        }
+
+                        this._map.addLayer(textLayerConfig, this._getInsertPosition('vector', 'symbol'));
+                    }
+
                     // Add inspect functionality if configured
                     if (group.inspect) {
                         const popup = new mapboxgl.Popup({
@@ -1225,6 +1260,7 @@ class MapLayerControl {
                         const layerIds = [];
                         if (hasFillStyles) layerIds.push(`vector-layer-${group.id}`);
                         if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
+                        if (group.style?.['text-field']) layerIds.push(`vector-layer-${group.id}-text`);
 
                         this._setupLayerInteractivity(group, layerIds, sourceId);
                     }
@@ -1577,6 +1613,12 @@ class MapLayerControl {
                 const lineLayerId = `vector-layer-${group.id}-outline`;
                 this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
             }
+
+            // Handle text layer visibility
+            if (group.style?.['text-field']) {
+                const textLayerId = `vector-layer-${group.id}-text`;
+                this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+            }
         }
     }
 
@@ -1883,6 +1925,11 @@ class MapLayerControl {
                 name: 'Timelapse',
                 url: `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`,
                 text: 'TL'
+            },
+            {
+                name: 'Copernicus Browser',
+                url: `https://browser.dataspace.copernicus.eu/?zoom=${zoom}&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=U2FsdGVkX18d3QCo8ly51mKnde%2FbnPTNY3M%2Bvkw2HJS5PZYTtLYG6ZjWVDYuz%2Bszj9bzKcR5Th1mcWjsfJneWz3DM1gd75vRaH%2BioFw2j3mQa79Yj8F7TkWwvb2ow0kh&datasetId=3c662330-108b-4378-8899-525fd5a225cb&fromTime=2024-12-01T00%3A00%3A00.000Z&toTime=2024-12-01T23%3A59%3A59.999Z&layerId=0-RGB-RATIO&demSource3D=%22MAPZEN%22&cloudCoverage=30&dateMode=SINGLE`,
+                text: 'CB'
             },
             {
                 name: 'Global Forest Watch',
