@@ -344,25 +344,75 @@ class MapLayerControl {
 
             // Update the sl-show/hide event handlers to properly sync toggle switch state
             $groupHeader[0].addEventListener('sl-show', (event) => {
+                const group = this._options.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
-                if (toggleInput) {
+                
+                if (toggleInput && !toggleInput.checked) {
                     toggleInput.checked = true;
-                    this._toggleSourceControl(groupIndex, true);
-                    $opacityButton.toggleClass('hidden', false);
-                    // Add active class
-                    $(event.target).closest('.layer-group').addClass('active');
                 }
+                
+                if (group.type === 'style') {
+                    // Update sublayer toggles
+                    const $sublayerToggles = $(event.target).find('.layer-controls .toggle-switch input[type="checkbox"]');
+                    $sublayerToggles.prop('checked', true);
+                    
+                    // Update layer visibility
+                    if (group.layers) {
+                        const styleLayers = this._map.getStyle().layers;
+                        group.layers.forEach(layer => {
+                            const layerIds = styleLayers
+                                .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                                .map(styleLayer => styleLayer.id);
+                            
+                            layerIds.forEach(layerId => {
+                                if (this._map.getLayer(layerId)) {
+                                    this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                                }
+                            });
+                        });
+                    }
+                } else {
+                    this._toggleSourceControl(groupIndex, true);
+                }
+                
+                $opacityButton.toggleClass('hidden', false);
+                $(event.target).closest('.layer-group').addClass('active');
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
+                const group = this._options.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
-                if (toggleInput) {
+                
+                if (toggleInput && toggleInput.checked) {
                     toggleInput.checked = false;
-                    this._toggleSourceControl(groupIndex, false);
-                    $opacityButton.toggleClass('hidden', true);
-                    // Remove active class
-                    $(event.target).closest('.layer-group').removeClass('active');
                 }
+                
+                if (group.type === 'style') {
+                    // Update sublayer toggles
+                    const $sublayerToggles = $(event.target).find('.layer-controls .toggle-switch input[type="checkbox"]');
+                    $sublayerToggles.prop('checked', false);
+                    
+                    // Update layer visibility
+                    if (group.layers) {
+                        const styleLayers = this._map.getStyle().layers;
+                        group.layers.forEach(layer => {
+                            const layerIds = styleLayers
+                                .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                                .map(styleLayer => styleLayer.id);
+                            
+                            layerIds.forEach(layerId => {
+                                if (this._map.getLayer(layerId)) {
+                                    this._map.setLayoutProperty(layerId, 'visibility', 'none');
+                                }
+                            });
+                        });
+                    }
+                } else {
+                    this._toggleSourceControl(groupIndex, false);
+                }
+                
+                $opacityButton.toggleClass('hidden', true);
+                $(event.target).closest('.layer-group').removeClass('active');
             });
 
             // Initialize layers only if they should be visible
@@ -397,14 +447,45 @@ class MapLayerControl {
 
             // Add a click handler to the summary to control how clicks are processed
             $summary.on('click', (e) => {
-                // Only prevent default sl-details behavior if not clicking directly on toggle
-                if (!$(e.target).closest('.toggle-switch').length) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Always handle the click through our custom logic
+                const $toggle = $summary.find('.toggle-switch input');
+                const newState = !$toggle.prop('checked');
+                
+                // Update the toggle state
+                $toggle.prop('checked', newState);
+                
+                // For style layers, handle visibility directly
+                if (group.type === 'style') {
+                    // Update sl-details state
+                    $groupHeader[0].open = newState;
                     
-                    // Find and toggle the input
-                    const $toggle = $summary.find('.toggle-switch input');
-                    $toggle.prop('checked', !$toggle.prop('checked'));
+                    // Update sublayer toggles
+                    const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
+                    $sublayerToggles.prop('checked', newState);
+                    
+                    // Update layer visibility
+                    if (group.layers) {
+                        const styleLayers = this._map.getStyle().layers;
+                        group.layers.forEach(layer => {
+                            const layerIds = styleLayers
+                                .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                                .map(styleLayer => styleLayer.id);
+                            
+                            layerIds.forEach(layerId => {
+                                if (this._map.getLayer(layerId)) {
+                                    this._map.setLayoutProperty(layerId, 'visibility', newState ? 'visible' : 'none');
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Update active class
+                    $groupHeader.closest('.layer-group').toggleClass('active', newState);
+                } else {
+                    // For non-style layers, trigger the change event
                     $toggle.trigger('change');
                 }
             });
@@ -423,11 +504,52 @@ class MapLayerControl {
                 checked: group.initiallyChecked || false
             }).on('change', (e) => {
                 const isChecked = e.target.checked;
-                if (isChecked !== $groupHeader[0].open) {
+                const group = this._options.groups[groupIndex];
+                
+                // Special handling for style type layers
+                if (group.type === 'style') {
+                    // Update sl-details state
                     $groupHeader[0].open = isChecked;
+                    
+                    // Update sublayer toggles to match parent visibility
+                    const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
+                    $sublayerToggles.prop('checked', isChecked);
+                    
+                    // Update layer visibility
+                    if (group.layers) {
+                        const styleLayers = this._map.getStyle().layers;
+                        group.layers.forEach(layer => {
+                            const layerIds = styleLayers
+                                .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
+                                .map(styleLayer => styleLayer.id);
+                            
+                            layerIds.forEach(layerId => {
+                                if (this._map.getLayer(layerId)) {
+                                    this._map.setLayoutProperty(layerId, 'visibility', isChecked ? 'visible' : 'none');
+                                }
+                            });
+                        });
+                    }
+                } else {
+                    // Existing handling for non-style layers
+                    if (isChecked !== $groupHeader[0].open) {
+                        const self = this;
+                        const handler = function(event) {
+                            const checked = event.target.checked;
+                            if (checked !== $groupHeader[0].open) {
+                                $toggleInput.off('change', handler);
+                                $groupHeader[0].open = checked;
+                                setTimeout(() => {
+                                    $toggleInput.on('change', handler);
+                                }, 0);
+                            }
+                            $groupHeader.closest('.layer-group').toggleClass('active', checked);
+                        };
+                        handler.call(this, e);
+                    }
                 }
                 
-                // Update active class for styling in browsers without :has() support
+                // Update active class
                 $groupHeader.closest('.layer-group').toggleClass('active', isChecked);
             });
 
