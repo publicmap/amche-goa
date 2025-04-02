@@ -1063,7 +1063,16 @@
                     attribution: '<a href="https://www.nrsc.gov.in/readmore_AMRUT">Bhuvan/AMRUT (2015-2023)</a> - Collected by <a href="https://github.com/ramSeraph/indian_land_features/releases/tag/urban-land-use">Datameet Community</a>',
                     style: {
                         'text-font': ['Open Sans Regular'],
-                        'text-field': ['get', 'Sub_Class'],
+                        'text-field': [
+                            "step",
+                            ["zoom"],
+                            "",
+                            15,
+                            [
+                                "to-string",
+                                ['get', 'Sub_Class']
+                            ]
+                        ],
                         'text-color': [
                             'match',
                             ['get', 'Sub_Class'],
