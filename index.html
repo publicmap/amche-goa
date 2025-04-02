@@ -998,23 +998,25 @@ function getQueryParameters() {
                                 'line-color': [
                                     'match',
                                     ['get', 'Sub_Class'],
-                                    ['Stream_filled','Lake_filled','River_filled'],
-                                    'blue',
-                                    ['Tree Clad Area'],
+                                    ['Ponds_filled','Stream_filled','Lake_filled','River_filled'],
+                                    'lightblue',
+                                    ['Aquaculture','Salt pan'],
+                                    'cyan',
+                                    ['Tree Clad Area','Scrub land','Swampy'],
                                     'green',
-                                    ['Play Ground','Park'],
+                                    ['Play Ground','Park','Sports Centre','Stadium'],
                                     'lightgreen',
-                                    ['Major City Road'], 
+                                    ['Major City Road','Parking Space / Area','Multi-level Parking'], 
+                                    'black',
+                                    ['CG_Office','SG_Office','Bus stand /Terminus','Railway Station','Railway Track Area','Art Gallery & Cultural Centre','Public Library','Cantonment/Battalion','Fire Station','University','Helipad','School','Church','College','Temple','Community hall','Police Station','Govt. Hospital'], 
                                     'red',
-                                    ['CG_Office','SG_Office','Bus stand /Terminus','School'], 
-                                    'red',
-                                    ['General Business','Retail'], 
+                                    ['General Business','Retail','Commercial & Industrial','Shopping Centre / Mall','Hotel / Lodge / Restaurant','Resort','Banks','Residential & Commercial','Residential & Health Services','Private Hospital'], 
                                     'blue',
-                                    ['Port','Jetty','Storage Godown'], 
+                                    ['Port','Jetty','Storage Godown','Industrial Estate / SEZ','Radio/TV Station','Quarry'], 
                                     'purple',
-                                    ['Cropland'],
+                                    ['Cropland','Fallow land'],
                                     'yellow',
-                                    'transparent'  // default color for all other cases
+                                    'orange'  // default color for all other cases
                                 ],
                                 'line-width': [
                                     'interpolate',
@@ -1040,21 +1042,23 @@ function getQueryParameters() {
                                 'fill-color': [
                                     'match',
                                     ['get', 'Sub_Class'],
-                                    ['Stream_filled','Lake_filled','River_filled'],
-                                    'blue',
-                                    ['Tree Clad Area'],
+                                    ['Ponds_filled','Stream_filled','Lake_filled','River_filled'],
+                                    'lightblue',
+                                    ['Aquaculture','Salt pan'],
+                                    'cyan',
+                                    ['Tree Clad Area','Scrub land','Swampy'],
                                     'green',
-                                    ['Play Ground','Park'],
+                                    ['Play Ground','Park','Sports Centre','Stadium'],
                                     'lightgreen',
-                                    ['Major City Road'], 
+                                    ['Major City Road','Parking Space / Area','Multi-level Parking'], 
+                                    'black',
+                                    ['CG_Office','SG_Office','Bus stand /Terminus','Railway Station','Railway Track Area','Art Gallery & Cultural Centre','Public Library','Cantonment/Battalion','Fire Station','University','Helipad','School','Church','College','Temple','Community hall','Police Station','Govt. Hospital'], 
                                     'red',
-                                    ['CG_Office','SG_Office','Bus stand /Terminus','School','Church','College','Temple','Govt. Hospital'], 
-                                    'red',
-                                    ['General Business','Retail','Commercial & Industrial','Hotel / Lodge / Restaurant','Residential & Commercial','Residential & Health Services','Private Hospital'], 
+                                    ['General Business','Retail','Commercial & Industrial','Shopping Centre / Mall','Hotel / Lodge / Restaurant','Resort','Banks','Residential & Commercial','Residential & Health Services','Private Hospital'], 
                                     'blue',
-                                    ['Port','Jetty','Storage Godown'], 
+                                    ['Port','Jetty','Storage Godown','Industrial Estate / SEZ','Radio/TV Station','Quarry'], 
                                     'purple',
-                                    ['Cropland'],
+                                    ['Cropland','Fallow land'],
                                     'yellow',
                                     'orange'  // default color for all other cases
                                 ],
@@ -1074,7 +1078,7 @@ function getQueryParameters() {
                                 'fill-opacity': 0.9
                             },
                              inspect: {
-                                id: 'OBJECTID',
+                                id: 'Sub_Class',
                                 title: 'Description',
                                 label: 'Sub_Class',
                                 fields: ['Descr','Locality','Class','Code','No_floors'],
@@ -1126,17 +1130,17 @@ function getQueryParameters() {
                                     ['AGAQ','WLST'], 
                                     'cyan',
                                     ['WBRT','WLWL','WBRS'], 
-                                    'blue',
+                                    'lightblue',
                                     'black'  // default color for all other cases
                                 ],
-                                'fill-opacity': 0.5
+                                'fill-opacity': 0.8
                             },
                              inspect: {
                                 id: 'OBJECTID',
                                 title: 'Description',
                                 label: 'dscr3',
-                                fields: ['dscr1','dscr2','lc_code'],
-                                fieldTitles: ['Description 1','Description 2','Land Cover Code']
+                                fields: ['dscr2','dscr1','lc_code'],
+                                fieldTitles: ['Type','Category','Land Cover Code']
                             }
                         },
                         {
