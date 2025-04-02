@@ -1208,18 +1208,60 @@
                     maxzoom: 13,
                     attribution: '<a href="https://bhuvanpanchayat.nrsc.gov.in">Bhuvan Land Use Land Cover (10K):SIS-DP Phase2:2018-23</a> - Collected by <a href="https://github.com/ramSeraph/indian_land_features/releases/tag/landuse">Datameet Community</a>',
                     style: {
-                        'line-color': 'blue',
+                        'text-font': ['Open Sans Regular'],
+                        'text-field': [
+                            "step",
+                            ["zoom"],
+                            "",
+                            13,
+                            [
+                                "to-string",
+                                ['get', 'dscr3']
+                            ]
+                        ],
+                        'text-color': [
+                            'match',
+                            ['get', 'lc_code'],
+                            'AGCR',
+                            'black',
+                            ['AGAQ', 'WLST'],
+                            'black',
+                            ['WBRT', 'WLWL', 'WBRS','WBLP'],
+                            'black',
+                        'white'],
+                        'text-halo-color': [
+                            'match',
+                            ['get', 'lc_code'],
+                            'AGCR',
+                            'yellow',
+                            ['BUUR', 'BURV', 'BURM', 'BUUP', 'BURU', 'BURH', 'BUUC'],
+                            'red',
+                            ['BUTP'],
+                            'black',
+                            ['BUMN'],
+                            'purple',
+                            ['WLSP', 'FRDE', 'FRMG', 'FRPL', 'AGPL', 'WLSD'],
+                            'green',
+                            ['AGAQ', 'WLST'],
+                            'cyan',
+                            ['WBRT', 'WLWL', 'WBRS','WBLP'],
+                            'lightblue',
+                            'black'  // default color for all other cases
+                        ],
+                        'text-halo-width': 5,
+                        'text-size': 13,
+                        'line-color': 'black',
                         'line-width': [
                             'interpolate',
                             ['linear'],
                             ['zoom'],
-                            14, [
+                            11, [
                                 'case',
                                 ['boolean', ['feature-state', 'selected'], false],
-                                4,
+                                1,
                                 ['boolean', ['feature-state', 'hover'], false],
-                                3,
-                                1
+                                1,
+                                0
                             ],
                             18, [
                                 'case',
@@ -1235,13 +1277,17 @@
                             ['get', 'lc_code'],
                             'AGCR',
                             'yellow',
-                            ['BUUR', 'BURV', 'BURM', 'BUMN', 'BUUP', 'BURU', 'BURH', 'BUTP', 'BUUC'],
+                            ['BUUR', 'BURV', 'BURM', 'BUUP', 'BURU', 'BURH', 'BUUC'],
                             'red',
+                            ['BUTP'],
+                            'black',
+                            ['BUMN'],
+                            'purple',
                             ['WLSP', 'FRDE', 'FRMG', 'FRPL', 'AGPL', 'WLSD'],
                             'green',
                             ['AGAQ', 'WLST'],
                             'cyan',
-                            ['WBRT', 'WLWL', 'WBRS'],
+                            ['WBRT', 'WLWL', 'WBRS','WBLP'],
                             'lightblue',
                             'black'  // default color for all other cases
                         ],
