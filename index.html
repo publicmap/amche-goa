@@ -73,8 +73,7 @@
             </a>
             <div>
                 <mapbox-search-box
-                    access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A"
-                    proximity="0,0">
+                    access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A">
                 </mapbox-search-box>
             </div>
         </div>
@@ -178,18 +177,26 @@
                 bbox: [73.5, 14.8, 74.2, 15.8] // Bounding box for Goa
             }
 
-            search.addEventListener('input', (event) => {
+            searchBox.addEventListener('input', (e) => {
                 if (e.target !== e.currentTarget) return;
                 const searchText = event.detail;
+                
+                // Update proximity with input map location
+                const center = map.getCenter();
 
-                searchBox.options.proximity
+                searchBox.options.proximity = {
+                    lng: center.lng,
+                    lat: center.lat
+                };
+
             });
 
-            // add an event listener to handle the `retrieve` event
-            searchBox.addEventListener('retrieve', (e) => {
-                const feature = e.detail;
-                console.log(feature) // geojson object representing the selected item
-            });
+            // // add an event listener to handle the `retrieve` event
+            // searchBox.addEventListener('retrieve', (e) => {
+            //     const feature = e.detail;
+            //     console.log(feature) // geojson object representing the selected item
+            // });
+
 
             // set the mapboxgl library to use for markers and enable the marker functionality
             searchBox.mapboxgl = mapboxgl
