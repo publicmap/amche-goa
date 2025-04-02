@@ -102,4 +102,30 @@ export function gstableToArray(tableData) {
         return obj;
     });
     return result;
+}
+
+/**
+ * Extracts and parses query parameters from the URL
+ * @returns {Object} Object containing query parameters as key-value pairs
+ */
+export function getQueryParameters() {
+    const params = {};
+    window.location.search.substring(1).split('&').forEach(param => {
+        const [key, value] = param.split('=');
+        if (key) params[key] = decodeURIComponent(value || '');
+    });
+    return params;
+}
+
+/**
+ * Converts longitude and latitude coordinates to Web Mercator projection
+ * @param {number} lng - Longitude coordinate
+ * @param {number} lat - Latitude coordinate
+ * @returns {Object} Object with x and y coordinates in Web Mercator
+ */
+export function convertToWebMercator(lng, lat) {
+    const x = (lng * 20037508.34) / 180;
+    let y = Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180);
+    y = (y * 20037508.34) / 180;
+    return { x, y };
 } 

@@ -1,13 +1,5 @@
+import { getQueryParameters, convertToWebMercator } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
-
-// Update the getQueryParameters function to handle empty parameters correctly
-function getQueryParameters() {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    
-    // Return the URLSearchParams object directly
-    return urlParams;
-}
 
 class MapLayerControl {
     constructor(options) {
@@ -91,6 +83,18 @@ class MapLayerControl {
                     'star-intensity': 0.0
                 }
             }
+        };
+
+        // Add default layer type ordering
+        this._layerTypeOrder = options.layerTypeOrder || {
+            background: 0,
+            raster: 1,
+            fill: 2,
+            line: 3,
+            symbol: 4,
+            circle: 5,
+            'fill-extrusion': 6,
+            heatmap: 7
         };
 
         this._domCache = {};
@@ -250,11 +254,11 @@ class MapLayerControl {
         const visibleLayers = [];
         
         this._options.groups.forEach((group, index) => {
-            // Find the checkbox within the group header
+            // Find the toggle input within the group header
             const groupHeader = this._sourceControls[index]?.closest('.group-header');
-            const checkbox = groupHeader?.querySelector('input[type="checkbox"]');
+            const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
             
-            if (checkbox?.checked) {
+            if (toggleInput?.checked) {
                 if (group.type === 'terrain') {
                     visibleLayers.push('terrain');
                 } else if (group.type === 'vector') {
@@ -305,20 +309,21 @@ class MapLayerControl {
     }
 
     _initializeControl($container) {
-        // Add URL parameter handling at the start
-        const urlParams = getQueryParameters();
-        const layersParam = urlParams.get('layers');
+        // Replace the line that's causing the error (around line 302)
+        // FROM: const urlParams = getQueryParameters();
+        // TO:
+        const urlParams = new URLSearchParams(window.location.search);
         
         // If no layers parameter is specified, treat all initiallyChecked layers as active
-        const activeLayers = layersParam ? 
-            layersParam.split(',').map(s => s.trim()) : 
+        const activeLayers = urlParams.get('layers') ? 
+            urlParams.get('layers').split(',').map(s => s.trim()) : 
             this._options.groups
                 .filter(group => group.initiallyChecked)
                 .map(group => group.type === 'style' ? 'streetmap' : group.id);
 
         this._options.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
-            if (layersParam) {
+            if (urlParams.get('layers')) {
                 if (group.type === 'style') {
                     group.initiallyChecked = activeLayers.includes('streetmap');
                 } else if (group.type === 'layer-group') {
@@ -337,27 +342,34 @@ class MapLayerControl {
             });
             this._sourceControls[groupIndex] = $groupHeader[0];
 
-            // Update the sl-show/hide event handlers to properly sync checkbox state
+            // Update the sl-show/hide event handlers to properly sync toggle switch state
             $groupHeader[0].addEventListener('sl-show', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = true;
+                const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
+                if (toggleInput) {
+                    toggleInput.checked = true;
                     this._toggleSourceControl(groupIndex, true);
                     $opacityButton.toggleClass('hidden', false);
+                    // Add active class
+                    $(event.target).closest('.layer-group').addClass('active');
                 }
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = false;
+                const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
+                if (toggleInput) {
+                    toggleInput.checked = false;
                     this._toggleSourceControl(groupIndex, false);
                     $opacityButton.toggleClass('hidden', true);
+                    // Remove active class
+                    $(event.target).closest('.layer-group').removeClass('active');
                 }
             });
 
             // Initialize layers only if they should be visible
             if (group.initiallyChecked) {
+                // Set active class based on initial state
+                $groupHeader.closest('.layer-group').addClass('active');
+                
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
@@ -383,32 +395,58 @@ class MapLayerControl {
                 class: 'flex items-center relative w-full h-12'
             });
 
+            // Add a click handler to the summary to control how clicks are processed
+            $summary.on('click', (e) => {
+                // Only prevent default sl-details behavior if not clicking directly on toggle
+                if (!$(e.target).closest('.toggle-switch').length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Find and toggle the input
+                    const $toggle = $summary.find('.toggle-switch input');
+                    $toggle.prop('checked', !$toggle.prop('checked'));
+                    $toggle.trigger('change');
+                }
+            });
+
             const $contentWrapper = $('<div>', {
                 class: 'flex items-center gap-2 relative z-10 w-full p-2'
             });
 
-            // Replace the existing checkbox creation with this:
-            const $checkboxLabel = $('<label>', {
-                class: 'flex items-center gap-2 cursor-pointer'
+            // Replace checkbox with toggle switch
+            const $toggleLabel = $('<label>', {
+                class: 'toggle-switch'
             });
 
-            const $checkbox = $('<input>', {
+            const $toggleInput = $('<input>', {
                 type: 'checkbox',
-                checked: group.initiallyChecked || false,
-                class: 'w-4 h-4'
+                checked: group.initiallyChecked || false
             }).on('change', (e) => {
                 const isChecked = e.target.checked;
                 if (isChecked !== $groupHeader[0].open) {
                     $groupHeader[0].open = isChecked;
                 }
+                
+                // Update active class for styling in browsers without :has() support
+                $groupHeader.closest('.layer-group').toggleClass('active', isChecked);
             });
+
+            const $toggleSlider = $('<span>', {
+                class: 'toggle-slider'
+            });
+
+            $toggleLabel.append($toggleInput, $toggleSlider);
 
             const $titleSpan = $('<span>', {
                 text: group.title,
                 class: 'control-title text-sm font-medium font-bold text-white'
             });
 
-            $checkboxLabel.append($checkbox, $titleSpan);
+            // Simplify the toggle title container to just hold the elements
+            const $toggleTitleContainer = $('<div>', {
+                class: 'flex items-center gap-2 cursor-pointer'
+            });
+            $toggleTitleContainer.append($toggleLabel, $titleSpan);
 
             const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
@@ -507,8 +545,7 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($checkboxLabel, $opacityButton);
-            $groupHeader.append($summary);
+            $contentWrapper.append($toggleTitleContainer, $opacityButton);
 
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
@@ -699,7 +736,7 @@ class MapLayerControl {
                         layout: {
                             visibility: 'none'
                         }
-                    });
+                    }, this._getInsertPosition('geojson', 'fill'));
 
                     // Add line layer
                     this._map.addLayer({
@@ -720,7 +757,7 @@ class MapLayerControl {
                         layout: {
                             'visibility': 'none'
                         }
-                    });
+                    }, this._getInsertPosition('geojson', 'line'));
 
                     // Add text layer if text properties are defined
                     if (group.style?.['text-field'] || group.style?.['text-size']) {
@@ -729,6 +766,7 @@ class MapLayerControl {
                             type: 'symbol',
                             source: sourceId,
                             layout: {
+                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
                                 'text-field': group.style?.['text-field'] || this._defaultStyles.geojson.text['text-field'],
                                 'text-size': group.style?.['text-size'] || this._defaultStyles.geojson.text['text-size'],
                                 'text-anchor': group.style?.['text-anchor'] || this._defaultStyles.geojson.text['text-anchor'],
@@ -738,11 +776,12 @@ class MapLayerControl {
                                 visibility: 'none'
                             },
                             paint: {
-                                'text-color': group.style?.['text-color'] || this._defaultStyles.geojson.text['text-color'],
-                                'text-halo-color': group.style?.['text-halo-color'] || this._defaultStyles.geojson.text['text-halo-color'],
-                                'text-halo-width': group.style?.['text-halo-width'] || this._defaultStyles.geojson.text['text-halo-width']
+                                'text-color': group.style?.['text-color'] || '#000000',
+                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
                             }
-                        });
+                        }, this._getInsertPosition('geojson', 'symbol'));
                     }
 
                     // Fix interactivity by adding event listeners to all layer types
@@ -760,21 +799,24 @@ class MapLayerControl {
 
                 const $contoursContainer = $('<div>', { class: 'mb-4' });
                 const $contoursLabel = $('<label>', { class: 'flex items-center' });
-                const $contoursCheckbox = $('<input>', {
+                
+                // Replace checkbox with toggle switch
+                const $contoursToggleLabel = $('<label>', {
+                    class: 'toggle-switch mr-2'
+                });
+                
+                const $contoursToggleInput = $('<input>', {
                     type: 'checkbox',
-                    class: 'mr-2',
                     checked: false
                 });
+                
+                const $contoursToggleSlider = $('<span>', {
+                    class: 'toggle-slider'
+                });
+                
+                $contoursToggleLabel.append($contoursToggleInput, $contoursToggleSlider);
 
-                $contoursLabel.append(
-                    $contoursCheckbox,
-                    $('<span>', {
-                        class: 'text-sm text-gray-700',
-                        text: 'Contours'
-                    })
-                );
-
-                $contoursCheckbox.on('change', (e) => {
+                $contoursToggleInput.on('change', (e) => {
                     const contourLayers = [
                         'contour lines',
                         'contour labels'
@@ -790,6 +832,14 @@ class MapLayerControl {
                         }
                     });
                 });
+
+                $contoursLabel.append(
+                    $contoursToggleLabel,
+                    $('<span>', {
+                        class: 'text-sm text-gray-700',
+                        text: 'Contours'
+                    })
+                );
 
                 $contoursContainer.append($contoursLabel);
                 $sourceControl.append($contoursContainer);
@@ -1129,7 +1179,7 @@ class MapLayerControl {
                             fillLayerConfig.filter = group.filter;
                         }
                         
-                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector'));
+                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector', 'fill'));
                     }
 
                     // Add line layer if line styles are defined
@@ -1154,7 +1204,40 @@ class MapLayerControl {
                             lineLayerConfig.filter = group.filter;
                         }
                         
-                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector'));
+                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
+                    }
+
+                    // Add text layer if text styles are defined
+                    if (group.style?.['text-field']) {
+                        const textLayerConfig = {
+                            id: `vector-layer-${group.id}-text`,
+                            type: 'symbol',
+                            source: sourceId,
+                            'source-layer': group.sourceLayer || 'default',
+                            layout: {
+                                visibility: 'none',
+                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
+                                'text-field': group.style['text-field'],
+                                'text-size': group.style?.['text-size'] || 12,
+                                'text-anchor': group.style?.['text-anchor'] || 'center',
+                                'text-justify': group.style?.['text-justify'] || 'center',
+                                'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
+                                'text-offset': group.style?.['text-offset'] || [0, 0]
+                            },
+                            paint: {
+                                'text-color': group.style?.['text-color'] || '#000000',
+                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
+                            }
+                        };
+
+                        // Only add filter if it's defined
+                        if (group.filter) {
+                            textLayerConfig.filter = group.filter;
+                        }
+
+                        this._map.addLayer(textLayerConfig, this._getInsertPosition('vector', 'symbol'));
                     }
 
                     // Add inspect functionality if configured
@@ -1177,6 +1260,7 @@ class MapLayerControl {
                         const layerIds = [];
                         if (hasFillStyles) layerIds.push(`vector-layer-${group.id}`);
                         if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
+                        if (group.style?.['text-field']) layerIds.push(`vector-layer-${group.id}-text`);
 
                         this._setupLayerInteractivity(group, layerIds, sourceId);
                     }
@@ -1263,39 +1347,13 @@ class MapLayerControl {
                 $sourceControl.append($radioGroup);
             }
 
+            // When rendering legend images, we need to check if it's a PDF and handle it differently
             if (group.legendImage) {
-                const $legendContainer = $('<div>', {
-                    class: 'legend-container mt-4 px-2'
-                });
-
-                const $legendToggle = $('<button>', {
-                    class: 'text-sm text-gray-700 flex items-center gap-2 mb-2 hover:text-gray-900',
-                    html: '<span class="legend-icon">▼</span> Show Legend'
-                });
-
-                const $legendImage = $('<img>', {
-                    src: group.legendImage,
-                    class: 'w-full rounded-lg shadow-sm cursor-pointer',
-                    alt: 'Layer Legend'
-                });
-
-                const $legendContent = $('<div>', {
-                    class: 'legend-content hidden'
-                }).append($legendImage);
-
-                $legendToggle.on('click', () => {
-                    $legendContent.toggleClass('hidden');
-                    const $icon = $legendToggle.find('.legend-icon');
-                    $icon.text($legendContent.hasClass('hidden') ? '▼' : '▲');
-                    $legendToggle.html(`${$icon[0].outerHTML} ${$legendContent.hasClass('hidden') ? 'Show' : 'Hide'} Legend`);
-                });
-
-                $legendContainer.append($legendToggle, $legendContent);
-                
-                // Add legend to sl-details content area
-                const $contentArea = $('<div>');
-                $contentArea.append($legendContainer);
-                $groupHeader.append($contentArea);
+                $groupHeader.append(`
+                    <div class="legend-container">
+                        ${this._renderLegendImage(group.legendImage)}
+                    </div>
+                `);
             }
 
             // Add sublayer controls for style type
@@ -1310,15 +1368,25 @@ class MapLayerControl {
                         class: 'flex items-center gap-2 mb-2 text-black'
                     });
 
-                    const $sublayerCheckbox = $('<input>', {
+                    // Replace checkbox with toggle switch for sublayers
+                    const $sublayerToggleLabel = $('<label>', {
+                        class: 'toggle-switch'
+                    });
+
+                    const $sublayerToggleInput = $('<input>', {
                         type: 'checkbox',
                         id: layerId,
-                        class: 'sublayer-checkbox w-4 h-4',
                         checked: group.initiallyChecked || false
                     });
 
-                    // Add change event listener for the checkbox
-                    $sublayerCheckbox.on('change', (e) => {
+                    const $sublayerToggleSlider = $('<span>', {
+                        class: 'toggle-slider'
+                    });
+
+                    $sublayerToggleLabel.append($sublayerToggleInput, $sublayerToggleSlider);
+
+                    // Add change event listener for the toggle
+                    $sublayerToggleInput.on('change', (e) => {
                         const styleLayers = this._map.getStyle().layers;
                         const layersToToggle = styleLayers
                             .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
@@ -1335,13 +1403,20 @@ class MapLayerControl {
                         });
                     });
 
+                    // Create a clickable label that will toggle the switch
                     const $label = $('<label>', {
                         for: layerId,
-                        class: 'text-sm',
-                        text: layer.title
+                        class: 'text-sm cursor-pointer flex-grow'
+                    }).text(layer.title).on('click', (e) => {
+                        // Prevent default behavior to avoid double-toggling
+                        e.preventDefault();
+                        
+                        // Toggle the input and trigger change event
+                        $sublayerToggleInput.prop('checked', !$sublayerToggleInput.prop('checked'));
+                        $sublayerToggleInput.trigger('change');
                     });
 
-                    $layerControl.append($sublayerCheckbox, $label);
+                    $layerControl.append($sublayerToggleLabel, $label);
                     return $layerControl;
                 }));
 
@@ -1365,6 +1440,11 @@ class MapLayerControl {
                     }
                 });
             }
+
+            // Add contentWrapper to summary and summary to groupHeader
+            $contentWrapper.append($toggleTitleContainer, $opacityButton);
+            $summary.append($contentWrapper);
+            $groupHeader.append($summary);
         });
 
         if (!this._initialized) {
@@ -1393,6 +1473,40 @@ class MapLayerControl {
                 }
             });
         });
+
+        // Check if this is a vector layer type
+        if (group.type === 'vector') {
+            // Determine the geometry type of the layer based on style properties
+            const hasLineStyle = group.style && ('line-color' in group.style || 'line-width' in group.style);
+            const hasFillStyle = group.style && ('fill-color' in group.style || 'fill-opacity' in group.style);
+            
+            // For line-only layers (like lineaments), we only need to add a line layer
+            if (hasLineStyle && !hasFillStyle) {
+                // Add line layer only
+                this.map.addLayer({
+                    'id': layerId,
+                    'type': 'line',
+                    'source': sourceId,
+                    'source-layer': group.sourceLayer,
+                    'layout': {
+                        'visibility': visible ? 'visible' : 'none',
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': group.style['line-color'] || 'black',
+                        'line-width': group.style['line-width'] || 1,
+                        'line-opacity': group.style['line-opacity'] !== undefined ? group.style['line-opacity'] : 1
+                    },
+                    'filter': group.filter || null
+                }, this._getInsertPosition(group.type));
+                
+                this._setupLayerInteractivity(group, [layerId], sourceId);
+            } else {
+                // Add both fill and line layers as before for features with both types
+                // ... existing fill and line layer code ...
+            }
+        }
     }
 
     _toggleSourceControl(groupIndex, visible) {
@@ -1405,10 +1519,10 @@ class MapLayerControl {
             
             // If group has specific layers defined, use those
             if (group.layers) {
-                // Update sublayer checkboxes to match parent visibility
+                // Update sublayer toggles to match parent visibility
                 const $groupHeader = $(this._sourceControls[groupIndex]);
-                const $sublayerCheckboxes = $groupHeader.find('.sublayer-checkbox');
-                $sublayerCheckboxes.prop('checked', visible);
+                const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
+                $sublayerToggles.prop('checked', visible);
 
                 group.layers.forEach(layer => {
                     const layerIds = styleLayers
@@ -1499,6 +1613,12 @@ class MapLayerControl {
                 const lineLayerId = `vector-layer-${group.id}-outline`;
                 this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
             }
+
+            // Handle text layer visibility
+            if (group.style?.['text-field']) {
+                const textLayerId = `vector-layer-${group.id}-text`;
+                this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+            }
         }
     }
 
@@ -1569,12 +1689,12 @@ class MapLayerControl {
     }
 
     _initializeWithAnimation() {
-        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header input[type="checkbox"]');
+        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header .toggle-switch input[type="checkbox"]');
 
-        groupHeaders.forEach((checkbox, index) => {
+        groupHeaders.forEach((toggleInput, index) => {
             const group = this._options.groups[index];
-            checkbox.checked = group?.initiallyChecked ?? false;
-            checkbox.dispatchEvent(new Event('change'));
+            toggleInput.checked = group?.initiallyChecked ?? false;
+            toggleInput.dispatchEvent(new Event('change'));
         });
 
         if (!this._initialized) {
@@ -1766,15 +1886,6 @@ class MapLayerControl {
         const lng = lngLat ? lngLat.lng : feature.geometry.coordinates[0];
         const zoom = this._map.getZoom();
 
-        function convertToWebMercator(lng, lat) {
-            const x = lng * 20037508.34 / 180;
-            const y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
-            return {
-                x: Math.round(x),
-                y: Math.round(y * 20037508.34 / 180)
-            };
-        }
-
         const mercatorCoords = convertToWebMercator(lng, lat);
         const oneMapGoaLayerList = '&l=gp_police_station_a9c73118_2035_466c_9f5d_8888580816a0%21%2Cdma_garbage_treatment_plant_fc46bf4b_245c_4856_be7b_568b46a117c4%21%2Cdma_mrf_faciltiy_polygon_93c1ae1a_ea42_46c5_bbec_ed589e08d8c0%21%2Cdma_bio_methanation_plant_polygon_bdeb7c4d_17ec_4d9f_9e4a_3bf702905e1a%21%2Cdma_weighing_bridge_54e8be7c_e105_4098_a5fa_fb939eeba75e%21%2Cdma_mrf_faciltiy_95b4b5a3_a2ce_481b_9711_7f049ca1e244%21%2Cdma_incinerator_2d57ae07_9b3e_4168_ac8b_7f2187d5681a%21%2Cdma_ccp_biodigester_84960e2a_0ddf_465a_9bca_9bb35c4abcb4%21%2Cdma_bio_methanation_plant__f0edd163_cf6b_4084_9122_893ebc83d4fe%21%2Cdma_waste_management_sities_fa8b2c94_d4cd_4533_9c7e_8cf0d3b30b87%21%2Cdma_windrows_composting_shed_30ef18af_c8a7_45a9_befb_0b6c555bd263%21%2Cdgm_leases_f7677297_2e19_4d40_850f_0835388ecf18%21%2Cdgm_lease_names_fdb18573_adc9_4a60_9f1e_6c22c04d7871%21%2Cgdms_landslide_vulnerable_ced97822_2753_4958_9edc_7f221a6b52c9%21%2Cgdm_flooding_areas_1be469a8_af9d_46cf_953e_49256db7fe1d%21%2Cgsidc_sewerage_line_bddff132_f998_4be1_be43_b0fb71520499%21%2Cgsidc_sewerage_manhole_0654846e_5144_4d1f_977e_58d9c2c9a724%21%2Cged_division_boundary_04fe437b_405f_45fa_8357_02f0d564bdd4%21%2Cged_substation_4c686ea3_95a6_43e8_b136_e338a3a47e79%21%2Cged_rmu_2f2632f4_6ced_4eae_8ff8_6c2254697f13%21%2Cged_lv_wire_ca1f9541_7be0_4230_a760_a3b66507fc06%21%2Cged_lv_cable_9b8d0330_64e5_4bbf_bdb5_4927b39b2ef2%21%2Cged_hv_wire_a60bb861_6972_4f27_86a4_21492b59ede2%21%2Cged_hv_cable_54dae74c_08af_44f0_af49_ec3b5fcab581%21%2Cged_ehv_wire_68331f46_1c8f_4f85_99b0_151656c3b0c8%21%2Cged_ehv_cable_04580bfe_0d1c_44f2_bec6_4093984ffa6d%21%2Cged_transformer_a967dbae_dbc2_487f_9fff_14865a65d8d6%21%2Cged_solar_generation_bbeed839_8737_421d_b5bc_277357dcd727%21%2Cged_towers_3c2b9c53_8aa0_4538_b969_731b66b98189%21%2Cged_protective_equipment_fa242976_c97c_4006_aeb1_8c32669f3477%21%2Cged_pole_240bac2f_8d3b_4989_bc0b_b34d9d78e018%21%2Cged_govt_connection__b89e0eff_2812_425e_aa29_4039e1489126%21%2Cged_cabinet_e3e83e28_cff8_4acc_855e_5572b21a8302%21%2Cgbbn_24F_150a4ba3_5e6e_4490_87cd_9a67a51f9a95%21%2Cgbbn_6F_7d67c332_14a0_433b_9036_d3edb7acfe1f%21%2Cgbbn_48F_87fa8495_0a7b_4a37_9154_5d749eb826e6%21%2Cgbbn_vgp_ce657914_2bc0_437a_b558_d614529d0d70%21%2Cgbbn_vgp1_da280706_4a39_4581_98f6_76a4a8258ee2%21%2Cgbbn_olt_afb08f2e_83de_4493_a04a_4eeee53cdabb%21%2Cgwrd_reservoirs_806646ae_e1d3_4b00_9afb_0659fea342cf%21%2Cgwrd_jackwell_casarwali_ad327886_70e4_4b98_bf5e_41da1e9240d0%21%2Cgwrd_pump_house_49ad2817_feb7_4bd4_beaa_2b8908823881%21%2Cgwrd_pumping_sub_station_219578a4_9fba_4c21_bfdf_6793c0e2ec9e%21%2Cgwrd_floodplains_0178162a_bedc_4875_bc74_c2eeba2a040b%21%2Cgwrd_floodembankments_6de30dc4_675b_4ef9_b204_cf2352c1fe9b%21%2Cgpwd_waterline_ffe24b0d_7e83_43e7_8d7f_e5bd2a0d49da%21%2Cgwrd_pipeline_82478411_6595_487b_b524_abb8931946a6%21%2Cgwrd_canal_c36fddaf_564b_43c5_ba74_86e46ca22995%21%2Cgwrd_end_of_pipeline_5518b446_8ff1_4d17_a28f_344dfa3e7901%21%2Cgwrd_tapping_point_401aac7c_77a1_47e2_8470_71a4880294a7%21%2Cgwrd_rain_guages___flood_monitors_ae6547a5_6eca_4932_a1c8_f80c8e04551b%21%2Cgsa_goa_sports_complex_3e450e4c_9a69_4cf7_94ac_2c9082e5388a%21%2Cgie_verna_industrial_estate_81926f17_e182_42a7_9614_0160bf19fa34%21%2Cgie_quittol_industrial_estate_5d5aadba_071c_432d_b424_6c3644c29338%21%2Cgie_latambarcem_industrail_estate_919dd4d4_d8ae_44cc_aff0_bd27fbe1e0a3%21%2Cgcsca_fps_godowns_a3b498e8_fda8_4249_b17b_8c0acbb444d7%21%2Cgcsca_fps_shops_debfb1ee_0fb9_4cfe_95a7_8d9880d22deb%21%2Cgargi_seed_farm_519a1d9c_7a62_4906_a44c_7f7a6d8744b4%21%2Cdfg_ramps_8fb28e3c_4344_409b_9e47_b19c1b8c5fe0%21%2Cdfg_jetty_6a70f09c_fc73_4c48_be61_c35b9f2a7094%21%2Cdfg_fish_landing_centers_b5f571c3_5a64_4ae9_8413_289a912e2f37%21%2Cdfg_aqua_culture_005788c0_d630_42c1_a61f_178234cc61f4%21%2Cdah_cattle_feed_factory_d4f517d5_db91_493c_8b8c_d3cb1062d369%21%2Cdah_egg_production_ff7dac52_5c84_4f17_96eb_2621f7ed01c4%21%2Cdah_veterinary_centres_b9b0b3ac_35e7_4973_a175_f515fbc0efd5%21%2Cdah_sumul_dairy_a0d775d5_8048_4858_869b_3083b34c0bcf%21%2Cdah_production_cattle_244945b5_f092_4644_a585_1601ce097c6c%21%2Cdah_milk_production_70534439_ebaa_4c88_bbb9_f44cae179078%21%2Cdah_milk_processing_unit_8d3ff9f8_387c_4d52_b5a5_ad0ab020fc10%21%2Cdah_farms_e208fb45_f1d4_4489_ae7b_753fc32d4b07%21%2Cgagri_landform_1b36389a_a5c2_4307_8515_beb0e49ceef6%21%2Cdslr_goa_villages_c9939cd5_f3c8_4e94_8125_38adb10e6f45%2Cdaa_asi_sites_9b100a72_f84f_4114_b81f_42f5e46334b1%21%2Ctdc_gurudwara_e1ff2fde_1fbd_41aa_b1af_0f844ebdbee8%21%2Ctdc_mosque_05493477_4f6f_4973_8edc_ae8d6e1dc2ef%21%2Ctdc_church_ca9f3144_cca2_402a_bb7c_85126a42a69b%21%2Ctdc_temple_33d6e141_2ae9_4a43_909a_f252ef6f27d6%21%2Cgfd_range_ac0c898d_b912_43e5_8641_cc8d558b96c2%21%2Cgfd_wls_29b8d326_2d60_4bde_b743_6a239516c86c%21%2Cgfd_eco_sensitive_zone_451208a2_46f8_45aa_ba54_a5e5278aa824%21%2Cdhs_institute_63eb16bc_7d5c_4804_b7c3_99b9481eae1d%21%2Cdhs_hospital_c90b25e4_f64d_49f5_8696_410dfe8b18bd%21%2Cdhs_uhc_882ec1f1_633e_4411_b223_c0fe874575b2%21%2Cdhs_phc_771cb209_c40a_4786_ab15_122f5b8caf7f%21%2Cdhs_chc_43f53098_e034_404f_a7c4_bbc949038e5a%21%2Cdhs_ayurvedic___homeopathic_dispensaries_339b4c62_c1a7_4b6b_b8c6_272ec8a7e46a%21%2Cdhs_hsc_0e3ffe3f_21f5_4201_8596_d6b37a1d8f10%21%2Cdot_bus_stop_9a5e21ba_b562_45bc_a372_dfe71301af16%21%2Cgkr_railway_line_943f6fe0_5c1d_461e_bf1f_e914b2991191%21%2Cdot_rto_checkpost__af7f50e9_7412_4658_a40a_5d88d303d3ab%21%2Cdot_traffic_signal_b29280ac_53eb_4207_b713_5d965dd36f5c%21%2Cdot_depot_c46b1f5c_d838_4bab_bac3_6f9eb54bd7e5%21%2Cgkr_railway_station_eeffd0d6_ac46_4f69_a6b3_952cf2687ea2%21%2Cktc_bus_stops_1272f729_fbe6_49fb_9873_5d2d6fb2f99d%21%2Cgdte_schools_a53455c4_c969_4bc6_af70_e0403df19623%21%2Cdtw_ashram_school_8e3e826e_8cc5_4ebb_b7b6_e159a591143d%21%2Cgdte_iti_college_5c51844a_d03d_4745_9a27_dfc44351d160%21%2Cgdte_government_institute_976db146_84af_4c70_80cf_625726d858bf%21%2Cgdte_college_26d0511b_5a9d_4c94_983a_4d99d24ee293%21%2Cgoa_villages_f7a04d50_013c_4d33_b3f0_45e1cd5ed8fc%2Cgoa_taluka_boundary_9e52e7ed_a0ef_4390_b5dc_64ab281214f5%2Cgoa_district_boundary_81d4650d_4cdd_42c3_bd42_03a4a958b5dd%2Cgoa_boundary_ae71ccc6_6c5c_423a_b4fb_42f925d7ddc0';
         
@@ -1793,7 +1904,7 @@ class MapLayerControl {
             {
                 name: 'Bhuvan',
                 url: `https://bhuvanmaps.nrsc.gov.in/?mode=Hybrid#${zoom}/${lat}/${lng}`,
-                icon: 'https://bhuvan.nrsc.gov.in/home/images/bhuvanlite.png'
+                icon: './assets/icon-bhuvan.png'
             },
             {
                 name: 'Bharatmaps',
@@ -1803,7 +1914,7 @@ class MapLayerControl {
             {
                 name: 'One Map Goa',
                 url: `https://onemapgoagis.goa.gov.in/map/?ct=LayerTree${oneMapGoaLayerList}&bl=mmi_hybrid&t=goa_default&c=${mercatorCoords.x}%2C${mercatorCoords.y}&s=500`,
-                icon: 'https://onemapgoagis.goa.gov.in/static/images/oneMapGoaLogo1mb.gif'
+                icon: './assets/icon-onemapgoa.png'
             },
             {
                 name: 'Landcover',
@@ -1814,6 +1925,11 @@ class MapLayerControl {
                 name: 'Timelapse',
                 url: `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`,
                 text: 'TL'
+            },
+            {
+                name: 'Copernicus Browser',
+                url: `https://browser.dataspace.copernicus.eu/?zoom=${zoom}&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=U2FsdGVkX18d3QCo8ly51mKnde%2FbnPTNY3M%2Bvkw2HJS5PZYTtLYG6ZjWVDYuz%2Bszj9bzKcR5Th1mcWjsfJneWz3DM1gd75vRaH%2BioFw2j3mQa79Yj8F7TkWwvb2ow0kh&datasetId=3c662330-108b-4378-8899-525fd5a225cb&fromTime=2024-12-01T00%3A00%3A00.000Z&toTime=2024-12-01T23%3A59%3A59.999Z&layerId=0-RGB-RATIO&demSource3D=%22MAPZEN%22&cloudCoverage=30&dateMode=SINGLE`,
+                text: 'CB'
             },
             {
                 name: 'Global Forest Watch',
@@ -1881,11 +1997,11 @@ class MapLayerControl {
 
         let linksHTML = navigationLinks.map(link =>
             `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
-                ${link.icon ? `<img src="${link.icon}" class="w-5 h-5" alt="${link.name}">` : ''}
+                ${link.icon ? `<img src="${link.icon}" class="w-5 h-5 !max-w-none" alt="${link.name}">` : ''}
                 ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
             </a>`
         ).join('');
-        linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3">${linksHTML}</div>`;
+        linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex flex-wrap gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
         if (this._map.getZoom() >= 14) {
@@ -1945,7 +2061,7 @@ class MapLayerControl {
         return content;
     }
 
-    _getInsertPosition(type) {
+    _getInsertPosition(type, layerType = null) {
         const layers = this._map.getStyle().layers;
         
         // Get the layer groups in their defined order
@@ -1956,7 +2072,10 @@ class MapLayerControl {
             group.id === this._currentGroup?.id
         );
 
-        // Find the next layer of the same type that should be above this one
+        // Get the order value for the current layer type
+        const currentTypeOrder = this._layerTypeOrder[layerType || type] || Infinity;
+
+        // Find the next layer that should be above this one
         let insertBeforeId;
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
             const group = orderedGroups[i];
@@ -1964,8 +2083,8 @@ class MapLayerControl {
                 (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
                 
-                // Find the actual layer ID in the map style
-                const matchingLayer = layers.find(layer => {
+                // Find all matching layers for this group
+                const matchingLayers = layers.filter(layer => {
                     const groupId = group.id;
                     return layer.id === groupId || 
                            layer.id === `vector-layer-${groupId}` ||
@@ -1975,8 +2094,21 @@ class MapLayerControl {
                            layer.id === `tms-layer-${groupId}`;
                 });
                 
-                if (matchingLayer) {
-                    insertBeforeId = matchingLayer.id;
+                // Sort matching layers by type order
+                matchingLayers.sort((a, b) => {
+                    const aOrder = this._layerTypeOrder[a.type] || Infinity;
+                    const bOrder = this._layerTypeOrder[b.type] || Infinity;
+                    return bOrder - aOrder; // Reverse sort to get highest order first
+                });
+
+                // Find the first layer with a higher or equal type order
+                const insertLayer = matchingLayers.find(layer => {
+                    const layerTypeOrder = this._layerTypeOrder[layer.type] || Infinity;
+                    return layerTypeOrder >= currentTypeOrder;
+                });
+                
+                if (insertLayer) {
+                    insertBeforeId = insertLayer.id;
                     break;
                 }
             }
@@ -2093,7 +2225,6 @@ class MapLayerControl {
                             getFeatureStateParams(hoveredFeatureId),
                             { hover: true }
                         );
-                        console.log(getFeatureStateParams(hoveredFeatureId));
                     }
 
                     // Show hover popup if configured
@@ -2165,6 +2296,26 @@ class MapLayerControl {
                 this._map.getCanvas().style.cursor = '';
             });
         });
+    }
+
+    // When rendering legend images, we need to check if it's a PDF and handle it differently
+    _renderLegendImage(legendImageUrl) {
+        if (!legendImageUrl) return '';
+        
+        // Check if the file is a PDF
+        if (legendImageUrl.toLowerCase().endsWith('.pdf')) {
+            return `
+                <div class="legend-pdf-container">
+                    <a href="${legendImageUrl}" target="_blank" class="pdf-legend-link">
+                        <sl-icon name="file-earmark-pdf" style="color: red; font-size: 1.5rem;"></sl-icon>
+                        <span>View Legend PDF</span>
+                    </a>
+                </div>
+            `;
+        } else {
+            // Handle regular image files as before
+            return `<img src="${legendImageUrl}" alt="Legend" class="legend-image">`;
+        }
     }
 }
 
