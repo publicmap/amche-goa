@@ -254,11 +254,11 @@ class MapLayerControl {
         const visibleLayers = [];
         
         this._options.groups.forEach((group, index) => {
-            // Find the checkbox within the group header
+            // Find the toggle input within the group header
             const groupHeader = this._sourceControls[index]?.closest('.group-header');
-            const checkbox = groupHeader?.querySelector('input[type="checkbox"]');
+            const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
             
-            if (checkbox?.checked) {
+            if (toggleInput?.checked) {
                 if (group.type === 'terrain') {
                     visibleLayers.push('terrain');
                 } else if (group.type === 'vector') {
@@ -342,27 +342,34 @@ class MapLayerControl {
             });
             this._sourceControls[groupIndex] = $groupHeader[0];
 
-            // Update the sl-show/hide event handlers to properly sync checkbox state
+            // Update the sl-show/hide event handlers to properly sync toggle switch state
             $groupHeader[0].addEventListener('sl-show', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = true;
+                const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
+                if (toggleInput) {
+                    toggleInput.checked = true;
                     this._toggleSourceControl(groupIndex, true);
                     $opacityButton.toggleClass('hidden', false);
+                    // Add active class
+                    $(event.target).closest('.layer-group').addClass('active');
                 }
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
-                const checkbox = event.target.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = false;
+                const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
+                if (toggleInput) {
+                    toggleInput.checked = false;
                     this._toggleSourceControl(groupIndex, false);
                     $opacityButton.toggleClass('hidden', true);
+                    // Remove active class
+                    $(event.target).closest('.layer-group').removeClass('active');
                 }
             });
 
             // Initialize layers only if they should be visible
             if (group.initiallyChecked) {
+                // Set active class based on initial state
+                $groupHeader.closest('.layer-group').addClass('active');
+                
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
@@ -388,32 +395,58 @@ class MapLayerControl {
                 class: 'flex items-center relative w-full h-12'
             });
 
+            // Add a click handler to the summary to control how clicks are processed
+            $summary.on('click', (e) => {
+                // Only prevent default sl-details behavior if not clicking directly on toggle
+                if (!$(e.target).closest('.toggle-switch').length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Find and toggle the input
+                    const $toggle = $summary.find('.toggle-switch input');
+                    $toggle.prop('checked', !$toggle.prop('checked'));
+                    $toggle.trigger('change');
+                }
+            });
+
             const $contentWrapper = $('<div>', {
                 class: 'flex items-center gap-2 relative z-10 w-full p-2'
             });
 
-            // Replace the existing checkbox creation with this:
-            const $checkboxLabel = $('<label>', {
-                class: 'flex items-center gap-2 cursor-pointer'
+            // Replace checkbox with toggle switch
+            const $toggleLabel = $('<label>', {
+                class: 'toggle-switch'
             });
 
-            const $checkbox = $('<input>', {
+            const $toggleInput = $('<input>', {
                 type: 'checkbox',
-                checked: group.initiallyChecked || false,
-                class: 'w-4 h-4'
+                checked: group.initiallyChecked || false
             }).on('change', (e) => {
                 const isChecked = e.target.checked;
                 if (isChecked !== $groupHeader[0].open) {
                     $groupHeader[0].open = isChecked;
                 }
+                
+                // Update active class for styling in browsers without :has() support
+                $groupHeader.closest('.layer-group').toggleClass('active', isChecked);
             });
+
+            const $toggleSlider = $('<span>', {
+                class: 'toggle-slider'
+            });
+
+            $toggleLabel.append($toggleInput, $toggleSlider);
 
             const $titleSpan = $('<span>', {
                 text: group.title,
                 class: 'control-title text-sm font-medium font-bold text-white'
             });
 
-            $checkboxLabel.append($checkbox, $titleSpan);
+            // Simplify the toggle title container to just hold the elements
+            const $toggleTitleContainer = $('<div>', {
+                class: 'flex items-center gap-2 cursor-pointer'
+            });
+            $toggleTitleContainer.append($toggleLabel, $titleSpan);
 
             const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
@@ -512,8 +545,7 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($checkboxLabel, $opacityButton);
-            $groupHeader.append($summary);
+            $contentWrapper.append($toggleTitleContainer, $opacityButton);
 
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
@@ -765,21 +797,24 @@ class MapLayerControl {
 
                 const $contoursContainer = $('<div>', { class: 'mb-4' });
                 const $contoursLabel = $('<label>', { class: 'flex items-center' });
-                const $contoursCheckbox = $('<input>', {
+                
+                // Replace checkbox with toggle switch
+                const $contoursToggleLabel = $('<label>', {
+                    class: 'toggle-switch mr-2'
+                });
+                
+                const $contoursToggleInput = $('<input>', {
                     type: 'checkbox',
-                    class: 'mr-2',
                     checked: false
                 });
+                
+                const $contoursToggleSlider = $('<span>', {
+                    class: 'toggle-slider'
+                });
+                
+                $contoursToggleLabel.append($contoursToggleInput, $contoursToggleSlider);
 
-                $contoursLabel.append(
-                    $contoursCheckbox,
-                    $('<span>', {
-                        class: 'text-sm text-gray-700',
-                        text: 'Contours'
-                    })
-                );
-
-                $contoursCheckbox.on('change', (e) => {
+                $contoursToggleInput.on('change', (e) => {
                     const contourLayers = [
                         'contour lines',
                         'contour labels'
@@ -795,6 +830,14 @@ class MapLayerControl {
                         }
                     });
                 });
+
+                $contoursLabel.append(
+                    $contoursToggleLabel,
+                    $('<span>', {
+                        class: 'text-sm text-gray-700',
+                        text: 'Contours'
+                    })
+                );
 
                 $contoursContainer.append($contoursLabel);
                 $sourceControl.append($contoursContainer);
@@ -1289,15 +1332,25 @@ class MapLayerControl {
                         class: 'flex items-center gap-2 mb-2 text-black'
                     });
 
-                    const $sublayerCheckbox = $('<input>', {
+                    // Replace checkbox with toggle switch for sublayers
+                    const $sublayerToggleLabel = $('<label>', {
+                        class: 'toggle-switch'
+                    });
+
+                    const $sublayerToggleInput = $('<input>', {
                         type: 'checkbox',
                         id: layerId,
-                        class: 'sublayer-checkbox w-4 h-4',
                         checked: group.initiallyChecked || false
                     });
 
-                    // Add change event listener for the checkbox
-                    $sublayerCheckbox.on('change', (e) => {
+                    const $sublayerToggleSlider = $('<span>', {
+                        class: 'toggle-slider'
+                    });
+
+                    $sublayerToggleLabel.append($sublayerToggleInput, $sublayerToggleSlider);
+
+                    // Add change event listener for the toggle
+                    $sublayerToggleInput.on('change', (e) => {
                         const styleLayers = this._map.getStyle().layers;
                         const layersToToggle = styleLayers
                             .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
@@ -1314,13 +1367,20 @@ class MapLayerControl {
                         });
                     });
 
+                    // Create a clickable label that will toggle the switch
                     const $label = $('<label>', {
                         for: layerId,
-                        class: 'text-sm',
-                        text: layer.title
+                        class: 'text-sm cursor-pointer flex-grow'
+                    }).text(layer.title).on('click', (e) => {
+                        // Prevent default behavior to avoid double-toggling
+                        e.preventDefault();
+                        
+                        // Toggle the input and trigger change event
+                        $sublayerToggleInput.prop('checked', !$sublayerToggleInput.prop('checked'));
+                        $sublayerToggleInput.trigger('change');
                     });
 
-                    $layerControl.append($sublayerCheckbox, $label);
+                    $layerControl.append($sublayerToggleLabel, $label);
                     return $layerControl;
                 }));
 
@@ -1344,6 +1404,11 @@ class MapLayerControl {
                     }
                 });
             }
+
+            // Add contentWrapper to summary and summary to groupHeader
+            $contentWrapper.append($toggleTitleContainer, $opacityButton);
+            $summary.append($contentWrapper);
+            $groupHeader.append($summary);
         });
 
         if (!this._initialized) {
@@ -1418,10 +1483,10 @@ class MapLayerControl {
             
             // If group has specific layers defined, use those
             if (group.layers) {
-                // Update sublayer checkboxes to match parent visibility
+                // Update sublayer toggles to match parent visibility
                 const $groupHeader = $(this._sourceControls[groupIndex]);
-                const $sublayerCheckboxes = $groupHeader.find('.sublayer-checkbox');
-                $sublayerCheckboxes.prop('checked', visible);
+                const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
+                $sublayerToggles.prop('checked', visible);
 
                 group.layers.forEach(layer => {
                     const layerIds = styleLayers
@@ -1582,12 +1647,12 @@ class MapLayerControl {
     }
 
     _initializeWithAnimation() {
-        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header input[type="checkbox"]');
+        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header .toggle-switch input[type="checkbox"]');
 
-        groupHeaders.forEach((checkbox, index) => {
+        groupHeaders.forEach((toggleInput, index) => {
             const group = this._options.groups[index];
-            checkbox.checked = group?.initiallyChecked ?? false;
-            checkbox.dispatchEvent(new Event('change'));
+            toggleInput.checked = group?.initiallyChecked ?? false;
+            toggleInput.dispatchEvent(new Event('change'));
         });
 
         if (!this._initialized) {
