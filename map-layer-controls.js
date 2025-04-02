@@ -85,6 +85,18 @@ class MapLayerControl {
             }
         };
 
+        // Add default layer type ordering
+        this._layerTypeOrder = options.layerTypeOrder || {
+            background: 0,
+            raster: 1,
+            fill: 2,
+            line: 3,
+            symbol: 4,
+            circle: 5,
+            'fill-extrusion': 6,
+            heatmap: 7
+        };
+
         this._domCache = {};
         this._options = {
             groups: Array.isArray(options) ? options : [options]
@@ -692,7 +704,7 @@ class MapLayerControl {
                         layout: {
                             visibility: 'none'
                         }
-                    });
+                    }, this._getInsertPosition('geojson', 'fill'));
 
                     // Add line layer
                     this._map.addLayer({
@@ -713,7 +725,7 @@ class MapLayerControl {
                         layout: {
                             'visibility': 'none'
                         }
-                    });
+                    }, this._getInsertPosition('geojson', 'line'));
 
                     // Add text layer if text properties are defined
                     if (group.style?.['text-field'] || group.style?.['text-size']) {
@@ -735,7 +747,7 @@ class MapLayerControl {
                                 'text-halo-color': group.style?.['text-halo-color'] || this._defaultStyles.geojson.text['text-halo-color'],
                                 'text-halo-width': group.style?.['text-halo-width'] || this._defaultStyles.geojson.text['text-halo-width']
                             }
-                        });
+                        }, this._getInsertPosition('geojson', 'symbol'));
                     }
 
                     // Fix interactivity by adding event listeners to all layer types
@@ -1122,7 +1134,7 @@ class MapLayerControl {
                             fillLayerConfig.filter = group.filter;
                         }
                         
-                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector'));
+                        this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector', 'fill'));
                     }
 
                     // Add line layer if line styles are defined
@@ -1147,7 +1159,7 @@ class MapLayerControl {
                             lineLayerConfig.filter = group.filter;
                         }
                         
-                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector'));
+                        this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
                     }
 
                     // Add inspect functionality if configured
@@ -1935,7 +1947,7 @@ class MapLayerControl {
         return content;
     }
 
-    _getInsertPosition(type) {
+    _getInsertPosition(type, layerType = null) {
         const layers = this._map.getStyle().layers;
         
         // Get the layer groups in their defined order
@@ -1946,7 +1958,10 @@ class MapLayerControl {
             group.id === this._currentGroup?.id
         );
 
-        // Find the next layer of the same type that should be above this one
+        // Get the order value for the current layer type
+        const currentTypeOrder = this._layerTypeOrder[layerType || type] || Infinity;
+
+        // Find the next layer that should be above this one
         let insertBeforeId;
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
             const group = orderedGroups[i];
@@ -1954,8 +1969,8 @@ class MapLayerControl {
                 (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
                 
-                // Find the actual layer ID in the map style
-                const matchingLayer = layers.find(layer => {
+                // Find all matching layers for this group
+                const matchingLayers = layers.filter(layer => {
                     const groupId = group.id;
                     return layer.id === groupId || 
                            layer.id === `vector-layer-${groupId}` ||
@@ -1965,8 +1980,21 @@ class MapLayerControl {
                            layer.id === `tms-layer-${groupId}`;
                 });
                 
-                if (matchingLayer) {
-                    insertBeforeId = matchingLayer.id;
+                // Sort matching layers by type order
+                matchingLayers.sort((a, b) => {
+                    const aOrder = this._layerTypeOrder[a.type] || Infinity;
+                    const bOrder = this._layerTypeOrder[b.type] || Infinity;
+                    return bOrder - aOrder; // Reverse sort to get highest order first
+                });
+
+                // Find the first layer with a higher or equal type order
+                const insertLayer = matchingLayers.find(layer => {
+                    const layerTypeOrder = this._layerTypeOrder[layer.type] || Infinity;
+                    return layerTypeOrder >= currentTypeOrder;
+                });
+                
+                if (insertLayer) {
+                    insertBeforeId = insertLayer.id;
                     break;
                 }
             }
