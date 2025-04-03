@@ -941,12 +941,79 @@
                     maxzoom: 11,
                     attribution: '<a href="https://mss.ncog.gov.in/login">National Centre of Geo-Informatics(NCOG) Mining Surveillance System</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
                     style: {
-                        'text-field': ['get', 'mineral_na'],
-                        'text-color': 'white',
-                        'text-halo-color': 'red',
+                        'text-field': [
+                            "step",
+                            ["zoom"],
+                            [
+                                "to-string",
+                                ['get', 'mineral_na']
+                            ],
+                            12,
+                            ["concat",
+                            [
+                                "to-string",
+                                ['get', 'mine_name']
+                            ],
+                            '\n',
+                            [
+                                "to-string",
+                                ['get', 'mineral_na']
+                            ]]
+                            ,
+                            15,
+                            ["concat",
+                            'LEASEE:',
+                            '\n',
+                            [
+                                "to-string",
+                                ['get', 'name_of_le']
+                            ]
+                    
+                        ]
+                        ],
+                        'text-color': [
+                            'match',
+                            ['get', 'mineral_na'],
+                            'Gold',
+                            'black',
+                            'white'  // default color for all other cases
+                        ],
+                        'text-halo-color': [
+                            'match',
+                            ['get', 'mineral_na'],
+                            ['Iron Ore','Iron'],
+                            'brown',
+                            ['Bauxite'],
+                            'blue',
+                            ['Mangenese','Manganese','Mangnese Ore'],
+                            'magenta',
+                            ['Gold'],
+                            'gold',
+                            ['Magnesite'],
+                            'red',
+                            ['Limestone','Limeshell'],
+                            'green',
+                            'black'  // default color for all other cases
+                        ],
                         'text-halo-width': 2,
                         'text-size': 14,
-                        'line-color': 'red',
+                        'line-color': [
+                            'match',
+                            ['get', 'mineral_na'],
+                            ['Iron Ore','Iron'],
+                            'brown',
+                            ['Bauxite'],
+                            'blue',
+                            ['Mangenese','Manganese','Mangnese Ore'],
+                            'magenta',
+                            ['Gold'],
+                            'gold',
+                            ['Magnesite'],
+                            'red',
+                            ['Limestone','Limeshell'],
+                            'green',
+                            'black'  // default color for all other cases
+                        ],
                         'line-width': [
                             'interpolate',
                             ['linear'],
@@ -968,7 +1035,23 @@
                                 2
                             ]
                         ],
-                        'fill-color': 'red',
+                        'fill-color': [
+                            'match',
+                            ['get', 'mineral_na'],
+                            ['Iron Ore','Iron'],
+                            'brown',
+                            ['Bauxite'],
+                            'blue',
+                            ['Mangenese','Manganese','Mangnese Ore'],
+                            'magenta',
+                            ['Gold'],
+                            'gold',
+                            ['Magnesite'],
+                            'red',
+                            ['Limestone','Limeshell'],
+                            'green',
+                            'black'  // default color for all other cases
+                        ],
                         'fill-opacity': 0.4
                     },
                     inspect: {
