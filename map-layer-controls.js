@@ -117,6 +117,9 @@ class MapLayerControl {
         
         // Add share link handler
         this._initializeShareLink();
+        
+        // Add modal container to body if it doesn't exist
+        this._initializeSettingsModal();
     }
 
     _initializeShareLink() {
@@ -570,20 +573,35 @@ class MapLayerControl {
             });
             $toggleTitleContainer.append($toggleLabel, $titleSpan);
 
+            // Add settings button before the opacity button
+            const $settingsButton = $('<sl-icon-button>', {
+                name: 'gear-fill',
+                class: 'settings-button ml-auto',
+                label: 'Layer Settings'
+            }).on('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this._showLayerSettings(group);
+            });
+
             const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
-                    class: 'opacity-toggle hidden ml-auto',
+                    class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
                     title: 'Toggle opacity',
-                    name: 'layers-fill', // Start with filled icon
+                    name: 'layers-fill',
                     'font-size': '2.5rem'
                 }).css({
-                    '--sl-color-neutral-600': '#ffffff', // Start with white for full opacity
-                    '--sl-color-primary-600': 'currentColor', // Use current color instead of hover effect
+                    '--sl-color-neutral-600': '#ffffff',
+                    '--sl-color-primary-600': 'currentColor',
                     '--sl-color-primary-500': 'currentColor',
-                    'color': '#ffffff' // Set initial color
+                    'color': '#ffffff'
                 })
                 : $('<span>');
+
+            // Update the order of buttons in the content wrapper
+            $toggleTitleContainer.append($toggleLabel, $titleSpan);
+            $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
 
             $opacityButton[0]?.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -667,7 +685,7 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($toggleTitleContainer, $opacityButton);
+            $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
 
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
@@ -1564,7 +1582,7 @@ class MapLayerControl {
             }
 
             // Add contentWrapper to summary and summary to groupHeader
-            $contentWrapper.append($toggleTitleContainer, $opacityButton);
+            $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
             $summary.append($contentWrapper);
             $groupHeader.append($summary);
         });
@@ -2438,6 +2456,193 @@ class MapLayerControl {
             // Handle regular image files as before
             return `<img src="${legendImageUrl}" alt="Legend" class="legend-image">`;
         }
+    }
+
+    _initializeSettingsModal() {
+        if (!document.getElementById('layer-settings-modal')) {
+            const modalHTML = `
+                <sl-dialog id="layer-settings-modal" label="Layer Settings" class="layer-settings-dialog">
+                    <div class="layer-settings-content">
+                        <div class="settings-header"></div>
+                        <div class="settings-body grid grid-cols-3 gap-4">
+                            <div class="col-1">
+                                <div class="description mb-4"></div>
+                                <div class="attribution mb-4"></div>
+                                <div class="legend mb-4"></div>
+                            </div>
+                            <div class="col-2">
+                                <div class="data-source mb-4">
+                                    <h3 class="text-sm font-bold mb-2">Data Source</h3>
+                                    <div class="source-details"></div>
+                                </div>
+                                <div class="style-section mb-4">
+                                    <h3 class="text-sm font-bold mb-2">Style</h3>
+                                    <div class="style-editor"></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="inspect-section mb-4">
+                                    <h3 class="text-sm font-bold mb-2">Inspect</h3>
+                                    <div class="inspect-editor"></div>
+                                </div>
+                                <div class="advanced-section">
+                                    <h3 class="text-sm font-bold mb-2">Advanced</h3>
+                                    <div class="config-editor"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div slot="footer" class="flex justify-end gap-2">
+                        <sl-button variant="default" class="cancel-button">Cancel</sl-button>
+                        <sl-button variant="primary" class="save-button">Save Changes</sl-button>
+                    </div>
+                </sl-dialog>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Add event listeners
+            const modal = document.getElementById('layer-settings-modal');
+            modal.querySelector('.cancel-button').addEventListener('click', () => modal.hide());
+            modal.querySelector('.save-button').addEventListener('click', () => this._saveLayerSettings());
+        }
+    }
+
+    _showLayerSettings(group) {
+        const modal = document.getElementById('layer-settings-modal');
+        const content = modal.querySelector('.layer-settings-content');
+        
+        // Update modal title
+        modal.label = `Layer Settings: ${group.title}`;
+        
+        // Set header background if exists
+        if (group.headerImage) {
+            content.querySelector('.settings-header').style.backgroundImage = `url('${group.headerImage}')`;
+            content.querySelector('.settings-header').style.height = '100px';
+            content.querySelector('.settings-header').style.backgroundSize = 'cover';
+            content.querySelector('.settings-header').style.backgroundPosition = 'center';
+            content.querySelector('.settings-header').style.marginBottom = '1rem';
+        }
+
+        // Update description
+        if (group.description) {
+            content.querySelector('.description').innerHTML = `
+                <h3 class="text-sm font-bold mb-2">Description</h3>
+                <div class="text-sm">${group.description}</div>
+            `;
+        }
+
+        // Update attribution
+        if (group.attribution) {
+            content.querySelector('.attribution').innerHTML = `
+                <h3 class="text-sm font-bold mb-2">Attribution</h3>
+                <div class="text-sm">${group.attribution}</div>
+            `;
+        }
+
+        // Update legend
+        if (group.legendImage) {
+            content.querySelector('.legend').innerHTML = `
+                <h3 class="text-sm font-bold mb-2">Legend</h3>
+                <img src="${group.legendImage}" alt="Legend" style="max-width: 100%">
+            `;
+        }
+
+        // Update data source section
+        const sourceDetails = content.querySelector('.source-details');
+        sourceDetails.innerHTML = '';
+        
+        if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson') {
+            sourceDetails.innerHTML = `
+                <div class="mb-2">
+                    <div class="text-xs text-gray-600">Format</div>
+                    <div class="font-mono text-sm">${group.type.toUpperCase()}</div>
+                </div>
+                <div class="mb-2">
+                    <div class="text-xs text-gray-600">URL</div>
+                    <div class="font-mono text-sm break-all">${group.url}</div>
+                </div>
+            `;
+
+            if (group.type === 'vector') {
+                sourceDetails.innerHTML += `
+                    <div class="mb-2">
+                        <div class="text-xs text-gray-600">Source Layer</div>
+                        <div class="font-mono text-sm">${group.sourceLayer || ''}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">Max Zoom</div>
+                        <div class="font-mono text-sm">${group.maxzoom || 'Not set'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Update style section
+        const styleEditor = content.querySelector('.style-editor');
+        if (group.style) {
+            styleEditor.innerHTML = `
+                <sl-textarea
+                    rows="10"
+                    class="style-json"
+                    label="Style JSON"
+                    value='${JSON.stringify(group.style, null, 2)}'
+                ></sl-textarea>
+            `;
+        }
+
+        // Update inspect section
+        const inspectEditor = content.querySelector('.inspect-editor');
+        if (group.inspect) {
+            inspectEditor.innerHTML = `
+                <sl-textarea
+                    rows="10"
+                    class="inspect-json"
+                    label="Inspect Configuration"
+                    value='${JSON.stringify(group.inspect, null, 2)}'
+                ></sl-textarea>
+            `;
+        }
+
+        // Update advanced section
+        const configEditor = content.querySelector('.config-editor');
+        configEditor.innerHTML = `
+            <sl-textarea
+                rows="15"
+                class="config-json"
+                label="Layer Configuration"
+                value='${JSON.stringify(group, null, 2)}'
+            ></sl-textarea>
+        `;
+
+        modal.show();
+    }
+
+    _saveLayerSettings() {
+        // Implement save functionality here
+        const modal = document.getElementById('layer-settings-modal');
+        modal.hide();
+    }
+
+    _createLayerControls($groupHeader, group, groupIndex) {
+        // ... existing code for creating layer controls ...
+
+        // Add settings button next to opacity button
+        const $settingsButton = $('<sl-icon-button>', {
+            name: 'gear-fill',
+            class: 'settings-button ml-2',
+            label: 'Layer Settings'
+        });
+
+        $settingsButton.on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._showLayerSettings(group);
+        });
+
+        // Add settings button to content wrapper after opacity button
+        $contentWrapper.append($settingsButton);
+
+        // ... rest of the existing code ...
     }
 }
 

@@ -1011,3 +1011,86 @@ input:checked + .toggle-slider:before {
 .layer-controls label:hover {
   color: #F96302;
 }
+
+/* Layer Settings Modal Styles */
+.layer-settings-dialog::part(base) {
+    --width: 90vw;
+    --max-width: 1200px;
+    --height: 80vh;
+}
+
+.layer-settings-dialog::part(body) {
+    padding: 0;
+}
+
+.layer-settings-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.layer-settings-content .settings-body {
+    padding: 1rem;
+}
+
+.layer-settings-content .settings-header {
+    position: relative;
+}
+
+.layer-settings-content .settings-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.5));
+}
+
+/* Style JSON editors */
+.layer-settings-content sl-textarea::part(base) {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.layer-settings-content sl-textarea::part(textarea) {
+    padding: 8px;
+    background: #f5f5f5;
+}
+
+/* Settings button styles */
+.settings-button {
+    color: #ffffff;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.settings-button:hover {
+    opacity: 1;
+}
+
+/* Source details styles */
+.source-details {
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.source-details .font-mono {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+/* Modal footer styles */
+.layer-settings-dialog::part(footer) {
+    padding: 1rem;
+    border-top: 1px solid #e5e5e5;
+    background: #f5f5f5;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1024px) {
+    .settings-body {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+}
