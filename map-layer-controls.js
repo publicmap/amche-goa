@@ -1,4 +1,4 @@
-import { getQueryParameters, convertToWebMercator } from './map-utils.js';
+import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
 
 class MapLayerControl {
@@ -2491,10 +2491,8 @@ class MapLayerControl {
                             <div class="col-2">
                                 <div class="legend mb-4"></div>
                                 <div class="style-section mb-4">
-                                    <h3 class="text-sm font-bold mb-2">Style</h3>
                                     <div class="style-editor"></div>
                                     <div class="inspect-section mb-4">
-                                    <h3 class="text-sm font-bold mb-2">Inspect</h3>
                                     <div class="inspect-editor"></div>
                                 </div>
                                 </div>
@@ -2502,7 +2500,7 @@ class MapLayerControl {
                             <div class="col-3">
                                 
                                 <sl-details class="advanced-section">
-                                    <div slot="summary" class="text-sm font-bold">Edit Settings</div>
+                                    <div slot="summary" class="text-sm font-bold">Advanced</div>
                                     <div class="config-editor mt-2"></div>
                                 </sl-details>
                             </div>
@@ -2574,8 +2572,7 @@ class MapLayerControl {
         const descriptionEl = content.querySelector('.description');
         if (group.description) {
             descriptionEl.innerHTML = `
-                <h3 class="text-sm font-bold mb-2">Description</h3>
-                <div class="text-sm">${group.description}</div>
+                <div class="text-m">${group.description}</div>
             `;
             descriptionEl.style.display = '';
         } else {
@@ -2601,7 +2598,7 @@ class MapLayerControl {
         
         if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson') {
             sourceDetails.innerHTML = `
-                <div class="source-details-content p-3 bg-gray-100 rounded">
+                <div class="source-details-content bg-gray-100 rounded">
                     <div class="mb-2">
                         <div class="text-xs text-gray-600">Format</div>
                         <div class="font-mono text-sm">${group.type.toUpperCase()}</div>
@@ -2659,14 +2656,61 @@ class MapLayerControl {
         // Update style section
         const styleEditor = content.querySelector('.style-editor');
         if (group.style) {
-            styleEditor.innerHTML = `
-                <sl-textarea
-                    rows="10"
-                    class="style-json"
-                    label="Style JSON"
-                    value='${JSON.stringify(group.style, null, 2)}'
-                ></sl-textarea>
-            `;
+            const styleLegend = convertStyleToLegend(group.style);
+            let styleHtml = '<div class="style-legend">';
+            
+            // Iterate through each category
+            for (const [category, properties] of Object.entries(styleLegend)) {
+                styleHtml += `
+                    <sl-details class="style-category mb-2" open>
+                        <div slot="summary" class="text-sm font-bold">${category}</div>
+                        <div class="style-properties space-y-2">
+                `;
+                
+                // Add each property in the category
+                properties.forEach(prop => {
+                    styleHtml += `<div class="style-property flex items-center gap-2">`;
+                    
+                    // Add appropriate visualization based on property type
+                    if (prop.type === 'color') {
+                        styleHtml += `
+                            <div class="w-6 h-6 rounded" style="background-color: ${prop.value}"></div>
+                        `;
+                    } else if (prop.type === 'dash-pattern') {
+                        styleHtml += `
+                            <div class="w-16 h-4 flex items-center">
+                                <svg width="100%" height="2">
+                                    <line x1="0" y1="1" x2="100%" y2="1" 
+                                        stroke="currentColor" 
+                                        stroke-width="2"
+                                        stroke-dasharray="${Array.isArray(prop.value) ? prop.value.join(',') : prop.value}"
+                                    />
+                                </svg>
+                            </div>
+                        `;
+                    }
+                    
+                    // Add property name and value
+                    styleHtml += `
+                        <div class="flex-grow">
+                            <div class="text-sm font-medium">${prop.property}</div>
+                            <div class="text-xs text-gray-600 font-mono">
+                                ${prop.type === 'expression' ? 
+                                    `<pre class="whitespace-pre-wrap">${prop.value}</pre>` : 
+                                    prop.value}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                styleHtml += `
+                        </div>
+                    </sl-details>
+                `;
+            }
+            
+            styleHtml += '</div>';
+            styleEditor.innerHTML = styleHtml;
             styleEditor.parentElement.style.display = '';
         } else {
             styleEditor.parentElement.style.display = 'none';
@@ -2679,7 +2723,7 @@ class MapLayerControl {
                 <sl-textarea
                     rows="10"
                     class="inspect-json"
-                    label="Inspect Configuration"
+                    label="Inspect Popup Settings"
                     value='${JSON.stringify(group.inspect, null, 2)}'
                 ></sl-textarea>
             `;
