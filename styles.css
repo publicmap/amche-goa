@@ -842,6 +842,9 @@ sl-details::part(header):hover {
     opacity: 1;
 }
 sl-details::part(base) {
+    padding: 10px;
+}
+sl-drawer sl-details::part(base) {
     padding: 0;
     border: 1px solid #535353;
     box-shadow: inset 0px 0px 3px rgb(69 69 69);
@@ -1019,8 +1022,47 @@ input:checked + .toggle-slider:before {
     --height: 80vh;
 }
 
-.layer-settings-dialog::part(body) {
+.layer-settings-dialog::part(header) {
     padding: 0;
+}
+
+.layer-settings-dialog .settings-header {
+    position: relative;
+    height: 100px;
+    overflow: hidden;
+}
+
+.layer-settings-dialog .header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.3s ease;
+}
+
+.layer-settings-dialog .header-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+}
+
+.layer-settings-dialog .header-title {
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.layer-settings-dialog::part(body) {
+    padding: 1rem;
 }
 
 .layer-settings-content {
