@@ -1,7 +1,7 @@
 import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
 
-class MapLayerControl {
+export class MapLayerControl {
     constructor(options) {
         // Add state management properties
         this._state = {
