@@ -737,19 +737,15 @@ sl-details.map-controls-group::part(base) {
     border-radius: 4px;
 }
 
-.layer-attribution a {
-    color: #0078A8;
+a:not(header a) {
+    color: #0078A8!important;
     text-decoration: none;
 }
 
-.layer-attribution a:hover {
+a:hover {
     text-decoration: underline;
 }
 
-
-.description-area a{
-    text-decoration: underline;
-}
 
 
 

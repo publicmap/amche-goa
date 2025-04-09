@@ -2738,7 +2738,7 @@ class MapLayerControl {
             <sl-textarea
                 rows="15"
                 class="config-json"
-                label="Layer Configuration"
+                label="Edit Configuration"
                 value='${JSON.stringify(group, null, 2)}'
             ></sl-textarea>
         `;
