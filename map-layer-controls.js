@@ -1,8 +1,14 @@
-import { getQueryParameters, convertToWebMercator } from './map-utils.js';
+import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
 
-class MapLayerControl {
+export class MapLayerControl {
     constructor(options) {
+        // Add state management properties
+        this._state = {
+            groups: Array.isArray(options) ? options : [options]
+        };
+        
+        // Keep existing initialization code
         this._defaultStyles = {
             vector: {
                 fill: {
@@ -84,8 +90,7 @@ class MapLayerControl {
                 }
             }
         };
-
-        // Add default layer type ordering
+        
         this._layerTypeOrder = options.layerTypeOrder || {
             background: 0,
             raster: 1,
@@ -96,27 +101,218 @@ class MapLayerControl {
             'fill-extrusion': 6,
             heatmap: 7
         };
-
+        
         this._domCache = {};
-        this._options = {
-            groups: Array.isArray(options) ? options : [options]
-        };
-        MapLayerControl.instances = (MapLayerControl.instances || 0) + 1;
-        this._instanceId = MapLayerControl.instances;
+        this._instanceId = (MapLayerControl.instances || 0) + 1;
+        MapLayerControl.instances = this._instanceId;
         this._initialized = false;
         this._sourceControls = [];
         this._editMode = false;
-        const editModeToggle = document.getElementById('edit-mode-toggle');
-        if (editModeToggle) {
-            editModeToggle.addEventListener('click', () => {
-                this._editMode = !this._editMode;
-                editModeToggle.classList.toggle('active');
-                editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
-            });
-        }
+        
+        // Initialize edit mode toggle
+        this._initializeEditMode();
         
         // Add share link handler
         this._initializeShareLink();
+        
+        // Add modal container
+        this._initializeSettingsModal();
+    }
+
+    // Add new state management methods
+    _updateState(newState) {
+        // Deep merge the new state
+        this._state = {
+            ...this._state,
+            groups: newState.groups.map(newGroup => {
+                const existingGroup = this._state.groups.find(g => g.id === newGroup.id);
+                return existingGroup ? { ...existingGroup, ...newGroup } : newGroup;
+            })
+        };
+        
+        // Clean up existing layers
+        this._cleanupLayers();
+        
+        // Rebuild the UI
+        this._rebuildUI();
+    }
+    
+    _cleanupLayers() {
+        // Remove all existing custom layers and sources
+        const style = this._map.getStyle();
+        if (!style) return;
+        
+        // First disable terrain if it exists
+        if (this._map.getTerrain()) {
+            this._map.setTerrain(null);
+        }
+
+        // Get all our custom layer IDs
+        const customLayerIds = this._state.groups.flatMap(group => {
+            if (group.type === 'vector') {
+                return [
+                    `vector-layer-${group.id}`,
+                    `vector-layer-${group.id}-outline`,
+                    `vector-layer-${group.id}-text`
+                ];
+            } else if (group.type === 'geojson') {
+                return [
+                    `geojson-${group.id}-fill`,
+                    `geojson-${group.id}-line`,
+                    `geojson-${group.id}-label`
+                ];
+            } else if (group.type === 'tms') {
+                return [`tms-layer-${group.id}`];
+            }
+            return [];
+        });
+
+        // Get all our custom source IDs
+        const customSourceIds = this._state.groups.flatMap(group => {
+            if (group.type === 'vector') {
+                return [`vector-${group.id}`];
+            } else if (group.type === 'geojson') {
+                return [`geojson-${group.id}`];
+            } else if (group.type === 'tms') {
+                return [`tms-${group.id}`];
+            }
+            return [];
+        });
+        
+        // Remove only our custom layers
+        customLayerIds.forEach(layerId => {
+            if (this._map.getLayer(layerId)) {
+                this._map.removeLayer(layerId);
+            }
+        });
+        
+        // Remove only our custom sources, except terrain sources
+        customSourceIds.forEach(sourceId => {
+            // Skip terrain sources
+            if (sourceId === 'mapbox-dem') return;
+            
+            if (this._map.getSource(sourceId)) {
+                this._map.removeSource(sourceId);
+            }
+        });
+    }
+    
+    _rebuildUI() {
+        // Clear existing controls
+        if (this._container) {
+            this._container.innerHTML = '';
+            this._sourceControls = [];
+            
+            // Re-render with current state
+            this._initializeControl($(this._container));
+        }
+    }
+    
+    // Update _saveLayerSettings to use state management
+    _saveLayerSettings() {
+        const modal = document.getElementById('layer-settings-modal');
+        const configTextarea = modal.querySelector('.config-json');
+        
+        try {
+            // Parse the edited configuration
+            const newConfig = JSON.parse(configTextarea.value);
+            
+            // Find and update the group in state
+            const groupIndex = this._state.groups.findIndex(g => g.id === newConfig.id);
+            if (groupIndex === -1) {
+                throw new Error('Could not find layer configuration to update');
+            }
+            
+            // Create new state with the updated group
+            const newGroups = [...this._state.groups];
+            newGroups[groupIndex] = newConfig;
+            
+            // Update state which will trigger rebuild
+            this._updateState({ groups: newGroups });
+            
+            modal.hide();
+            
+        } catch (error) {
+            console.error('Error saving layer settings:', error);
+            alert('Failed to save layer settings. Please check the console for details.');
+        }
+    }
+    
+    // Add method to load external config
+    async loadExternalConfig(url) {
+        try {
+            const response = await fetch(url);
+            const configText = await response.text();
+            
+            // Handle JS format (assuming it starts with 'let' or 'const')
+            let config;
+            if (configText.trim().startsWith('let') || configText.trim().startsWith('const')) {
+                try {
+                    // Create a new Function that returns the array directly
+                    const extractConfig = new Function(`
+                        ${configText}
+                        return layersConfig;
+                    `);
+                    
+                    // Execute the function to get the config
+                    config = extractConfig();
+                    
+                } catch (evalError) {
+                    console.error('Error evaluating JS config:', evalError);
+                    // Fallback to regex extraction if evaluation fails
+                    const match = configText.match(/=\s*(\[[\s\S]*\])\s*;?\s*$/);
+                    if (match) {
+                        config = JSON.parse(match[1]);
+                    } else {
+                        throw new Error('Could not extract configuration array');
+                    }
+                }
+            } else {
+                // Assume JSON format
+                config = JSON.parse(configText);
+            }
+            
+            // Update state with new config
+            this._updateState({ groups: config });
+            
+        } catch (error) {
+            console.error('Error loading external config:', error);
+            alert('Failed to load external configuration. Please check the console for details.');
+        }
+    }
+
+    // Update the render method to handle initial config URL
+    renderToContainer(container, map) {
+        this._container = container;
+        this._map = map;
+        
+        // Check for config URL in query params
+        const params = new URLSearchParams(window.location.search);
+        const configUrl = params.get('config');
+        
+        if (configUrl) {
+            // Load external config first
+            this.loadExternalConfig(configUrl.replace('@', '')).then(() => {
+                if (this._map.isStyleLoaded()) {
+                    this._initializeControl($(container));
+                } else {
+                    this._map.on('style.load', () => {
+                        this._initializeControl($(container));
+                    });
+                }
+            });
+        } else {
+            // Proceed with normal initialization
+            if (this._map.isStyleLoaded()) {
+                this._initializeControl($(container));
+            } else {
+                this._map.on('style.load', () => {
+                    this._initializeControl($(container));
+                });
+            }
+        }
+        
+        $(container).append($('<div>', { class: 'layer-control' }));
     }
 
     _initializeShareLink() {
@@ -253,7 +449,7 @@ class MapLayerControl {
     _getVisibleLayers() {
         const visibleLayers = [];
         
-        this._options.groups.forEach((group, index) => {
+        this._state.groups.forEach((group, index) => {
             // Find the toggle input within the group header
             const groupHeader = this._sourceControls[index]?.closest('.group-header');
             const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
@@ -286,28 +482,6 @@ class MapLayerControl {
         return visibleLayers;
     }
 
-    renderToContainer(container, map) {
-        this._container = container;
-        this._map = map;
-
-        // Initialize visibility cache if not exists
-        this._visibilityCache = new Map();
-
-        const $controlContainer = $('<div>', {
-            class: 'layer-control'
-        });
-        
-        if (this._map.isStyleLoaded()) {
-            this._initializeControl($controlContainer);
-        } else {
-            this._map.on('style.load', () => {
-                this._initializeControl($controlContainer);
-            });
-        }
-        
-        $(container).append($controlContainer);
-    }
-
     _initializeControl($container) {
         // Replace the line that's causing the error (around line 302)
         // FROM: const urlParams = getQueryParameters();
@@ -317,11 +491,11 @@ class MapLayerControl {
         // If no layers parameter is specified, treat all initiallyChecked layers as active
         const activeLayers = urlParams.get('layers') ? 
             urlParams.get('layers').split(',').map(s => s.trim()) : 
-            this._options.groups
+            this._state.groups
                 .filter(group => group.initiallyChecked)
                 .map(group => group.type === 'style' ? 'streetmap' : group.id);
 
-        this._options.groups.forEach((group, groupIndex) => {
+        this._state.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
             if (urlParams.get('layers')) {
                 if (group.type === 'style') {
@@ -342,9 +516,9 @@ class MapLayerControl {
             });
             this._sourceControls[groupIndex] = $groupHeader[0];
 
-            // Update the sl-show/hide event handlers to properly sync toggle switch state
+            // Update the sl-show/hide event handlers to handle both opacity and settings buttons
             $groupHeader[0].addEventListener('sl-show', (event) => {
-                const group = this._options.groups[groupIndex];
+                const group = this._state.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
                 
                 if (toggleInput && !toggleInput.checked) {
@@ -375,12 +549,14 @@ class MapLayerControl {
                     this._toggleSourceControl(groupIndex, true);
                 }
                 
+                // Show both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', false);
+                $settingsButton.toggleClass('hidden', false);
                 $(event.target).closest('.layer-group').addClass('active');
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
-                const group = this._options.groups[groupIndex];
+                const group = this._state.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
                 
                 if (toggleInput && toggleInput.checked) {
@@ -411,11 +587,13 @@ class MapLayerControl {
                     this._toggleSourceControl(groupIndex, false);
                 }
                 
+                // Hide both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', true);
+                $settingsButton.toggleClass('hidden', true);
                 $(event.target).closest('.layer-group').removeClass('active');
             });
 
-            // Initialize layers only if they should be visible
+            // Initialize visibility based on initial state
             if (group.initiallyChecked) {
                 // Set active class based on initial state
                 $groupHeader.closest('.layer-group').addClass('active');
@@ -425,12 +603,15 @@ class MapLayerControl {
                     this._toggleSourceControl(groupIndex, true);
                     if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
+                        $settingsButton.toggleClass('hidden', false);
                     }
                 });
             } else {
-                // Ensure layers are hidden if not initially checked
+                // Ensure layers and buttons are hidden if not initially checked
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, false);
+                    $opacityButton.toggleClass('hidden', true);
+                    $settingsButton.toggleClass('hidden', true);
                 });
             }
 
@@ -504,7 +685,7 @@ class MapLayerControl {
                 checked: group.initiallyChecked || false
             }).on('change', (e) => {
                 const isChecked = e.target.checked;
-                const group = this._options.groups[groupIndex];
+                const group = this._state.groups[groupIndex];
                 
                 // Special handling for style type layers
                 if (group.type === 'style') {
@@ -570,20 +751,38 @@ class MapLayerControl {
             });
             $toggleTitleContainer.append($toggleLabel, $titleSpan);
 
+            // Add settings button before the opacity button
+            const $settingsButton = $('<sl-icon-button>', {
+                name: 'gear-fill',
+                class: 'settings-button ml-auto hidden', // Add hidden class by default
+                label: 'Layer Settings'
+            });
+
+            // Add click handler directly to the button
+            $settingsButton[0].addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this._showLayerSettings(group);
+            });
+
             const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
-                    class: 'opacity-toggle hidden ml-auto',
+                    class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
                     title: 'Toggle opacity',
-                    name: 'layers-fill', // Start with filled icon
+                    name: 'layers-fill',
                     'font-size': '2.5rem'
                 }).css({
-                    '--sl-color-neutral-600': '#ffffff', // Start with white for full opacity
-                    '--sl-color-primary-600': 'currentColor', // Use current color instead of hover effect
+                    '--sl-color-neutral-600': '#ffffff',
+                    '--sl-color-primary-600': 'currentColor',
                     '--sl-color-primary-500': 'currentColor',
-                    'color': '#ffffff' // Set initial color
+                    'color': '#ffffff'
                 })
                 : $('<span>');
+
+            // Update the order of buttons in the content wrapper
+            $toggleTitleContainer.append($toggleLabel, $titleSpan);
+            $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
 
             $opacityButton[0]?.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -650,7 +849,6 @@ class MapLayerControl {
                 }
             });
 
-          
             // Add header background if exists
             if (group.headerImage) {
                 const $headerBg = $('<div>', {
@@ -667,11 +865,9 @@ class MapLayerControl {
                 $summary.append($contentWrapper);
             }
 
-            $contentWrapper.append($toggleTitleContainer, $opacityButton);
-
             // Add source control to sl-details content
             const $sourceControl = $('<div>', {
-                class: 'source-control mt-3 terrain-control-container' // Add terrain-control-container class
+                class: 'source-control mt-3 terrain-control-container'
             });
 
             $container.append($groupHeader);
@@ -1564,7 +1760,7 @@ class MapLayerControl {
             }
 
             // Add contentWrapper to summary and summary to groupHeader
-            $contentWrapper.append($toggleTitleContainer, $opacityButton);
+            $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
             $summary.append($contentWrapper);
             $groupHeader.append($summary);
         });
@@ -1575,7 +1771,7 @@ class MapLayerControl {
     }
 
     _initializeLayers() {
-        this._options.groups.forEach(group => {
+        this._state.groups.forEach(group => {
             if (!group.layers || group.type === 'terrain') return;
 
             group.layers.forEach(layer => {
@@ -1632,7 +1828,7 @@ class MapLayerControl {
     }
 
     _toggleSourceControl(groupIndex, visible) {
-        const group = this._options.groups[groupIndex];
+        const group = this._state.groups[groupIndex];
         this._currentGroup = group;
         
         if (group.type === 'style') {
@@ -1814,7 +2010,7 @@ class MapLayerControl {
         const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header .toggle-switch input[type="checkbox"]');
 
         groupHeaders.forEach((toggleInput, index) => {
-            const group = this._options.groups[index];
+            const group = this._state.groups[index];
             toggleInput.checked = group?.initiallyChecked ?? false;
             toggleInput.dispatchEvent(new Event('change'));
         });
@@ -2187,7 +2383,7 @@ class MapLayerControl {
         const layers = this._map.getStyle().layers;
         
         // Get the layer groups in their defined order
-        const orderedGroups = this._options.groups;
+        const orderedGroups = this._state.groups;
         
         // Find current layer's index in the configuration
         const currentGroupIndex = orderedGroups.findIndex(group => 
@@ -2437,6 +2633,543 @@ class MapLayerControl {
         } else {
             // Handle regular image files as before
             return `<img src="${legendImageUrl}" alt="Legend" class="legend-image">`;
+        }
+    }
+
+    _initializeSettingsModal() {
+        if (!document.getElementById('layer-settings-modal')) {
+            const modalHTML = `
+                <sl-dialog id="layer-settings-modal" label="" class="layer-settings-dialog">
+                    <div slot="label" class="settings-header">
+                        <div class="header-bg">
+                        <div class="header-overlay"></div>
+                        <h2 class="header-title text-white relative z-10 px-4"></h2></div>
+                    </div>
+                    <div class="layer-settings-content">
+                        <div class="settings-body grid grid-cols-3 gap-4">
+                            <div class="col-1">
+                                <div class="description mb-4"></div>
+                                <div class="attribution mb-4"></div>
+                                <div class="data-source mb-4">
+                                    <h3 class="text-sm font-bold mb-2">Data Source</h3>
+                                    <div class="source-details"></div>
+                                </div>
+                                <sl-details class="tilejson-section mb-4">
+                                    <div slot="summary" class="text-sm font-bold">View TileJSON</div>
+                                    <div class="tilejson-content font-mono text-xs"></div>
+                                </sl-details>
+                            </div>
+                            <div class="col-2">
+                                <div class="legend mb-4"></div>
+                                <div class="style-section mb-4">
+                                    <div class="style-editor"></div>
+                                    <div class="inspect-section mb-4">
+                                    <div class="inspect-editor"></div>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                
+                                <sl-details class="advanced-section">
+                                    <div slot="summary" class="text-sm font-bold">Advanced</div>
+                                    <div class="config-editor mt-2"></div>
+                                </sl-details>
+                            </div>
+                        </div>
+                    </div>
+                    <div slot="footer" class="flex justify-end gap-2">
+                        <sl-button variant="default" class="cancel-button">Cancel</sl-button>
+                        <sl-button variant="primary" class="save-button">Save Changes</sl-button>
+                    </div>
+                </sl-dialog>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Add event listeners
+            const modal = document.getElementById('layer-settings-modal');
+            modal.querySelector('.cancel-button').addEventListener('click', () => modal.hide());
+            modal.querySelector('.save-button').addEventListener('click', () => this._saveLayerSettings());
+        }
+    }
+
+    async _fetchTileJSON(url) {
+        try {
+            // Handle different URL formats
+            let tileJSONUrl = url;
+            
+            // If it's a tile template URL, try to convert to TileJSON URL
+            if (url.includes('{z}')) {
+                // Remove the template parameters and try common TileJSON paths
+                tileJSONUrl = url.split('/{z}')[0];
+                if (!tileJSONUrl.endsWith('.json')) {
+                    tileJSONUrl += '/tiles.json';
+                }
+            }
+            
+            // For Mapbox hosted tilesets
+            if (url.startsWith('mapbox://')) {
+                const tilesetId = url.replace('mapbox://', '');
+                tileJSONUrl = `https://api.mapbox.com/v4/${tilesetId}.json?access_token=${mapboxgl.accessToken}`;
+            }
+
+            const response = await fetch(tileJSONUrl);
+            if (!response.ok) throw new Error('Failed to fetch TileJSON');
+            return await response.json();
+        } catch (error) {
+            console.warn('Failed to fetch TileJSON:', error);
+            return null;
+        }
+    }
+
+    async _showLayerSettings(group) {
+        const modal = document.getElementById('layer-settings-modal');
+        const content = modal.querySelector('.layer-settings-content');
+        
+        // Update header with background image
+        const headerBg = modal.querySelector('.header-bg');
+        const headerTitle = modal.querySelector('.header-title');
+        
+        headerTitle.textContent = group.title;
+        
+        if (group.headerImage) {
+            headerBg.style.backgroundImage = `url('${group.headerImage}')`;
+            headerBg.style.opacity = '1';
+        } else {
+            headerBg.style.backgroundImage = '';
+            headerBg.style.opacity = '0';
+        }
+
+        // Update description
+        const descriptionEl = content.querySelector('.description');
+        if (group.description) {
+            descriptionEl.innerHTML = `
+                <div class="text-m">${group.description}</div>
+            `;
+            descriptionEl.style.display = '';
+        } else {
+            descriptionEl.style.display = 'none';
+        }
+
+        // Update attribution
+        const attributionEl = content.querySelector('.attribution');
+        if (group.attribution) {
+            attributionEl.innerHTML = `
+                <h3 class="text-sm font-bold mb-2">Attribution</h3>
+                <div class="text-sm">${group.attribution}</div>
+            `;
+            attributionEl.style.display = '';
+        } else {
+            attributionEl.style.display = 'none';
+        }
+
+        // Update data source section and TileJSON
+        const sourceDetails = content.querySelector('.source-details');
+        const tileJSONSection = content.querySelector('.tilejson-section');
+        sourceDetails.innerHTML = '';
+        
+        if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson') {
+            sourceDetails.innerHTML = `
+                <div class="source-details-content bg-gray-100 rounded">
+                    <div class="mb-2">
+                        <div class="text-xs text-gray-600">Format</div>
+                        <div class="font-mono text-sm">${group.type.toUpperCase()}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-xs text-gray-600">URL</div>
+                        <div class="font-mono text-sm break-all">${group.url}</div>
+                    </div>
+                    ${group.type === 'vector' ? `
+                        <div class="mb-2">
+                            <div class="text-xs text-gray-600">Source Layer</div>
+                            <div class="font-mono text-sm">${group.sourceLayer || ''}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-600">Max Zoom</div>
+                            <div class="font-mono text-sm">${group.maxzoom || 'Not set'}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Fetch and display TileJSON if available
+            if (group.type === 'vector' || group.type === 'tms') {
+                const tileJSON = await this._fetchTileJSON(group.url);
+                if (tileJSON) {
+                    content.querySelector('.tilejson-content').innerHTML = `
+                        <div class="p-3 bg-gray-100 rounded">
+                            <pre class="whitespace-pre-wrap">${JSON.stringify(tileJSON, null, 2)}</pre>
+                        </div>
+                    `;
+                    tileJSONSection.style.display = '';
+                } else {
+                    tileJSONSection.style.display = 'none';
+                }
+            } else {
+                tileJSONSection.style.display = 'none';
+            }
+        } else {
+            sourceDetails.parentElement.style.display = 'none';
+            tileJSONSection.style.display = 'none';
+        }
+
+        // Update legend
+        const legendEl = content.querySelector('.legend');
+        if (group.legendImage) {
+            legendEl.innerHTML = `
+                <h3 class="text-sm font-bold mb-2">Legend</h3>
+                <img src="${group.legendImage}" alt="Legend" style="max-width: 100%">
+            `;
+            legendEl.style.display = '';
+        } else {
+            legendEl.style.display = 'none';
+        }
+
+        // Update style section
+        const styleEditor = content.querySelector('.style-editor');
+        if (group.style) {
+            const styleLegend = convertStyleToLegend(group.style);
+            let styleHtml = '<div class="style-legend">';
+            
+            // Iterate through each category
+            for (const [category, properties] of Object.entries(styleLegend)) {
+                styleHtml += `
+                    <sl-details class="style-category mb-2" open>
+                        <div slot="summary" class="text-sm font-bold">${category}</div>
+                        <div class="style-properties space-y-2">
+                `;
+                
+                // Add each property in the category
+                properties.forEach(prop => {
+                    styleHtml += `<div class="style-property flex items-center gap-2">`;
+                    
+                    // Add appropriate visualization based on property type
+                    if (prop.type === 'color') {
+                        styleHtml += `
+                            <div class="w-6 h-6 rounded" style="background-color: ${prop.value}"></div>
+                        `;
+                    } else if (prop.type === 'dash-pattern') {
+                        styleHtml += `
+                            <div class="w-16 h-4 flex items-center">
+                                <svg width="100%" height="2">
+                                    <line x1="0" y1="1" x2="100%" y2="1" 
+                                        stroke="currentColor" 
+                                        stroke-width="2"
+                                        stroke-dasharray="${Array.isArray(prop.value) ? prop.value.join(',') : prop.value}"
+                                    />
+                                </svg>
+                            </div>
+                        `;
+                    }
+                    
+                    // Add property name and value
+                    styleHtml += `
+                        <div class="flex-grow">
+                            <div class="text-sm font-medium">${prop.property}</div>
+                            <div class="text-xs text-gray-600 font-mono">
+                                ${prop.type === 'expression' ? 
+                                    `<pre class="whitespace-pre-wrap">${prop.value}</pre>` : 
+                                    prop.value}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                styleHtml += `
+                        </div>
+                    </sl-details>
+                `;
+            }
+            
+            styleHtml += '</div>';
+            styleEditor.innerHTML = styleHtml;
+            styleEditor.parentElement.style.display = '';
+        } else {
+            styleEditor.parentElement.style.display = 'none';
+        }
+
+        // Update inspect section
+        const inspectEditor = content.querySelector('.inspect-editor');
+        if (group.inspect) {
+            inspectEditor.innerHTML = `
+                <sl-textarea
+                    rows="10"
+                    class="inspect-json"
+                    label="Inspect Popup Settings"
+                    value='${JSON.stringify(group.inspect, null, 2)}'
+                ></sl-textarea>
+            `;
+            inspectEditor.parentElement.style.display = '';
+        } else {
+            inspectEditor.parentElement.style.display = 'none';
+        }
+
+        // Update advanced section
+        const configEditor = content.querySelector('.config-editor');
+        configEditor.innerHTML = `
+            <sl-textarea
+                rows="15"
+                class="config-json"
+                label="Edit Configuration"
+                value='${JSON.stringify(group, null, 2)}'
+            ></sl-textarea>
+        `;
+
+        modal.show();
+    }
+
+    _saveLayerSettings() {
+        const modal = document.getElementById('layer-settings-modal');
+        const configTextarea = modal.querySelector('.config-json');
+        
+        try {
+            // Parse the edited configuration
+            const newConfig = JSON.parse(configTextarea.value);
+            
+            // Find the group that was being edited
+            const groupIndex = this._state.groups.findIndex(g => g.id === newConfig.id);
+            if (groupIndex === -1) {
+                throw new Error('Could not find layer configuration to update');
+            }
+            
+            const oldConfig = this._state.groups[groupIndex];
+            
+            // Update the configuration
+            this._state.groups[groupIndex] = newConfig;
+            
+            // Remove old layers based on type
+            if (oldConfig.type === 'vector') {
+                const layerIds = [
+                    `vector-layer-${oldConfig.id}`,
+                    `vector-layer-${oldConfig.id}-outline`,
+                    `vector-layer-${oldConfig.id}-text`
+                ];
+                layerIds.forEach(id => {
+                    if (this._map.getLayer(id)) {
+                        this._map.removeLayer(id);
+                    }
+                });
+                if (this._map.getSource(`vector-${oldConfig.id}`)) {
+                    this._map.removeSource(`vector-${oldConfig.id}`);
+                }
+            } else if (oldConfig.type === 'geojson') {
+                const layerIds = [
+                    `geojson-${oldConfig.id}-fill`,
+                    `geojson-${oldConfig.id}-line`,
+                    `geojson-${oldConfig.id}-label`
+                ];
+                layerIds.forEach(id => {
+                    if (this._map.getLayer(id)) {
+                        this._map.removeLayer(id);
+                    }
+                });
+                if (this._map.getSource(`geojson-${oldConfig.id}`)) {
+                    this._map.removeSource(`geojson-${oldConfig.id}`);
+                }
+            } else if (oldConfig.type === 'tms') {
+                const layerId = `tms-layer-${oldConfig.id}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.removeLayer(layerId);
+                }
+                if (this._map.getSource(`tms-${oldConfig.id}`)) {
+                    this._map.removeSource(`tms-${oldConfig.id}`);
+                }
+            }
+            
+            // Add new layers with updated configuration
+            if (newConfig.type === 'vector') {
+                const sourceId = `vector-${newConfig.id}`;
+                const hasFillStyles = newConfig.style && (newConfig.style['fill-color'] || newConfig.style['fill-opacity']);
+                const hasLineStyles = newConfig.style && (newConfig.style['line-color'] || newConfig.style['line-width']);
+                
+                // Add source with proper handling of Mapbox hosted tilesets
+                const sourceConfig = {
+                    type: 'vector',
+                    maxzoom: newConfig.maxzoom || 22
+                };
+
+                // Handle Mapbox hosted tilesets differently
+                if (newConfig.url.startsWith('mapbox://')) {
+                    sourceConfig.url = newConfig.url;
+                } else {
+                    // For other vector tile sources, use tiles array
+                    sourceConfig.tiles = [newConfig.url];
+                }
+
+                this._map.addSource(sourceId, sourceConfig);
+                
+                // Add fill layer if styles exist
+                if (hasFillStyles) {
+                    this._map.addLayer({
+                        id: `vector-layer-${newConfig.id}`,
+                        type: 'fill',
+                        source: sourceId,
+                        'source-layer': newConfig.sourceLayer,
+                        paint: {
+                            'fill-color': newConfig.style['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
+                            'fill-opacity': newConfig.style['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
+                        },
+                        layout: {
+                            visibility: 'none'
+                        }
+                    });
+                }
+                
+                // Add line layer if styles exist
+                if (hasLineStyles) {
+                    this._map.addLayer({
+                        id: `vector-layer-${newConfig.id}-outline`,
+                        type: 'line',
+                        source: sourceId,
+                        'source-layer': newConfig.sourceLayer,
+                        paint: {
+                            'line-color': newConfig.style['line-color'] || this._defaultStyles.vector.line['line-color'],
+                            'line-width': newConfig.style['line-width'] || this._defaultStyles.vector.line['line-width']
+                        },
+                        layout: {
+                            visibility: 'none'
+                        }
+                    });
+                }
+                
+                // Add text layer if configured
+                if (newConfig.style['text-field']) {
+                    this._map.addLayer({
+                        id: `vector-layer-${newConfig.id}-text`,
+                        type: 'symbol',
+                        source: sourceId,
+                        'source-layer': newConfig.sourceLayer,
+                        layout: {
+                            'text-field': newConfig.style['text-field'],
+                            'text-font': newConfig.style['text-font'] || ['Open Sans Bold'],
+                            'text-size': newConfig.style['text-size'] || 12,
+                            visibility: 'none'
+                        }
+                    });
+                }
+            } else if (newConfig.type === 'geojson') {
+                const sourceId = `geojson-${newConfig.id}`;
+                
+                // Add source
+                this._map.addSource(sourceId, {
+                    type: 'geojson',
+                    data: newConfig.url
+                });
+                
+                // Add fill layer
+                this._map.addLayer({
+                    id: `${sourceId}-fill`,
+                    type: 'fill',
+                    source: sourceId,
+                    paint: {
+                        'fill-color': newConfig.style?.['fill-color'] || this._defaultStyles.geojson.fill['fill-color'],
+                        'fill-opacity': newConfig.style?.['fill-opacity'] || this._defaultStyles.geojson.fill['fill-opacity']
+                    },
+                    layout: {
+                        visibility: 'none'
+                    }
+                });
+                
+                // Add line layer
+                this._map.addLayer({
+                    id: `${sourceId}-line`,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': newConfig.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
+                        'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']
+                    },
+                    layout: {
+                        visibility: 'none'
+                    }
+                });
+                
+                // Add text layer if configured
+                if (newConfig.style?.['text-field']) {
+                    this._map.addLayer({
+                        id: `${sourceId}-label`,
+                        type: 'symbol',
+                        source: sourceId,
+                        layout: {
+                            'text-field': newConfig.style['text-field'],
+                            'text-font': newConfig.style['text-font'] || ['Open Sans Bold'],
+                            'text-size': newConfig.style['text-size'] || 12,
+                            visibility: 'none'
+                        }
+                    });
+                }
+            } else if (newConfig.type === 'tms') {
+                const sourceId = `tms-${newConfig.id}`;
+                const layerId = `tms-layer-${newConfig.id}`;
+                
+                // Add source
+                this._map.addSource(sourceId, {
+                    type: 'raster',
+                    tiles: [newConfig.url],
+                    tileSize: 256
+                });
+                
+                // Add layer
+                this._map.addLayer({
+                    id: layerId,
+                    type: 'raster',
+                    source: sourceId,
+                    paint: {
+                        'raster-opacity': newConfig.opacity || 1
+                    },
+                    layout: {
+                        visibility: 'none'
+                    }
+                });
+            }
+            
+            // Update UI
+            const $groupHeader = $(this._sourceControls[groupIndex]);
+            const $title = $groupHeader.find('.control-title');
+            $title.text(newConfig.title);
+            
+            // If the layer was visible, make it visible again
+            if ($groupHeader.find('.toggle-switch input').prop('checked')) {
+                this._toggleSourceControl(groupIndex, true);
+            }
+            
+            modal.hide();
+            
+        } catch (error) {
+            console.error('Error saving layer settings:', error);
+            alert('Failed to save layer settings. Please check the console for details.');
+        }
+    }
+
+    _createLayerControls($groupHeader, group, groupIndex) {
+        // ... existing code for creating layer controls ...
+
+        // Add settings button next to opacity button
+        const $settingsButton = $('<sl-icon-button>', {
+            name: 'gear-fill',
+            class: 'settings-button ml-2',
+            label: 'Layer Settings'
+        });
+
+        $settingsButton.on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._showLayerSettings(group);
+        });
+
+        // Add settings button to content wrapper after opacity button
+        $contentWrapper.append($settingsButton);
+
+        // ... rest of the existing code ...
+    }
+
+    _initializeEditMode() {
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        if (editModeToggle) {
+            editModeToggle.addEventListener('click', () => {
+                this._editMode = !this._editMode;
+                editModeToggle.classList.toggle('active');
+                editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
+            });
         }
     }
 }
