@@ -229,13 +229,13 @@ export const layersConfig = [
         headerImage: 'assets/map-layer-local-boundaries.png',
         type: 'vector',
         id: 'local-body',
-        url: 'https://indianopenmaps.fly.dev/not-so-open/panchayats/lgd/{z}/{x}/{y}.pbf',
-        sourceLayer: 'LGD_Panchayats',
+        url: 'mapbox://planemad.2bqa1pq1',
+        sourceLayer: 'goa-local-body-boundaries',
         maxzoom: 10,
-        attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">LGD/Bharatmaps</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+        attribution: '<a href="https://onemapgoagis.goa.gov.in/map/?c=0%2C0&s=0">OneMapGoa</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
         initiallyChecked: true,
         style: {
-            'text-field': ['get', 'gp_name'],
+            'text-field': ['get', 'Name'],
             'text-color': 'white',
             'text-halo-color': 'purple',
             'text-halo-width': 5,
@@ -273,10 +273,10 @@ export const layersConfig = [
         },
         inspect: {
             title: 'Local Body Name',
-            label: 'gp_name',
-            id: 'OBJECTID',
-            fields: ['vilname11', 'blkname', 'sdtname', 'dtname', 'stname'],
-            fieldTitles: ['Village', 'Block', 'Sub District', 'District', 'State']
+            label: 'Name',
+            id: 'fid',
+            fields: ['Village Names', 'Ward Count', 'Subdistrict Name', 'District Name','Code'],
+            fieldTitles: ['Villages', 'Ward Count', 'Sub District', 'District','LGD Code']
         }
     },
     {
