@@ -66,7 +66,8 @@ export class MapLayerControl {
                     'text-offset': [0, 0],
                     'text-anchor': 'center',
                     'text-justify': 'center',
-                    'text-allow-overlap': false
+                    'text-allow-overlap': false,
+                    'text-transform': 'none'
                 }
             },
             markers: {
@@ -1091,6 +1092,7 @@ export class MapLayerControl {
                                 'text-justify': group.style?.['text-justify'] || this._defaultStyles.geojson.text['text-justify'],
                                 'text-allow-overlap': group.style?.['text-allow-overlap'] || this._defaultStyles.geojson.text['text-allow-overlap'],
                                 'text-offset': group.style?.['text-offset'] || this._defaultStyles.geojson.text['text-offset'],
+                                'text-transform': group.style?.['text-transform'] || this._defaultStyles.geojson.text['text-transform'],
                                 visibility: 'none'
                             },
                             paint: {
@@ -1540,7 +1542,8 @@ export class MapLayerControl {
                                 'text-anchor': group.style?.['text-anchor'] || 'center',
                                 'text-justify': group.style?.['text-justify'] || 'center',
                                 'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
-                                'text-offset': group.style?.['text-offset'] || [0, 0]
+                                'text-offset': group.style?.['text-offset'] || [0, 0],
+                                'text-transform': group.style?.['text-transform'] || 'none'
                             },
                             paint: {
                                 'text-color': group.style?.['text-color'] || '#000000',
@@ -1683,7 +1686,7 @@ export class MapLayerControl {
                 $layerControls.append(group.layers.map((layer, index) => {
                     const layerId = `sublayer-${groupIndex}-${index}`;
                     const $layerControl = $('<div>', {
-                        class: 'flex items-center gap-2 mb-2 text-black'
+                        class: 'flex items-center gap-2 text-black'
                     });
 
                     // Replace checkbox with toggle switch for sublayers
@@ -2100,7 +2103,7 @@ export class MapLayerControl {
 
         // Add layer name at the top
         const layerName = document.createElement('div');
-        layerName.className = 'text-xs uppercase tracking-wider mb-2 text-gray-400 font-medium';
+        layerName.className = 'text-xs uppercase tracking-wider text-gray-400 font-medium';
         layerName.textContent = group.title;
         content.appendChild(layerName);
 

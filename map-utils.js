@@ -241,6 +241,13 @@ export function convertStyleToLegend(style) {
                 value: Array.isArray(value) ? value.join(', ') : value
             })
         },
+        'text-transform': {
+            category: 'Text',
+            format: (value) => ({
+                type: 'text',
+                value: value
+            })
+        },
 
         // Circle properties
         'circle-radius': {
