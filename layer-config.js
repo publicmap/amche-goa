@@ -239,6 +239,7 @@ export const layersConfig = [
             'text-color': 'white',
             'text-halo-color': 'purple',
             'text-halo-width': 5,
+            'text-transform': 'uppercase',
             'text-size': 14,
             'fill-color': [
                 'interpolate',
@@ -899,8 +900,8 @@ export const layersConfig = [
         initiallyChecked: true
     },
     {
-        title: 'Panjim Landuse (AMRUT)',
-        description: 'Landuse data for Panajim Urban Agglomeration collected for GIS based Master Plan formulation under Atal Mission for Rejuvenation and Urban Transformation (AMRUT)',
+        title: 'Current Landuse Map (Panjim)',
+        description: 'Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under Atal Mission for Rejuvenation and Urban Transformation (AMRUT).',
         headerImage: 'assets/map-layer-landuse-amrut.png',
         type: 'vector',
         id: 'landuse-panjim',
