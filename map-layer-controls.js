@@ -2649,7 +2649,7 @@ export class MapLayerControl {
                         <h2 class="header-title text-white relative z-10 px-4"></h2></div>
                     </div>
                     <div class="layer-settings-content">
-                        <div class="settings-body grid grid-cols-3 gap-4">
+                        <div class="settings-body grid grid-cols-2 gap-4">
                             <div class="col-1">
                                 <div class="description mb-4"></div>
                                 <div class="attribution mb-4"></div>
@@ -2658,12 +2658,17 @@ export class MapLayerControl {
                                     <div class="source-details"></div>
                                 </div>
                                 <sl-details class="tilejson-section mb-4">
-                                    <div slot="summary" class="text-sm font-bold">View TileJSON</div>
+                                    <div slot="summary" class="text-sm font-bold">View Metadata</div>
                                     <div class="tilejson-content font-mono text-xs"></div>
+                                </sl-details>
+                                <sl-details class="advanced-section">
+                                    <div slot="summary" class="text-sm font-bold">Edit Settings</div>
+                                    <div class="config-editor mt-2"></div>
                                 </sl-details>
                             </div>
                             <div class="col-2">
                                 <div class="legend mb-4"></div>
+                                <h3 class="text-sm font-bold mb-2">Style</h3>
                                 <div class="style-section mb-4">
                                     <div class="style-editor"></div>
                                     <div class="inspect-section mb-4">
@@ -2671,18 +2676,11 @@ export class MapLayerControl {
                                 </div>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                
-                                <sl-details class="advanced-section">
-                                    <div slot="summary" class="text-sm font-bold">Advanced</div>
-                                    <div class="config-editor mt-2"></div>
-                                </sl-details>
-                            </div>
                         </div>
                     </div>
                     <div slot="footer" class="flex justify-end gap-2">
-                        <sl-button variant="default" class="cancel-button">Cancel</sl-button>
-                        <sl-button variant="primary" class="save-button">Save Changes</sl-button>
+                        <sl-button variant="default" class="cancel-button">Close</sl-button>
+                        <sl-button variant="primary" class="save-button" style="display: none;">Save Changes</sl-button>
                     </div>
                 </sl-dialog>
             `;
@@ -2727,6 +2725,13 @@ export class MapLayerControl {
     async _showLayerSettings(group) {
         const modal = document.getElementById('layer-settings-modal');
         const content = modal.querySelector('.layer-settings-content');
+        const saveButton = modal.querySelector('.save-button');
+        
+        // Reset save button visibility
+        saveButton.style.display = 'none';
+        
+        // Store original config for comparison
+        this._originalConfig = JSON.stringify(group);
         
         // Update header with background image
         const headerBg = modal.querySelector('.header-bg');
@@ -2830,60 +2835,195 @@ export class MapLayerControl {
         // Update style section
         const styleEditor = content.querySelector('.style-editor');
         if (group.style) {
-            const styleLegend = convertStyleToLegend(group.style);
-            let styleHtml = '<div class="style-legend">';
+            let styleHtml = `
+                <div class="vector-legend">
+                    <h3 class="text-base font-bold mb-3">${group.inspect?.title || group.title}</h3>
+                    <div class="legend-container p-3 bg-white rounded-lg">
+                        <div class="legend-items space-y-2">`;
             
-            // Iterate through each category
-            for (const [category, properties] of Object.entries(styleLegend)) {
-                styleHtml += `
-                    <sl-details class="style-category mb-2" open>
-                        <div slot="summary" class="text-sm font-bold">${category}</div>
-                        <div class="style-properties space-y-2">
-                `;
+            // Helper function to extract simple value from expression
+            const getSimpleValue = (value) => {
+                if (typeof value === 'string') return value;
+                if (typeof value === 'number') return value;
+                if (Array.isArray(value)) {
+                    // Handle common Mapbox expressions
+                    if (value[0] === 'match' || value[0] === 'case' || value[0] === 'step') {
+                        // Return the first non-expression value as default
+                        for (let i = 1; i < value.length; i++) {
+                            if (typeof value[i] === 'string' || typeof value[i] === 'number') {
+                                return value[i];
+                            }
+                        }
+                    }
+                }
+                return null;
+            };
+
+            // Helper function to parse match expression
+            const parseMatchExpression = (expr) => {
+                if (!Array.isArray(expr) || expr[0] !== 'match') return null;
                 
-                // Add each property in the category
-                properties.forEach(prop => {
-                    styleHtml += `<div class="style-property flex items-center gap-2">`;
+                const field = expr[1];
+                const cases = [];
+                
+                // Extract field name from ['get', 'fieldname']
+                const fieldName = Array.isArray(field) && field[0] === 'get' ? field[1] : null;
+                if (!fieldName) return null;
+                
+                // Parse cases - they come in pairs except for the default value at the end
+                for (let i = 2; i < expr.length - 1; i += 2) {
+                    const condition = expr[i];
+                    const value = expr[i + 1];
                     
-                    // Add appropriate visualization based on property type
-                    if (prop.type === 'color') {
-                        styleHtml += `
-                            <div class="w-6 h-6 rounded" style="background-color: ${prop.value}"></div>
-                        `;
-                    } else if (prop.type === 'dash-pattern') {
-                        styleHtml += `
-                            <div class="w-16 h-4 flex items-center">
-                                <svg width="100%" height="2">
-                                    <line x1="0" y1="1" x2="100%" y2="1" 
-                                        stroke="currentColor" 
-                                        stroke-width="2"
-                                        stroke-dasharray="${Array.isArray(prop.value) ? prop.value.join(',') : prop.value}"
+                    // Handle both single values and arrays of values
+                    const conditions = Array.isArray(condition) ? condition : [condition];
+                    conditions.forEach(cond => {
+                        cases.push({
+                            field: fieldName,
+                            value: cond,
+                            result: value
+                        });
+                    });
+                }
+                
+                // Add default case
+                if (expr.length % 2 === 1) {
+                    cases.push({
+                        field: fieldName,
+                        value: 'Other',
+                        result: expr[expr.length - 1],
+                        isDefault: true
+                    });
+                }
+                
+                return cases;
+            };
+
+            // Get style values
+            const fillColor = group.style['fill-color'];
+            const fillOpacity = getSimpleValue(group.style['fill-opacity']) || 0.5;
+            const lineColor = group.style['line-color'];
+            const lineWidth = group.style['line-width'];
+            const lineDash = getSimpleValue(group.style['line-dasharray']);
+            const textColor = group.style['text-color'];
+            const textHaloColor = group.style['text-halo-color'];
+            const textHaloWidth = group.style['text-halo-width'];
+
+            // Parse match expressions
+            const fillMatches = Array.isArray(fillColor) ? parseMatchExpression(fillColor) : null;
+            const lineMatches = Array.isArray(lineColor) ? parseMatchExpression(lineColor) : null;
+            const textMatches = Array.isArray(textColor) ? parseMatchExpression(textColor) : null;
+            const haloMatches = Array.isArray(textHaloColor) ? parseMatchExpression(textHaloColor) : null;
+
+            // Combine all unique match conditions
+            const allMatches = new Map();
+            
+            const addMatches = (matches, type) => {
+                if (!matches) return;
+                matches.forEach(match => {
+                    const key = `${match.field}:${match.value}`;
+                    if (!allMatches.has(key)) {
+                        allMatches.set(key, { ...match, styles: {} });
+                    }
+                    allMatches.get(key).styles[type] = match.result;
+                });
+            };
+
+            addMatches(fillMatches, 'fill');
+            addMatches(lineMatches, 'line');
+            addMatches(textMatches, 'text');
+            addMatches(haloMatches, 'halo');
+
+            // If we have any matches, create legend items for each unique case
+            if (allMatches.size > 0) {
+                Array.from(allMatches.values()).forEach(match => {
+                    const currentFillColor = match.styles.fill || (fillColor && getSimpleValue(fillColor));
+                    const currentLineColor = match.styles.line || (lineColor && getSimpleValue(lineColor)) || '#000000';
+                    const currentTextColor = match.styles.text || (textColor && getSimpleValue(textColor)) || '#000000';
+                    const currentHaloColor = match.styles.halo || (textHaloColor && getSimpleValue(textHaloColor)) || '#ffffff';
+                    
+                    styleHtml += `
+                        <div class="legend-item flex items-center gap-3">
+                            <div class="legend-symbol flex items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24">
+                                    <rect x="2" y="2" width="20" height="20" 
+                                        fill="${currentFillColor || 'none'}" 
+                                        fill-opacity="${fillOpacity}"
+                                        stroke="${currentLineColor}" 
+                                        stroke-width="${getSimpleValue(lineWidth) || 2}"
+                                        ${lineDash ? `stroke-dasharray="${lineDash}"` : ''}
                                     />
                                 </svg>
                             </div>
-                        `;
-                    }
-                    
-                    // Add property name and value
-                    styleHtml += `
-                        <div class="flex-grow">
-                            <div class="text-sm font-medium">${prop.property}</div>
-                            <div class="text-xs text-gray-600 font-mono">
-                                ${prop.type === 'expression' ? 
-                                    `<pre class="whitespace-pre-wrap">${prop.value}</pre>` : 
-                                    prop.value}
+                            <div class="legend-info flex-grow">
+                                <div class="legend-title text-sm"
+                                    style="color: ${currentTextColor}; 
+                                           text-shadow: 0 0 ${getSimpleValue(textHaloWidth) || 1}px ${currentHaloColor};">
+                                    ${match.value}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                // Create single legend item for non-match cases
+                const hasFill = fillColor && fillOpacity > 0;
+                const simpleFillColor = getSimpleValue(fillColor);
+                const simpleLineColor = getSimpleValue(lineColor) || '#000000';
+                const simpleTextColor = getSimpleValue(textColor) || '#000000';
+                const simpleHaloColor = getSimpleValue(textHaloColor) || '#ffffff';
+                
+                styleHtml += `
+                    <div class="legend-item flex items-center gap-3">
+                        <div class="legend-symbol flex items-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <rect x="2" y="2" width="20" height="20" 
+                                    fill="${hasFill ? (simpleFillColor || '#FF0000') : 'none'}" 
+                                    fill-opacity="${fillOpacity}"
+                                    stroke="${simpleLineColor}" 
+                                    stroke-width="${getSimpleValue(lineWidth) || 2}"
+                                    ${lineDash ? `stroke-dasharray="${lineDash}"` : ''}
+                                />
+                            </svg>
+                        </div>
+                        <div class="legend-info flex-grow">
+                            <div class="legend-title text-sm"
+                                style="color: ${simpleTextColor}; 
+                                       text-shadow: 0 0 ${getSimpleValue(textHaloWidth) || 1}px ${simpleHaloColor};">
+                                ${group.inspect?.title || group.title}
                             </div>
                         </div>
                     </div>`;
-                });
+            }
+
+            // If it's a point feature, add circle symbol
+            if (group.style['circle-radius'] || group.style['circle-color']) {
+                const circleColor = getSimpleValue(group.style['circle-color']) || '#FF0000';
+                const circleRadius = getSimpleValue(group.style['circle-radius']) || 6;
+                const circleStrokeColor = getSimpleValue(group.style['circle-stroke-color']) || '#ffffff';
+                const circleStrokeWidth = getSimpleValue(group.style['circle-stroke-width']) || 1;
                 
                 styleHtml += `
+                    <div class="legend-item flex items-center gap-3">
+                        <div class="legend-symbol flex items-center justify-center" style="width: 24px;">
+                            <div class="legend-circle" style="
+                                width: ${circleRadius * 2}px;
+                                height: ${circleRadius * 2}px;
+                                background-color: ${circleColor};
+                                border: ${circleStrokeWidth}px solid ${circleStrokeColor};
+                                border-radius: 50%;
+                            "></div>
                         </div>
-                    </sl-details>
-                `;
+                        <div class="legend-info">
+                            <div class="legend-title text-sm">Point Feature</div>
+                        </div>
+                    </div>`;
             }
             
-            styleHtml += '</div>';
+            styleHtml += `
+                        </div>
+                    </div>
+                </div>`;
+            
             styleEditor.innerHTML = styleHtml;
             styleEditor.parentElement.style.display = '';
         } else {
@@ -2908,14 +3048,25 @@ export class MapLayerControl {
 
         // Update advanced section
         const configEditor = content.querySelector('.config-editor');
-        configEditor.innerHTML = `
-            <sl-textarea
-                rows="15"
-                class="config-json"
-                label="Edit Configuration"
-                value='${JSON.stringify(group, null, 2)}'
-            ></sl-textarea>
-        `;
+        const configTextarea = document.createElement('sl-textarea');
+        configTextarea.setAttribute('rows', '15');
+        configTextarea.setAttribute('class', 'config-json');
+        configTextarea.value = JSON.stringify(group, null, 2);
+        
+        // Add change listener to track modifications
+        configTextarea.addEventListener('input', () => {
+            try {
+                const newConfig = JSON.parse(configTextarea.value);
+                const hasChanges = this._originalConfig !== JSON.stringify(newConfig);
+                saveButton.style.display = hasChanges ? '' : 'none';
+            } catch (e) {
+                // If JSON is invalid, keep save button hidden
+                saveButton.style.display = 'none';
+            }
+        });
+        
+        configEditor.innerHTML = '';
+        configEditor.appendChild(configTextarea);
 
         modal.show();
     }

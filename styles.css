@@ -1172,3 +1172,77 @@ input:checked + .toggle-slider:before {
 .style-legend .style-property svg line {
     stroke: #333;
 }
+
+/* Vector Legend Styles */
+.vector-legend {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-container {
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    overflow-y: auto;
+    max-height: calc(100vh - 300px); /* Allow scrolling for many items */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+/* Webkit scrollbar styles */
+.vector-legend .legend-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.vector-legend .legend-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vector-legend .legend-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.vector-legend .legend-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.vector-legend .legend-item:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.vector-legend .legend-symbol {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.vector-legend .legend-symbol svg {
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.vector-legend .legend-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-title {
+    color: #333;
+    line-height: 1.2;
+}
+
+.vector-legend .legend-circle {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
