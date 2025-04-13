@@ -2340,6 +2340,22 @@ export class MapLayerControl {
                 `
             });
             
+            const $settingsButton = $('<button>', {
+                class: 'flex items-center gap-1 hover:text-gray-900 cursor-pointer',
+                html: `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Settings</span>
+                `
+            });
+
+            // Add click handler for settings button
+            $settingsButton.on('click', () => {
+                this._showLayerSettings(group);
+            });
+            
             $exportButton.on('click', () => {
                 try {
                     const fieldValues = group.inspect?.fields
@@ -2375,7 +2391,7 @@ export class MapLayerControl {
                 }
             });
             
-            $exportContainer.append($exportButton);
+            $exportContainer.append($exportButton, $settingsButton);
             $(content).append($exportContainer);
         }
 
@@ -2668,7 +2684,6 @@ export class MapLayerControl {
                             </div>
                             <div class="col-2">
                                 <div class="legend mb-4"></div>
-                                <h3 class="text-sm font-bold mb-2">Style</h3>
                                 <div class="style-section mb-4">
                                     <div class="style-editor"></div>
                                     <div class="inspect-section mb-4">
@@ -2838,7 +2853,7 @@ export class MapLayerControl {
             let styleHtml = `
                 <div class="vector-legend">
                     <h3 class="text-base font-bold mb-3">${group.inspect?.title || group.title}</h3>
-                    <div class="legend-container p-3 bg-white rounded-lg">
+                    <div class="legend-container p-3 bg-gray-100 rounded-lg">
                         <div class="legend-items space-y-2">`;
             
             // Helper function to extract simple value from expression
