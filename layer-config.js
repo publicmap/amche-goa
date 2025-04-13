@@ -901,7 +901,7 @@ export const layersConfig = [
     },
     {
         title: 'Current Landuse Map (Panjim)',
-        description: 'Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under Atal Mission for Rejuvenation and Urban Transformation (AMRUT).',
+        description: 'Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under <a http://164.100.87.10/DocumentOMs.aspx">Atal Mission for Rejuvenation and Urban Transformation (AMRUT)</a> at 1:4000 scale.',
         headerImage: 'assets/map-layer-landuse-amrut.png',
         type: 'vector',
         id: 'landuse-panjim',

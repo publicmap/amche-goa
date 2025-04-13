@@ -2325,11 +2325,36 @@ export class MapLayerControl {
         linksHTML = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex flex-wrap gap-3">${linksHTML}</div>`;
         content.innerHTML += linksHTML;
 
+        // Create container for action buttons
+        const $actionContainer = $('<div>', {
+            class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
+        });
+
+        // Add settings button - always visible
+        const $settingsButton = $('<button>', {
+            class: 'flex items-center gap-1 hover:text-gray-900 cursor-pointer',
+            html: `
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Settings</span>
+            `
+        });
+
+        // Add click handler for settings button
+        $settingsButton.on('click', () => {
+            // Close the popup
+            this._map.getCanvas().click();
+            // Show layer settings
+            this._showLayerSettings(group);
+        });
+
+        // Add settings button to container
+        $actionContainer.append($settingsButton);
+
+        // Add export KML button only if zoom level >= 14
         if (this._map.getZoom() >= 14) {
-            const $exportContainer = $('<div>', {
-                class: 'text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex gap-3'
-            });
-            
             const $exportButton = $('<button>', {
                 class: 'flex items-center gap-1 hover:text-gray-900 cursor-pointer',
                 html: `
@@ -2375,9 +2400,10 @@ export class MapLayerControl {
                 }
             });
             
-            $exportContainer.append($exportButton);
-            $(content).append($exportContainer);
+            $actionContainer.append($exportButton);
         }
+
+        $(content).append($actionContainer);
 
         return content;
     }
