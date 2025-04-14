@@ -128,4 +128,172 @@ export function convertToWebMercator(lng, lat) {
     let y = Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180);
     y = (y * 20037508.34) / 180;
     return { x, y };
+}
+
+/**
+ * Converts a layer style configuration into a human-readable legend format
+ * @param {Object} style - The style configuration object
+ * @returns {Array} Array of style properties with readable descriptions
+ */
+export function convertStyleToLegend(style) {
+    if (!style) return [];
+
+    const legend = [];
+    
+    // Helper function to convert camelCase/kebab-case to Title Case
+    const formatPropertyName = (prop) => {
+        return prop
+            .replace(/([A-Z])/g, ' $1') // Convert camelCase
+            .replace(/-/g, ' ') // Convert kebab-case
+            .replace(/^\w/, c => c.toUpperCase()) // Capitalize first letter
+            .trim();
+    };
+
+    // Helper function to format color values
+    const formatColorValue = (value) => {
+        if (typeof value === 'string') {
+            return {
+                type: 'color',
+                value: value
+            };
+        }
+        return {
+            type: 'expression',
+            value: JSON.stringify(value, null, 2)
+        };
+    };
+
+    // Helper function to format numeric values
+    const formatNumericValue = (value) => {
+        if (typeof value === 'number') {
+            return {
+                type: 'number',
+                value: value
+            };
+        }
+        return {
+            type: 'expression',
+            value: JSON.stringify(value, null, 2)
+        };
+    };
+
+    // Process common style properties
+    const styleProperties = {
+        // Fill properties
+        'fill-color': { 
+            category: 'Fill',
+            format: formatColorValue
+        },
+        'fill-opacity': {
+            category: 'Fill',
+            format: formatNumericValue
+        },
+        
+        // Line properties
+        'line-color': {
+            category: 'Line',
+            format: formatColorValue
+        },
+        'line-width': {
+            category: 'Line',
+            format: formatNumericValue
+        },
+        'line-opacity': {
+            category: 'Line',
+            format: formatNumericValue
+        },
+        'line-dasharray': {
+            category: 'Line',
+            format: (value) => ({
+                type: 'dash-pattern',
+                value: Array.isArray(value) ? value : JSON.stringify(value)
+            })
+        },
+
+        // Text properties
+        'text-field': {
+            category: 'Text',
+            format: (value) => ({
+                type: 'text',
+                value: typeof value === 'string' ? value : JSON.stringify(value)
+            })
+        },
+        'text-size': {
+            category: 'Text',
+            format: formatNumericValue
+        },
+        'text-color': {
+            category: 'Text',
+            format: formatColorValue
+        },
+        'text-halo-color': {
+            category: 'Text',
+            format: formatColorValue
+        },
+        'text-halo-width': {
+            category: 'Text',
+            format: formatNumericValue
+        },
+        'text-font': {
+            category: 'Text',
+            format: (value) => ({
+                type: 'font',
+                value: Array.isArray(value) ? value.join(', ') : value
+            })
+        },
+        'text-transform': {
+            category: 'Text',
+            format: (value) => ({
+                type: 'text',
+                value: value
+            })
+        },
+
+        // Circle properties
+        'circle-radius': {
+            category: 'Circle',
+            format: formatNumericValue
+        },
+        'circle-color': {
+            category: 'Circle',
+            format: formatColorValue
+        },
+        'circle-opacity': {
+            category: 'Circle',
+            format: formatNumericValue
+        },
+        'circle-stroke-width': {
+            category: 'Circle',
+            format: formatNumericValue
+        },
+        'circle-stroke-color': {
+            category: 'Circle',
+            format: formatColorValue
+        }
+    };
+
+    // Process each style property
+    for (const [prop, value] of Object.entries(style)) {
+        if (styleProperties[prop]) {
+            const { category, format } = styleProperties[prop];
+            const formattedValue = format(value);
+            
+            legend.push({
+                category,
+                property: formatPropertyName(prop),
+                ...formattedValue
+            });
+        }
+    }
+
+    // Group by category
+    const groupedLegend = legend.reduce((acc, item) => {
+        if (!acc[item.category]) {
+            acc[item.category] = [];
+        }
+        acc[item.category].push(item);
+        return acc;
+    }, {});
+
+    return groupedLegend;
 } 

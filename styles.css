@@ -737,19 +737,15 @@ sl-details.map-controls-group::part(base) {
     border-radius: 4px;
 }
 
-.layer-attribution a {
-    color: #0078A8;
+a:not(header a) {
+    color: #0078A8!important;
     text-decoration: none;
 }
 
-.layer-attribution a:hover {
+a:hover {
     text-decoration: underline;
 }
 
-
-.description-area a{
-    text-decoration: underline;
-}
 
 
 
@@ -807,11 +803,14 @@ sl-details.map-controls-group::part(base) {
     border: 1px solid #929292;
     border-radius: 0.375rem;
     transition: all 0.2s;
+    margin-left: 0.5rem;
+    background: transparent;
 }
 
 .share-button:hover {
-    background-color: #edf2f7;
-    color: #1a202c;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: #ffffff;
 }
 
 .share-button svg {
@@ -842,11 +841,18 @@ sl-details::part(header):hover {
     opacity: 1;
 }
 sl-details::part(base) {
+    padding: 10px;
+}
+sl-details::part(content) {
+    padding: 0px;
+}
+sl-drawer sl-details::part(base) {
     padding: 0;
     border: 1px solid #535353;
     box-shadow: inset 0px 0px 3px rgb(69 69 69);
 }
-sl-details::part(content) {
+sl-drawer sl-details::part(content) {
+    padding: 10px;
     box-shadow: inset 0px 0px 3px rgb(69 69 69);
     background-color: rgb(255, 251, 243);
 }
@@ -1010,4 +1016,236 @@ input:checked + .toggle-slider:before {
 
 .layer-controls label:hover {
   color: #F96302;
+}
+
+/* Layer Settings Modal Styles */
+.layer-settings-dialog::part(base) {
+    --width: 90vw;
+    --max-width: 1200px;
+    --height: 80vh;
+}
+
+.layer-settings-dialog::part(header) {
+    padding: 0;
+}
+
+.layer-settings-dialog .settings-header {
+    position: relative;
+    height: 100px;
+    overflow: hidden;
+}
+
+.layer-settings-dialog .header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.3s ease;
+}
+
+.layer-settings-dialog .header-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+}
+
+.layer-settings-dialog .header-title {
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+
+.layer-settings-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.layer-settings-content .settings-header {
+    position: relative;
+}
+
+.layer-settings-content .settings-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.5));
+}
+
+/* Style JSON editors */
+.layer-settings-content sl-textarea::part(base) {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.layer-settings-content sl-textarea::part(textarea) {
+    padding: 8px;
+    background: #f5f5f5;
+}
+
+/* Settings button styles */
+.settings-button {
+    color: #ffffff;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.settings-button:hover {
+    opacity: 1;
+}
+
+/* Source details styles */
+.source-details {
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.source-details .font-mono {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+/* Modal footer styles */
+.layer-settings-dialog::part(footer) {
+    padding: 1rem;
+    border-top: 1px solid #e5e5e5;
+    background: #f5f5f5;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1024px) {
+    .settings-body {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+}
+
+/* Style Legend Styles */
+.style-legend {
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.style-legend .style-category {
+    background: #f5f5f5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.style-legend .style-properties {
+    padding: 0.5rem;
+}
+
+.style-legend .style-property {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.style-legend .style-property pre {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #666;
+    background: #f8f8f8;
+    padding: 0.25rem;
+    border-radius: 2px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* Color swatch styles */
+.style-legend .style-property [style*="background-color"] {
+    border: 1px solid #ddd;
+}
+
+/* Line pattern preview styles */
+.style-legend .style-property svg line {
+    stroke: #333;
+}
+
+/* Vector Legend Styles */
+.vector-legend {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-container {
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    overflow-y: auto;
+    max-height: calc(100vh - 300px); /* Allow scrolling for many items */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+/* Webkit scrollbar styles */
+.vector-legend .legend-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.vector-legend .legend-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vector-legend .legend-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.vector-legend .legend-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.vector-legend .legend-item:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.vector-legend .legend-symbol {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.vector-legend .legend-symbol svg {
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.vector-legend .legend-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.vector-legend .legend-title {
+    color: #333;
+    line-height: 1.2;
+}
+
+.vector-legend .legend-circle {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
