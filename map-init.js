@@ -19,37 +19,34 @@ map.addControl(new mapboxgl.AttributionControl({
 }), 'bottom-right');
 
 // Initialize search box
-const script = document.getElementById('search-js');
-script.onload = function () {
-    const searchBox = document.querySelector('mapbox-search-box');
-    
-    searchBox.options = {
-        language: 'en',
-        country: 'IN',
-        types: 'place,locality,postcode,region,district,street,address,poi',
-        proximity: {
-            lng: 73.87916,
-            lat: 15.26032
-        },
-        bbox: [73.5, 14.8, 74.2, 15.8] // Bounding box for Goa
-    };
-    
-    searchBox.addEventListener('input', (e) => {
-        if (e.target !== e.currentTarget) return;
-        
-        // Update proximity with input map location
-        const center = map.getCenter();
-        searchBox.options.proximity = {
-            lng: center.lng,
-            lat: center.lat
-        };
+function initializeSearch() {
+    map.on('style.load', () => {
+        const searchBox = document.querySelector('mapbox-search-box');
+        if (!searchBox) return;
+
+        // Set up mapbox integration
+        searchBox.mapboxgl = mapboxgl;
+        searchBox.marker = true;
+        searchBox.bindMap(map);
+
+        // Handle result selection
+        searchBox.addEventListener('retrieve', function(e) {
+            if (e.detail && e.detail.features && e.detail.features.length > 0) {
+                const feature = e.detail.features[0];
+                const coordinates = feature.geometry.coordinates;
+                
+                map.flyTo({
+                    center: coordinates,
+                    zoom: 16,
+                    essential: true
+                });
+            }
+        });
     });
-    
-    // Set up mapbox integration
-    searchBox.mapboxgl = mapboxgl;
-    searchBox.marker = true;
-    searchBox.bindMap(map);
-};
+}
+
+// Start initialization
+window.addEventListener('load', initializeSearch);
 
 // Add 3D terrain on map load
 map.on('load', () => {
