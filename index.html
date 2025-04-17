@@ -38,7 +38,7 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js'></script>
 
     <!-- Mapbox Search JS -->
-    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
+    <script src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
 
     <!-- Open Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,8 +72,13 @@
                 </svg>
             </a>
             <div>
-                <mapbox-search-box
-                    access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2x2MzZwbGRyMGdheDJtbXVwdDA4aDNyaCJ9.nbvz6aNGQo68xa4NtWH26A">
+                <mapbox-search-box 
+                    id="search-box" 
+                    access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ"
+                    proximity="73.87916,15.26032"
+                    country="IN"
+                    language="en"
+                    types="place,locality,postcode,region,district,street,address,poi">
                 </mapbox-search-box>
             </div>
         </div>
