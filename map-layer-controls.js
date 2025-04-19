@@ -484,6 +484,28 @@ export class MapLayerControl {
     }
 
     _initializeControl($container) {
+        // Add "Unselect All Layers" button at the top
+        const $unselectAllButton = $('<button>', {
+            class: 'unselect-all-button w-full bg-gray-700 text-white py-2 mb-3 rounded hover:bg-gray-600 flex items-center justify-center gap-2',
+            text: 'Unselect All Layers'
+        });
+        
+        // Add icon to button
+        const $icon = $('<sl-icon>', {
+            name: 'layers-half',
+            class: 'text-white'
+        });
+        
+        $unselectAllButton.prepend($icon[0]);
+        
+        // Add click handler for the button
+        $unselectAllButton.on('click', () => {
+            this._unselectAllLayers();
+        });
+        
+        // Add button to container
+        $container.prepend($unselectAllButton);
+        
         // Replace the line that's causing the error (around line 302)
         // FROM: const urlParams = getQueryParameters();
         // TO:
@@ -3351,6 +3373,21 @@ export class MapLayerControl {
             });
         }
     }
+
+    // Add new method to unselect all layers
+    _unselectAllLayers() {
+        // Get all layer toggle inputs
+        const toggleInputs = this._container.querySelectorAll('.group-header .toggle-switch input[type="checkbox"]');
+        
+        // Uncheck all toggles
+        toggleInputs.forEach(toggle => {
+            if (toggle.checked) {
+                toggle.checked = false;
+                // Trigger change event to update map
+                toggle.dispatchEvent(new Event('change'));
+            }
+        });
+    }
 }
 
-window.MapLayerControl = MapLayerControl; 
+window.MapLayerControl = MapLayerControl;
