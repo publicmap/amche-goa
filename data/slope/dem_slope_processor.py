@@ -17,7 +17,7 @@ curl -X 'GET' \
   -H 'accept: */*' --output src/nasadem_30m/goa_nasadem_30m.tif
     
     2. Run the script:
-       python3 dem_slope_processor.py <dem_type>
+       python3 dem_slope_processor.py <dem_source>
     
     The script will:
     - Unzip source files into tiff files
