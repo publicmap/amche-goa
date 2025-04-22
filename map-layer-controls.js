@@ -46,6 +46,19 @@ export class MapLayerControl {
                         ]
                     ],
                     'line-opacity': 1
+                },
+                circle: {
+                    'circle-radius': 5,
+                    'circle-color': '#FF0000',
+                    'circle-opacity': 0.8,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#FFFFFF',
+                    'circle-stroke-opacity': 1,
+                    'circle-blur': 0,
+                    'circle-translate': [0, 0],
+                    'circle-translate-anchor': 'map',
+                    'circle-pitch-alignment': 'viewport',
+                    'circle-pitch-scale': 'map'
                 }
             },
             geojson: {
@@ -68,6 +81,19 @@ export class MapLayerControl {
                     'text-justify': 'center',
                     'text-allow-overlap': false,
                     'text-transform': 'none'
+                },
+                circle: {
+                    'circle-radius': 5,
+                    'circle-color': '#ff0000',
+                    'circle-opacity': 0.5,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-opacity': 1,
+                    'circle-blur': 0,
+                    'circle-translate': [0, 0],
+                    'circle-translate-anchor': 'map',
+                    'circle-pitch-alignment': 'viewport',
+                    'circle-pitch-scale': 'map'
                 }
             },
             markers: {
@@ -76,7 +102,13 @@ export class MapLayerControl {
                     'circle-color': '#FF0000',
                     'circle-opacity': 0.9,
                     'circle-stroke-width': 1,
-                    'circle-stroke-color': '#ffffff'
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-opacity': 1,
+                    'circle-blur': 0,
+                    'circle-translate': [0, 0],
+                    'circle-translate-anchor': 'map',
+                    'circle-pitch-alignment': 'viewport',
+                    'circle-pitch-scale': 'map'
                 }
             },
             terrain: {
@@ -154,16 +186,20 @@ export class MapLayerControl {
                 return [
                     `vector-layer-${group.id}`,
                     `vector-layer-${group.id}-outline`,
-                    `vector-layer-${group.id}-text`
+                    `vector-layer-${group.id}-text`,
+                    `vector-layer-${group.id}-circle`
                 ];
             } else if (group.type === 'geojson') {
                 return [
                     `geojson-${group.id}-fill`,
                     `geojson-${group.id}-line`,
-                    `geojson-${group.id}-label`
+                    `geojson-${group.id}-label`,
+                    `geojson-${group.id}-circle`
                 ];
             } else if (group.type === 'tms') {
                 return [`tms-layer-${group.id}`];
+            } else if (group.type === 'markers') {
+                return [`markers-${group.id}-circles`];
             }
             return [];
         });
@@ -832,6 +868,9 @@ export class MapLayerControl {
                     if (this._map.getLayer(`${sourceId}-label`)) {
                         this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
                     }
+                    if (this._map.getLayer(`${sourceId}-circle`)) {
+                        this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', newOpacity);
+                    }
                 } else if (group.type === 'tms') {
                     const layerId = `tms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
@@ -915,6 +954,9 @@ export class MapLayerControl {
                     }
                     if (this._map.getLayer(`${sourceId}-label`)) {
                         this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', value);
+                    }
+                    if (this._map.getLayer(`${sourceId}-circle`)) {
+                        this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', value);
                     }
                 } else if (group.type === 'tms') {
                     const layerId = `tms-layer-${group.id}`;
@@ -1078,6 +1120,31 @@ export class MapLayerControl {
                         }
                     }, this._getInsertPosition('geojson', 'line'));
 
+                    // Add circle layer if circle properties are defined
+                    if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
+                        this._map.addLayer({
+                            id: `${sourceId}-circle`,
+                            type: 'circle',
+                            source: sourceId,
+                            paint: {
+                                'circle-radius': group.style['circle-radius'] || this._defaultStyles.geojson.circle?.['circle-radius'] || 5,
+                                'circle-color': group.style['circle-color'] || this._defaultStyles.geojson.circle?.['circle-color'] || '#FF0000',
+                                'circle-opacity': group.style['circle-opacity'] !== undefined ? group.style['circle-opacity'] : (this._defaultStyles.geojson.circle?.['circle-opacity'] || 0.8),
+                                'circle-stroke-width': group.style['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : (this._defaultStyles.geojson.circle?.['circle-stroke-width'] || 1),
+                                'circle-stroke-color': group.style['circle-stroke-color'] || this._defaultStyles.geojson.circle?.['circle-stroke-color'] || '#FFFFFF',
+                                'circle-stroke-opacity': group.style['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : (this._defaultStyles.geojson.circle?.['circle-stroke-opacity'] || 1),
+                                'circle-blur': group.style['circle-blur'] !== undefined ? group.style['circle-blur'] : (this._defaultStyles.geojson.circle?.['circle-blur'] || 0),
+                                'circle-translate': group.style['circle-translate'] || this._defaultStyles.geojson.circle?.['circle-translate'] || [0, 0],
+                                'circle-translate-anchor': group.style['circle-translate-anchor'] || this._defaultStyles.geojson.circle?.['circle-translate-anchor'] || 'map',
+                                'circle-pitch-alignment': group.style['circle-pitch-alignment'] || this._defaultStyles.geojson.circle?.['circle-pitch-alignment'] || 'viewport',
+                                'circle-pitch-scale': group.style['circle-pitch-scale'] || this._defaultStyles.geojson.circle?.['circle-pitch-scale'] || 'map'
+                            },
+                            layout: {
+                                'visibility': 'none'
+                            }
+                        }, this._getInsertPosition('geojson', 'circle'));
+                    }
+
                     // Add text layer if text properties are defined
                     if (group.style?.['text-field'] || group.style?.['text-size']) {
                         this._map.addLayer({
@@ -1108,6 +1175,9 @@ export class MapLayerControl {
                     const layerIds = [`${sourceId}-fill`, `${sourceId}-line`];
                     if (group.style?.['text-field'] || group.style?.['text-size']) {
                         layerIds.push(`${sourceId}-label`);
+                    }
+                    if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
+                        layerIds.push(`${sourceId}-circle`);
                     }
 
                     this._setupLayerInteractivity(group, layerIds, sourceId);
@@ -1620,8 +1690,17 @@ export class MapLayerControl {
                                 source: sourceId,
                                 paint: {
                                     ...this._defaultStyles.markers.circle,
-                                    'circle-radius': group.style?.radius || this._defaultStyles.markers.circle['circle-radius'],
-                                    'circle-color': group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color']
+                                    'circle-radius': group.style?.['circle-radius'] || this._defaultStyles.markers.circle['circle-radius'],
+                                    'circle-color': group.style?.['circle-color'] || group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color'],
+                                    'circle-opacity': group.style?.['circle-opacity'] !== undefined ? group.style['circle-opacity'] : this._defaultStyles.markers.circle['circle-opacity'],
+                                    'circle-stroke-width': group.style?.['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : this._defaultStyles.markers.circle['circle-stroke-width'],
+                                    'circle-stroke-color': group.style?.['circle-stroke-color'] || this._defaultStyles.markers.circle['circle-stroke-color'],
+                                    'circle-stroke-opacity': group.style?.['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : this._defaultStyles.markers.circle['circle-stroke-opacity'],
+                                    'circle-blur': group.style?.['circle-blur'] !== undefined ? group.style['circle-blur'] : this._defaultStyles.markers.circle['circle-blur'],
+                                    'circle-translate': group.style?.['circle-translate'] || this._defaultStyles.markers.circle['circle-translate'],
+                                    'circle-translate-anchor': group.style?.['circle-translate-anchor'] || this._defaultStyles.markers.circle['circle-translate-anchor'],
+                                    'circle-pitch-alignment': group.style?.['circle-pitch-alignment'] || this._defaultStyles.markers.circle['circle-pitch-alignment'],
+                                    'circle-pitch-scale': group.style?.['circle-pitch-scale'] || this._defaultStyles.markers.circle['circle-pitch-scale']
                                 },
                                 layout: {
                                     'visibility': 'none'
@@ -1800,7 +1879,39 @@ export class MapLayerControl {
             // Determine the geometry type of the layer based on style properties
             const hasLineStyle = group.style && ('line-color' in group.style || 'line-width' in group.style);
             const hasFillStyle = group.style && ('fill-color' in group.style || 'fill-opacity' in group.style);
+            const hasCircleStyle = group.style && ('circle-color' in group.style || 'circle-radius' in group.style);
             
+            // For layers with circle styles, add a circle layer
+            if (hasCircleStyle) {
+                // Add circle layer
+                this.map.addLayer({
+                    'id': `${layerId}-circle`,
+                    'type': 'circle',
+                    'source': sourceId,
+                    'source-layer': group.sourceLayer,
+                    'layout': {
+                        'visibility': visible ? 'visible' : 'none'
+                    },
+                    'paint': {
+                        'circle-radius': group.style['circle-radius'] || this._defaultStyles.vector.circle['circle-radius'],
+                        'circle-color': group.style['circle-color'] || this._defaultStyles.vector.circle['circle-color'],
+                        'circle-opacity': group.style['circle-opacity'] !== undefined ? group.style['circle-opacity'] : this._defaultStyles.vector.circle['circle-opacity'],
+                        'circle-stroke-width': group.style['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : this._defaultStyles.vector.circle['circle-stroke-width'],
+                        'circle-stroke-color': group.style['circle-stroke-color'] || this._defaultStyles.vector.circle['circle-stroke-color'],
+                        'circle-stroke-opacity': group.style['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : this._defaultStyles.vector.circle['circle-stroke-opacity'],
+                        'circle-blur': group.style['circle-blur'] !== undefined ? group.style['circle-blur'] : this._defaultStyles.vector.circle['circle-blur'],
+                        'circle-translate': group.style['circle-translate'] || this._defaultStyles.vector.circle['circle-translate'],
+                        'circle-translate-anchor': group.style['circle-translate-anchor'] || this._defaultStyles.vector.circle['circle-translate-anchor'],
+                        'circle-pitch-alignment': group.style['circle-pitch-alignment'] || this._defaultStyles.vector.circle['circle-pitch-alignment'],
+                        'circle-pitch-scale': group.style['circle-pitch-scale'] || this._defaultStyles.vector.circle['circle-pitch-scale']
+                    },
+                    'filter': group.filter || null
+                }, this._getInsertPosition(group.type, 'circle'));
+                
+                // Add this layer to the list of layers that we setup interactivity for
+                layerIds.push(`${layerId}-circle`);
+            }
+
             // For line-only layers (like lineaments), we only need to add a line layer
             if (hasLineStyle && !hasFillStyle) {
                 // Add line layer only
@@ -1910,7 +2021,7 @@ export class MapLayerControl {
             });
         } else if (group.type === 'geojson') {
             const sourceId = `geojson-${group.id}`;
-            ['fill', 'line', 'label'].forEach(type => {
+            ['fill', 'line', 'label', 'circle'].forEach(type => {
                 const layerId = `${sourceId}-${type}`;
                 if (this._map.getLayer(layerId)) {
                     this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
@@ -3026,6 +3137,13 @@ export class MapLayerControl {
                 const circleRadius = getSimpleValue(group.style['circle-radius']) || 6;
                 const circleStrokeColor = getSimpleValue(group.style['circle-stroke-color']) || '#ffffff';
                 const circleStrokeWidth = getSimpleValue(group.style['circle-stroke-width']) || 1;
+                const circleOpacity = getSimpleValue(group.style['circle-opacity']) || 0.9;
+                const circleStrokeOpacity = getSimpleValue(group.style['circle-stroke-opacity']) || 1;
+                const circleBlur = getSimpleValue(group.style['circle-blur']) || 0;
+                
+                const blurStyle = circleBlur > 0 ? `filter: blur(${circleBlur}px);` : '';
+                const opacityStyle = `opacity: ${circleOpacity};`;
+                const strokeOpacityStyle = `opacity: ${circleStrokeOpacity};`;
                 
                 styleHtml += `
                     <div class="legend-item flex items-center gap-3">
@@ -3036,6 +3154,8 @@ export class MapLayerControl {
                                 background-color: ${circleColor};
                                 border: ${circleStrokeWidth}px solid ${circleStrokeColor};
                                 border-radius: 50%;
+                                ${blurStyle}
+                                ${opacityStyle}
                             "></div>
                         </div>
                         <div class="legend-info">
@@ -3120,7 +3240,8 @@ export class MapLayerControl {
                 const layerIds = [
                     `vector-layer-${oldConfig.id}`,
                     `vector-layer-${oldConfig.id}-outline`,
-                    `vector-layer-${oldConfig.id}-text`
+                    `vector-layer-${oldConfig.id}-text`,
+                    `vector-layer-${oldConfig.id}-circle`
                 ];
                 layerIds.forEach(id => {
                     if (this._map.getLayer(id)) {
@@ -3134,7 +3255,8 @@ export class MapLayerControl {
                 const layerIds = [
                     `geojson-${oldConfig.id}-fill`,
                     `geojson-${oldConfig.id}-line`,
-                    `geojson-${oldConfig.id}-label`
+                    `geojson-${oldConfig.id}-label`,
+                    `geojson-${oldConfig.id}-circle`
                 ];
                 layerIds.forEach(id => {
                     if (this._map.getLayer(id)) {
@@ -3159,6 +3281,7 @@ export class MapLayerControl {
                 const sourceId = `vector-${newConfig.id}`;
                 const hasFillStyles = newConfig.style && (newConfig.style['fill-color'] || newConfig.style['fill-opacity']);
                 const hasLineStyles = newConfig.style && (newConfig.style['line-color'] || newConfig.style['line-width']);
+                const hasCircleStyles = newConfig.style && (newConfig.style['circle-color'] || newConfig.style['circle-radius']);
                 
                 // Add source with proper handling of Mapbox hosted tilesets
                 const sourceConfig = {
@@ -3203,6 +3326,32 @@ export class MapLayerControl {
                         paint: {
                             'line-color': newConfig.style['line-color'] || this._defaultStyles.vector.line['line-color'],
                             'line-width': newConfig.style['line-width'] || this._defaultStyles.vector.line['line-width']
+                        },
+                        layout: {
+                            visibility: 'none'
+                        }
+                    });
+                }
+                
+                // Add circle layer if styles exist
+                if (hasCircleStyles) {
+                    this._map.addLayer({
+                        id: `vector-layer-${newConfig.id}-circle`,
+                        type: 'circle',
+                        source: sourceId,
+                        'source-layer': newConfig.sourceLayer,
+                        paint: {
+                            'circle-radius': newConfig.style['circle-radius'] || this._defaultStyles.vector.circle['circle-radius'],
+                            'circle-color': newConfig.style['circle-color'] || this._defaultStyles.vector.circle['circle-color'],
+                            'circle-opacity': newConfig.style['circle-opacity'] !== undefined ? newConfig.style['circle-opacity'] : this._defaultStyles.vector.circle['circle-opacity'],
+                            'circle-stroke-width': newConfig.style['circle-stroke-width'] !== undefined ? newConfig.style['circle-stroke-width'] : this._defaultStyles.vector.circle['circle-stroke-width'],
+                            'circle-stroke-color': newConfig.style['circle-stroke-color'] || this._defaultStyles.vector.circle['circle-stroke-color'],
+                            'circle-stroke-opacity': newConfig.style['circle-stroke-opacity'] !== undefined ? newConfig.style['circle-stroke-opacity'] : this._defaultStyles.vector.circle['circle-stroke-opacity'],
+                            'circle-blur': newConfig.style['circle-blur'] !== undefined ? newConfig.style['circle-blur'] : this._defaultStyles.vector.circle['circle-blur'],
+                            'circle-translate': newConfig.style['circle-translate'] || this._defaultStyles.vector.circle['circle-translate'],
+                            'circle-translate-anchor': newConfig.style['circle-translate-anchor'] || this._defaultStyles.vector.circle['circle-translate-anchor'],
+                            'circle-pitch-alignment': newConfig.style['circle-pitch-alignment'] || this._defaultStyles.vector.circle['circle-pitch-alignment'],
+                            'circle-pitch-scale': newConfig.style['circle-pitch-scale'] || this._defaultStyles.vector.circle['circle-pitch-scale']
                         },
                         layout: {
                             visibility: 'none'
@@ -3261,6 +3410,31 @@ export class MapLayerControl {
                         visibility: 'none'
                     }
                 });
+                
+                // Add circle layer if circle properties are defined
+                if (newConfig.style?.['circle-radius'] || newConfig.style?.['circle-color']) {
+                    this._map.addLayer({
+                        id: `${sourceId}-circle`,
+                        type: 'circle',
+                        source: sourceId,
+                        paint: {
+                            'circle-radius': newConfig.style['circle-radius'] || this._defaultStyles.geojson.circle?.['circle-radius'] || 5,
+                            'circle-color': newConfig.style['circle-color'] || this._defaultStyles.geojson.circle?.['circle-color'] || '#FF0000',
+                            'circle-opacity': newConfig.style['circle-opacity'] !== undefined ? newConfig.style['circle-opacity'] : (this._defaultStyles.geojson.circle?.['circle-opacity'] || 0.8),
+                            'circle-stroke-width': newConfig.style['circle-stroke-width'] !== undefined ? newConfig.style['circle-stroke-width'] : (this._defaultStyles.geojson.circle?.['circle-stroke-width'] || 1),
+                            'circle-stroke-color': newConfig.style['circle-stroke-color'] || this._defaultStyles.geojson.circle?.['circle-stroke-color'] || '#FFFFFF',
+                            'circle-stroke-opacity': newConfig.style['circle-stroke-opacity'] !== undefined ? newConfig.style['circle-stroke-opacity'] : (this._defaultStyles.geojson.circle?.['circle-stroke-opacity'] || 1),
+                            'circle-blur': newConfig.style['circle-blur'] !== undefined ? newConfig.style['circle-blur'] : (this._defaultStyles.geojson.circle?.['circle-blur'] || 0),
+                            'circle-translate': newConfig.style['circle-translate'] || this._defaultStyles.geojson.circle?.['circle-translate'] || [0, 0],
+                            'circle-translate-anchor': newConfig.style['circle-translate-anchor'] || this._defaultStyles.geojson.circle?.['circle-translate-anchor'] || 'map',
+                            'circle-pitch-alignment': newConfig.style['circle-pitch-alignment'] || this._defaultStyles.geojson.circle?.['circle-pitch-alignment'] || 'viewport',
+                            'circle-pitch-scale': newConfig.style['circle-pitch-scale'] || this._defaultStyles.geojson.circle?.['circle-pitch-scale'] || 'map'
+                        },
+                        layout: {
+                            visibility: 'none'
+                        }
+                    });
+                }
                 
                 // Add text layer if configured
                 if (newConfig.style?.['text-field']) {
