@@ -82,7 +82,7 @@ DEM_CONFIGS = {
         "dem_water_value": 0,
         "dem_nodata_value": -32768,
         "input_folder": "./src/nasadem_30m",
-        "contour_interval": 10
+        "contour_interval": 1
     }
 }
 
@@ -93,8 +93,8 @@ DEM_SCALE = 111120
 SLOPE_BANDS = [
     (10, 20), # 10-20% Restricted Development Slope (RDS-1)
     (20, 25), # 20-25% Restricted Development Slope (RDS-2) 
-    (25, 50), # 25-50% No-Development Slope (NDS)
-    (50, float('inf')) # 50+% No-Development Slope (NDS)
+    (25, 35), # 25-35% No-Development Slope (NDS)
+    (35, float('inf')) # 35+% No-Development Slope (NDS)
 ]
 
 # Add these flags after the SLOPE_BANDS constant
@@ -218,9 +218,6 @@ def create_slope_raster(dem_file: str, output_slope_file: str) -> None:
         output_slope_file (str): Path for the output slope file
     """
     try:
-        # Create temporary floating-point slope file
-        temp_slope_file = output_slope_file + '.temp.tif'
-        
         slope_options = gdal.DEMProcessingOptions(
             format='GTiff',
             computeEdges=False,
@@ -230,43 +227,13 @@ def create_slope_raster(dem_file: str, output_slope_file: str) -> None:
         )
         
         gdal.DEMProcessing(
-            temp_slope_file,
+            output_slope_file,
             dem_file,
             'slope',
             options=slope_options
         )
         
-        # Read the temporary slope file
-        slope_ds = gdal.Open(temp_slope_file)
-        slope_array = slope_ds.ReadAsArray()
-        
-        # Scale slope values to 0-255 range
-        # Assuming max slope of 100% for scaling
-        slope_array = (slope_array / 100.0 * 255).clip(0, 255)
-        slope_array = slope_array.astype(np.uint8)
-        
-        # Create final 8-bit output
-        driver = gdal.GetDriverByName('GTiff')
-        out_ds = driver.Create(
-            output_slope_file,
-            slope_ds.RasterXSize,
-            slope_ds.RasterYSize,
-            1,
-            gdal.GDT_Byte,
-            options=['COMPRESS=DEFLATE', 'PREDICTOR=2']
-        )
-        
-        out_ds.SetGeoTransform(slope_ds.GetGeoTransform())
-        out_ds.SetProjection(slope_ds.GetProjection())
-        out_band = out_ds.GetRasterBand(1)
-        out_band.WriteArray(slope_array)
-        
-        # Cleanup
-        out_ds = None
-        slope_ds = None
-        os.remove(temp_slope_file)  # Remove temporary file
-        
-        print(f"Successfully created 8-bit slope raster: {output_slope_file}")
+        print(f"Successfully created slope raster: {output_slope_file}")
 
     except Exception as e:
         print(f"An error occurred while creating slope raster: {str(e)}")

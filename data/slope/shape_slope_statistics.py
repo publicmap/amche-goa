@@ -27,8 +27,10 @@ import time
 from datetime import datetime
 import json
 import multiprocessing as mp
+from multiprocessing import resource_tracker
 from typing import Dict, List, Tuple, Optional
 from tqdm import tqdm
+import shapely.errors
 
 # Configure logging
 logging.basicConfig(
@@ -159,6 +161,12 @@ def create_summary_statistics(combined_results: gpd.GeoDataFrame) -> Dict:
         'percent_with_slope_data': round(float((combined_results['has_slope_data'].sum() / len(combined_results)) * 100), 1),
     }
     
+    # Add stats for geometries
+    if 'geometry_valid' in combined_results.columns:
+        invalid_geoms = len(combined_results) - combined_results['geometry_valid'].sum()
+        summary['plots_with_invalid_geometry'] = int(invalid_geoms)
+        summary['percent_with_invalid_geometry'] = round(float((invalid_geoms / len(combined_results)) * 100), 1)
+    
     # Add stats for each slope class
     for min_val, max_val, class_name in SLOPE_CLASSES:
         area_col = f"{class_name}_area_m2"
@@ -189,6 +197,9 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
     
     plots_group['total_area_m2'] = 0.0
     plots_group['has_slope_data'] = False
+    plots_group['geometry_valid'] = True
+    plots_group['steep_slope_percent'] = 0.0
+    plots_group['steep_slope_area_m2'] = 0.0
     
     # Track progress
     progress_interval = max(1, len(plots_group) // 10)
@@ -201,6 +212,24 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
         try:
             # Get plot geometry
             plot_geom = plot_row.geometry
+            
+            # Check if geometry is valid, try to fix if not
+            if not plot_geom.is_valid:
+                logging.info(f"Plot {idx} has invalid geometry, attempting to fix...")
+                try:
+                    from shapely.validation import make_valid
+                    fixed_geom = make_valid(plot_geom)
+                    if fixed_geom.is_valid:
+                        plot_geom = fixed_geom
+                        logging.info(f"Successfully fixed geometry for plot {idx}")
+                    else:
+                        plots_group.at[idx, 'geometry_valid'] = False
+                        logging.warning(f"Unable to fix geometry for plot {idx}, skipping")
+                        continue
+                except Exception as e:
+                    plots_group.at[idx, 'geometry_valid'] = False
+                    logging.warning(f"Error fixing geometry for plot {idx}: {str(e)}, skipping")
+                    continue
             
             # Convert to UTM for accurate area calculation
             centroid = plot_geom.centroid
@@ -215,8 +244,26 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
             total_area_m2 = round(plot_utm.area.iloc[0], 1)
             plots_group.at[idx, 'total_area_m2'] = total_area_m2
             
-            # Find intersecting slope zones
-            intersecting_zones = slope_zones[slope_zones.intersects(plot_geom)].copy()
+            # Find intersecting slope zones - use try/except to handle topology errors
+            try:
+                intersecting_zones = slope_zones[slope_zones.intersects(plot_geom)].copy()
+            except shapely.errors.GEOSException as e:
+                logging.warning(f"Plot {idx}: Topology error during intersection check: {str(e)}")
+                # Try with a buffered version of the geometry (can help with some topology issues)
+                try:
+                    buffer_amount = 0.000001  # Very small buffer
+                    buffered_geom = plot_geom.buffer(buffer_amount)
+                    if buffered_geom.is_valid:
+                        intersecting_zones = slope_zones[slope_zones.intersects(buffered_geom)].copy()
+                        logging.info(f"Plot {idx}: Successfully found intersections using buffered geometry")
+                    else:
+                        plots_group.at[idx, 'geometry_valid'] = False
+                        logging.warning(f"Plot {idx}: Buffered geometry still invalid, skipping")
+                        continue
+                except Exception as e2:
+                    plots_group.at[idx, 'geometry_valid'] = False
+                    logging.warning(f"Plot {idx}: Failed to intersect even with buffered geometry: {str(e2)}, skipping")
+                    continue
             
             if len(intersecting_zones) == 0:
                 # No slope data for this plot
@@ -251,8 +298,35 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
                                 # Convert zone geometry to UTM
                                 zone_geom_utm = gpd.GeoSeries([zone_row.geometry], crs=slope_zones.crs).to_crs(utm_crs).iloc[0]
                                 
-                                # Calculate intersection using shapely
-                                intersection_geom = plot_gdf_utm.geometry.iloc[0].intersection(zone_geom_utm)
+                                # Check if geometries are valid before intersection
+                                if not zone_geom_utm.is_valid:
+                                    from shapely.validation import make_valid
+                                    zone_geom_utm = make_valid(zone_geom_utm)
+                                
+                                plot_geom_utm = plot_gdf_utm.geometry.iloc[0]
+                                if not plot_geom_utm.is_valid:
+                                    from shapely.validation import make_valid
+                                    plot_geom_utm = make_valid(plot_geom_utm)
+                                
+                                # Calculate intersection using shapely, with error handling
+                                try:
+                                    intersection_geom = plot_geom_utm.intersection(zone_geom_utm)
+                                except shapely.errors.GEOSException as e:
+                                    # Try with prepared geometries and buffer as a fallback
+                                    try:
+                                        from shapely.prepared import prep
+                                        prepared_plot = prep(plot_geom_utm.buffer(0))
+                                        prepared_zone = prep(zone_geom_utm.buffer(0))
+                                        
+                                        # Check if they still intersect after buffering
+                                        if prepared_plot.intersects(zone_geom_utm):
+                                            intersection_geom = plot_geom_utm.buffer(0).intersection(zone_geom_utm.buffer(0))
+                                        else:
+                                            # No valid intersection
+                                            continue
+                                    except Exception as e3:
+                                        logging.error(f"Plot {idx}, Zone {zone_idx}: Failed all intersection attempts: {str(e3)}")
+                                        continue
                                 
                                 # Calculate area of intersection
                                 if not intersection_geom.is_empty:
@@ -275,10 +349,20 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
                                     # Convert zone to UTM first
                                     zone_gdf_utm = gpd.GeoDataFrame(geometry=[zone_row.geometry], crs=slope_zones.crs).to_crs(utm_crs)
                                     
+                                    # Try to fix geometries with buffer(0) before overlay
+                                    plot_gdf_utm_fixed = gpd.GeoDataFrame(
+                                        geometry=[plot_gdf_utm.geometry.iloc[0].buffer(0)], 
+                                        crs=utm_crs
+                                    )
+                                    zone_gdf_utm_fixed = gpd.GeoDataFrame(
+                                        geometry=[zone_gdf_utm.geometry.iloc[0].buffer(0)], 
+                                        crs=utm_crs
+                                    )
+                                    
                                     # Use overlay with keep_geom_type=False
                                     intersection = gpd.overlay(
-                                        plot_gdf_utm,
-                                        zone_gdf_utm,
+                                        plot_gdf_utm_fixed,
+                                        zone_gdf_utm_fixed,
                                         how='intersection',
                                         keep_geom_type=False
                                     )
@@ -303,23 +387,30 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
                 continue
                 
             # Normalize areas if there's a significant difference
-            area_difference_percent = abs(total_slope_area - total_area_m2) / total_area_m2 * 100
-            if area_difference_percent > 5 and total_slope_area > 0:
-                # Normalize all slope areas to match total area
-                scaling_factor = total_area_m2 / total_slope_area
-                logging.debug(f"Plot {idx}: normalizing areas (diff: {area_difference_percent:.1f}%, scaling: {scaling_factor:.3f})")
-                
-                for _, _, class_name in SLOPE_CLASSES:
-                    area_col = f"{class_name}_area_m2"
-                    current_area = plots_group.at[idx, area_col]
-                    adjusted_area = round(current_area * scaling_factor, 1)
-                    plots_group.at[idx, area_col] = adjusted_area
+            if total_area_m2 > 0:
+                area_difference_percent = abs(total_slope_area - total_area_m2) / total_area_m2 * 100
+                if area_difference_percent > 5 and total_slope_area > 0:
+                    # Normalize all slope areas to match total area
+                    scaling_factor = total_area_m2 / total_slope_area
+                    logging.debug(f"Plot {idx}: normalizing areas (diff: {area_difference_percent:.1f}%, scaling: {scaling_factor:.3f})")
+                    
+                    for _, _, class_name in SLOPE_CLASSES:
+                        area_col = f"{class_name}_area_m2"
+                        current_area = plots_group.at[idx, area_col]
+                        adjusted_area = round(current_area * scaling_factor, 1)
+                        plots_group.at[idx, area_col] = adjusted_area
             else:
-                # Round all area values to 1 decimal place
-                for _, _, class_name in SLOPE_CLASSES:
-                    area_col = f"{class_name}_area_m2"
-                    current_area = plots_group.at[idx, area_col]
-                    plots_group.at[idx, area_col] = round(current_area, 1)
+                # Handle case where total_area_m2 is zero
+                logging.warning(f"Plot {idx} has zero total area, skipping area normalization")
+                # Set has_slope_data to False since we can't calculate percentages
+                plots_group.at[idx, 'has_slope_data'] = False
+                continue
+                
+            # Round all area values to 1 decimal place
+            for _, _, class_name in SLOPE_CLASSES:
+                area_col = f"{class_name}_area_m2"
+                current_area = plots_group.at[idx, area_col]
+                plots_group.at[idx, area_col] = round(current_area, 1)
             
             # Calculate percentages
             if total_area_m2 > 0:
@@ -327,6 +418,15 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
                     area_m2 = plots_group.at[idx, f"{class_name}_area_m2"]
                     percentage = round((area_m2 / total_area_m2) * 100, 1)
                     plots_group.at[idx, f"{class_name}_percent"] = percentage
+                
+                # Calculate steep slope percentage and area
+                steep_slope_percent = 0.0
+                for min_val, max_val, class_name in SLOPE_CLASSES:
+                    if min_val >= 25:  # All slope classes 25% and above
+                        steep_slope_percent += plots_group.at[idx, f"{class_name}_percent"]
+                
+                plots_group.at[idx, 'steep_slope_percent'] = round(steep_slope_percent, 1)
+                plots_group.at[idx, 'steep_slope_area_m2'] = round((steep_slope_percent / 100.0) * total_area_m2, 1)
             
         except Exception as e:
             logging.error(f"Error processing plot {idx}: {str(e)}")
@@ -345,7 +445,16 @@ def process_plot_group(args: Tuple[int, gpd.GeoDataFrame, gpd.GeoDataFrame]) -> 
 def validate_results(results: gpd.GeoDataFrame):
     """
     Validate the results to ensure the sum of slope areas equals total area
+    and report on geometry issues
     """
+    # Check geometry validation first
+    if 'geometry_valid' in results.columns:
+        invalid_count = len(results) - results['geometry_valid'].sum()
+        if invalid_count > 0:
+            logging.warning(f"Found {invalid_count} plots with invalid geometries ({invalid_count/len(results)*100:.1f}%)")
+        else:
+            logging.info("All plot geometries are valid")
+    
     # Check only plots with slope data
     has_slope_data = results['has_slope_data'] == True
     if has_slope_data.sum() == 0:
@@ -361,19 +470,39 @@ def validate_results(results: gpd.GeoDataFrame):
     
     # Calculate difference
     plots_with_data['area_difference'] = abs(plots_with_data['total_area_m2'] - plots_with_data['sum_slope_areas'])
-    plots_with_data['area_difference_percent'] = (plots_with_data['area_difference'] / plots_with_data['total_area_m2']) * 100
+    
+    # Filter out plots with zero total area before calculating percentage difference
+    non_zero_area = plots_with_data['total_area_m2'] > 0
+    if non_zero_area.sum() == 0:
+        logging.warning("All plots have zero total area")
+        return
+    
+    # Calculate percentage difference only for plots with non-zero total area
+    plots_with_non_zero = plots_with_data[non_zero_area].copy()
+    plots_with_non_zero['area_difference_percent'] = (plots_with_non_zero['area_difference'] / plots_with_non_zero['total_area_m2']) * 100
+    
+    # Verify steep_slope fields are properly calculated
+    for idx, row in plots_with_non_zero.iterrows():
+        steep_percent_sum = 0.0
+        for min_val, max_val, class_name in SLOPE_CLASSES:
+            if min_val >= 25:  # All slope classes 25% and above
+                steep_percent_sum += row[f"{class_name}_percent"]
+        
+        if abs(steep_percent_sum - row['steep_slope_percent']) > 0.1:
+            logging.warning(f"Plot {idx} has inconsistent steep slope percentage calculation")
     
     # Summarize results
-    mean_diff_percent = round(plots_with_data['area_difference_percent'].mean(), 1)
-    max_diff_percent = round(plots_with_data['area_difference_percent'].max(), 1)
+    mean_diff_percent = round(plots_with_non_zero['area_difference_percent'].mean(), 1)
+    max_diff_percent = round(plots_with_non_zero['area_difference_percent'].max(), 1)
     
     logging.info(f"Validation summary:")
     logging.info(f"  - Plots with slope data: {has_slope_data.sum()} of {len(results)}")
+    logging.info(f"  - Plots with zero area: {len(plots_with_data) - non_zero_area.sum()} of {len(plots_with_data)}")
     logging.info(f"  - Mean area difference: {mean_diff_percent}%")
     logging.info(f"  - Max area difference: {max_diff_percent}%")
     
     # Count plots with significant differences
-    significant_diff = plots_with_data['area_difference_percent'] > 5
+    significant_diff = plots_with_non_zero['area_difference_percent'] > 5
     if significant_diff.sum() > 0:
         logging.warning(f"  - {significant_diff.sum()} plots have area differences > 5%")
 
@@ -384,15 +513,24 @@ def create_nds_locations(results: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     logging.info("Creating NDS locations from plots with >25% of area on slopes >25%...")
     
+    # Filter out invalid geometries if that column exists
+    valid_results = results
+    if 'geometry_valid' in results.columns:
+        valid_results = results[results['geometry_valid'] == True].copy()
+        logging.info(f"Filtered out {len(results) - len(valid_results)} plots with invalid geometries")
+    
     # Calculate total percentage of slopes over 25%
-    results['percent_steep_slopes'] = 0.0
+    valid_results['steep_slopes_percent'] = 0.0
     for min_val, max_val, class_name in SLOPE_CLASSES:
         if min_val >= 25:  # All slope classes 25% and above
-            results['percent_steep_slopes'] += results[f"{class_name}_percent"]
+            valid_results['steep_slopes_percent'] += valid_results[f"{class_name}_percent"]
+    
+    # Calculate steep slope area in square meters
+    valid_results['steep_slope_area_m2'] = valid_results['steep_slopes_percent'] * valid_results['total_area_m2'] / 100.0
     
     # Filter for plots with slope data and >25% steep slopes
-    nds_plots = results[(results['has_slope_data'] == True) & 
-                         (results['percent_steep_slopes'] > 25.0)].copy()
+    nds_plots = valid_results[(valid_results['has_slope_data'] == True) & 
+                         (valid_results['steep_slopes_percent'] > 25.0)].copy()
     
     logging.info(f"Found {len(nds_plots)} plots with >25% of their area on slopes >25%")
     
@@ -401,7 +539,7 @@ def create_nds_locations(results: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     nds_points['geometry'] = nds_plots.centroid
     
     # Keep relevant columns
-    keep_columns = ['geometry', 'percent_steep_slopes', 'total_area_m2']
+    keep_columns = ['geometry', 'steep_slopes_percent', 'steep_slope_area_m2', 'total_area_m2']
     
     # Add relevant slope columns
     for min_val, max_val, class_name in SLOPE_CLASSES:
@@ -409,9 +547,16 @@ def create_nds_locations(results: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             keep_columns.append(f"{class_name}_percent")
             keep_columns.append(f"{class_name}_area_m2")
     
+    # Map field names and keep additional identifier columns if they exist
+    field_mappings = {'villagenam': 'village', 'lname': 'taluk'}
+    for src_col, dest_col in field_mappings.items():
+        if src_col in nds_plots.columns:
+            nds_points[dest_col] = nds_plots[src_col]
+            keep_columns.append(dest_col)
+    
     # Keep additional identifier columns if they exist
     for col in ['id', 'survey_no', 'plot_no', 'village', 'name']:
-        if col in nds_plots.columns:
+        if col in nds_plots.columns and col not in keep_columns:
             keep_columns.append(col)
     
     # Filter columns and return
@@ -461,6 +606,7 @@ def main():
         
         with mp.Pool(mp.cpu_count()) as pool:
             group_args = [(i, group, slope_zones) for i, group in enumerate(groups)]
+            # Use list to force all tasks to complete before closing the pool
             results = list(pool.imap(process_plot_group, group_args))
         
         # Combine results
@@ -498,6 +644,29 @@ def main():
         logging.info(f"Results saved to: {output_path}")
         logging.info(f"NDS locations saved to: {nds_output_path}")
         logging.info(f"Summary saved to: {summary_path}")
+        
+        # Cleanup multiprocessing resources to prevent semaphore leaks
+        def cleanup_resources():
+            try:
+                # Force cleanup of any leaked semaphores
+                if hasattr(resource_tracker, '_REGISTRY'):
+                    # Get all semaphore resources
+                    semaphores = [rtype for rtype, res in resource_tracker._REGISTRY.items() 
+                                if rtype.startswith('/mp')]
+                    
+                    # Unregister each semaphore
+                    for semaphore in semaphores:
+                        logging.info(f"Cleaning up leaked semaphore: {semaphore}")
+                        resource_tracker.unregister(semaphore, 'semaphore')
+                        
+                resource_tracker._CLEANUP_FUNCS.clear()
+                # Ensure the resource tracker is terminated
+                if hasattr(resource_tracker, '_resource_tracker'):
+                    resource_tracker._resource_tracker = None
+            except Exception as e:
+                logging.warning(f"Error during multiprocessing cleanup: {str(e)}")
+                
+        cleanup_resources()
         
     except Exception as e:
         logging.error(f"Error: {str(e)}")
