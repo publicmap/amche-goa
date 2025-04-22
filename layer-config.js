@@ -82,10 +82,10 @@ export const layersConfig = [
         initiallyChecked: true,
         inspect: {
             id: 'plot',
-            title: '% plot area with steep slope (>25% slope)',
+            title: '% plot area with NDS',
             label: 'steep_slope_pct',
             fields: ['steep_slope_area','total_area_m2','slope_10_20_pct','slope_20_25_pct','slope_25_35_pct','slope_35_inf_pct','plot','village'],
-            fieldTitles: ['Steep Slope Area (m2)','Total Area (m2)','10-20% slope %','20-25% slope %','25-35% slope %','35%+ slope %','Plot','Village']
+            fieldTitles: ['NDS Area (m2)','Total Area (m2)','RDS-1 % (10-20% slope)','RDS-2 % (20-25% slope)','NDS-1 % (25-35% slope)','NDS-2 % (35%+ slope)','Plot','Village']
         }
     },
     {
