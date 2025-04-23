@@ -1240,7 +1240,7 @@ export const layersConfig = [
     },
     {
         title: 'Groundwater Prospects',
-        description: 'Groundwater prospect maps prepared at 1:50k scale. Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">methodology</a> and <a href="https://www.nrsc.gov.in/sites/default/files/pdf/ebooks/RGNationalDrinkingWater_UserManual.pdf">user manual</a> for more details. Check <a href"https://ingres.iith.ac.in/gecdataonline/gis/INDIA">INDIA-Groundwater Resource Estimation System (IN-GRES)</a> for taluk level groundwater assessment reports.',
+        description: 'Groundwater prospect maps prepared at 1:50k scale. Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">methodology</a> and <a href="https://www.nrsc.gov.in/sites/default/files/pdf/ebooks/RGNationalDrinkingWater_UserManual.pdf">user manual</a> for more details. Check <a href"https://ingres.iith.ac.in/gecdataonline/gis/INDIA">INDIA-Groundwater Resource Estimation System (IN-GRES)</a> for taluk level groundwater assessment reports.<br>View  <a href="https://www.cgwb.gov.in/old_website/GW-Assessment/GWR-2022-Reports%20State/Goa.pdf">Dynamic Groundwater Report of Goa State 2022</a> | <a href="https://www.cgwb.gov.in/cgwbpnm/public/uploads/documents/1705640315968744698file.pdf">2024</a>.',
         headerImage: 'assets/map-layer-groundwater.png',
         legendImage: 'assets/map-layer-groundwater-legend.pdf',
         type: 'vector',
