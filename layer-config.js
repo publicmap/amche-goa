@@ -124,7 +124,6 @@ export const layersConfig = [
                 'orange'
             ]
         },
-        initiallyChecked: true,
         inspect: {
             id: 'plot',
             title: '% plot area with NDS',
