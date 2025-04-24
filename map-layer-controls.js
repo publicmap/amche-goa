@@ -2214,13 +2214,13 @@ export class MapLayerControl {
 
         // Add layer name at the top
         const layerName = document.createElement('div');
-        layerName.className = 'text-xs uppercase tracking-wider text-gray-400 font-medium';
+        layerName.className = 'text-xs uppercase tracking-wider text-gray-400';
         layerName.textContent = group.title;
         content.appendChild(layerName);
 
         if (group.inspect?.title) {
             const title = document.createElement('h3');
-            title.className = 'text-xs uppercase tracking-wider mb-3 text-gray-500 font-medium';
+            title.className = 'text-xs uppercase tracking-wider text-gray-500 font-medium';
             title.textContent = group.inspect.title;
             content.appendChild(title);
         }
@@ -2232,7 +2232,7 @@ export class MapLayerControl {
             const labelValue = feature.properties[group.inspect.label];
             if (labelValue) {
                 const labelDiv = document.createElement('div');
-                labelDiv.className = 'text-2xl font-light mb-2';
+                labelDiv.className = 'text-2xl font-light mb-2 text-right';
                 labelDiv.textContent = labelValue;
                 grid.appendChild(labelDiv);
             }
@@ -2247,7 +2247,7 @@ export class MapLayerControl {
                     const value = feature.properties[field];
 
                     const fieldContainer = document.createElement('div');
-                    fieldContainer.className = 'col-span-2 grid grid-cols-2 gap-2 border-b border-gray-100 py-2';
+                    fieldContainer.className = 'col-span-2 grid grid-cols-2 gap-2 border-t border-b border-gray-100 py-2';
 
                     const fieldLabel = document.createElement('div');
                     fieldLabel.className = 'text-gray-500 uppercase text-xs tracking-wider';

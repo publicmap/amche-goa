@@ -51,7 +51,8 @@ export const layersConfig = [
     {
         title: 'Plots with No Development Slopes',
         description: 'Survey numbers with No Development Slopes (NDS). The output location of plots having atleast 25% of the plot area with NDS or slopes greater than 1:4 (25% slope).<br>Processed using slope computed with NASADEM 30m data and cadastral boundaries from OneMapGoa GIS. See <a href="https://github.com/publicmap/amche-goa/tree/main/data/slope">processing code</a> for details.',
-        headerImage: 'assets/map-layer-survey.png',
+        headerImage: 'assets/map-layer-nds-plots.png',
+        legendImage: 'assets/map-layer-slope-legend.png',
         type: 'geojson',
         id: 'steep-plots',
         url: 'https://gist.githubusercontent.com/planemad/f378d37b120b0ffc93db27d9541baa70/raw/56ecc74a6fdd3ea8170ee58a4cd2a87ba4f83f3d/goa-steep-plots.geojson',
@@ -62,30 +63,74 @@ export const layersConfig = [
                 "step",
                 ["zoom"],
                 "",
-                10,
+                14,
                 [
                     "to-string",
                     ['get', 'plot']
                 ]
             ],
-            'text-color': 'black',
-            'text-halo-color': 'white',
-            'text-halo-width': .5,
-            'text-halo-blur': 1,
+            'text-color': 'white',
+            'text-halo-color': [
+                'case',
+                ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                'orange'
+            ],
+            'text-halo-width': 2,
+            'text-halo-blur': 0,
             'text-size': 13,
-            'circle-color': 'transparent',
-            'circle-radius': 4,
-            'circle-opacity': 1,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': 'white'
+            'circle-color': [
+                'case',
+                ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                'orange'
+            ],
+            'circle-radius': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                9, [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'steep_slope_area'],
+                    0, 0,
+                    1000, 0.1,
+                    10000, 1,
+                    1000000, 10
+                ],
+                14, [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'steep_slope_area'],
+                    0, 0,
+                    10000, 3,
+                    100000, 6,
+                    1000000, 30
+                ]
+            ],
+            'circle-opacity': 0.2,
+            'circle-stroke-width': [
+                'interpolate',
+                ['linear'],
+                ['get', 'steep_slope_pct'],
+                25, 1,
+                70, 2,
+                100, 4
+            ],
+            'circle-stroke-color': [
+                'case',
+                ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                'orange'
+            ]
         },
         initiallyChecked: true,
         inspect: {
             id: 'plot',
             title: '% plot area with NDS',
             label: 'steep_slope_pct',
-            fields: ['steep_slope_area','total_area_m2','slope_10_20_pct','slope_20_25_pct','slope_25_35_pct','slope_35_inf_pct','plot','village'],
-            fieldTitles: ['NDS Area (m2)','Total Area (m2)','RDS-1 % (10-20% slope)','RDS-2 % (20-25% slope)','NDS-1 % (25-35% slope)','NDS-2 % (35%+ slope)','Plot','Village']
+            fields: ['slope_10_20_pct','slope_20_25_pct','slope_25_35_pct','slope_35_inf_pct','steep_slope_area','total_area_m2','plot','village'],
+            fieldTitles: ['RDS-1 % (10-20% slope)','RDS-2 % (20-25% slope)','NDS-1 % (25-35% slope)','NDS-2 % (35%+ slope)','NDS Area (m2)','Total Area (m2)','Plot','Village']
         }
     },
     {
@@ -132,7 +177,7 @@ export const layersConfig = [
                     ['boolean', ['feature-state', 'selected'], false],
                     2,
                     ['boolean', ['feature-state', 'hover'], false],
-                    1.5,
+                    1,
                     0
                 ],
                 18, [
@@ -141,7 +186,7 @@ export const layersConfig = [
                     6,
                     ['boolean', ['feature-state', 'hover'], false],
                     5,
-                    .5
+                    1
                 ]
             ]
         },
@@ -251,7 +296,7 @@ export const layersConfig = [
                     6,
                     ['boolean', ['feature-state', 'hover'], false],
                     5,
-                    3
+                    .5
                 ]
             ]
         },
