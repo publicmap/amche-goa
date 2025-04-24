@@ -3582,13 +3582,23 @@ export class MapLayerControl {
                 const labelValue = feature.properties[group.inspect.label];
                 if (labelValue) {
                     // Store only the first feature's label for each layer
-                    groupedFeatures.set(groupTitle, labelValue);
+                    groupedFeatures.set(groupTitle, { 
+                        labelValue,
+                        groupId: group.id,
+                        // Find the index of this group in the original config
+                        index: this._state.groups.findIndex(g => g.id === group.id)
+                    });
                 }
             }
         });
         
-        // Create content from grouped features
-        groupedFeatures.forEach((labelValue, groupTitle) => {
+        // Sort the entries based on their index in the original config
+        // Lower index (appearing earlier in config) should come first
+        const sortedEntries = Array.from(groupedFeatures.entries())
+            .sort((a, b) => a[1].index - b[1].index);
+            
+        // Create content from grouped features in the correct order
+        sortedEntries.forEach(([groupTitle, { labelValue }]) => {
             // Add layer name
             const layerDiv = document.createElement('div');
             layerDiv.className = 'text-xs uppercase tracking-wider text-gray-500 mt-1';
