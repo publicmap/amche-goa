@@ -377,6 +377,53 @@ header h1 {
     border-radius: 2px;
 }
 
+/* Consolidated hover popup styles */
+.consolidated-hover-popup .mapboxgl-popup-content {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    max-width: 250px;
+    overflow: hidden;
+}
+
+.consolidated-popup {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+    padding: 8px 10px !important;
+}
+
+.consolidated-popup::-webkit-scrollbar {
+    width: 4px;
+}
+
+.consolidated-popup::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.consolidated-popup::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 2px;
+}
+
+.consolidated-popup .text-xs {
+    font-size: 0.7rem;
+    font-weight: 500;
+    margin-top: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    padding-bottom: 2px;
+}
+
+.consolidated-popup .text-xs:first-child {
+    margin-top: 0;
+}
+
+.consolidated-popup .text-sm {
+    font-size: 0.85rem;
+    padding: 2px 0;
+}
+
 .hover-popup .mapboxgl-popup-tip {
     border-top-color: white;
 }

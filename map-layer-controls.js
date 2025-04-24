@@ -150,6 +150,9 @@ export class MapLayerControl {
         
         // Add modal container
         this._initializeSettingsModal();
+
+        this._activeHoverFeatures = new Map(); // Store currently hovered features across layers
+        this._consolidatedHoverPopup = null;
     }
 
     // Add new state management methods
@@ -2636,6 +2639,12 @@ export class MapLayerControl {
         if (this._resizeTimeout) {
             clearTimeout(this._resizeTimeout);
         }
+        // Clean up consolidated hover popup
+        if (this._consolidatedHoverPopup) {
+            this._consolidatedHoverPopup.remove();
+            this._consolidatedHoverPopup = null;
+        }
+        this._activeHoverFeatures.clear();
     }
 
     _setupLayerInteractivity(group, layerIds, sourceId) {
@@ -2646,11 +2655,14 @@ export class MapLayerControl {
             closeOnClick: true
         });
 
-        const hoverPopup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-            className: 'hover-popup'
-        });
+        // Create consolidated hover popup if it doesn't exist
+        if (!this._consolidatedHoverPopup) {
+            this._consolidatedHoverPopup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false,
+                className: 'hover-popup consolidated-hover-popup'
+            });
+        }
 
         let hoveredFeatureId = null;
         let selectedFeatureId = null;
@@ -2662,6 +2674,21 @@ export class MapLayerControl {
                 params.sourceLayer = group.sourceLayer;
             }
             return params;
+        };
+
+        // Helper function to update consolidated hover popup
+        const updateConsolidatedHoverPopup = (e) => {
+            if (this._activeHoverFeatures.size > 0) {
+                const content = this._createConsolidatedHoverContent();
+                if (content) {
+                    this._consolidatedHoverPopup
+                        .setLngLat(e ? e.lngLat : Array.from(this._activeHoverFeatures.values())[0].lngLat)
+                        .setDOMContent(content)
+                        .addTo(this._map);
+                }
+            } else {
+                this._consolidatedHoverPopup.remove();
+            }
         };
 
         layerIds.forEach(layerId => {
@@ -2685,15 +2712,17 @@ export class MapLayerControl {
                         );
                     }
 
-                    // Show hover popup if configured
+                    // Add or update this feature in the active hover features map
                     if (group.inspect?.label) {
-                        const content = this._createPopupContent(feature, group, true);
-                        if (content) {
-                            hoverPopup
-                                .setLngLat(e.lngLat)
-                                .setDOMContent(content)
-                                .addTo(this._map);
-                        }
+                        const featureKey = `${sourceId}:${layerId}:${feature.id}`;
+                        this._activeHoverFeatures.set(featureKey, {
+                            feature,
+                            group,
+                            lngLat: e.lngLat
+                        });
+                        
+                        // Update the consolidated hover popup
+                        updateConsolidatedHoverPopup(e);
                     }
                 }
             });
@@ -2707,7 +2736,15 @@ export class MapLayerControl {
                     );
                     hoveredFeatureId = null;
                 }
-                hoverPopup.remove();
+                
+                // Remove this layer's features from active features
+                const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key => 
+                    key.includes(`${sourceId}:${layerId}:`));
+                
+                layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
+                
+                // Update consolidated popup (will be removed if no features remain)
+                updateConsolidatedHoverPopup();
             });
 
             // Click handler
@@ -2716,7 +2753,8 @@ export class MapLayerControl {
                     const feature = e.features[0];
                     
                     // Remove hover popup
-                    hoverPopup.remove();
+                    this._consolidatedHoverPopup.remove();
+                    this._activeHoverFeatures.clear();
 
                     // Clear previous selection
                     if (selectedFeatureId !== null) {
@@ -3524,6 +3562,47 @@ export class MapLayerControl {
                 editModeToggle.style.backgroundColor = this._editMode ? '#006dff' : '';
             });
         }
+    }
+
+    _createConsolidatedHoverContent() {
+        if (this._activeHoverFeatures.size === 0) return null;
+        
+        const container = document.createElement('div');
+        container.className = 'map-popup consolidated-popup p-1 font-sans';
+        
+        // Group features by layer and keep track of first feature only
+        const groupedFeatures = new Map();
+        
+        // Process each hovered feature
+        this._activeHoverFeatures.forEach(({ feature, group }) => {
+            const groupTitle = group.title || 'Unknown Layer';
+            
+            // Only add if we haven't already processed this layer
+            if (!groupedFeatures.has(groupTitle) && group.inspect?.label) {
+                const labelValue = feature.properties[group.inspect.label];
+                if (labelValue) {
+                    // Store only the first feature's label for each layer
+                    groupedFeatures.set(groupTitle, labelValue);
+                }
+            }
+        });
+        
+        // Create content from grouped features
+        groupedFeatures.forEach((labelValue, groupTitle) => {
+            // Add layer name
+            const layerDiv = document.createElement('div');
+            layerDiv.className = 'text-xs uppercase tracking-wider text-gray-500 mt-1';
+            layerDiv.textContent = groupTitle;
+            container.appendChild(layerDiv);
+            
+            // Add only the first feature label for this layer
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'text-sm font-medium ml-1';
+            labelDiv.textContent = labelValue;
+            container.appendChild(labelDiv);
+        });
+        
+        return container;
     }
 }
 
