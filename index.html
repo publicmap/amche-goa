@@ -163,9 +163,15 @@
         customElements.whenDefined('sl-drawer').then(() => {
             const drawer = document.querySelector('.drawer-placement-start');
             const openButton = document.querySelector('#open-drawer');
+            
+            // Track if drawer was manually toggled
+            let userToggledDrawer = false;
 
-            // Function to handle drawer state based on screen size
+            // Function to handle drawer state based on screen size, respecting user toggles
             function handleDrawerState() {
+                // Don't automatically change drawer state if the user manually toggled it
+                if (userToggledDrawer) return;
+                
                 if (window.innerWidth > 768) { // Desktop
                     drawer.show();
                 } else { // Mobile
@@ -176,11 +182,22 @@
             // Initial state
             handleDrawerState();
 
-            // Listen for window resize
-            window.addEventListener('resize', handleDrawerState);
+            // Listen for window resize, but don't apply on touch devices
+            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            if (!isTouch) {
+                window.addEventListener('resize', handleDrawerState);
+            }
 
             // Toggle drawer when button is clicked
-            openButton.addEventListener('click', () => drawer.show());
+            openButton.addEventListener('click', () => {
+                userToggledDrawer = true;
+                drawer.show();
+            });
+            
+            // Listen for drawer close event
+            drawer.addEventListener('sl-hide', () => {
+                userToggledDrawer = true;
+            });
         });
     </script>
     <script>

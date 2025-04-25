@@ -457,7 +457,7 @@ export class MapLayerControl {
         });
     }
 
-    _showToast(message, type = 'success') {
+    _showToast(message, type = 'success', duration = 3000) {
         // Create toast element if it doesn't exist
         let toast = document.querySelector('.toast-notification');
         if (!toast) {
@@ -468,13 +468,15 @@ export class MapLayerControl {
 
         // Set message and style based on type
         toast.textContent = message;
-        toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+        toast.style.backgroundColor = type === 'success' ? '#4CAF50' : 
+                                      type === 'error' ? '#f44336' : 
+                                      type === 'info' ? '#2196F3' : '#4CAF50';
 
         // Show toast
         requestAnimationFrame(() => {
             toast.classList.add('show');
             
-            // Hide toast after 3 seconds
+            // Hide toast after specified duration
             setTimeout(() => {
                 toast.classList.remove('show');
                 
@@ -482,7 +484,7 @@ export class MapLayerControl {
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
-            }, 3000);
+            }, duration);
         });
     }
 
@@ -2498,15 +2500,33 @@ export class MapLayerControl {
                     const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
                     const url = URL.createObjectURL(blob);
                     
+                    // Try direct download first
                     const $downloadLink = $('<a>', {
                         href: url,
                         download: `${title}.kml`
                     });
                     
-                    $('body').append($downloadLink);
-                    $downloadLink[0].click();
-                    $downloadLink.remove();
-                    URL.revokeObjectURL(url);
+                    // Check if we're on iOS/iPadOS
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                    
+                    if (isIOS) {
+                        // iOS fallback method - open in new tab
+                        window.open(url, '_blank');
+                        
+                        // Show instructions
+                        this._showToast('On iPad: Tap and hold the page, then select "Download Linked File" to save the KML', 'info', 10000);
+                        
+                        // Clean up after delay
+                        setTimeout(() => {
+                            URL.revokeObjectURL(url);
+                        }, 60000); // Keep available for 1 minute
+                    } else {
+                        // Regular download for other platforms
+                        $('body').append($downloadLink);
+                        $downloadLink[0].click();
+                        $downloadLink.remove();
+                        URL.revokeObjectURL(url);
+                    }
                     
                 } catch (error) {
                     console.error('Error exporting KML:', error);

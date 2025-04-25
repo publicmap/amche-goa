@@ -769,11 +769,25 @@ sl-details.map-controls-group::part(base) {
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .toast-notification.show {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Make toast more visible on iPad */
+@media (max-width: 1024px) {
+    .toast-notification {
+        font-size: 16px;
+        padding: 16px 24px;
+        bottom: 30px;
+        right: 30px;
+    }
 }
 
 /* Add these attribution-specific styles */
