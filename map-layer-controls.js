@@ -2717,6 +2717,7 @@ export class MapLayerControl {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
                     
+                    // Clear hover state for previous feature
                     if (hoveredFeatureId !== null) {
                         this._map.setFeatureState(
                             getFeatureStateParams(hoveredFeatureId),
@@ -2724,6 +2725,7 @@ export class MapLayerControl {
                         );
                     }
 
+                    // Set hover state for new feature
                     if (feature.id !== undefined) {
                         hoveredFeatureId = feature.id;
                         this._map.setFeatureState(
@@ -2732,8 +2734,15 @@ export class MapLayerControl {
                         );
                     }
 
-                    // Add or update this feature in the active hover features map
+                    // Handle hover popup content
                     if (group.inspect?.label) {
+                        // First remove any existing features for this layer
+                        const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key => 
+                            key.includes(`${sourceId}:${layerId}:`));
+                        
+                        layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
+                        
+                        // Now add the current feature
                         const featureKey = `${sourceId}:${layerId}:${feature.id}`;
                         this._activeHoverFeatures.set(featureKey, {
                             feature,
@@ -3590,18 +3599,17 @@ export class MapLayerControl {
         const container = document.createElement('div');
         container.className = 'map-popup consolidated-popup p-1 font-sans';
         
-        // Group features by layer and keep track of first feature only
+        // Group features by layer and keep track of the most recent feature for each layer
         const groupedFeatures = new Map();
         
         // Process each hovered feature
         this._activeHoverFeatures.forEach(({ feature, group }) => {
             const groupTitle = group.title || 'Unknown Layer';
             
-            // Only add if we haven't already processed this layer
-            if (!groupedFeatures.has(groupTitle) && group.inspect?.label) {
+            if (group.inspect?.label) {
                 const labelValue = feature.properties[group.inspect.label];
                 if (labelValue) {
-                    // Store only the first feature's label for each layer
+                    // Store feature information for this layer
                     groupedFeatures.set(groupTitle, { 
                         labelValue,
                         groupId: group.id,
@@ -3625,7 +3633,7 @@ export class MapLayerControl {
             layerDiv.textContent = groupTitle;
             container.appendChild(layerDiv);
             
-            // Add only the first feature label for this layer
+            // Add feature label
             const labelDiv = document.createElement('div');
             labelDiv.className = 'text-sm font-medium ml-1';
             labelDiv.textContent = labelValue;
