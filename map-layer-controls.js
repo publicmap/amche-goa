@@ -503,6 +503,8 @@ export class MapLayerControl {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'tms') {
                     visibleLayers.push(group.id);
+                } else if (group.type === 'wms') {
+                    visibleLayers.push(group.id);
                 } else if (group.type === 'markers') {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'geojson') {
@@ -643,7 +645,7 @@ export class MapLayerControl {
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
-                    if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                    if (['tms', 'wms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
                         $settingsButton.toggleClass('hidden', false);
                     }
@@ -807,7 +809,8 @@ export class MapLayerControl {
                 this._showLayerSettings(group);
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+            // Update opacity button visibility check
+            const $opacityButton = ['tms', 'wms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
@@ -876,8 +879,8 @@ export class MapLayerControl {
                     if (this._map.getLayer(`${sourceId}-circle`)) {
                         this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', newOpacity);
                     }
-                } else if (group.type === 'tms') {
-                    const layerId = `tms-layer-${group.id}`;
+                } else if (group.type === 'tms' || group.type === 'wms') {
+                    const layerId = group.type === 'tms' ? `tms-layer-${group.id}` : `wms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
                         this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
                     }
@@ -2018,35 +2021,6 @@ export class MapLayerControl {
             return; // Exit after handling style layers
         }
         
-        if (group.type === 'style') {
-            // Get all style layers
-            const styleLayers = this._map.getStyle().layers;
-            
-            // If group has specific layers defined, use those
-            if (group.layers) {
-                group.layers.forEach(layer => {
-                    const layerIds = styleLayers
-                        .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
-                        .map(styleLayer => styleLayer.id);
-                    
-                    layerIds.forEach(layerId => {
-                        if (this._map.getLayer(layerId)) {
-                            this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-                        }
-                    });
-                });
-            } 
-            // If sourceLayers are defined, use those
-            else if (group.sourceLayers) {
-                styleLayers.forEach(layer => {
-                    if (layer['source-layer'] && group.sourceLayers.includes(layer['source-layer'])) {
-                        this._map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
-                    }
-                });
-            }
-            return; // Exit after handling style layers
-        }
-        
         if (group.type === 'layer-group') {
             group.groups.forEach(subGroup => {
                 const allLayers = this._map.getStyle().layers
@@ -2602,7 +2576,8 @@ export class MapLayerControl {
             if (group.type === type || 
                 (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson'].includes(group.type)) ||
-                (type === 'wms' && ['tms', 'wms'].includes(group.type))) {  // Add WMS to layer ordering logic
+                (type === 'wms' && ['tms', 'wms'].includes(group.type)) ||
+                (type === 'tms' && ['tms', 'wms'].includes(group.type))) {
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2613,7 +2588,7 @@ export class MapLayerControl {
                            layer.id === `geojson-${groupId}-fill` ||
                            layer.id === `geojson-${groupId}-line` ||
                            layer.id === `tms-layer-${groupId}` ||
-                           layer.id === `wms-layer-${groupId}`;  // Add WMS layer ID pattern
+                           layer.id === `wms-layer-${groupId}`;
                 });
                 
                 // Sort matching layers by type order
