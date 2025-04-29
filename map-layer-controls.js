@@ -1527,56 +1527,13 @@ export class MapLayerControl {
                 const layerId = `wms-layer-${group.id}`;
 
                 if (!this._map.getSource(sourceId)) {
-                    // Function to encode WMS parameters properly
-                    const encodeWMSParams = (params) => {
-                        return Object.keys(params)
-                            .map(key => {
-                                // Don't encode the bbox parameter as it will be replaced by Mapbox
-                                const value = key === 'BBOX' ? params[key] : encodeURIComponent(params[key]);
-                                return `${encodeURIComponent(key)}=${value}`;
-                            })
-                            .join('&');
-                    };
-
-                    // Base WMS parameters
-                    const wmsParams = {
-                        SERVICE: 'WMS',
-                        VERSION: '1.1.1',
-                        REQUEST: 'GetMap',
-                        FORMAT: 'image/png',
-                        TRANSPARENT: 'true',
-                        LAYERS: group.layers,
-                        WIDTH: '256',
-                        HEIGHT: '256',
-                        SRS: 'EPSG:3857',
-                        STYLES: ''
-                    };
-
-                    // Extract base URL and any existing query parameters from group.url
-                    const urlParts = group.url.split('?');
-                    const baseProxyUrl = urlParts[0];
-                    const existingParams = new URLSearchParams(urlParts[1] || '');
-                    
-                    // Function to construct tile URL
-                    const getTileUrl = (bbox) => {
-                        const params = {
-                            ...wmsParams,
-                            BBOX: bbox
-                        };
-                        
-                        // Construct the WMS URL - don't encode the bbox placeholder
-                        const wmsUrl = `http://14.139.123.73:8080/geoserver/wms?${encodeWMSParams(params)}`;
-                        
-                        // Construct the final proxy URL
-                        const proxyParams = new URLSearchParams(existingParams);
-                        proxyParams.set('url', wmsUrl);
-                        return `${baseProxyUrl}?${proxyParams}`;
-                    };
+                    // Construct WMS URL following Mapbox's example
+                    const wmsUrl = `${group.url}?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=true&width=256&height=256&layers=${group.layers}`;
 
                     // Add source
                     this._map.addSource(sourceId, {
                         type: 'raster',
-                        tiles: [getTileUrl('{bbox-epsg-3857}')],
+                        tiles: [wmsUrl],
                         tileSize: 256,
                         attribution: group.attribution
                     });

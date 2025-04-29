@@ -1134,11 +1134,11 @@ export const layersConfig = [
         description: 'Suggested landuse for cropping based on soil and climate data. Check the <a href="https://www.agri.goa.gov.in/wicket/bookmarkable/com.gel.RKVY.GeoPortal">portal documentation</a> for more details.',
         headerImage: 'assets/map-layer-agricultural-landuse.png',
         type: 'wms',
-        id: 'agriculture-landuse',
-        url: 'https://go.x2u.in/proxy?email=arun.planemad@gmail.com&apiKey=2fd666d0&url=http://14.139.123.73:8080/geoserver/wms',
+        id: 'suggested-agriculture',
+        url: 'http://14.139.123.73:8080/geoserver/wms',
         layers: 'nbss_geoserver:Goa_LUP',
-        attribution: '<a href="http://14.139.123.73:9090/WEB/goabhoomi.php">ICAR Goa Bhoomi Portal, Directorate of Agriculture, Govt. of Goa</a>',
-        legendImage: 'assets/map-layer-agricultural-landuse-legend.png'
+        attribution: '<a href="http://14.139.123.73:9090/WEB/goabhoomi.php">ICAR Goa Bhoomi Portal</a>',
+        legendUrl: 'assets/map-layer-agricultural-landuse-legend.png'
     },
     {
         title: 'Landcover',
