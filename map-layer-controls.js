@@ -1522,6 +1522,83 @@ export class MapLayerControl {
                         }
                     }, this._getInsertPosition('tms'));
                 }
+            } else if (group.type === 'wms') {
+                const sourceId = `wms-${group.id}`;
+                const layerId = `wms-layer-${group.id}`;
+
+                if (!this._map.getSource(sourceId)) {
+                    // Function to encode WMS parameters properly
+                    const encodeWMSParams = (params) => {
+                        return Object.keys(params)
+                            .map(key => {
+                                // Don't encode the bbox parameter as it will be replaced by Mapbox
+                                const value = key === 'BBOX' ? params[key] : encodeURIComponent(params[key]);
+                                return `${encodeURIComponent(key)}=${value}`;
+                            })
+                            .join('&');
+                    };
+
+                    // Base WMS parameters
+                    const wmsParams = {
+                        SERVICE: 'WMS',
+                        VERSION: '1.1.1',
+                        REQUEST: 'GetMap',
+                        FORMAT: 'image/png',
+                        TRANSPARENT: 'true',
+                        LAYERS: group.layers,
+                        WIDTH: '256',
+                        HEIGHT: '256',
+                        SRS: 'EPSG:3857',
+                        STYLES: ''
+                    };
+
+                    // Extract base URL and any existing query parameters from group.url
+                    const urlParts = group.url.split('?');
+                    const baseProxyUrl = urlParts[0];
+                    const existingParams = new URLSearchParams(urlParts[1] || '');
+                    
+                    // Function to construct tile URL
+                    const getTileUrl = (bbox) => {
+                        const params = {
+                            ...wmsParams,
+                            BBOX: bbox
+                        };
+                        
+                        // Construct the WMS URL - don't encode the bbox placeholder
+                        const wmsUrl = `http://14.139.123.73:8080/geoserver/wms?${encodeWMSParams(params)}`;
+                        
+                        // Construct the final proxy URL
+                        const proxyParams = new URLSearchParams(existingParams);
+                        proxyParams.set('url', wmsUrl);
+                        return `${baseProxyUrl}?${proxyParams}`;
+                    };
+
+                    // Add source
+                    this._map.addSource(sourceId, {
+                        type: 'raster',
+                        tiles: [getTileUrl('{bbox-epsg-3857}')],
+                        tileSize: 256,
+                        attribution: group.attribution
+                    });
+
+                    // Add layer with initial opacity
+                    this._map.addLayer({
+                        id: layerId,
+                        type: 'raster',
+                        source: sourceId,
+                        layout: {
+                            visibility: 'none'
+                        },
+                        paint: {
+                            'raster-opacity': group.opacity || 1
+                        }
+                    }, this._getInsertPosition('wms'));
+
+                    // Store layer config for later use
+                    group._layerConfig = {
+                        layerId
+                    };
+                }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
                 const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
@@ -2034,6 +2111,11 @@ export class MapLayerControl {
             });
         } else if (group.type === 'tms') {
             const layerId = `tms-layer-${group.id}`;
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            }
+        } else if (group.type === 'wms') {
+            const layerId = `wms-layer-${group.id}`;
             if (this._map.getLayer(layerId)) {
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
             }
@@ -2562,7 +2644,8 @@ export class MapLayerControl {
             const group = orderedGroups[i];
             if (group.type === type || 
                 (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
-                (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
+                (type === 'geojson' && ['vector', 'geojson'].includes(group.type)) ||
+                (type === 'wms' && ['tms', 'wms'].includes(group.type))) {  // Add WMS to layer ordering logic
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2572,7 +2655,8 @@ export class MapLayerControl {
                            layer.id === `vector-layer-${groupId}-outline` ||
                            layer.id === `geojson-${groupId}-fill` ||
                            layer.id === `geojson-${groupId}-line` ||
-                           layer.id === `tms-layer-${groupId}`;
+                           layer.id === `tms-layer-${groupId}` ||
+                           layer.id === `wms-layer-${groupId}`;  // Add WMS layer ID pattern
                 });
                 
                 // Sort matching layers by type order
@@ -2595,8 +2679,8 @@ export class MapLayerControl {
             }
         }
 
-        // Special handling for raster/tms layers to ensure they're above satellite
-        if (type === 'tms' || type === 'raster') {
+        // Special handling for raster/tms/wms layers to ensure they're above satellite
+        if (type === 'tms' || type === 'raster' || type === 'wms') {
             const baseLayerIndex = layers.findIndex(layer =>
                 layer.type === 'raster' && layer.id.includes('satellite')
             );
