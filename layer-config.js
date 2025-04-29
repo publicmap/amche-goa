@@ -780,6 +780,92 @@ export const layersConfig = [
         }
     },
     {
+        title: 'Eco Sensitive Zones',
+        description: 'Eco Sensitive Zones as defined in <a href="https://moef.gov.in/eco-sensitive-zone-esz">National Environment Policy, MoEF</a>',
+        headerImage: 'assets/map-layer-esz.png',
+        type: 'vector',
+        id: 'esz',
+        url: 'https://indianopenmaps.fly.dev/not-so-open/forests/esz/parivesh/{z}/{x}/{y}.pbf',
+        sourceLayer: 'Bharatmaps_Parivesh_Eco_Sensitive_Zones',
+        maxzoom: 9,
+        attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+        style: {
+            'line-color': '#006400',
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                14, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    4,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    3,
+                    1
+                ],
+                18, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    8,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    5,
+                    2
+                ]
+            ],
+            'fill-color': 'green',
+            'fill-opacity': 0.7
+        },
+        inspect: {
+            id: 'FID',
+            title: 'ESZ Name',
+            label: 'Name',
+            fields: ['Zone_Type','Map_Name','Set_No','Page_No','Remark'],
+        }
+    },
+    {
+        title: 'Wildlife Reserves and Corridors',
+        description: 'Protected areas and wildlife corridors',
+        headerImage: 'assets/map-layer-wildlife-reserve.png',
+        type: 'vector',
+        id: 'wildlife-reserve',
+        url: 'https://indianopenmaps.fly.dev/not-so-open/forests/wildlife/reserves-and-corridors/parivesh/{z}/{x}/{y}.pbf ',
+        sourceLayer: 'Bharatmaps_Parivesh_Wildlife_Reserves_and_Corridors',
+        maxzoom: 10,
+        attribution: '<a href="https://bharatmaps.gov.in/BharatMaps/Home/Map">Bharatmaps/Parivesh</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+        style: {
+            'line-color': '#006400',
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                14, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    4,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    3,
+                    1
+                ],
+                18, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    8,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    5,
+                    2
+                ]
+            ],
+            'fill-color': 'green',
+            'fill-opacity': 0.7
+        },
+        inspect: {
+            id: 'objectid',
+            title: 'ESZ Name',
+            label: 'name',
+            fields: ['type'],
+        }
+    },
+    {
         title: 'Mining Leases',
         description: 'Major mining lease boundaries',
         headerImage: 'assets/map-layer-mines.png',
