@@ -3685,32 +3685,23 @@ export class MapLayerControl {
         const layerId = `${sourceId}-circle`;
         
         try {
-            console.log(`Fetching CSV data for ${group.id} from ${group.url}`);
             // Fetch CSV data
             const response = await fetch(group.url);
             let csvText = await response.text();
             
-            console.log(`Received CSV data for ${group.id}, length: ${csvText.length} bytes`);
-            
             // Parse CSV data
             let rows;
             if (group.csvParser) {
-                console.log(`Using custom csvParser for ${group.id}`);
                 rows = group.csvParser(csvText);
             } else {
-                console.log(`Using default parseCSV for ${group.id}`);
                 rows = parseCSV(csvText);
             }
             
-            console.log(`Parsed ${rows.length} rows from CSV for ${group.id}`);
-            
             // Convert to GeoJSON
             const geojson = rowsToGeoJSON(rows);
-            console.log(`Converted to GeoJSON with ${geojson.features.length} features for ${group.id}`);
             
             // Add source if it doesn't exist
             if (!this._map.getSource(sourceId)) {
-                console.log(`Creating new GeoJSON source '${sourceId}' for ${group.id}`);
                 this._map.addSource(sourceId, {
                     type: 'geojson',
                     data: geojson
@@ -3727,7 +3718,6 @@ export class MapLayerControl {
                 const isVisible = activeLayers.includes(group.id);
                 
                 // Add circle layer with correct initial visibility
-                console.log(`Creating new circle layer for ${group.id} with visibility: ${isVisible ? 'visible' : 'none'}`);
                 this._map.addLayer({
                     id: layerId,
                     type: 'circle',
@@ -3761,7 +3751,6 @@ export class MapLayerControl {
                 });
             } else {
                 // Update existing source with new data
-                console.log(`Updating source '${sourceId}' with ${geojson.features.length} features`);
                 this._map.getSource(sourceId).setData(geojson);
             }
             

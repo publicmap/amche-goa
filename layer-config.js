@@ -55,9 +55,15 @@ export const layersConfig = [
         type: 'csv',
         id: 'firetrucks',
         url: 'https://gpsmiles.live//webservice?token=getLiveData&user=cnt-fire.goa@nic.in&pass=cnt@123&company=Directorate%20of%20Fire%20Emergency%20Services&format=csv',
-        refresh: 300000, // Update every 300 seconds
+        refresh: 30000, // Update every 30 seconds
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         csvParser: function(csvText) {
+
+            // Data Parser for Fire Trucks
+            // Sample API response:
+            // Company,Branch,Vehicle_No,Vehicle_Name,Vehicletype,Driver_First_Name,Driver_Middle_Name,Driver_Last_Name,Imeino,DeviceModel,Location,POI,Datetime,Latitude,Longitude,Status,Speed,GPS,IGN,Power,Door1,Door2,Door3,Door4,AC,Temperature,Fuel,SOS,Altitude 
+            // "Directorate of Fire Emergency Services","Fire Station Pilerne","GA 07 G 0680-PIL(QUICK RESPONSE VEHICLE)","4G","Truck","--","--","--","864180052940132","L400","At Fire Station Pilerne","At Fire Station Pilerne","30-04-2025 09:25:16","30-04-2025 09:25:11","15.5328883","73.7939617","STOP","0","ON","OFF","ON","--","--","--","--","--","--",[],"--","--","7140",0
+
             if (!csvText) return [];
             
             // Split into lines and remove empty lines
@@ -93,7 +99,7 @@ export const layersConfig = [
                     if (value.startsWith('"') && value.endsWith('"')) {
                         value = value.substring(1, value.length - 1);
                     }
-                    row[header] =  values[index];
+                    row[header] =  value;
                 });
                 
                 // Extract correct latitude and longitude based on the API response
@@ -105,6 +111,8 @@ export const layersConfig = [
                     row.Latitude = lat;
                     row.Longitude = lng;
                     rows.push(row);
+                }else{
+                    console.log('Invalid row:', row);
                 }
             }
             
