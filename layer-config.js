@@ -55,7 +55,7 @@ export const layersConfig = [
         type: 'csv',
         id: 'firetrucks',
         url: 'https://gpsmiles.live//webservice?token=getLiveData&user=cnt-fire.goa@nic.in&pass=cnt@123&company=Directorate%20of%20Fire%20Emergency%20Services&format=csv',
-        refresh: 320000, // Update every 30 seconds
+        refresh: 30000, // Update every 30 seconds
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         csvParser: function(csvText) {
             if (!csvText) return [];
