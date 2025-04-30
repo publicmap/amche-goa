@@ -55,7 +55,7 @@ export const layersConfig = [
         type: 'csv',
         id: 'firetrucks',
         url: 'https://gpsmiles.live//webservice?token=getLiveData&user=cnt-fire.goa@nic.in&pass=cnt@123&company=Directorate%20of%20Fire%20Emergency%20Services&format=csv',
-        refresh: 30000, // Update every 30 seconds
+        refresh: 300000, // Update every 300 seconds
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         csvParser: function(csvText) {
             if (!csvText) return [];
@@ -150,6 +150,7 @@ export const layersConfig = [
         type: 'csv',
         id: 'schools',
         url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv',
+        cache: 'data/dfes/goa-schools.csv',
         attribution: '<a href="https://docs.google.com/spreadsheets/d/11jYu-XsKEDH65W9Q_zy8_pKyYYlyzsdh8FwS7kd-CEM/edit?usp=sharing">Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         style: {
             'circle-radius': [
