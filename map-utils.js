@@ -301,11 +301,12 @@ export function convertStyleToLegend(style) {
 /**
  * Converts an array of row objects to GeoJSON features
  * @param {Array} rows - Array of objects with coordinate fields
+ * @param {boolean} debug - Enable debug logging (default: false)
  * @returns {Object} GeoJSON FeatureCollection
  */
-export function rowsToGeoJSON(rows) {
+export function rowsToGeoJSON(rows, debug = false) {
     if (!rows || rows.length === 0) {
-        console.warn('No rows provided to rowsToGeoJSON');
+        if (debug) console.warn('No rows provided to rowsToGeoJSON');
         return {
             type: 'FeatureCollection',
             features: []
@@ -321,7 +322,7 @@ export function rowsToGeoJSON(rows) {
     let latField = null;
     
     const firstRow = rows[0];
-    console.log('Available fields for GeoJSON conversion:', Object.keys(firstRow).join(', '));
+    if (debug) console.log('Available fields for GeoJSON conversion:', Object.keys(firstRow).join(', '));
     
     // Helper function to check if a field matches a pattern
     const matchesPattern = (field, pattern) => {
@@ -330,13 +331,13 @@ export function rowsToGeoJSON(rows) {
         
         // First try exact match
         if (fieldLower === patternLower) {
-            console.log(`Found exact match for "${pattern}": ${field}`);
+            if (debug) console.log(`Found exact match for "${pattern}": ${field}`);
             return 2; // Higher score for exact match
         }
         
         // Then try contains match
         if (fieldLower.includes(patternLower)) {
-            console.log(`Found partial match for "${pattern}": ${field}`);
+            if (debug) console.log(`Found partial match for "${pattern}": ${field}`);
             return 1; // Lower score for partial match
         }
         
@@ -367,19 +368,21 @@ export function rowsToGeoJSON(rows) {
         }
     }
     
-    console.log(`Selected coordinate fields - Longitude: "${lonField}" (score: ${bestLonScore}), Latitude: "${latField}" (score: ${bestLatScore})`);
+    if (debug) console.log(`Selected coordinate fields - Longitude: "${lonField}" (score: ${bestLonScore}), Latitude: "${latField}" (score: ${bestLatScore})`);
     
     if (!lonField || !latField) {
-        console.warn('Could not find coordinate fields in the data. Available fields:', Object.keys(firstRow));
-        console.warn('Looking for longitude patterns:', lonPatterns.join(', '));
-        console.warn('Looking for latitude patterns:', latPatterns.join(', '));
+        if (debug) {
+            console.warn('Could not find coordinate fields in the data. Available fields:', Object.keys(firstRow));
+            console.warn('Looking for longitude patterns:', lonPatterns.join(', '));
+            console.warn('Looking for latitude patterns:', latPatterns.join(', '));
+        }
         return null;
     }
     
     // Validate that we found the correct fields by checking first row values
     const sampleLon = firstRow[lonField];
     const sampleLat = firstRow[latField];
-    console.log(`Validating coordinate fields - Longitude: ${sampleLon}, Latitude: ${sampleLat}`);
+    if (debug) console.log(`Validating coordinate fields - Longitude: ${sampleLon}, Latitude: ${sampleLat}`);
     
     // Basic validation of coordinate values
     const parsedLon = parseFloat(sampleLon);
@@ -387,11 +390,13 @@ export function rowsToGeoJSON(rows) {
     if (isNaN(parsedLon) || isNaN(parsedLat) ||
         parsedLon < -180 || parsedLon > 180 ||
         parsedLat < -90 || parsedLat > 90) {
-        console.error('Invalid coordinate values in first row:', {
-            [lonField]: sampleLon,
-            [latField]: sampleLat,
-            parsed: { lon: parsedLon, lat: parsedLat }
-        });
+        if (debug) {
+            console.error('Invalid coordinate values in first row:', {
+                [lonField]: sampleLon,
+                [latField]: sampleLat,
+                parsed: { lon: parsedLon, lat: parsedLat }
+            });
+        }
         return null;
     }
     
@@ -419,6 +424,40 @@ export function rowsToGeoJSON(rows) {
         return parseFloat(value);
     };
     
+    // Helper function to detect and parse property values
+    const parsePropertyValue = (value) => {
+        if (value === null || value === undefined || value === '') {
+            return value;
+        }
+        
+        // Already a non-string type
+        if (typeof value !== 'string') {
+            return value;
+        }
+        
+        // Check for boolean values
+        if (value.toLowerCase() === 'true') return true;
+        if (value.toLowerCase() === 'false') return false;
+        
+        // Check for integer
+        if (/^-?\d+$/.test(value)) {
+            return parseInt(value, 10);
+        }
+        
+        // Check for float
+        if (/^-?\d+\.\d+$/.test(value)) {
+            return parseFloat(value);
+        }
+        
+        // Handle European number format (comma as decimal separator)
+        if (/^-?\d+,\d+$/.test(value)) {
+            return parseFloat(value.replace(',', '.'));
+        }
+        
+        // Return original string if no numeric pattern detected
+        return value;
+    };
+    
     // Convert rows to GeoJSON features
     const features = [];
     let validCount = 0;
@@ -427,7 +466,7 @@ export function rowsToGeoJSON(rows) {
     rows.forEach((row, index) => {
         // Check if coordinate fields exist in this row
         if (!(lonField in row) || !(latField in row)) {
-            console.warn(`Row ${index} is missing coordinate fields (${lonField}, ${latField})`);
+            if (debug) console.warn(`Row ${index} is missing coordinate fields (${lonField}, ${latField})`);
             invalidCount++;
             return;
         }
@@ -438,7 +477,7 @@ export function rowsToGeoJSON(rows) {
         // Skip invalid or missing coordinates
         if (isNaN(lon) || isNaN(lat)) {
             invalidCount++;
-            if (invalidCount <= 5) {
+            if (debug && invalidCount <= 5) {
                 console.warn(`Invalid coordinates at row ${index}:`, { 
                     [lonField]: row[lonField], 
                     [latField]: row[latField],
@@ -451,10 +490,16 @@ export function rowsToGeoJSON(rows) {
         // Skip obviously invalid coordinates
         if (lon < -180 || lon > 180 || lat < -90 || lat > 90) {
             invalidCount++;
-            if (invalidCount <= 5) {
+            if (debug && invalidCount <= 5) {
                 console.warn(`Out of range coordinates at row ${index}:`, { lon, lat });
             }
             return;
+        }
+        
+        // Parse property values to appropriate types
+        const parsedProperties = {};
+        for (const [key, value] of Object.entries(row)) {
+            parsedProperties[key] = parsePropertyValue(value);
         }
         
         validCount++;
@@ -464,17 +509,19 @@ export function rowsToGeoJSON(rows) {
                 type: 'Point',
                 coordinates: [lon, lat]
             },
-            properties: { ...row }
+            properties: parsedProperties
         });
     });
     
-    console.log(`GeoJSON conversion results: ${validCount} valid features, ${invalidCount} invalid coordinates skipped`);
+    if (debug) console.log(`GeoJSON conversion results: ${validCount} valid features, ${invalidCount} invalid coordinates skipped`);
     
     if (validCount === 0 && rows.length > 0) {
-        console.error('Failed to generate any valid GeoJSON features despite having input rows');
-        console.log('First row for debugging:', rows[0]);
-        console.log(`Longitude field (${lonField})`, rows[0][lonField], typeof rows[0][lonField]);
-        console.log(`Latitude field (${latField})`, rows[0][latField], typeof rows[0][latField]);
+        if (debug) {
+            console.error('Failed to generate any valid GeoJSON features despite having input rows');
+            console.log('First row for debugging:', rows[0]);
+            console.log(`Longitude field (${lonField})`, rows[0][lonField], typeof rows[0][lonField]);
+            console.log(`Latitude field (${latField})`, rows[0][latField], typeof rows[0][latField]);
+        }
     }
     
     return {
