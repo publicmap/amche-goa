@@ -50,11 +50,11 @@ export const layersConfig = [
     },
     {
         title: 'Live Fire Trucks',
-        description: 'Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every minute.',
+        description: 'Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href="https://github.com/publicmap/goa-fire-trucks-geojson/">Goa Fire Trucks API</a>.',
         headerImage: 'assets/map-layer-fire-trucks.png',
-        type: 'csv',
+        type: 'geojson',
         id: 'firetrucks',
-        url: 'https://gpsmiles.live//webservice?token=getLiveData&user=cnt-fire.goa@nic.in&pass=cnt@123&company=Directorate%20of%20Fire%20Emergency%20Services&format=csv',
+        url: 'https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson',
         refresh: 30000, // Update every 30 seconds
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         csvParser: function(csvText) {
