@@ -1,5 +1,6 @@
 import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
+import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 
 export class MapLayerControl {
     constructor(options) {
@@ -111,6 +112,21 @@ export class MapLayerControl {
                     'circle-pitch-scale': 'map'
                 }
             },
+            csv: {
+                circle: {
+                    'circle-radius': 5,
+                    'circle-color': '#3887be',
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 1.5,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-opacity': 1,
+                    'circle-blur': 0,
+                    'circle-translate': [0, 0],
+                    'circle-translate-anchor': 'map',
+                    'circle-pitch-alignment': 'viewport',
+                    'circle-pitch-scale': 'map'
+                }
+            },
             terrain: {
                 exaggeration: 1.5,
                 fog: {
@@ -201,10 +217,16 @@ export class MapLayerControl {
                 ];
             } else if (group.type === 'tms') {
                 return [`tms-layer-${group.id}`];
-            } else if (group.type === 'markers') {
-                return [`markers-${group.id}-circles`];
+            } else if (group.type === 'csv') {
+                // Clear any refresh timers
+                if (group._refreshTimer) {
+                    clearInterval(group._refreshTimer);
+                    group._refreshTimer = null;
+                }
+                return [`csv-${group.id}-circle`];
+            } else {
+                return [];
             }
-            return [];
         });
 
         // Get all our custom source IDs
@@ -215,26 +237,26 @@ export class MapLayerControl {
                 return [`geojson-${group.id}`];
             } else if (group.type === 'tms') {
                 return [`tms-${group.id}`];
-            }
-            return [];
-        });
-        
-        // Remove only our custom layers
-        customLayerIds.forEach(layerId => {
-            if (this._map.getLayer(layerId)) {
-                this._map.removeLayer(layerId);
+            } else if (group.type === 'csv') {
+                return [`csv-${group.id}`];
+            } else {
+                return [];
             }
         });
-        
-        // Remove only our custom sources, except terrain sources
-        customSourceIds.forEach(sourceId => {
-            // Skip terrain sources
-            if (sourceId === 'mapbox-dem') return;
-            
-            if (this._map.getSource(sourceId)) {
-                this._map.removeSource(sourceId);
+
+        // Remove layers
+        for (const id of customLayerIds) {
+            if (this._map.getLayer(id)) {
+                this._map.removeLayer(id);
             }
-        });
+        }
+
+        // Remove sources
+        for (const id of customSourceIds) {
+            if (this._map.getSource(id)) {
+                this._map.removeSource(id);
+            }
+        }
     }
     
     _rebuildUI() {
@@ -491,12 +513,11 @@ export class MapLayerControl {
     _getVisibleLayers() {
         const visibleLayers = [];
         
-        this._state.groups.forEach((group, index) => {
-            // Find the toggle input within the group header
-            const groupHeader = this._sourceControls[index]?.closest('.group-header');
+        this._sourceControls.forEach((groupHeader, index) => {
+            const group = this._state.groups[index];
             const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
             
-            if (toggleInput?.checked) {
+            if (toggleInput && toggleInput.checked) {
                 if (group.type === 'terrain') {
                     visibleLayers.push('terrain');
                 } else if (group.type === 'vector') {
@@ -504,6 +525,8 @@ export class MapLayerControl {
                 } else if (group.type === 'tms') {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'markers') {
+                    visibleLayers.push(group.id);
+                } else if (group.type === 'csv') {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'geojson') {
                     visibleLayers.push(group.id);
@@ -1728,6 +1751,8 @@ export class MapLayerControl {
                             });
                         }
                     });
+            } else if (group.type === 'csv') {
+                this._setupCsvLayer(group);
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
@@ -1877,6 +1902,11 @@ export class MapLayerControl {
                     }
                 }
             });
+
+            // Initialize CSV layers
+            if (group.type === 'csv') {
+                this._setupCsvLayer(group);
+            }
         });
 
         // Check if this is a vector layer type
@@ -2036,6 +2066,20 @@ export class MapLayerControl {
             const layerId = `tms-layer-${group.id}`;
             if (this._map.getLayer(layerId)) {
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            }
+        } else if (group.type === 'csv') {
+            const sourceId = `csv-${group.id}`;
+            const layerId = `${sourceId}-circle`;
+            if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                
+                // Reset refresh timer when toggling visibility
+                if (visible && group.refresh && !group._refreshTimer) {
+                    this._setupCsvRefresh(group);
+                } else if (!visible && group._refreshTimer) {
+                    clearInterval(group._refreshTimer);
+                    group._refreshTimer = null;
+                }
             }
         } else if (group.type === 'vector') {
             const layerConfig = group._layerConfig;
@@ -2561,8 +2605,9 @@ export class MapLayerControl {
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
             const group = orderedGroups[i];
             if (group.type === type || 
-                (type === 'vector' && ['vector', 'geojson'].includes(group.type)) ||
-                (type === 'geojson' && ['vector', 'geojson'].includes(group.type))) {
+                (type === 'vector' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
+                (type === 'geojson' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
+                (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type))) {
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2572,6 +2617,7 @@ export class MapLayerControl {
                            layer.id === `vector-layer-${groupId}-outline` ||
                            layer.id === `geojson-${groupId}-fill` ||
                            layer.id === `geojson-${groupId}-line` ||
+                           layer.id === `csv-${groupId}-circle` ||
                            layer.id === `tms-layer-${groupId}`;
                 });
                 
@@ -2594,21 +2640,7 @@ export class MapLayerControl {
                 }
             }
         }
-
-        // Special handling for raster/tms layers to ensure they're above satellite
-        if (type === 'tms' || type === 'raster') {
-            const baseLayerIndex = layers.findIndex(layer =>
-                layer.type === 'raster' && layer.id.includes('satellite')
-            );
-            
-            if (baseLayerIndex !== -1) {
-                const nextLayerId = layers[baseLayerIndex + 1]?.id;
-                if (nextLayerId && (!insertBeforeId || layers.findIndex(l => l.id === insertBeforeId) < baseLayerIndex)) {
-                    insertBeforeId = nextLayerId;
-                }
-            }
-        }
-
+        
         return insertBeforeId;
     }
 
@@ -3641,6 +3673,146 @@ export class MapLayerControl {
         });
         
         return container;
+    }
+
+    async _setupCsvLayer(group) {
+        if (!group.url) {
+            console.error('CSV layer missing URL:', group);
+            return;
+        }
+
+        const sourceId = `csv-${group.id}`;
+        const layerId = `${sourceId}-circle`;
+        
+        try {
+            console.log(`Fetching CSV data for ${group.id} from ${group.url}`);
+            // Fetch CSV data
+            const response = await fetch(group.url);
+            let csvText = await response.text();
+            
+            console.log(`Received CSV data for ${group.id}, length: ${csvText.length} bytes`);
+            
+            // Parse CSV data
+            let rows;
+            if (group.csvParser) {
+                console.log(`Using custom csvParser for ${group.id}`);
+                rows = group.csvParser(csvText);
+            } else {
+                console.log(`Using default parseCSV for ${group.id}`);
+                rows = parseCSV(csvText);
+            }
+            
+            console.log(`Parsed ${rows.length} rows from CSV for ${group.id}`);
+            
+            // Convert to GeoJSON
+            const geojson = rowsToGeoJSON(rows);
+            console.log(`Converted to GeoJSON with ${geojson.features.length} features for ${group.id}`);
+            
+            // Add source if it doesn't exist
+            if (!this._map.getSource(sourceId)) {
+                console.log(`Creating new GeoJSON source '${sourceId}' for ${group.id}`);
+                this._map.addSource(sourceId, {
+                    type: 'geojson',
+                    data: geojson
+                });
+                
+                // Check if layer should be visible based on URL parameters or initiallyChecked
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeLayers = urlParams.get('layers') ? 
+                    urlParams.get('layers').split(',').map(s => s.trim()) : 
+                    this._state.groups
+                        .filter(g => g.initiallyChecked)
+                        .map(g => g.id);
+                
+                const isVisible = activeLayers.includes(group.id);
+                
+                // Add circle layer with correct initial visibility
+                console.log(`Creating new circle layer for ${group.id} with visibility: ${isVisible ? 'visible' : 'none'}`);
+                this._map.addLayer({
+                    id: layerId,
+                    type: 'circle',
+                    source: sourceId,
+                    paint: {
+                        'circle-radius': group.style?.['circle-radius'] || 5,
+                        'circle-color': group.style?.['circle-color'] || '#3887be',
+                        'circle-opacity': group.style?.['circle-opacity'] || 0.7,
+                        'circle-stroke-width': group.style?.['circle-stroke-width'] || 1.5,
+                        'circle-stroke-color': group.style?.['circle-stroke-color'] || '#ffffff',
+                        'circle-stroke-opacity': group.style?.['circle-stroke-opacity'] || 1,
+                        'circle-blur': group.style?.['circle-blur'] || 0,
+                        'circle-translate': group.style?.['circle-translate'] || [0, 0],
+                        'circle-translate-anchor': group.style?.['circle-translate-anchor'] || 'map',
+                        'circle-pitch-alignment': group.style?.['circle-pitch-alignment'] || 'viewport',
+                        'circle-pitch-scale': group.style?.['circle-pitch-scale'] || 'map'
+                    },
+                    layout: {
+                        'visibility': isVisible ? 'visible' : 'none'
+                    }
+                }, this._getInsertPosition('csv'));
+                
+                // Set up interactivity
+                this._setupLayerInteractivity(group, [layerId], sourceId);
+
+                // Ensure visibility state is properly set after layer is added
+                this._map.once('idle', () => {
+                    if (isVisible) {
+                        this._map.setLayoutProperty(layerId, 'visibility', 'visible');
+                    }
+                });
+            } else {
+                // Update existing source with new data
+                console.log(`Updating source '${sourceId}' with ${geojson.features.length} features`);
+                this._map.getSource(sourceId).setData(geojson);
+            }
+            
+            // Set up refresh interval if specified
+            if (group.refresh) {
+                this._setupCsvRefresh(group);
+            }
+            
+        } catch (error) {
+            console.error(`Error loading CSV layer '${group.id}':`, error);
+        }
+    }
+
+    _setupCsvRefresh(group) {
+        // Clear any existing timer
+        if (group._refreshTimer) {
+            clearInterval(group._refreshTimer);
+        }
+        
+        const sourceId = `csv-${group.id}`;
+        
+        // Set up new refresh timer
+        group._refreshTimer = setInterval(async () => {
+            if (!this._map.getSource(sourceId)) {
+                clearInterval(group._refreshTimer);
+                group._refreshTimer = null;
+                return;
+            }
+            
+            try {
+                // Fetch updated CSV data
+                const response = await fetch(group.url);
+                let csvText = await response.text();
+                
+                // Parse CSV data
+                let rows;
+                if (group.csvParser) {
+                    rows = group.csvParser(csvText);
+                } else {
+                    rows = parseCSV(csvText);
+                }
+                
+                // Convert to GeoJSON
+                const geojson = rowsToGeoJSON(rows);
+                
+                // Update source data
+                this._map.getSource(sourceId).setData(geojson);
+            } catch (error) {
+                console.error('Error refreshing CSV layer:', error);
+            }
+        }, group.refresh);
     }
 }
 

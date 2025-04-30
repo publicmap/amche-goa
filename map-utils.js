@@ -296,4 +296,277 @@ export function convertStyleToLegend(style) {
     }, {});
 
     return groupedLegend;
+}
+
+/**
+ * Converts an array of row objects to GeoJSON features
+ * @param {Array} rows - Array of objects with coordinate fields
+ * @returns {Object} GeoJSON FeatureCollection
+ */
+export function rowsToGeoJSON(rows) {
+    if (!rows || rows.length === 0) {
+        console.warn('No rows provided to rowsToGeoJSON');
+        return {
+            type: 'FeatureCollection',
+            features: []
+        };
+    }
+
+    // Coordinate field name patterns to look for
+    const lonPatterns = ['lon', 'lng', 'longitude', 'x', 'long'];
+    const latPatterns = ['lat', 'latitude', 'y'];
+    
+    // Find coordinate field names
+    let lonField = null;
+    let latField = null;
+    
+    const firstRow = rows[0];
+    console.log('Available fields for GeoJSON conversion:', Object.keys(firstRow).join(', '));
+    
+    // Helper function to check if a field matches a pattern
+    const matchesPattern = (field, pattern) => {
+        const fieldLower = field.toLowerCase();
+        const patternLower = pattern.toLowerCase();
+        
+        // First try exact match
+        if (fieldLower === patternLower) {
+            console.log(`Found exact match for "${pattern}": ${field}`);
+            return 2; // Higher score for exact match
+        }
+        
+        // Then try contains match
+        if (fieldLower.includes(patternLower)) {
+            console.log(`Found partial match for "${pattern}": ${field}`);
+            return 1; // Lower score for partial match
+        }
+        
+        return 0; // No match
+    };
+    
+    // Find best matching fields
+    let bestLonScore = 0;
+    let bestLatScore = 0;
+    
+    for (const field of Object.keys(firstRow)) {
+        // Check longitude patterns
+        for (const pattern of lonPatterns) {
+            const score = matchesPattern(field, pattern);
+            if (score > bestLonScore) {
+                bestLonScore = score;
+                lonField = field;
+            }
+        }
+        
+        // Check latitude patterns
+        for (const pattern of latPatterns) {
+            const score = matchesPattern(field, pattern);
+            if (score > bestLatScore) {
+                bestLatScore = score;
+                latField = field;
+            }
+        }
+    }
+    
+    console.log(`Selected coordinate fields - Longitude: "${lonField}" (score: ${bestLonScore}), Latitude: "${latField}" (score: ${bestLatScore})`);
+    
+    if (!lonField || !latField) {
+        console.warn('Could not find coordinate fields in the data. Available fields:', Object.keys(firstRow));
+        console.warn('Looking for longitude patterns:', lonPatterns.join(', '));
+        console.warn('Looking for latitude patterns:', latPatterns.join(', '));
+        return null;
+    }
+    
+    // Validate that we found the correct fields by checking first row values
+    const sampleLon = firstRow[lonField];
+    const sampleLat = firstRow[latField];
+    console.log(`Validating coordinate fields - Longitude: ${sampleLon}, Latitude: ${sampleLat}`);
+    
+    // Basic validation of coordinate values
+    const parsedLon = parseFloat(sampleLon);
+    const parsedLat = parseFloat(sampleLat);
+    if (isNaN(parsedLon) || isNaN(parsedLat) ||
+        parsedLon < -180 || parsedLon > 180 ||
+        parsedLat < -90 || parsedLat > 90) {
+        console.error('Invalid coordinate values in first row:', {
+            [lonField]: sampleLon,
+            [latField]: sampleLat,
+            parsed: { lon: parsedLon, lat: parsedLat }
+        });
+        return null;
+    }
+    
+    // Helper function to parse coordinates correctly
+    const parseCoordinate = (value) => {
+        if (value === null || value === undefined || value === '') {
+            return NaN;
+        }
+        
+        if (typeof value === 'number') {
+            return value;
+        }
+        
+        // Handle string values
+        if (typeof value === 'string') {
+            // Replace any commas with periods (for European number format)
+            value = value.replace(',', '.');
+            // Extract the first number if there's extra text
+            const match = value.match(/-?\d+(\.\d+)?/);
+            if (match) {
+                return parseFloat(match[0]);
+            }
+        }
+        
+        return parseFloat(value);
+    };
+    
+    // Convert rows to GeoJSON features
+    const features = [];
+    let validCount = 0;
+    let invalidCount = 0;
+    
+    rows.forEach((row, index) => {
+        // Check if coordinate fields exist in this row
+        if (!(lonField in row) || !(latField in row)) {
+            console.warn(`Row ${index} is missing coordinate fields (${lonField}, ${latField})`);
+            invalidCount++;
+            return;
+        }
+        
+        const lon = parseCoordinate(row[lonField]);
+        const lat = parseCoordinate(row[latField]);
+        
+        // Skip invalid or missing coordinates
+        if (isNaN(lon) || isNaN(lat)) {
+            invalidCount++;
+            if (invalidCount <= 5) {
+                console.warn(`Invalid coordinates at row ${index}:`, { 
+                    [lonField]: row[lonField], 
+                    [latField]: row[latField],
+                    parsed: { lon, lat }
+                });
+            }
+            return;
+        }
+        
+        // Skip obviously invalid coordinates
+        if (lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+            invalidCount++;
+            if (invalidCount <= 5) {
+                console.warn(`Out of range coordinates at row ${index}:`, { lon, lat });
+            }
+            return;
+        }
+        
+        validCount++;
+        features.push({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [lon, lat]
+            },
+            properties: { ...row }
+        });
+    });
+    
+    console.log(`GeoJSON conversion results: ${validCount} valid features, ${invalidCount} invalid coordinates skipped`);
+    
+    if (validCount === 0 && rows.length > 0) {
+        console.error('Failed to generate any valid GeoJSON features despite having input rows');
+        console.log('First row for debugging:', rows[0]);
+        console.log(`Longitude field (${lonField})`, rows[0][lonField], typeof rows[0][lonField]);
+        console.log(`Latitude field (${latField})`, rows[0][latField], typeof rows[0][latField]);
+    }
+    
+    return {
+        type: 'FeatureCollection',
+        features: features
+    };
+}
+
+/**
+ * Parses CSV text into an array of objects with header fields as keys
+ * @param {string} csvText - Raw CSV text
+ * @returns {Array} Array of objects representing rows
+ */
+export function parseCSV(csvText) {
+    if (!csvText) return [];
+    
+    // Split into lines and remove empty lines
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (lines.length === 0) return [];
+    
+    // Find the first header line
+    // Some CSV APIs may include duplicate headers, so we need to find the first one
+    let headerLine = lines[0];
+    let dataStartIndex = 1;
+    
+    // Parse the header fields
+    const headers = parseCSVLine(headerLine);
+    
+    // Handle cases where the same header appears multiple times
+    for (let i = 1; i < lines.length; i++) {
+        const currentLine = parseCSVLine(lines[i]);
+        // If this line has the same fields as the header, it's a duplicate header
+        if (currentLine.length === headers.length && 
+            currentLine.every((val, idx) => val.trim() === headers[idx].trim())) {
+            dataStartIndex = i + 1;
+        } else {
+            break;
+        }
+    }
+    
+    // Parse data rows
+    const rows = [];
+    for (let i = dataStartIndex; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        
+        // Skip rows with incorrect number of fields
+        if (values.length !== headers.length) continue;
+        
+        // Create object with header keys and row values
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header.trim()] = values[index];
+        });
+        
+        rows.push(row);
+    }
+    
+    return rows;
+}
+
+/**
+ * Parses a single CSV line respecting quoted fields with commas
+ * @param {string} line - A single line of CSV text
+ * @returns {Array} Array of field values
+ */
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            // Handle escaped quotes
+            if (i + 1 < line.length && line[i + 1] === '"') {
+                current += '"';
+                i++; // Skip next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // End of field
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    // Add the last field
+    result.push(current);
+    
+    return result;
 } 

@@ -1598,5 +1598,168 @@ export const layersConfig = [
         headerImage: 'assets/map-layer-terrain.png',
         type: 'terrain',
         initiallyChecked: true
+    },
+    {
+        title: 'Fire Truck Locations',
+        description: 'Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every minute.',
+        headerImage: 'assets/map-layer-fire-trucks.png',
+        type: 'csv',
+        id: 'firetrucks',
+        url: 'https://gpsmiles.live//webservice?token=getLiveData&user=cnt-fire.goa@nic.in&pass=cnt@123&company=Directorate%20of%20Fire%20Emergency%20Services&format=csv',
+        refresh: 320000, // Update every 30 seconds
+        attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
+        csvParser: function(csvText) {
+            if (!csvText) return [];
+            
+            // Split into lines and remove empty lines
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+            if (lines.length === 0) return [];
+            
+            console.log(`Processing ${lines.length} non-empty lines`);
+            
+            // First line is the header
+            const headerLine = lines[0];
+            const headers = headerLine.split(',').map(h => h.trim());
+            console.log('Headers:', headers);
+            
+            // Function to parse a CSV line with quote handling
+            const parseCSVLine = (line) => {
+                const values = [];
+                let inQuotes = false;
+                let currentValue = '';
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+                            // Handle escaped quotes
+                            currentValue += '"';
+                            i++; // Skip next quote
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(currentValue.trim());
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                values.push(currentValue.trim()); // Add the last value
+                
+                return values;
+            };
+            
+            // Process data rows, skipping duplicate headers
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Skip if this is a duplicate header (starts with "Company,") or "No Data Found"
+                if (line.startsWith('Company,') || line.includes('No Data Found')) {
+                    console.log(`Skipping line ${i}: ${line.substring(0, 50)}...`);
+                    continue;
+                }
+                
+                const values = parseCSVLine(line);
+                console.log(`Line ${i} has ${values.length} values`);
+                
+                // Create object with header keys
+                const row = {};
+                headers.forEach((header, index) => {
+                    // Remove quotes from values
+                    let value = values[index] || '';
+                    value = value.replace(/^"(.*)"$/, '$1'); // Remove surrounding quotes
+                    row[header] = value;
+                });
+                
+                // Extract actual latitude and longitude from the correct positions
+                // Based on the CSV format, we need to look at values[14] and values[15]
+                const latValue = values[14] ? values[14].replace(/^"(.*)"$/, '$1') : null;
+                const lngValue = values[15] ? values[15].replace(/^"(.*)"$/, '$1') : null;
+                
+                const lat = parseFloat(latValue);
+                const lng = parseFloat(lngValue);
+                
+                // Log coordinates for debugging
+                console.log(`Line ${i} raw coordinates:`, {
+                    latValue,
+                    lngValue,
+                    parsedLat: lat,
+                    parsedLng: lng
+                });
+                
+                // Only add rows that have valid coordinates
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    row.Latitude = lat;
+                    row.Longitude = lng;
+                    rows.push(row);
+                } else {
+                    console.log(`Skipping row ${i} due to invalid coordinates:`, latValue, lngValue);
+                }
+            }
+            
+            console.log(`Successfully parsed ${rows.length} rows with valid coordinates`);
+            if (rows.length > 0) {
+                console.log('Sample row:', rows[0]);
+            }
+            
+            return rows;
+        },
+        style: {
+            'circle-radius': 6,
+            'circle-color':  [
+                'match',
+                ['get', 'Speed'],
+                'RUNNING', 'green',
+                'IDLE', 'yellow',
+                'STOP', 'red',
+                'INACTIVE', 'grey',
+                'black'  // default color for all other cases
+            ],
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+            'text-font': ['Open Sans Regular'],
+            'text-field': [
+                "step",
+                ["zoom"],
+                "",
+                13,
+                [
+                    "to-string",
+                    ['get', 'POI']
+                ]
+            ],
+        },
+        inspect: {
+            id: 'Vehicle_No',
+            title: 'Current Location',
+            label: 'Location',
+            fields: ['Vehicle_No', 'Branch','POI', 'Speed', 'Datetime'],
+            fieldTitles: ['Vehicle No', 'Station', 'Location', 'Speed', 'Last Updated']
+        }
+    },
+    {
+        title: 'Schools',
+        description: 'Schools in Goa for disaster management planning',
+        headerImage: 'assets/map-layer-schools.png',
+        type: 'csv',
+        id: 'schools',
+        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv',
+        attribution: 'Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa',
+        style: {
+            'circle-radius': 5,
+            'circle-color': '#4c7fff',
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#ffffff'
+        },
+        inspect: {
+            id: 'Name',
+            title: 'School',
+            label: 'Name',
+            fields: ['Principal', 'Mobile', 'Email', 'Capacity', 'Gr_Panchayat', 'Gr_Taluka'],
+            fieldTitles: ['Principal', 'Mobile', 'Email', 'Capacity', 'Panchayat', 'Taluka']
+        }
     }
 ];
