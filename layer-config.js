@@ -57,67 +57,6 @@ export const layersConfig = [
         url: 'https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson',
         refresh: 30000, // Update every 30 seconds
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
-        csvParser: function(csvText) {
-
-            // Data Parser for Fire Trucks
-            // Sample API response:
-            // Company,Branch,Vehicle_No,Vehicle_Name,Vehicletype,Driver_First_Name,Driver_Middle_Name,Driver_Last_Name,Imeino,DeviceModel,Location,POI,Datetime,Latitude,Longitude,Status,Speed,GPS,IGN,Power,Door1,Door2,Door3,Door4,AC,Temperature,Fuel,SOS,Altitude 
-            // "Directorate of Fire Emergency Services","Fire Station Pilerne","GA 07 G 0680-PIL(QUICK RESPONSE VEHICLE)","4G","Truck","--","--","--","864180052940132","L400","At Fire Station Pilerne","At Fire Station Pilerne","30-04-2025 09:25:16","30-04-2025 09:25:11","15.5328883","73.7939617","STOP","0","ON","OFF","ON","--","--","--","--","--","--",[],"--","--","7140",0
-
-            if (!csvText) return [];
-            
-            // Split into lines and remove empty lines
-            const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
-            if (lines.length === 0) return [];
-            
-            const rows = [];
-            let headers = [];
-            let currentIndex = 0;
-            
-            // Process lines in groups (header followed by data)
-            while (currentIndex < lines.length) {
-                // Get headers from the current group
-                const headerLine = lines[currentIndex++];
-                if (headerLine.startsWith('Company,')) {
-                    headers = headerLine.split(',').map(h => h.trim());
-                }
-                
-                // Skip if we reached the end or found "No Data Found"
-                if (currentIndex >= lines.length || lines[currentIndex].includes('No Data Found')) {
-                    break;
-                }
-                
-                // Process data row
-                const values = lines[currentIndex++].split(',');
-                
-                // Create object with header keys
-                const row = {};
-                headers.forEach((header, index) => {
-                    // Keep it simple, just use the value as is
-                    let value = values[index] || '';
-                    // Only remove surrounding quotes if they exist
-                    if (value.startsWith('"') && value.endsWith('"')) {
-                        value = value.substring(1, value.length - 1);
-                    }
-                    row[header] =  value;
-                });
-                
-                // Extract correct latitude and longitude based on the API response
-                const lat = parseFloat(row['Longitude']);
-                const lng = parseFloat(row['Status']);
-                
-                // Only add rows that have valid coordinates
-                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                    row.Latitude = lat;
-                    row.Longitude = lng;
-                    rows.push(row);
-                }else{
-                    console.log('Invalid row:', row);
-                }
-            }
-            
-            return rows;
-        },
         style: {
             'circle-radius': 6,
             'circle-color':  [
@@ -136,7 +75,7 @@ export const layersConfig = [
                 "step",
                 ["zoom"],
                 "",
-                13,
+                7,
                 [
                     "to-string",
                     ['get', 'POI']
