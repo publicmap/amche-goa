@@ -61,7 +61,7 @@ export const layersConfig = [
             'circle-radius': 6,
             'circle-color':  [
                 'match',
-                ['get', 'Speed'],
+                ['get', 'Status'],
                 'RUNNING', 'green',
                 'IDLE', 'yellow',
                 'STOP', 'red',
