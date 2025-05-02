@@ -86,8 +86,8 @@ export const layersConfig = [
             id: 'Vehicle_No',
             title: 'Current Location',
             label: 'Location',
-            fields: ['Vehicle_No', 'Branch','POI', 'Speed', 'Datetime'],
-            fieldTitles: ['Vehicle No', 'Station', 'Location', 'Speed', 'Last Updated']
+            fields: ['Status', 'Vehicle_No', 'Branch','POI', 'Speed', 'Datetime'],
+            fieldTitles: ['Status', 'Vehicle No', 'Station', 'Location', 'Speed', 'Last Updated']
         }
     },
     {
