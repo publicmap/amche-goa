@@ -142,13 +142,14 @@ export class MapLayerControl {
         
         this._layerTypeOrder = options.layerTypeOrder || {
             background: 0,
-            raster: 1,
-            fill: 2,
-            line: 3,
-            symbol: 4,
-            circle: 5,
-            'fill-extrusion': 6,
-            heatmap: 7
+            tms: 1, // Add TMS layer type with high priority
+            raster: 2,
+            fill: 3,
+            line: 4,
+            symbol: 5,
+            circle: 6,
+            'fill-extrusion': 7,
+            heatmap: 8
         };
         
         this._domCache = {};
@@ -2604,14 +2605,36 @@ export class MapLayerControl {
         // Get the order value for the current layer type
         const currentTypeOrder = this._layerTypeOrder[layerType || type] || Infinity;
 
-        // Find the next layer that should be above this one
+        // Special case for TMS layers - insert after satellite layer
+        if (type === 'tms') {
+            // First look for any satellite layer in the style
+            const satelliteLayers = layers.filter(layer => 
+                layer.id === 'satellite' || 
+                layer.id.includes('-satellite') || 
+                layer.id.includes('satellite-')
+            );
+            
+            if (satelliteLayers.length > 0) {
+                // Find the last satellite layer in the stack
+                const lastSatelliteLayer = satelliteLayers[satelliteLayers.length - 1];
+                
+                // Find the layer immediately after the last satellite layer
+                const satelliteIndex = layers.findIndex(l => l.id === lastSatelliteLayer.id);
+                if (satelliteIndex < layers.length - 1) {
+                    return layers[satelliteIndex + 1].id;
+                }
+            }
+        }
+
+        // Standard insertion logic for other layer types
         let insertBeforeId;
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
             const group = orderedGroups[i];
             if (group.type === type || 
                 (type === 'vector' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type))) {
+                (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
+                (type === 'tms' && ['tms'].includes(group.type))) {
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2641,6 +2664,30 @@ export class MapLayerControl {
                 if (insertLayer) {
                     insertBeforeId = insertLayer.id;
                     break;
+                }
+            }
+        }
+        
+        // Special case for TMS layers to ensure they appear early but after satellite
+        if (type === 'tms' && !insertBeforeId) {
+            // Find all raster layers and look for ones after satellite
+            const rasterLayers = layers.filter(layer => layer.type === 'raster');
+            const satelliteIndex = rasterLayers.findIndex(layer => 
+                layer.id === 'satellite' || 
+                layer.id.includes('-satellite') || 
+                layer.id.includes('satellite-')
+            );
+            
+            if (satelliteIndex !== -1 && satelliteIndex < rasterLayers.length - 1) {
+                // Insert after satellite
+                insertBeforeId = rasterLayers[satelliteIndex + 1].id;
+            } else {
+                // Look for the first non-background and non-raster layer
+                for (const layer of layers) {
+                    if (layer.type !== 'background' && layer.type !== 'raster') {
+                        insertBeforeId = layer.id;
+                        break;
+                    }
                 }
             }
         }
@@ -3575,7 +3622,7 @@ export class MapLayerControl {
                     layout: {
                         visibility: 'none'
                     }
-                });
+                }, this._getInsertPosition('tms'));
             }
             
             // Update UI

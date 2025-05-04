@@ -13,6 +13,9 @@ const map = new mapboxgl.Map({
     attributionControl: false
 });
 
+// Make map accessible globally for debugging
+window.map = map;
+
 // Add attribution control
 map.addControl(new mapboxgl.AttributionControl({
     compact: true
