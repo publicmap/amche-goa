@@ -1,6 +1,8 @@
 # Map Datasets
 
-Documentation of open spatial data resources for Goa. For layer wise details, please check individual folders.
+Documentation of open spatial data resources for Goa. 
+
+- For datasource wise details, please check individual folders.
 
 ## Regional Plan for Goa 2021
 

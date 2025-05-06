@@ -851,7 +851,7 @@ export const layersConfig = [
     },
     {
         title: 'Eco Sensitive Zones',
-        description: 'Eco Sensitive Zones as defined in <a href="https://moef.gov.in/eco-sensitive-zone-esz">National Environment Policy, MoEF</a>',
+        description: 'Eco Sensitive Zones as defined in the <a href="https://moef.gov.in/eco-sensitive-zone-esz">National Environment Policy, MoEF</a>',
         headerImage: 'assets/map-layer-esz.png',
         type: 'vector',
         id: 'esz',
@@ -883,7 +883,7 @@ export const layersConfig = [
                 ]
             ],
             'fill-color': 'green',
-            'fill-opacity': 0.7
+            'fill-opacity': 0.2
         },
         inspect: {
             id: 'FID',
@@ -894,7 +894,7 @@ export const layersConfig = [
     },
     {
         title: 'Wildlife Reserves and Corridors',
-        description: 'Protected areas and wildlife corridors',
+        description: 'National parks, wildlife sanctuaries and <a href="https://ntca.gov.in/assets/uploads/Reports/corridor/connecting_tiger_populations.pdf">tiger conservations corridors</a>',
         headerImage: 'assets/map-layer-wildlife-reserve.png',
         type: 'vector',
         id: 'wildlife-reserve',
