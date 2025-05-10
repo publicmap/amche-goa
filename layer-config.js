@@ -119,6 +119,80 @@ export const layersConfig = [
         }
     },
     {
+        id: 'pincode',
+        title: 'Pincode Boundaries',
+        headerImage: 'assets/map-layer-pincode.png',
+        description: 'Government open data of pincode boundaries published May 2025.',
+        type: 'vector',
+        url: 'https://indianopenmaps.fly.dev/pincodes/datagovin/{z}/{x}/{y}.pbf',
+        sourceLayer: 'Datagov_Pincode_Boundaries',
+        maxzoom: 10,
+        attribution: '<a href="https://www.data.gov.in/resource/delivery-post-office-pincode-boundary">Ministry of Communications Department of Posts</a> - Collected by <a href="https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/postal">Datameet Community</a>',
+        style: {
+            'text-field': [
+                "step",
+                ["zoom"],
+                [
+                    "to-string",
+                    ['get', 'Pincode']
+                ],
+                11,
+                ["concat",
+                    [
+                        "to-string",
+                        ['get', 'Office_Name']
+                    ],
+                '\n',
+                [
+                    "to-string",
+                    ['get', 'Pincode']
+                ]
+        
+            ]
+            ],
+            'text-color': 'white',
+            'text-halo-color': 'black',
+            'text-halo-width': 5,
+            'text-size': 13,
+            'fill-color': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                8, 'rgba(0, 0, 0, 0)',
+                12, 'rgba(0, 0, 0, 0.1)'
+            ],
+            'line-color': 'black',
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                8, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    1.5,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    1,
+                    0
+                ],
+                12, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    3,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    2,
+                    1
+                ]
+            ]
+        },
+        inspect: {
+            title: 'Pincode',
+            label: 'Pincode',
+            id: 'Pincode',
+            fields: ['Office_Name','Circle','Division','Region'],
+            fieldTitles: ['Post Office Name','Circle','Division','Region']
+        }
+    },
+    {
         title: 'Plots with No Development Slopes',
         description: 'Survey numbers with No Development Slopes (NDS). The output location of plots having atleast 25% of the plot area with NDS or slopes greater than 1:4 (25% slope).<br>Processed using slope computed with NASADEM 30m data and cadastral boundaries from OneMapGoa GIS. See <a href="https://github.com/publicmap/amche-goa/tree/main/data/slope">processing code</a> for details.',
         headerImage: 'assets/map-layer-nds-plots.png',
