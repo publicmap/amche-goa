@@ -8,6 +8,7 @@ export const layersConfig = [
         initiallyChecked: true,
         layers: [
             { title: 'Places', sourceLayer: 'place_label' },
+            { title: 'Boundaries', sourceLayer: 'admin' },
             { title: 'Landmarks', sourceLayer: 'poi_label' },
             { title: 'Buildings', sourceLayer: 'building' },
             { title: 'Structures', sourceLayer: 'structure' },
@@ -136,7 +137,7 @@ export const layersConfig = [
                     "to-string",
                     ['get', 'Pincode']
                 ],
-                11,
+                10,
                 ["concat",
                     [
                         "to-string",
@@ -172,7 +173,7 @@ export const layersConfig = [
                     1.5,
                     ['boolean', ['feature-state', 'hover'], false],
                     1,
-                    0
+                    .5
                 ],
                 12, [
                     'case',
@@ -188,8 +189,8 @@ export const layersConfig = [
             title: 'Pincode',
             label: 'Pincode',
             id: 'Pincode',
-            fields: ['Office_Name','Circle','Division','Region'],
-            fieldTitles: ['Post Office Name','Circle','Division','Region']
+            fields: ['Office_Name','Division','Region','Circle'],
+            fieldTitles: ['Post Office Name','Division','Region','Circle']
         }
     },
     {
