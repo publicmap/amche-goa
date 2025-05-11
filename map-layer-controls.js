@@ -846,14 +846,12 @@ export class MapLayerControl {
                 e.preventDefault();
                 e.stopPropagation();
                 const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
-
-                const newOpacity = currentOpacity === 0.95 ? 0.5 : 0.95;
-                $opacityButton.attr('data-opacity', newOpacity);
+                // Toggle between 1 (100%) and 0.6 (60%)
+                const newOpacityFactor = currentOpacity === 1 ? 0.6 : 1;
+                $opacityButton.attr('data-opacity', newOpacityFactor);
                 $opacityButton.title = `Toggle opacity`;
-                
-                // Update icon based on opacity
-                $opacityButton.attr('name', newOpacity === 0.95 ? 'layers-fill' : 'layers');
-                
+                $opacityButton.attr('name', newOpacityFactor === 1 ? 'layers-fill' : 'layers');
+                // Use base opacities from group
                 if (group.type === 'layer-group') {
                     const allLayers = this._map.getStyle().layers.map(layer => layer.id);
                     group.groups.forEach(subGroup => {
@@ -862,18 +860,17 @@ export class MapLayerControl {
                             layerId.startsWith(`${subGroup.id}-`) ||
                             layerId.startsWith(`${subGroup.id} `)
                         );
-                        
                         matchingLayers.forEach(layerId => {
                             if (this._map.getLayer(layerId)) {
                                 const layer = this._map.getLayer(layerId);
                                 if (layer.type === 'fill') {
-                                    this._map.setPaintProperty(layerId, 'fill-opacity', newOpacity * 0.5);
+                                    this._map.setPaintProperty(layerId, 'fill-opacity', (subGroup._baseFillOpacity || 1) * newOpacityFactor);
                                 } else if (layer.type === 'line') {
-                                    this._map.setPaintProperty(layerId, 'line-opacity', newOpacity);
+                                    this._map.setPaintProperty(layerId, 'line-opacity', (subGroup._baseLineOpacity || 1) * newOpacityFactor);
                                 } else if (layer.type === 'symbol') {
-                                    this._map.setPaintProperty(layerId, 'text-opacity', newOpacity);
+                                    this._map.setPaintProperty(layerId, 'text-opacity', (subGroup._baseTextOpacity || 1) * newOpacityFactor);
                                 } else if (layer.type === 'raster') {
-                                    this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                                    this._map.setPaintProperty(layerId, 'raster-opacity', (subGroup._baseRasterOpacity || 1) * newOpacityFactor);
                                 }
                             }
                         });
@@ -881,31 +878,30 @@ export class MapLayerControl {
                 } else if (group.type === 'geojson') {
                     const sourceId = `geojson-${group.id}`;
                     if (this._map.getLayer(`${sourceId}-fill`)) {
-                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', newOpacity * 0.5);
+                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', (group._baseFillOpacity || 1) * newOpacityFactor);
                     }
                     if (this._map.getLayer(`${sourceId}-line`)) {
-                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', newOpacity);
+                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', (group._baseLineOpacity || 1) * newOpacityFactor);
                     }
                     if (this._map.getLayer(`${sourceId}-label`)) {
-                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', newOpacity);
+                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', (group._baseTextOpacity || 1) * newOpacityFactor);
                     }
                     if (this._map.getLayer(`${sourceId}-circle`)) {
-                        this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', newOpacity);
+                        this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', (group._baseCircleOpacity || 1) * newOpacityFactor);
                     }
                 } else if (group.type === 'tms') {
                     const layerId = `tms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'raster-opacity', newOpacity);
+                        this._map.setPaintProperty(layerId, 'raster-opacity', (group._baseRasterOpacity || 1) * newOpacityFactor);
                     }
                 } else if (group.type === 'vector') {
                     const layerConfig = group._layerConfig;
                     if (!layerConfig) return;
-
                     if (layerConfig.hasFillStyles) {
-                        this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', newOpacity * 0.5);
+                        this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', (group._baseFillOpacity || 1) * newOpacityFactor);
                     }
                     if (layerConfig.hasLineStyles) {
-                        this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', newOpacity);
+                        this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', (group._baseLineOpacity || 1) * newOpacityFactor);
                     }
                 }
             });

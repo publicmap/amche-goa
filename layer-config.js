@@ -19,12 +19,13 @@ export const layersConfig = [
             { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
             { title: 'Waterways', sourceLayer: 'waterway' },
             { title: 'Waterbodies', sourceLayer: 'water' },
+            { title: 'Satellite Imagery', id: 'satellite' },
         ]
     },
     {
         id: 'traffic',
         title: 'Traffic',
-        description: 'Live traffic map via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/" target="_blank">Mapbox Traffic</a> vector tiles.',
+        description: 'Live traffic map via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/" target="_blank">Mapbox Traffic</a> vector tiles. Updated every 10 minutes.',
         type: 'style',
         headerImage: 'assets/map-layer-traffic.png',
         layers: [
@@ -480,13 +481,8 @@ export const layersConfig = [
             'text-halo-width': 5,
             'text-transform': 'uppercase',
             'text-size': 14,
-            'fill-color': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                8, 'rgba(0, 0, 0, 0)',
-                12, 'rgba(0, 0, 0, 0.1)'
-            ],
+            'fill-color': 'red',
+            'fill-opacity':1,
             'line-color': 'purple',
             'line-dasharray': [6, 6],
             'line-width': [
