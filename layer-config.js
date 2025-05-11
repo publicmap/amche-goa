@@ -344,7 +344,7 @@ export const layersConfig = [
                 ]
             ]
         },
-        initiallyChecked: true,
+        initiallyChecked: false,
         inspect: {
             id: 'id',
             title: 'Survey Number',
