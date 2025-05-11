@@ -48,6 +48,19 @@ export class MapLayerControl {
                     ],
                     'line-opacity': 1
                 },
+                text: {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1,
+                    'text-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        1,
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.9,
+                        0.7
+                    ]
+                },
                 circle: {
                     'circle-radius': 5,
                     'circle-color': '#FF0000',
@@ -851,59 +864,30 @@ export class MapLayerControl {
                 $opacityButton.attr('data-opacity', newOpacityFactor);
                 $opacityButton.title = `Toggle opacity`;
                 $opacityButton.attr('name', newOpacityFactor === 1 ? 'layers-fill' : 'layers');
-                // Use base opacities from group
-                if (group.type === 'layer-group') {
-                    const allLayers = this._map.getStyle().layers.map(layer => layer.id);
-                    group.groups.forEach(subGroup => {
-                        const matchingLayers = allLayers.filter(layerId => 
-                            layerId === subGroup.id || 
-                            layerId.startsWith(`${subGroup.id}-`) ||
-                            layerId.startsWith(`${subGroup.id} `)
-                        );
-                        matchingLayers.forEach(layerId => {
-                            if (this._map.getLayer(layerId)) {
-                                const layer = this._map.getLayer(layerId);
-                                if (layer.type === 'fill') {
-                                    this._map.setPaintProperty(layerId, 'fill-opacity', (subGroup._baseFillOpacity || 1) * newOpacityFactor);
-                                } else if (layer.type === 'line') {
-                                    this._map.setPaintProperty(layerId, 'line-opacity', (subGroup._baseLineOpacity || 1) * newOpacityFactor);
-                                } else if (layer.type === 'symbol') {
-                                    this._map.setPaintProperty(layerId, 'text-opacity', (subGroup._baseTextOpacity || 1) * newOpacityFactor);
-                                } else if (layer.type === 'raster') {
-                                    this._map.setPaintProperty(layerId, 'raster-opacity', (subGroup._baseRasterOpacity || 1) * newOpacityFactor);
-                                }
-                            }
-                        });
-                    });
-                } else if (group.type === 'geojson') {
-                    const sourceId = `geojson-${group.id}`;
-                    if (this._map.getLayer(`${sourceId}-fill`)) {
-                        this._map.setPaintProperty(`${sourceId}-fill`, 'fill-opacity', (group._baseFillOpacity || 1) * newOpacityFactor);
-                    }
-                    if (this._map.getLayer(`${sourceId}-line`)) {
-                        this._map.setPaintProperty(`${sourceId}-line`, 'line-opacity', (group._baseLineOpacity || 1) * newOpacityFactor);
-                    }
-                    if (this._map.getLayer(`${sourceId}-label`)) {
-                        this._map.setPaintProperty(`${sourceId}-label`, 'text-opacity', (group._baseTextOpacity || 1) * newOpacityFactor);
-                    }
-                    if (this._map.getLayer(`${sourceId}-circle`)) {
-                        this._map.setPaintProperty(`${sourceId}-circle`, 'circle-opacity', (group._baseCircleOpacity || 1) * newOpacityFactor);
-                    }
-                } else if (group.type === 'tms') {
-                    const layerId = `tms-layer-${group.id}`;
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setPaintProperty(layerId, 'raster-opacity', (group._baseRasterOpacity || 1) * newOpacityFactor);
-                    }
-                } else if (group.type === 'vector') {
+                
+                if (group.type === 'vector') {
                     const layerConfig = group._layerConfig;
                     if (!layerConfig) return;
+
                     if (layerConfig.hasFillStyles) {
                         this._map.setPaintProperty(`vector-layer-${group.id}`, 'fill-opacity', (group._baseFillOpacity || 1) * newOpacityFactor);
                     }
                     if (layerConfig.hasLineStyles) {
                         this._map.setPaintProperty(`vector-layer-${group.id}-outline`, 'line-opacity', (group._baseLineOpacity || 1) * newOpacityFactor);
                     }
+                    if (layerConfig.hasTextStyles) {
+                        const baseTextOpacity = group.style?.['text-opacity'] || this._defaultStyles.vector.text['text-opacity'];
+                        if (Array.isArray(baseTextOpacity)) {
+                            // For case expressions, modify the default opacity value (last item)
+                            const modifiedOpacity = [...baseTextOpacity];
+                            modifiedOpacity[modifiedOpacity.length - 1] = 0.7 * newOpacityFactor;
+                            this._map.setPaintProperty(`vector-layer-${group.id}-text`, 'text-opacity', modifiedOpacity);
+                        } else {
+                            this._map.setPaintProperty(`vector-layer-${group.id}-text`, 'text-opacity', baseTextOpacity * newOpacityFactor);
+                        }
+                    }
                 }
+                // ... rest of the existing opacity button click handler ...
             });
 
             // Add header background if exists
@@ -1636,7 +1620,15 @@ export class MapLayerControl {
                                 'text-color': group.style?.['text-color'] || '#000000',
                                 'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
                                 'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
-                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
+                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1,
+                                'text-opacity': group.style?.['text-opacity'] || [
+                                    'case',
+                                    ['boolean', ['feature-state', 'selected'], false],
+                                    1,
+                                    ['boolean', ['feature-state', 'hover'], false],
+                                    0.9,
+                                    0.7
+                                ]
                             }
                         };
 
@@ -1678,6 +1670,7 @@ export class MapLayerControl {
                 group._layerConfig = {
                     hasFillStyles,
                     hasLineStyles,
+                    hasTextStyles: !!group.style?.['text-field'],
                     mainLayerId
                 };
             } else if (group.type === 'markers' && group.dataUrl) {

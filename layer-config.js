@@ -19,7 +19,6 @@ export const layersConfig = [
             { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
             { title: 'Waterways', sourceLayer: 'waterway' },
             { title: 'Waterbodies', sourceLayer: 'water' },
-            { title: 'Satellite Imagery', id: 'satellite' },
         ]
     },
     {
@@ -481,7 +480,22 @@ export const layersConfig = [
             'text-halo-width': 5,
             'text-transform': 'uppercase',
             'text-size': 14,
-            'fill-color': 'red',
+            'text-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                1,
+                ['boolean', ['feature-state', 'hover'], false],
+                0.9,
+                0.7
+            ],
+            'fill-color': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                'rgba(0, 0, 0, 0)',
+                ['boolean', ['feature-state', 'hover'], false],
+                'rgba(0, 0, 0, 0.05)',
+                'rgba(118, 118, 118, 0.4)'
+            ],
             'fill-opacity':1,
             'line-color': 'purple',
             'line-dasharray': [6, 6],
