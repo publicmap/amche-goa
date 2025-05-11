@@ -396,9 +396,6 @@ export class MapLayerControl {
                 url.searchParams.delete('layers');
             }
             
-            // Remove streetmap parameter if it exists (since we're now using layers)
-            url.searchParams.delete('streetmap');
-            
             // Create pretty URL by manually replacing encoded characters
             const prettyUrl = decodeURIComponent(url.toString())
                 .replace(/\+/g, ' '); // Replace plus signs with spaces if needed
@@ -532,8 +529,7 @@ export class MapLayerControl {
                 } else if (group.type === 'geojson') {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'style') {
-                    // Add streetmap parameter if style layer is visible
-                    visibleLayers.push('streetmap');
+                    visibleLayers.push(group.id);
                 } else if (group.type === 'layer-group') {
                     // Find which radio button is selected in this group
                     const radioGroup = groupHeader?.querySelector('.radio-group');
@@ -549,9 +545,7 @@ export class MapLayerControl {
     }
 
     _initializeControl($container) {
-        // Replace the line that's causing the error (around line 302)
-        // FROM: const urlParams = getQueryParameters();
-        // TO:
+
         const urlParams = new URLSearchParams(window.location.search);
         
         // If no layers parameter is specified, treat all initiallyChecked layers as active
@@ -559,14 +553,12 @@ export class MapLayerControl {
             urlParams.get('layers').split(',').map(s => s.trim()) : 
             this._state.groups
                 .filter(group => group.initiallyChecked)
-                .map(group => group.type === 'style' ? 'streetmap' : group.id);
+                .map(group => group.type === group.id);
 
         this._state.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
             if (urlParams.get('layers')) {
-                if (group.type === 'style') {
-                    group.initiallyChecked = activeLayers.includes('streetmap');
-                } else if (group.type === 'layer-group') {
+                if (group.type === 'layer-group') {
                     // For layer groups, check if any of its subgroups are active
                     const hasActiveSubgroup = group.groups.some(subgroup => 
                         activeLayers.includes(subgroup.id)
