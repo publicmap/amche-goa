@@ -474,7 +474,16 @@ export const layersConfig = [
         attribution: '<a href="https://onemapgoagis.goa.gov.in/map/?c=0%2C0&s=0">OneMapGoa</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
         initiallyChecked: true,
         style: {
-            'text-field': ['get', 'Name'],
+            'text-field': [
+                "step",
+                ["zoom"],
+                "",
+                13,
+                [
+                    "to-string",
+                    ['get', 'Name']
+                ]
+            ],
             'text-color': 'white',
             'text-halo-color': 'purple',
             'text-halo-width': 5,
