@@ -22,6 +22,16 @@ export const layersConfig = [
         ]
     },
     {
+        id: 'traffic',
+        title: 'Traffic',
+        description: 'Live traffic map via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/" target="_blank">Mapbox Traffic</a> vector tiles.',
+        type: 'style',
+        headerImage: 'assets/map-layer-traffic.png',
+        layers: [
+            { title: 'Traffic', sourceLayer: 'traffic' },
+        ]
+    },
+    {
         title: 'Community Pins',
         description: 'Pin your notes on the map for the rest of the community to see',
         headerImage: 'assets/map-layer-pins.png',
