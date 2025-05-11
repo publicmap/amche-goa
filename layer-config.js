@@ -512,21 +512,21 @@ export const layersConfig = [
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                8, [
+                11, [
                     'case',
                     ['boolean', ['feature-state', 'selected'], false],
                     1.5,
                     ['boolean', ['feature-state', 'hover'], false],
                     1,
-                    .1
+                    0
                 ],
-                12, [
+                14, [
                     'case',
                     ['boolean', ['feature-state', 'selected'], false],
-                    3.5,
+                    4,
                     ['boolean', ['feature-state', 'hover'], false],
-                    2.5,
-                    1.5
+                    3,
+                    1
                 ]
             ],
         },
