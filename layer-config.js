@@ -1424,7 +1424,7 @@ export const layersConfig = [
             'text-halo-color': [
                 'match',
                 ['get', 'kind'],
-                ['landfill'],
+                ['landfill','quarry'],
                 'brown',
                 ['railway'],
                 'indigo',
