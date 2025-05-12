@@ -70,7 +70,7 @@ export const layersConfig = [
         attribution: '<a href="https://dfes.goa.gov.in/dashboard/">Directorate of Fire & Emergency Services, Govt. of Goa</a>',
         style: {
             'circle-radius': 6,
-            'circle-color':  [
+            'circle-color': [
                 'match',
                 ['get', 'Status'],
                 'RUNNING', 'green',
@@ -97,7 +97,7 @@ export const layersConfig = [
             id: 'Vehicle_No',
             title: 'Current Location',
             label: 'Location',
-            fields: ['Status', 'Vehicle_No', 'Branch','POI', 'Speed', 'Datetime'],
+            fields: ['Status', 'Vehicle_No', 'Branch', 'POI', 'Speed', 'Datetime'],
             fieldTitles: ['Status', 'Vehicle No', 'Station', 'Location', 'Speed', 'Last Updated']
         }
     },
@@ -114,7 +114,7 @@ export const layersConfig = [
             'circle-radius': [
                 'case',
                 ['>', ['get', 'Capacity'], 500], 5,
-                ['>', ['get', 'Capacity'], 100], 3,                
+                ['>', ['get', 'Capacity'], 100], 3,
                 2
             ],
             'circle-color': '#4c7fff',
@@ -153,13 +153,13 @@ export const layersConfig = [
                         "to-string",
                         ['get', 'Office_Name']
                     ],
-                '\n',
-                [
-                    "to-string",
-                    ['get', 'Pincode']
+                    '\n',
+                    [
+                        "to-string",
+                        ['get', 'Pincode']
+                    ]
+
                 ]
-        
-            ]
             ],
             'text-color': 'white',
             'text-halo-color': 'black',
@@ -199,8 +199,8 @@ export const layersConfig = [
             title: 'Pincode',
             label: 'Pincode',
             id: 'Pincode',
-            fields: ['Office_Name','Division','Region','Circle'],
-            fieldTitles: ['Post Office Name','Division','Region','Circle']
+            fields: ['Office_Name', 'Division', 'Region', 'Circle'],
+            fieldTitles: ['Post Office Name', 'Division', 'Region', 'Circle']
         }
     },
     {
@@ -228,7 +228,7 @@ export const layersConfig = [
             'text-halo-color': [
                 'case',
                 ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
-                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',
                 'orange'
             ],
             'text-halo-width': 2,
@@ -237,7 +237,7 @@ export const layersConfig = [
             'circle-color': [
                 'case',
                 ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
-                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',
                 'orange'
             ],
             'circle-radius': [
@@ -275,7 +275,7 @@ export const layersConfig = [
             'circle-stroke-color': [
                 'case',
                 ['>', ['get', 'slope_35_inf_pct'], 30], 'purple',
-                ['>', ['get', 'slope_25_35_pct'], 30], 'red',                
+                ['>', ['get', 'slope_25_35_pct'], 30], 'red',
                 'orange'
             ]
         },
@@ -283,8 +283,8 @@ export const layersConfig = [
             id: 'plot',
             title: '% plot area with NDS',
             label: 'steep_slope_pct',
-            fields: ['slope_10_20_pct','slope_20_25_pct','slope_25_35_pct','slope_35_inf_pct','steep_slope_area','total_area_m2','plot','village'],
-            fieldTitles: ['RDS-1 % (10-20% slope)','RDS-2 % (20-25% slope)','NDS-1 % (25-35% slope)','NDS-2 % (35%+ slope)','NDS Area (m2)','Total Area (m2)','Plot','Village']
+            fields: ['slope_10_20_pct', 'slope_20_25_pct', 'slope_25_35_pct', 'slope_35_inf_pct', 'steep_slope_area', 'total_area_m2', 'plot', 'village'],
+            fieldTitles: ['RDS-1 % (10-20% slope)', 'RDS-2 % (20-25% slope)', 'NDS-1 % (25-35% slope)', 'NDS-2 % (35%+ slope)', 'NDS Area (m2)', 'Total Area (m2)', 'Plot', 'Village']
         }
     },
     {
@@ -505,7 +505,7 @@ export const layersConfig = [
                 'rgba(0, 0, 0, 0.05)',
                 'rgba(118, 118, 118, 0.4)'
             ],
-            'fill-opacity':1,
+            'fill-opacity': 1,
             'line-color': 'purple',
             'line-dasharray': [6, 6],
             'line-width': [
@@ -534,8 +534,8 @@ export const layersConfig = [
             title: 'Local Body Name',
             label: 'Name',
             id: 'fid',
-            fields: ['Village Names', 'Ward Count', 'Subdistrict Name', 'District Name','Code'],
-            fieldTitles: ['Villages', 'Ward Count', 'Sub District', 'District','LGD Code']
+            fields: ['Village Names', 'Ward Count', 'Subdistrict Name', 'District Name', 'Code'],
+            fieldTitles: ['Villages', 'Ward Count', 'Sub District', 'District', 'LGD Code']
         }
     },
     {
@@ -993,7 +993,7 @@ export const layersConfig = [
             id: 'FID',
             title: 'ESZ Name',
             label: 'Name',
-            fields: ['Zone_Type','Map_Name','Set_No','Page_No','Remark'],
+            fields: ['Zone_Type', 'Map_Name', 'Set_No', 'Page_No', 'Remark'],
         }
     },
     {
@@ -1059,26 +1059,26 @@ export const layersConfig = [
                 ],
                 12,
                 ["concat",
-                [
-                    "to-string",
-                    ['get', 'mine_name']
-                ],
-                '\n',
-                [
-                    "to-string",
-                    ['get', 'mineral_na']
-                ]]
+                    [
+                        "to-string",
+                        ['get', 'mine_name']
+                    ],
+                    '\n',
+                    [
+                        "to-string",
+                        ['get', 'mineral_na']
+                    ]]
                 ,
                 15,
                 ["concat",
-                'LEASEE:',
-                '\n',
-                [
-                    "to-string",
-                    ['get', 'name_of_le']
+                    'LEASEE:',
+                    '\n',
+                    [
+                        "to-string",
+                        ['get', 'name_of_le']
+                    ]
+
                 ]
-        
-            ]
             ],
             'text-color': [
                 'match',
@@ -1090,17 +1090,17 @@ export const layersConfig = [
             'text-halo-color': [
                 'match',
                 ['get', 'mineral_na'],
-                ['Iron Ore','Iron'],
+                ['Iron Ore', 'Iron'],
                 'brown',
                 ['Bauxite'],
                 'blue',
-                ['Mangenese','Manganese','Mangnese Ore'],
+                ['Mangenese', 'Manganese', 'Mangnese Ore'],
                 'magenta',
                 ['Gold'],
                 'gold',
                 ['Magnesite'],
                 'red',
-                ['Limestone','Limeshell'],
+                ['Limestone', 'Limeshell'],
                 'green',
                 'black'  // default color for all other cases
             ],
@@ -1109,17 +1109,17 @@ export const layersConfig = [
             'line-color': [
                 'match',
                 ['get', 'mineral_na'],
-                ['Iron Ore','Iron'],
+                ['Iron Ore', 'Iron'],
                 'brown',
                 ['Bauxite'],
                 'blue',
-                ['Mangenese','Manganese','Mangnese Ore'],
+                ['Mangenese', 'Manganese', 'Mangnese Ore'],
                 'magenta',
                 ['Gold'],
                 'gold',
                 ['Magnesite'],
                 'red',
-                ['Limestone','Limeshell'],
+                ['Limestone', 'Limeshell'],
                 'green',
                 'black'  // default color for all other cases
             ],
@@ -1147,17 +1147,17 @@ export const layersConfig = [
             'fill-color': [
                 'match',
                 ['get', 'mineral_na'],
-                ['Iron Ore','Iron'],
+                ['Iron Ore', 'Iron'],
                 'brown',
                 ['Bauxite'],
                 'blue',
-                ['Mangenese','Manganese','Mangnese Ore'],
+                ['Mangenese', 'Manganese', 'Mangnese Ore'],
                 'magenta',
                 ['Gold'],
                 'gold',
                 ['Magnesite'],
                 'red',
-                ['Limestone','Limeshell'],
+                ['Limestone', 'Limeshell'],
                 'green',
                 'black'  // default color for all other cases
             ],
@@ -1272,8 +1272,8 @@ export const layersConfig = [
                 'black',
                 ['Play Ground', 'Park', 'Sports Centre', 'Stadium'],
                 'black',
-            'white']
-                ,
+                'white']
+            ,
             'text-halo-color': [
                 'match',
                 ['get', 'Sub_Class'],
@@ -1363,7 +1363,7 @@ export const layersConfig = [
                 ['Port', 'Jetty', 'Storage Godown', 'Industrial Estate / SEZ', 'Manufacturing', 'Radio/TV Station', 'Quarry'],
                 'purple',
                 ['Cropland', 'Fallow land'],
-                'yellow',
+                'lightgreen',
                 'orange'  // default color for all other cases
             ],
             'fill-extrusion-height': ['get', 'No_floors'],
@@ -1387,6 +1387,54 @@ export const layersConfig = [
             label: 'Sub_Class',
             fields: ['Descr', 'Locality', 'Class', 'Code', 'No_floors'],
             fieldTitles: ['Name', 'Locality', 'Class', 'Code', 'Floors']
+        }
+    },
+    {
+        title: 'OSM Landuse',
+        description: 'High resolution landuse polygons from the OpenStreetMap project.',
+        headerImage: 'assets/map-layer-osm-landuse.png',
+        type: 'vector',
+        id: 'osm-landuse',
+        url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
+        sourceLayer: 'land',
+        maxzoom: 17,
+        attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a> via <a href="https://shortbread-tiles.org/schema/1.0/">Shortbread OSMF vector tiles</a>',
+        initiallyChecked: true,
+        style: {
+            'line-width': 0,
+            'fill-color': [
+                'match',
+                ['get', 'kind'],
+                ['landfill'],
+                'brown',
+                ['railway'],
+                'indigo',
+                ['industrial'],
+                'purple',
+                ['commercial'],
+                'blue',
+                ['retail'],
+                'darkblue',
+                ['residential'],
+                'orange',
+                ['farmland'],
+                'lightgreen',
+                ['recreation_ground','park','playground'],
+                'lime',
+                ['orchard','scrub','grassland','grass'],
+                'green',
+                ['forest'],
+                'darkgreen',
+                ['marsh'],
+                'lightblue',
+                'grey'
+            ],
+            'fill-opacity': 0.7
+        },
+        inspect: {
+            id: 'OBJECTID',
+            title: 'OSM Type',
+            label: 'kind'
         }
     },
     {
@@ -1418,9 +1466,9 @@ export const layersConfig = [
                 'black',
                 ['AGAQ', 'WLST'],
                 'black',
-                ['WBRT', 'WLWL', 'WBRS','WBLP'],
+                ['WBRT', 'WLWL', 'WBRS', 'WBLP'],
                 'black',
-            'white'],
+                'white'],
             'text-halo-color': [
                 'match',
                 ['get', 'lc_code'],
@@ -1436,7 +1484,7 @@ export const layersConfig = [
                 'green',
                 ['AGAQ', 'WLST'],
                 'cyan',
-                ['WBRT', 'WLWL', 'WBRS','WBLP'],
+                ['WBRT', 'WLWL', 'WBRS', 'WBLP'],
                 'lightblue',
                 'black'  // default color for all other cases
             ],
@@ -1479,7 +1527,7 @@ export const layersConfig = [
                 'green',
                 ['AGAQ', 'WLST'],
                 'cyan',
-                ['WBRT', 'WLWL', 'WBRS','WBLP'],
+                ['WBRT', 'WLWL', 'WBRS', 'WBLP'],
                 'lightblue',
                 'black'  // default color for all other cases
             ],
@@ -1762,8 +1810,8 @@ export const layersConfig = [
         headerImage: 'assets/map-layer-osm.png',
         type: 'tms',
         url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.',
-        attribution: '© OpenStreetMap contributors'
+        description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.</a>',
+        attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a>'
     },
     {
         title: '3D Terrain',
