@@ -860,7 +860,7 @@ export class MapLayerControl {
                 e.stopPropagation();
                 const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
                 // Toggle between 1 (100%) and 0.6 (60%)
-                const newOpacityFactor = currentOpacity === 1 ? 0.6 : 1;
+                const newOpacityFactor = currentOpacity === 0.9 ? 0.4 : 0.9;
                 $opacityButton.attr('data-opacity', newOpacityFactor);
                 $opacityButton.title = `Toggle opacity`;
                 $opacityButton.attr('name', newOpacityFactor === 1 ? 'layers-fill' : 'layers');
