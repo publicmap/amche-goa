@@ -912,7 +912,7 @@ export const layersConfig = [
     },
     {
         title: 'Reserve Forests',
-        description: 'Forest beat boundaries',
+        description: 'Forest areas notified and protectedunder the <a href="http://nbaindia.org/uploaded/Biodiversityindia/Legal/3.%20Indian%20forest%20act.pdf">Indian Forest Act, 1927</a>',
         headerImage: 'assets/map-layer-forest.png',
         type: 'vector',
         id: 'forests',

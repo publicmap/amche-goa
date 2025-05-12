@@ -886,8 +886,12 @@ export class MapLayerControl {
                             this._map.setPaintProperty(`vector-layer-${group.id}-text`, 'text-opacity', baseTextOpacity * newOpacityFactor);
                         }
                     }
+                } else if (group.type === 'tms') {
+                    const layerId = `tms-layer-${group.id}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setPaintProperty(layerId, 'raster-opacity', newOpacityFactor);
+                    }
                 }
-                // ... rest of the existing opacity button click handler ...
             });
 
             // Add header background if exists
