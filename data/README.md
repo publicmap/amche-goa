@@ -2,7 +2,7 @@
 
 Documentation of open spatial data resources for Goa. 
 
-- For datasource wise details, please check individual folders.
+For datasource wise details, please check individual folders.
 
 ## Regional Plan for Goa 2021
 
