@@ -2369,36 +2369,40 @@ export class MapLayerControl {
                 icon: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg'
             },
             {
-                name: 'Bhuvan',
+                name: 'ISRO Bhuvan',
                 url: `https://bhuvanmaps.nrsc.gov.in/?mode=Hybrid#${zoom}/${lat}/${lng}`,
                 icon: './assets/icon-bhuvan.png'
             },
             {
-                name: 'Bharatmaps',
+                name: 'NIC Bharatmaps',
                 url: `https://bharatmaps.gov.in/BharatMaps/Home/Map?long=${lat}&lat=${lng}`,
                 text: 'BM'
             },
             {
-                name: 'One Map Goa',
+                name: 'One Map Goa GIS',
                 url: `https://onemapgoagis.goa.gov.in/map/?ct=LayerTree${oneMapGoaLayerList}&bl=mmi_hybrid&t=goa_default&c=${mercatorCoords.x}%2C${mercatorCoords.y}&s=500`,
                 icon: './assets/icon-onemapgoa.png'
             },
             {
-                name: 'Landcover',
+                name: 'ESRI Living AtlasLandcover',
                 url: `https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=${lng}%2C${lat}%2C${zoom}.79&mode=step&timeExtent=2017%2C2023&year=2023`,
                 text: 'LC'
             },
             {
-                name: 'Timelapse',
+                name: 'Google Earth Engine Timelapse',
                 url: `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`,
                 text: 'TL'
             },
+            { name: 'FIRMS Fire Information for Resource Management System',
+                url: `https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@${lng},${lat},14.00z`,
+                text: 'FR'
+            },
             {
-                name: 'Copernicus Browser',
+                name: 'ESA Copernicus Browser',
                 url: `https://browser.dataspace.copernicus.eu/?zoom=${zoom}&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=U2FsdGVkX18d3QCo8ly51mKnde%2FbnPTNY3M%2Bvkw2HJS5PZYTtLYG6ZjWVDYuz%2Bszj9bzKcR5Th1mcWjsfJneWz3DM1gd75vRaH%2BioFw2j3mQa79Yj8F7TkWwvb2ow0kh&datasetId=3c662330-108b-4378-8899-525fd5a225cb&fromTime=2024-12-01T00%3A00%3A00.000Z&toTime=2024-12-01T23%3A59%3A59.999Z&layerId=0-RGB-RATIO&demSource3D=%22MAPZEN%22&cloudCoverage=30&dateMode=SINGLE`,
                 text: 'CO'
             },
-            { name: 'Landsat Explorer',
+            { name: 'ESRI Landsat Explorer',
                 url: `https://livingatlas.arcgis.com/landsatexplorer/#mapCenter=${lng}%2C${lat}%2C${zoom}&mode=dynamic&mainScene=%7CColor+Infrared+for+Visualization%7C`,
                 text: 'LS'
             },
