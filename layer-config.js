@@ -1401,7 +1401,55 @@ export const layersConfig = [
         attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a> via <a href="https://shortbread-tiles.org/schema/1.0/">Shortbread OSMF vector tiles</a>',
         initiallyChecked: true,
         style: {
-            'line-width': 0,
+            'text-font': ['Open Sans Regular'],
+            'text-field': [
+                "step",
+                ["zoom"],
+                "",
+                14,
+                [
+                    "to-string",
+                    ['get', 'kind']
+                ]
+            ],
+            'text-color': [
+                'match',
+                ['get', 'kind'],
+                ['farmland'],
+                'black',
+                ['recreation_ground','park','playground'],
+                'black',
+                'white']
+            ,
+            'text-halo-color': [
+                'match',
+                ['get', 'kind'],
+                ['landfill'],
+                'brown',
+                ['railway'],
+                'indigo',
+                ['industrial'],
+                'purple',
+                ['commercial'],
+                'blue',
+                ['retail'],
+                'darkblue',
+                ['residential'],
+                'orange',
+                ['farmland'],
+                'lightgreen',
+                ['recreation_ground','park','playground'],
+                'lime',
+                ['orchard','scrub','grassland','grass'],
+                'green',
+                ['forest'],
+                'darkgreen',
+                ['marsh'],
+                'lightblue',
+                'grey'
+            ],
+            'text-halo-width': 5,
+            'text-size': 13,
             'fill-color': [
                 'match',
                 ['get', 'kind'],
@@ -1429,10 +1477,32 @@ export const layersConfig = [
                 'lightblue',
                 'grey'
             ],
-            'fill-opacity': 0.7
+            'fill-opacity': 0.7,
+            'line-color': 'black',
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                11, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    1.5,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    0.5,
+                    0
+                ],
+                14, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    2,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    1,
+                    0
+                ]
+            ],
         },
         inspect: {
-            id: 'OBJECTID',
+            id: 'kind',
             title: 'OSM Type',
             label: 'kind'
         }
