@@ -1610,9 +1610,8 @@ export class MapLayerControl {
                             source: sourceId,
                             'source-layer': group.sourceLayer || 'default',
                             layout: {
-                                visibility: 'none',
                                 'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
-                                'text-field': group.style['text-field'],
+                                'text-field': group.style?.['text-field'],
                                 'text-size': group.style?.['text-size'] || 12,
                                 'text-anchor': group.style?.['text-anchor'] || 'center',
                                 'text-justify': group.style?.['text-justify'] || 'center',
@@ -1739,6 +1738,67 @@ export class MapLayerControl {
                     });
             } else if (group.type === 'csv') {
                 this._setupCsvLayer(group);
+            } else if (group.type === 'img') {
+                // Create image source and layer for satellite imagery
+                const [west, south, east, north] = group.bbox;
+                const coordinates = [
+                    [west, north],
+                    [east, north],
+                    [east, south],
+                    [west, south]
+                ];
+                
+                this._map.addSource(group.id, {
+                    'type': 'image',
+                    'url': group.url,
+                    'coordinates': coordinates
+                });
+                
+                this._map.addLayer({
+                    'id': group.id,
+                    'type': 'raster',
+                    'source': group.id,
+                    'layout': {
+                        'visibility': group.initiallyChecked ? 'visible' : 'none'
+                    },
+                    'paint': {
+                        'raster-opacity': 0.85,
+                        'raster-fade-duration': 0
+                    }
+                }, this._getInsertPosition('raster'));
+                
+                // Define these variables to track the layers
+                const layerId = group.id;
+                const sourceId = group.id;
+                
+                // Set up refresh if needed
+                if (group.refresh) {
+                    this._setupImgRefresh(group);
+                }
+
+                // ADD THIS SECTION: Create the UI toggle for the image layer
+                const $layerToggle = $('<div>', {
+                    class: 'layer-toggle',
+                    'data-layer-id': group.id
+                });
+                
+                const $checkbox = $('<input>', {
+                    type: 'checkbox',
+                    id: `layer-${this._instanceId}-${group.id}`,
+                    checked: group.initiallyChecked
+                });
+                
+                $checkbox.on('change', (e) => {
+                    this._toggleSourceControl(groupIndex, e.target.checked);
+                });
+                
+                const $label = $('<label>', {
+                    for: `layer-${this._instanceId}-${group.id}`,
+                    text: group.title
+                });
+                
+                $layerToggle.append($checkbox, $label);
+                $sourceControl.append($layerToggle);
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
@@ -2086,6 +2146,29 @@ export class MapLayerControl {
                 const textLayerId = `vector-layer-${group.id}-text`;
                 this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
             }
+        } else if (group.type === 'img') {
+            // For image layers, simply change the visibility
+            if (this._map.getLayer(group.id)) {
+                this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
+                
+                // Reset refresh timer when toggling visibility
+                if (visible && group.refresh && !group._refreshTimer) {
+                    this._setupImgRefresh(group);
+                } else if (!visible && group._refreshTimer) {
+                    clearInterval(group._refreshTimer);
+                    group._refreshTimer = null;
+                }
+            }
+        } else if (group.type === 'terrain') {
+            // Toggle terrain
+            this._map.setTerrain(visible ? { source: 'mapbox-dem', exaggeration: 1.5 } : null);
+            // Toggle fog for better visual effect with terrain
+            this._map.setFog(visible ? {
+                'color': 'white',
+                'horizon-blend': 0.1,
+                'high-color': '#add8e6',
+                'star-intensity': 0.1
+            } : null);
         }
     }
 
@@ -3841,6 +3924,36 @@ export class MapLayerControl {
             } catch (error) {
                 console.error('Error refreshing CSV layer:', error);
             }
+        }, group.refresh);
+    }
+
+    // Add this function after _setupCsvRefresh
+    _setupImgRefresh(group) {
+        // Clear any existing timer
+        if (group._refreshTimer) {
+            clearInterval(group._refreshTimer);
+        }
+        
+        // Set up interval to refresh the image source
+        group._refreshTimer = setInterval(() => {
+            if (!this._map.getSource(group.id)) {
+                clearInterval(group._refreshTimer);
+                group._refreshTimer = null;
+                return;
+            }
+            
+            // Update the image URL with a cache-busting parameter
+            const timestamp = Date.now();
+            const url = group.url.includes('?') 
+                ? `${group.url}&_t=${timestamp}` 
+                : `${group.url}?_t=${timestamp}`;
+                
+            this._map.getSource(group.id).updateImage({
+                url: url,
+                coordinates: this._map.getSource(group.id).coordinates
+            });
+            
+            console.log(`Refreshed image layer ${group.id} at ${new Date().toLocaleTimeString()}`);
         }, group.refresh);
     }
 }

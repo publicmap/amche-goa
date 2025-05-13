@@ -1408,7 +1408,8 @@ export const layersConfig = [
                 ['get', 'kind'],
                 ['sports_centre'],
                 'black',
-                'white']
+                'white'
+            ]
             ,
             'text-halo-color': [
                 'match',
@@ -1521,7 +1522,7 @@ export const layersConfig = [
                 ['forest'],
                 'darkgreen',
                 ['swamp'],
-                'seagreen'
+                'seagreen',
                 ['marsh','wet_meadow'],
                 'lightblue',
                 'grey'
@@ -1977,10 +1978,21 @@ export const layersConfig = [
         attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a>'
     },
     {
+        title: 'Public Transport',
+        id: 'transit',
+        description: 'Bus route network operated by Kadamba Transport Corporation Limited (KTCL) in Goa as on January 2025.Bus route lines are scaled by trip count.',
+        headerImage: 'assets/map-layer-satellite.png',
+        type: 'img',
+        url: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Goa_Bus_Network_Map_2025.png',
+        bbox: [73.657, 14.863, 74.362, 15.861],
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Goa_Bus_Network_Map_2025.png">CC-BY Wikipedia/user:Planemad, CC-by <a href="https://ktclgoa.com/gtfs/">Kadamba Transport Corporation Limited GTFS updated Jan 2025</a>'
+    },
+    {
         title: '3D Terrain',
         description: 'Terrain Controls',
         headerImage: 'assets/map-layer-terrain.png',
         type: 'terrain',
         initiallyChecked: true
     }
+    
 ];
