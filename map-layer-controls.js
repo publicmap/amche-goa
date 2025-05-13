@@ -543,6 +543,8 @@ export class MapLayerControl {
                     visibleLayers.push(group.id);
                 } else if (group.type === 'style') {
                     visibleLayers.push(group.id);
+                } else if (group.type === 'img') {
+                    visibleLayers.push(group.id);
                 } else if (group.type === 'layer-group') {
                     // Find which radio button is selected in this group
                     const radioGroup = groupHeader?.querySelector('.radio-group');
