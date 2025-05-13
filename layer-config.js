@@ -7,9 +7,11 @@ export const layersConfig = [
         headerImage: 'assets/map-layer-streetmap.png',
         initiallyChecked: true,
         layers: [
-            { title: 'Places', sourceLayer: 'place_label' },
-            { title: 'Boundaries', sourceLayer: 'admin' },
-            { title: 'Landmarks', sourceLayer: 'poi_label' },
+            { title: 'Places Labels', sourceLayer: 'place_label' },
+            { title: 'Natural Labels', sourceLayer: 'natural_label' },
+            { title: 'Airport Labels', sourceLayer: 'airport_label' },
+            { title: 'Transit Labels', sourceLayer: 'transit_stop_label' },
+            { title: 'Landmark Labels', sourceLayer: 'poi_label' },
             { title: 'Buildings', sourceLayer: 'building' },
             { title: 'Structures', sourceLayer: 'structure' },
             { title: 'Roads', sourceLayer: 'road' },
@@ -19,6 +21,7 @@ export const layersConfig = [
             { title: 'Wetlands & National Parks', sourceLayer: 'landuse_overlay' },
             { title: 'Waterways', sourceLayer: 'waterway' },
             { title: 'Waterbodies', sourceLayer: 'water' },
+            { title: 'Boundaries', sourceLayer: 'admin' },
         ]
     },
     {
