@@ -1974,7 +1974,7 @@ export const layersConfig = [
         type: 'tms',
         id: '1906-india-atlas',
         url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
-        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> released in public domain'
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">WMF Mapwarper</a> released in public domain'
     },
     {
         id: 'osm',
