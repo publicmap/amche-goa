@@ -1965,7 +1965,16 @@ export const layersConfig = [
         type: 'tms',
         id: 'goa-ams-map',
         url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
-        attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
+        attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> released in public domain'
+    },
+    {
+        title: 'Atlas of India (1827-1906)',
+        description: 'Historical atlas of India published in 1827-1906 by Survey of India',
+        headerImage: 'assets/map-layer-1827-india-atlas.png',
+        type: 'tms',
+        id: '1827-india-atlas',
+        url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> released in public domain'
     },
     {
         id: 'osm',
