@@ -14,7 +14,8 @@ export const layersConfig = [
             { title: 'Landmark Labels', sourceLayer: 'poi_label' },
             { title: 'Buildings', sourceLayer: 'building' },
             { title: 'Structures', sourceLayer: 'structure' },
-            { title: 'Roads', sourceLayer: 'road' },
+            { title: 'Roads & Railways', sourceLayer: 'road' },
+            { title: 'Runways', sourceLayer: 'aeroway' },
             { title: 'Hillshading', sourceLayer: 'hillshade' },
             { title: 'Landcover', sourceLayer: 'landcover' },
             { title: 'Landuse', sourceLayer: 'landuse' },
@@ -1968,13 +1969,22 @@ export const layersConfig = [
         attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> released in public domain'
     },
     {
+        title: 'Goa Admiralty Chart (1914)',
+        description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4 for Eat India Company. Not current - not to be used for navigation!',
+        headerImage: 'assets/map-layer-1914-admiralty-chart.png',
+        type: 'tms',
+        id: '1792-admiralty-chart',
+        url: 'https://warper.wmflabs.org/maps/tile/4749/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_740_West_Coast_of_India,_Published_1858,_New_Edition_1914.jpg">Wikimedia Commons: Admiralty Chart No 740 West Coast of India, Published 1858, New Edition 1914</a> via <a href="https://warper.wmflabs.org/maps/4749">Wikimaps Warper</a> released in public domain'
+    },
+    {
         title: 'Atlas of India (1827-1906)',
         description: 'Historical atlas of India published in 1827-1906 by Survey of India',
         headerImage: 'assets/map-layer-1906-india-atlas.png',
         type: 'tms',
         id: '1906-india-atlas',
         url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
-        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">WMF Mapwarper</a> released in public domain'
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">Wikimaps Warper</a> released in public domain'
     },
     {
         title: 'Lambtons Peninsular Survey  (1802-1814)',
@@ -1983,7 +1993,7 @@ export const layersConfig = [
         type: 'tms',
         id: '1814-lambton-survey',
         url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
-        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">Wikimaps Warper</a> released in public domain'
     },
     {
         title: 'Robert Wilkinsons General Atlas  (1792)',
@@ -1992,16 +2002,16 @@ export const layersConfig = [
         type: 'tms',
         id: '1792-general-atlas',
         url: 'https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png',
-        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png">Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png">Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">Wikimaps Warper</a> released in public domain'
     },
     {
-        title: 'East India Company Admiralty Chart (1792)',
-        description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4. Not current - not to be used for navigation!',
-        headerImage: 'assets/map-layer-1792-admiralty-chart.png',
+        title: 'Goa Harbour Admiralty Chart (1775)',
+        description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4 for Eat India Company. Not current - not to be used for navigation!',
+        headerImage: 'assets/map-layer-1775-admiralty-chart.png',
         type: 'tms',
-        id: '1792-admiralty-chart',
-        url: 'https://warper.wmflabs.org/maps/tile/4749/{z}/{x}/{y}.png',
-        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_740_West_Coast_of_India,_Published_1858,_New_Edition_1914.jpg">Wikimedia Commons: Admiralty Chart No 740 West Coast of India, Published 1858, New Edition 1914</a> via <a href="https://warper.wmflabs.org/maps/4749">WMF Mapwarper</a> released in public domain'
+        id: '1775-admiralty-chart',
+        url: 'https://warper.wmflabs.org/maps/tile/8717/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_793_Goa_Harbour,_with_a_View,_Published_1775.jpg">Wikimedia Commons: Admiralty Chart No 793 Goa Harbour, with a View, Published 1775</a> via <a href="https://warper.wmflabs.org/maps/8717#Show_tab">Wikimaps Warper</a> released in public domain'
     },
     {
         id: 'osm',
