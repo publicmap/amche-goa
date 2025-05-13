@@ -529,29 +529,15 @@ export class MapLayerControl {
             const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
             
             if (toggleInput && toggleInput.checked) {
-                if (group.type === 'terrain') {
-                    visibleLayers.push('terrain');
-                } else if (group.type === 'vector') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'tms') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'markers') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'csv') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'geojson') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'style') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'img') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'layer-group') {
+                if (group.type === 'layer-group') {
                     // Find which radio button is selected in this group
                     const radioGroup = groupHeader?.querySelector('.radio-group');
                     const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
                     if (selectedRadio) {
                         visibleLayers.push(selectedRadio.value);
                     }
+                } else {
+                    visibleLayers.push(group.id);
                 }
             }
         });
