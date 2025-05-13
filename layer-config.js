@@ -1970,9 +1970,9 @@ export const layersConfig = [
     {
         title: 'Atlas of India (1827-1906)',
         description: 'Historical atlas of India published in 1827-1906 by Survey of India',
-        headerImage: 'assets/map-layer-1827-india-atlas.png',
+        headerImage: 'assets/map-layer-1906-india-atlas.png',
         type: 'tms',
-        id: '1827-india-atlas',
+        id: '1906-india-atlas',
         url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
         attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> released in public domain'
     },
