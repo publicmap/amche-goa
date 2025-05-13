@@ -1987,6 +1987,15 @@ export const layersConfig = [
         attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">Wikimaps Warper</a> released in public domain'
     },
     {
+        title: 'Geological Map of India (1855)',
+        description: 'General sketch of the physical and geological features of British India. Compiled by Greenough, George Bellas (1778-1855)',
+        headerImage: 'assets/map-layer-1855-geology.png',
+        type: 'tms',
+        id: '1855-geology',
+        url: 'https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png',
+        attribution: '<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg">Wikimedia Commons: Greenough Geology India 1855</a> via <a href="https://warper.wmflabs.org/maps/2258">Wikimaps Warper</a> released in public domain'
+    },
+    {
         title: 'Lambtons Peninsular Survey  (1802-1814)',
         description: 'Historical trignometrical survey plans by Colnel William Lambton of the Peninsula of India',
         headerImage: 'assets/map-layer-1814-lambton-survey.png',
