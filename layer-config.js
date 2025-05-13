@@ -1984,7 +1984,8 @@ export const layersConfig = [
         id: '1814-lambton-survey',
         url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
         attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
-    },{
+    },
+    {
         title: 'Robert Wilkinsons General Atlas  (1792)',
         description: 'Engraved by Thomas Conder and issued as plate no. 37 in the 1792 edition of Robert Wilkinsons General Atlas',
         headerImage: 'assets/map-layer-1792-general-atlas.png',
@@ -1992,6 +1993,15 @@ export const layersConfig = [
         id: '1792-general-atlas',
         url: 'https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png',
         attribution: '<a href="https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png">Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
+    },
+    {
+        title: 'East India Company Admiralty Chart (1792)',
+        description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4. Not current - not to be used for navigation!',
+        headerImage: 'assets/map-layer-1792-admiralty-chart.png',
+        type: 'tms',
+        id: '1792-admiralty-chart',
+        url: 'https://warper.wmflabs.org/maps/tile/4749/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_740_West_Coast_of_India,_Published_1858,_New_Edition_1914.jpg">Wikimedia Commons: Admiralty Chart No 740 West Coast of India, Published 1858, New Edition 1914</a> via <a href="https://warper.wmflabs.org/maps/4749">WMF Mapwarper</a> released in public domain'
     },
     {
         id: 'osm',
