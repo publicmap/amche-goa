@@ -672,7 +672,7 @@ export class MapLayerControl {
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
-                    if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                    if (['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
                         $settingsButton.toggleClass('hidden', false);
                     }
@@ -836,7 +836,7 @@ export class MapLayerControl {
                 this._showLayerSettings(group);
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
@@ -890,6 +890,11 @@ export class MapLayerControl {
                     const layerId = `tms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
                         this._map.setPaintProperty(layerId, 'raster-opacity', newOpacityFactor);
+                    }
+                } else if (group.type === 'img') {
+                    // Add opacity toggle for 'img' layer type
+                    if (this._map.getLayer(group.id)) {
+                        this._map.setPaintProperty(group.id, 'raster-opacity', newOpacityFactor);
                     }
                 }
             });
