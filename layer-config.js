@@ -1408,7 +1408,8 @@ export const layersConfig = [
                 ['get', 'kind'],
                 ['sports_centre'],
                 'black',
-                'white']
+                'white'
+            ]
             ,
             'text-halo-color': [
                 'match',
@@ -1521,7 +1522,7 @@ export const layersConfig = [
                 ['forest'],
                 'darkgreen',
                 ['swamp'],
-                'seagreen'
+                'seagreen',
                 ['marsh','wet_meadow'],
                 'lightblue',
                 'grey'
@@ -1964,7 +1965,25 @@ export const layersConfig = [
         type: 'tms',
         id: 'goa-ams-map',
         url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
-        attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> release in public domain'
+        attribution: '<a href="https://maps.lib.utexas.edu/maps/ams/india/">Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> released in public domain'
+    },
+    {
+        title: 'Atlas of India (1827-1906)',
+        description: 'Historical atlas of India published in 1827-1906 by Survey of India',
+        headerImage: 'assets/map-layer-1906-india-atlas.png',
+        type: 'tms',
+        id: '1906-india-atlas',
+        url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">WMF Mapwarper</a> released in public domain'
+    },
+    {
+        title: 'Lambtons Peninsular Survey  (1802-1814)',
+        description: 'Historical trignometrical survey plans by Colnel William Lambton of the Peninsula of India',
+        headerImage: 'assets/map-layer-1814-lambton-survey.png',
+        type: 'tms',
+        id: '1814-lambton-survey',
+        url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
     },
     {
         id: 'osm',
@@ -1977,10 +1996,21 @@ export const layersConfig = [
         attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a>'
     },
     {
+        title: 'Public Transport',
+        id: 'bus',
+        description: 'Bus route network operated by Kadamba Transport Corporation Limited (KTCL) in Goa as on January 2025.Bus route lines are scaled by trip count.',
+        headerImage: 'assets/map-layer-bus.png',
+        type: 'img',
+        url: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Goa_Bus_Network_Map_2025.png',
+        bbox: [73.657, 14.863, 74.362, 15.861],
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Goa_Bus_Network_Map_2025.png">CC-BY Wikipedia/user:Planemad, CC-by <a href="https://ktclgoa.com/gtfs/">Kadamba Transport Corporation Limited GTFS updated Jan 2025</a>'
+    },
+    {
         title: '3D Terrain',
         description: 'Terrain Controls',
         headerImage: 'assets/map-layer-terrain.png',
         type: 'terrain',
         initiallyChecked: true
     }
+    
 ];

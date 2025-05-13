@@ -155,14 +155,15 @@ export class MapLayerControl {
         
         this._layerTypeOrder = options.layerTypeOrder || {
             background: 0,
-            tms: 1, // Add TMS layer type with high priority
-            raster: 2,
-            fill: 3,
-            line: 4,
-            symbol: 5,
-            circle: 6,
-            'fill-extrusion': 7,
-            heatmap: 8
+            img: 1, // Add img layer type right after tms layers
+            tms: 2, // Add TMS layer type with high priority
+            raster: 3,
+            fill: 4,
+            line: 5,
+            symbol: 6,
+            circle: 7,
+            'fill-extrusion': 8,
+            heatmap: 9
         };
         
         this._domCache = {};
@@ -529,27 +530,15 @@ export class MapLayerControl {
             const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
             
             if (toggleInput && toggleInput.checked) {
-                if (group.type === 'terrain') {
-                    visibleLayers.push('terrain');
-                } else if (group.type === 'vector') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'tms') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'markers') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'csv') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'geojson') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'style') {
-                    visibleLayers.push(group.id);
-                } else if (group.type === 'layer-group') {
+                if (group.type === 'layer-group') {
                     // Find which radio button is selected in this group
                     const radioGroup = groupHeader?.querySelector('.radio-group');
                     const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
                     if (selectedRadio) {
                         visibleLayers.push(selectedRadio.value);
                     }
+                } else {
+                    visibleLayers.push(group.id);
                 }
             }
         });
@@ -672,7 +661,7 @@ export class MapLayerControl {
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
-                    if (['tms', 'vector', 'geojson', 'layer-group'].includes(group.type)) {
+                    if (['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
                         $settingsButton.toggleClass('hidden', false);
                     }
@@ -836,7 +825,7 @@ export class MapLayerControl {
                 this._showLayerSettings(group);
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group'].includes(group.type) 
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
@@ -890,6 +879,11 @@ export class MapLayerControl {
                     const layerId = `tms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
                         this._map.setPaintProperty(layerId, 'raster-opacity', newOpacityFactor);
+                    }
+                } else if (group.type === 'img') {
+                    // Add opacity toggle for 'img' layer type
+                    if (this._map.getLayer(group.id)) {
+                        this._map.setPaintProperty(group.id, 'raster-opacity', newOpacityFactor);
                     }
                 }
             });
@@ -1610,9 +1604,8 @@ export class MapLayerControl {
                             source: sourceId,
                             'source-layer': group.sourceLayer || 'default',
                             layout: {
-                                visibility: 'none',
                                 'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
-                                'text-field': group.style['text-field'],
+                                'text-field': group.style?.['text-field'],
                                 'text-size': group.style?.['text-size'] || 12,
                                 'text-anchor': group.style?.['text-anchor'] || 'center',
                                 'text-justify': group.style?.['text-justify'] || 'center',
@@ -1739,6 +1732,67 @@ export class MapLayerControl {
                     });
             } else if (group.type === 'csv') {
                 this._setupCsvLayer(group);
+            } else if (group.type === 'img') {
+                // Create image source and layer for satellite imagery
+                const [west, south, east, north] = group.bbox;
+                const coordinates = [
+                    [west, north],
+                    [east, north],
+                    [east, south],
+                    [west, south]
+                ];
+                
+                this._map.addSource(group.id, {
+                    'type': 'image',
+                    'url': group.url,
+                    'coordinates': coordinates
+                });
+                
+                this._map.addLayer({
+                    'id': group.id,
+                    'type': 'raster',
+                    'source': group.id,
+                    'layout': {
+                        'visibility': group.initiallyChecked ? 'visible' : 'none'
+                    },
+                    'paint': {
+                        'raster-opacity': 0.85,
+                        'raster-fade-duration': 0
+                    }
+                }, this._getInsertPosition('img'));
+                
+                // Define these variables to track the layers
+                const layerId = group.id;
+                const sourceId = group.id;
+                
+                // Set up refresh if needed
+                if (group.refresh) {
+                    this._setupImgRefresh(group);
+                }
+
+                // ADD THIS SECTION: Create the UI toggle for the image layer
+                const $layerToggle = $('<div>', {
+                    class: 'layer-toggle',
+                    'data-layer-id': group.id
+                });
+                
+                const $checkbox = $('<input>', {
+                    type: 'checkbox',
+                    id: `layer-${this._instanceId}-${group.id}`,
+                    checked: group.initiallyChecked
+                });
+                
+                $checkbox.on('change', (e) => {
+                    this._toggleSourceControl(groupIndex, e.target.checked);
+                });
+                
+                const $label = $('<label>', {
+                    for: `layer-${this._instanceId}-${group.id}`,
+                    text: group.title
+                });
+                
+                $layerToggle.append($checkbox, $label);
+                $sourceControl.append($layerToggle);
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
@@ -2086,6 +2140,29 @@ export class MapLayerControl {
                 const textLayerId = `vector-layer-${group.id}-text`;
                 this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
             }
+        } else if (group.type === 'img') {
+            // For image layers, simply change the visibility
+            if (this._map.getLayer(group.id)) {
+                this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
+                
+                // Reset refresh timer when toggling visibility
+                if (visible && group.refresh && !group._refreshTimer) {
+                    this._setupImgRefresh(group);
+                } else if (!visible && group._refreshTimer) {
+                    clearInterval(group._refreshTimer);
+                    group._refreshTimer = null;
+                }
+            }
+        } else if (group.type === 'terrain') {
+            // Toggle terrain
+            this._map.setTerrain(visible ? { source: 'mapbox-dem', exaggeration: 1.5 } : null);
+            // Toggle fog for better visual effect with terrain
+            this._map.setFog(visible ? {
+                'color': 'white',
+                'horizon-blend': 0.1,
+                'high-color': '#add8e6',
+                'star-intensity': 0.1
+            } : null);
         }
     }
 
@@ -2615,6 +2692,40 @@ export class MapLayerControl {
             }
         }
 
+        // Special case for img layers - should be after TMS layers
+        if (type === 'img') {
+            // Look for TMS layers to position after them
+            const tmsLayers = layers.filter(layer => 
+                layer.id.startsWith('tms-layer-')
+            );
+            
+            if (tmsLayers.length > 0) {
+                // Find the last TMS layer in the stack
+                const lastTmsLayer = tmsLayers[tmsLayers.length - 1];
+                
+                // Find the layer immediately after the last TMS layer
+                const tmsIndex = layers.findIndex(l => l.id === lastTmsLayer.id);
+                if (tmsIndex < layers.length - 1) {
+                    return layers[tmsIndex + 1].id;
+                }
+            }
+            
+            // If no TMS layers, use similar logic as TMS for positioning after satellite
+            const satelliteLayers = layers.filter(layer => 
+                layer.id === 'satellite' || 
+                layer.id.includes('-satellite') || 
+                layer.id.includes('satellite-')
+            );
+            
+            if (satelliteLayers.length > 0) {
+                const lastSatelliteLayer = satelliteLayers[satelliteLayers.length - 1];
+                const satelliteIndex = layers.findIndex(l => l.id === lastSatelliteLayer.id);
+                if (satelliteIndex < layers.length - 1) {
+                    return layers[satelliteIndex + 1].id;
+                }
+            }
+        }
+
         // Standard insertion logic for other layer types
         let insertBeforeId;
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
@@ -2623,7 +2734,8 @@ export class MapLayerControl {
                 (type === 'vector' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
                 (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'tms' && ['tms'].includes(group.type))) {
+                (type === 'tms' && ['tms'].includes(group.type)) ||
+                (type === 'img' && ['img', 'tms'].includes(group.type))) {
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2658,7 +2770,7 @@ export class MapLayerControl {
         }
         
         // Special case for TMS layers to ensure they appear early but after satellite
-        if (type === 'tms' && !insertBeforeId) {
+        if ((type === 'tms' || type === 'img') && !insertBeforeId) {
             // Find all raster layers and look for ones after satellite
             const rasterLayers = layers.filter(layer => layer.type === 'raster');
             const satelliteIndex = rasterLayers.findIndex(layer => 
@@ -3841,6 +3953,36 @@ export class MapLayerControl {
             } catch (error) {
                 console.error('Error refreshing CSV layer:', error);
             }
+        }, group.refresh);
+    }
+
+    // Add this function after _setupCsvRefresh
+    _setupImgRefresh(group) {
+        // Clear any existing timer
+        if (group._refreshTimer) {
+            clearInterval(group._refreshTimer);
+        }
+        
+        // Set up interval to refresh the image source
+        group._refreshTimer = setInterval(() => {
+            if (!this._map.getSource(group.id)) {
+                clearInterval(group._refreshTimer);
+                group._refreshTimer = null;
+                return;
+            }
+            
+            // Update the image URL with a cache-busting parameter
+            const timestamp = Date.now();
+            const url = group.url.includes('?') 
+                ? `${group.url}&_t=${timestamp}` 
+                : `${group.url}?_t=${timestamp}`;
+                
+            this._map.getSource(group.id).updateImage({
+                url: url,
+                coordinates: this._map.getSource(group.id).coordinates
+            });
+            
+            console.log(`Refreshed image layer ${group.id} at ${new Date().toLocaleTimeString()}`);
         }, group.refresh);
     }
 }
