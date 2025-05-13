@@ -155,14 +155,15 @@ export class MapLayerControl {
         
         this._layerTypeOrder = options.layerTypeOrder || {
             background: 0,
-            tms: 1, // Add TMS layer type with high priority
-            raster: 2,
-            fill: 3,
-            line: 4,
-            symbol: 5,
-            circle: 6,
-            'fill-extrusion': 7,
-            heatmap: 8
+            img: 1, // Add img layer type right after tms layers
+            tms: 2, // Add TMS layer type with high priority
+            raster: 3,
+            fill: 4,
+            line: 5,
+            symbol: 6,
+            circle: 7,
+            'fill-extrusion': 8,
+            heatmap: 9
         };
         
         this._domCache = {};
@@ -1758,7 +1759,7 @@ export class MapLayerControl {
                         'raster-opacity': 0.85,
                         'raster-fade-duration': 0
                     }
-                }, this._getInsertPosition('raster'));
+                }, this._getInsertPosition('img'));
                 
                 // Define these variables to track the layers
                 const layerId = group.id;
@@ -2691,6 +2692,40 @@ export class MapLayerControl {
             }
         }
 
+        // Special case for img layers - should be after TMS layers
+        if (type === 'img') {
+            // Look for TMS layers to position after them
+            const tmsLayers = layers.filter(layer => 
+                layer.id.startsWith('tms-layer-')
+            );
+            
+            if (tmsLayers.length > 0) {
+                // Find the last TMS layer in the stack
+                const lastTmsLayer = tmsLayers[tmsLayers.length - 1];
+                
+                // Find the layer immediately after the last TMS layer
+                const tmsIndex = layers.findIndex(l => l.id === lastTmsLayer.id);
+                if (tmsIndex < layers.length - 1) {
+                    return layers[tmsIndex + 1].id;
+                }
+            }
+            
+            // If no TMS layers, use similar logic as TMS for positioning after satellite
+            const satelliteLayers = layers.filter(layer => 
+                layer.id === 'satellite' || 
+                layer.id.includes('-satellite') || 
+                layer.id.includes('satellite-')
+            );
+            
+            if (satelliteLayers.length > 0) {
+                const lastSatelliteLayer = satelliteLayers[satelliteLayers.length - 1];
+                const satelliteIndex = layers.findIndex(l => l.id === lastSatelliteLayer.id);
+                if (satelliteIndex < layers.length - 1) {
+                    return layers[satelliteIndex + 1].id;
+                }
+            }
+        }
+
         // Standard insertion logic for other layer types
         let insertBeforeId;
         for (let i = currentGroupIndex - 1; i >= 0; i--) {
@@ -2699,7 +2734,8 @@ export class MapLayerControl {
                 (type === 'vector' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
                 (type === 'geojson' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
                 (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'tms' && ['tms'].includes(group.type))) {
+                (type === 'tms' && ['tms'].includes(group.type)) ||
+                (type === 'img' && ['img', 'tms'].includes(group.type))) {
                 
                 // Find all matching layers for this group
                 const matchingLayers = layers.filter(layer => {
@@ -2734,7 +2770,7 @@ export class MapLayerControl {
         }
         
         // Special case for TMS layers to ensure they appear early but after satellite
-        if (type === 'tms' && !insertBeforeId) {
+        if ((type === 'tms' || type === 'img') && !insertBeforeId) {
             // Find all raster layers and look for ones after satellite
             const rasterLayers = layers.filter(layer => layer.type === 'raster');
             const satelliteIndex = rasterLayers.findIndex(layer => 
