@@ -1977,6 +1977,15 @@ export const layersConfig = [
         attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)">Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href="https://warper.wmflabs.org/mosaics/15#Show_tab">WMF Mapwarper</a> released in public domain'
     },
     {
+        title: 'Lambtons Peninsular Survey',
+        description: 'Historical trignometrical survey plans by Colnel William Lambton of the Peninsula of India',
+        headerImage: 'assets/map-layer-1814-lambton-survey.png',
+        type: 'tms',
+        id: '1814-lambton-survey',
+        url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
+    },
+    {
         id: 'osm',
         title: 'OpenStreetMap',
         description: 'OpenStreetMap Data',
