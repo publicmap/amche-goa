@@ -1984,6 +1984,14 @@ export const layersConfig = [
         id: '1814-lambton-survey',
         url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
         attribution: '<a href="https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey">Wikimedia Commons: Lambtons peninsular survey</a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
+    },{
+        title: 'Robert Wilkinsons General Atlas  (1792)',
+        description: 'Engraved by Thomas Conder and issued as plate no. 37 in the 1792 edition of Robert Wilkinsons General Atlas',
+        headerImage: 'assets/map-layer-1792-general-atlas.png',
+        type: 'tms',
+        id: '1792-general-atlas',
+        url: 'https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png',
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png">Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href="https://warper.wmflabs.org/mosaics/13#Show_tab">WMF Mapwarper</a> released in public domain'
     },
     {
         id: 'osm',
