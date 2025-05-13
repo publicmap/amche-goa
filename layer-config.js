@@ -1979,9 +1979,9 @@ export const layersConfig = [
     },
     {
         title: 'Public Transport',
-        id: 'transit',
+        id: 'bus',
         description: 'Bus route network operated by Kadamba Transport Corporation Limited (KTCL) in Goa as on January 2025.Bus route lines are scaled by trip count.',
-        headerImage: 'assets/map-layer-satellite.png',
+        headerImage: 'assets/map-layer-bus.png',
         type: 'img',
         url: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Goa_Bus_Network_Map_2025.png',
         bbox: [73.657, 14.863, 74.362, 15.861],
