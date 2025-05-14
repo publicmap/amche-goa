@@ -1,6 +1,7 @@
 import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
 import { parseCSV, rowsToGeoJSON } from './map-utils.js';
+import { getInsertPosition } from './layer-order-manager.js';
 
 export class MapLayerControl {
     constructor(options) {
@@ -2658,142 +2659,13 @@ export class MapLayerControl {
     }
 
     _getInsertPosition(type, layerType = null) {
-        const layers = this._map.getStyle().layers;
-        
-        // Get the layer groups in their defined order
-        const orderedGroups = this._state.groups;
-        
-        // Find current layer's index in the configuration
-        const currentGroupIndex = orderedGroups.findIndex(group => 
-            group.id === this._currentGroup?.id
+        return getInsertPosition(
+            this._map, 
+            type, 
+            layerType, 
+            this._currentGroup, 
+            this._state.groups
         );
-
-        // Get the order value for the current layer type
-        const currentTypeOrder = this._layerTypeOrder[layerType || type] || Infinity;
-
-        // Special case for TMS layers - insert after satellite layer
-        if (type === 'tms') {
-            // First look for any satellite layer in the style
-            const satelliteLayers = layers.filter(layer => 
-                layer.id === 'satellite' || 
-                layer.id.includes('-satellite') || 
-                layer.id.includes('satellite-')
-            );
-            
-            if (satelliteLayers.length > 0) {
-                // Find the last satellite layer in the stack
-                const lastSatelliteLayer = satelliteLayers[satelliteLayers.length - 1];
-                
-                // Find the layer immediately after the last satellite layer
-                const satelliteIndex = layers.findIndex(l => l.id === lastSatelliteLayer.id);
-                if (satelliteIndex < layers.length - 1) {
-                    return layers[satelliteIndex + 1].id;
-                }
-            }
-        }
-
-        // Special case for img layers - should be after TMS layers
-        if (type === 'img') {
-            // Look for TMS layers to position after them
-            const tmsLayers = layers.filter(layer => 
-                layer.id.startsWith('tms-layer-')
-            );
-            
-            if (tmsLayers.length > 0) {
-                // Find the last TMS layer in the stack
-                const lastTmsLayer = tmsLayers[tmsLayers.length - 1];
-                
-                // Find the layer immediately after the last TMS layer
-                const tmsIndex = layers.findIndex(l => l.id === lastTmsLayer.id);
-                if (tmsIndex < layers.length - 1) {
-                    return layers[tmsIndex + 1].id;
-                }
-            }
-            
-            // If no TMS layers, use similar logic as TMS for positioning after satellite
-            const satelliteLayers = layers.filter(layer => 
-                layer.id === 'satellite' || 
-                layer.id.includes('-satellite') || 
-                layer.id.includes('satellite-')
-            );
-            
-            if (satelliteLayers.length > 0) {
-                const lastSatelliteLayer = satelliteLayers[satelliteLayers.length - 1];
-                const satelliteIndex = layers.findIndex(l => l.id === lastSatelliteLayer.id);
-                if (satelliteIndex < layers.length - 1) {
-                    return layers[satelliteIndex + 1].id;
-                }
-            }
-        }
-
-        // Standard insertion logic for other layer types
-        let insertBeforeId;
-        for (let i = currentGroupIndex - 1; i >= 0; i--) {
-            const group = orderedGroups[i];
-            if (group.type === type || 
-                (type === 'vector' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'geojson' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'csv' && ['vector', 'geojson', 'csv'].includes(group.type)) ||
-                (type === 'tms' && ['tms'].includes(group.type)) ||
-                (type === 'img' && ['img', 'tms'].includes(group.type))) {
-                
-                // Find all matching layers for this group
-                const matchingLayers = layers.filter(layer => {
-                    const groupId = group.id;
-                    return layer.id === groupId || 
-                           layer.id === `vector-layer-${groupId}` ||
-                           layer.id === `vector-layer-${groupId}-outline` ||
-                           layer.id === `geojson-${groupId}-fill` ||
-                           layer.id === `geojson-${groupId}-line` ||
-                           layer.id === `csv-${groupId}-circle` ||
-                           layer.id === `tms-layer-${groupId}`;
-                });
-                
-                // Sort matching layers by type order
-                matchingLayers.sort((a, b) => {
-                    const aOrder = this._layerTypeOrder[a.type] || Infinity;
-                    const bOrder = this._layerTypeOrder[b.type] || Infinity;
-                    return bOrder - aOrder; // Reverse sort to get highest order first
-                });
-
-                // Find the first layer with a higher or equal type order
-                const insertLayer = matchingLayers.find(layer => {
-                    const layerTypeOrder = this._layerTypeOrder[layer.type] || Infinity;
-                    return layerTypeOrder >= currentTypeOrder;
-                });
-                
-                if (insertLayer) {
-                    insertBeforeId = insertLayer.id;
-                    break;
-                }
-            }
-        }
-        
-        // Special case for TMS layers to ensure they appear early but after satellite
-        if ((type === 'tms' || type === 'img') && !insertBeforeId) {
-            // Find all raster layers and look for ones after satellite
-            const rasterLayers = layers.filter(layer => layer.type === 'raster');
-            const satelliteIndex = rasterLayers.findIndex(layer => 
-                layer.id === 'satellite' || 
-                layer.id.includes('-satellite') || 
-                layer.id.includes('satellite-')
-            );
-            
-            if (satelliteIndex !== -1 && satelliteIndex < rasterLayers.length - 1) {
-                // Insert after satellite
-                insertBeforeId = rasterLayers[satelliteIndex + 1].id;
-            } else {
-                // Look for the first non-background and non-raster layer
-                for (const layer of layers) {
-                    if (layer.type !== 'background' && layer.type !== 'raster') {
-                        insertBeforeId = layer.id;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        return insertBeforeId;
     }
 
     _handleLayerGroupChange(selectedId, groups) {
