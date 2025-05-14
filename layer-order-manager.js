@@ -15,10 +15,6 @@ const LAYER_TYPE_ORDER = {
 
 // Define specific layer ID ordering overrides
 const LAYER_ID_ORDER = {
-    // Put landcover before osm-landuse
-    'landcover': 19,  // Lower value to appear below
-    'osm-landuse': 21, // Higher value to appear on top
-    'osm-sites': 22,
     'mask': 200 // Mask should appear on top of everything
 };
 
