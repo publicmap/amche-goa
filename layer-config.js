@@ -1973,7 +1973,7 @@ export const layersConfig = [
         description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4 for Eat India Company. Not current - not to be used for navigation!',
         headerImage: 'assets/map-layer-1914-admiralty-chart.png',
         type: 'tms',
-        id: '1792-admiralty-chart',
+        id: '1914-admiralty-chart',
         url: 'https://warper.wmflabs.org/maps/tile/4749/{z}/{x}/{y}.png',
         attribution: '<a href="https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_740_West_Coast_of_India,_Published_1858,_New_Edition_1914.jpg">Wikimedia Commons: Admiralty Chart No 740 West Coast of India, Published 1858, New Edition 1914</a> via <a href="https://warper.wmflabs.org/maps/4749">Wikimaps Warper</a> released in public domain'
     },
