@@ -155,19 +155,6 @@ export class MapLayerControl {
             }
         };
         
-        this._layerTypeOrder = options.layerTypeOrder || {
-            background: 0,
-            img: 1, // Add img layer type right after tms layers
-            tms: 2, // Add TMS layer type with high priority
-            raster: 3,
-            fill: 4,
-            line: 5,
-            symbol: 6,
-            circle: 7,
-            'fill-extrusion': 8,
-            heatmap: 9
-        };
-        
         this._domCache = {};
         this._instanceId = (MapLayerControl.instances || 0) + 1;
         MapLayerControl.instances = this._instanceId;
@@ -1932,7 +1919,6 @@ export class MapLayerControl {
         this._map.once('idle', () => {
             // Apply layer ordering fixes
             fixLayerOrdering(this._map);
-            console.log('Applied layer ordering fixes');
         });
     }
 

@@ -1485,7 +1485,7 @@ export const layersConfig = [
                 14,
                 [
                     "to-string",
-                    ['get', 'kind']
+                    ['get', 'kind2']
                 ]
             ],
             'text-color': [

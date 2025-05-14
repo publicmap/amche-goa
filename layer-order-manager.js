@@ -53,21 +53,6 @@ function getInsertPosition(map, type, layerType, currentGroup, orderedGroups) {
         }
     }
     
-    // Add debugging
-    console.log('Calculating insert position for:', {
-        currentLayer: currentGroup?.id,
-        type,
-        layerType,
-        requestedOrderValue: currentGroup && LAYER_ID_ORDER[currentGroup.id]
-    });
-    
-    // Log all existing layers to see their IDs
-    console.log('Existing layers:', map.getStyle().layers.map(l => ({
-        id: l.id,
-        metadata: l.metadata,
-        orderValue: l.metadata?.groupId && LAYER_ID_ORDER[l.metadata.groupId]
-    })));
-    
     const layers = map.getStyle().layers;
     
     // Find current layer's index in the configuration
@@ -196,13 +181,6 @@ function fixLayerOrdering(map) {
             if (map.getLayer('vector-layer-osm-landuse-text')) {
                 map.moveLayer('vector-layer-osm-landuse-text', 'vector-layer-landcover-text');
             }
-            
-            console.log('Successfully fixed layer ordering: osm-landuse is now rendered on top of landcover');
-        } else {
-            console.log('Cannot fix layer ordering: one or both required layers are missing', {
-                hasLandcover,
-                hasOsmLanduse
-            });
         }
     } catch (error) {
         console.error('Error fixing layer ordering:', error);
