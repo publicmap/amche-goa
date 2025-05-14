@@ -16,8 +16,8 @@ const LAYER_TYPE_ORDER = {
 // Define specific layer ID ordering overrides
 const LAYER_ID_ORDER = {
     // Put landcover before osm-landuse
-    'landcover': 19,
-    'osm-landuse': 21,
+    'landcover': 19,  // Lower value to appear below
+    'osm-landuse': 21, // Higher value to appear on top
     'osm-sites': 22,
     'mask': 200 // Mask should appear on top of everything
 };
@@ -32,6 +32,46 @@ const LAYER_ID_ORDER = {
  * @returns {string|null} - The ID of the layer to insert before, or null for append
  */
 function getInsertPosition(map, type, layerType, currentGroup, orderedGroups) {
+    // Special case for landcover and osm-landuse ordering
+    if (currentGroup) {
+        // If we're adding landcover and osm-landuse already exists, insert landcover before osm-landuse
+        if (currentGroup.id === 'landcover') {
+            const allLayers = map.getStyle().layers;
+            const osmLanduseIndex = allLayers.findIndex(layer => 
+                layer.metadata && layer.metadata.groupId === 'osm-landuse');
+            
+            if (osmLanduseIndex !== -1) {
+                return allLayers[osmLanduseIndex].id;
+            }
+        }
+        
+        // If we're adding osm-landuse and landcover already exists, insert osm-landuse after landcover
+        if (currentGroup.id === 'osm-landuse') {
+            const allLayers = map.getStyle().layers;
+            const landcoverIndex = allLayers.findIndex(layer => 
+                layer.metadata && layer.metadata.groupId === 'landcover');
+            
+            if (landcoverIndex !== -1 && landcoverIndex < allLayers.length - 1) {
+                return allLayers[landcoverIndex + 1].id;
+            }
+        }
+    }
+    
+    // Add debugging
+    console.log('Calculating insert position for:', {
+        currentLayer: currentGroup?.id,
+        type,
+        layerType,
+        requestedOrderValue: currentGroup && LAYER_ID_ORDER[currentGroup.id]
+    });
+    
+    // Log all existing layers to see their IDs
+    console.log('Existing layers:', map.getStyle().layers.map(l => ({
+        id: l.id,
+        metadata: l.metadata,
+        orderValue: l.metadata?.groupId && LAYER_ID_ORDER[l.metadata.groupId]
+    })));
+    
     const layers = map.getStyle().layers;
     
     // Find current layer's index in the configuration
@@ -72,7 +112,17 @@ function getInsertPosition(map, type, layerType, currentGroup, orderedGroups) {
         const layer = layers[i];
         
         // Skip layers that don't have metadata (likely base layers)
-        if (!layer.metadata || !layer.metadata.groupId) continue;
+        if (!layer.metadata || !layer.metadata.groupId) {
+            // For layers without metadata, try to match by ID instead
+            if (LAYER_ID_ORDER[layer.id] !== undefined && currentGroup) {
+                // Compare using ID ordering directly
+                const layerIdOrder = LAYER_ID_ORDER[layer.id];
+                if (layerIdOrder < orderValue) {
+                    return layers[i + 1]?.id;
+                }
+            }
+            continue;
+        }
         
         const groupId = layer.metadata.groupId;
         const layerGroupIndex = orderedGroups.findIndex(g => g.id === groupId);
@@ -119,4 +169,49 @@ function getInsertPosition(map, type, layerType, currentGroup, orderedGroups) {
     return null;
 }
 
-export { getInsertPosition, LAYER_TYPE_ORDER, LAYER_ID_ORDER };
+/**
+ * Fixes the layer ordering for specific layers that need to be in a certain order
+ * @param {Object} map - Mapbox map instance
+ */
+function fixLayerOrdering(map) {
+    if (!map) {
+        console.error('Map instance not provided to fixLayerOrdering');
+        return;
+    }
+    
+    try {
+        // Make sure both layers exist before trying to reorder
+        const hasLandcover = map.getStyle().layers.some(layer => 
+            layer.id === 'vector-layer-landcover');
+        
+        const hasOsmLanduse = map.getStyle().layers.some(layer => 
+            layer.id === 'vector-layer-osm-landuse');
+            
+        if (hasLandcover && hasOsmLanduse) {
+            // Move osm-landuse AFTER landcover to ensure it appears on top
+            // This means we move osm-landuse one position later in the rendering order
+            map.moveLayer('vector-layer-osm-landuse', 'vector-layer-landcover-text');
+            
+            // Also move the outline and text layers
+            if (map.getLayer('vector-layer-osm-landuse-outline')) {
+                map.moveLayer('vector-layer-osm-landuse-outline', 'vector-layer-landcover-text');
+            }
+            
+            if (map.getLayer('vector-layer-osm-landuse-text')) {
+                map.moveLayer('vector-layer-osm-landuse-text', 'vector-layer-landcover-text');
+            }
+            
+            console.log('Successfully fixed layer ordering: osm-landuse is now rendered on top of landcover');
+        } else {
+            console.log('Cannot fix layer ordering: one or both required layers are missing', {
+                hasLandcover,
+                hasOsmLanduse
+            });
+        }
+    } catch (error) {
+        console.error('Error fixing layer ordering:', error);
+    }
+}
+
+// Export the function so it can be called from elsewhere
+export { getInsertPosition, LAYER_TYPE_ORDER, LAYER_ID_ORDER, fixLayerOrdering };

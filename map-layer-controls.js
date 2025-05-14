@@ -2,6 +2,7 @@ import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from '
 import { convertToKML, gstableToArray } from './map-utils.js';
 import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
+import { fixLayerOrdering } from './layer-order-manager.js';
 
 export class MapLayerControl {
     constructor(options) {
@@ -1561,6 +1562,10 @@ export class MapLayerControl {
                             paint: {
                                 'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
                                 'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
+                            },
+                            metadata: {
+                                groupId: group.id,
+                                layerType: 'fill'
                             }
                         };
                         
@@ -1921,6 +1926,14 @@ export class MapLayerControl {
         if (!this._initialized) {
             this._initializeWithAnimation();
         }
+        
+        // Fix layer ordering after all layers have been initialized
+        // We need to wait until the map is fully loaded and idle
+        this._map.once('idle', () => {
+            // Apply layer ordering fixes
+            fixLayerOrdering(this._map);
+            console.log('Applied layer ordering fixes');
+        });
     }
 
     _initializeLayers() {
