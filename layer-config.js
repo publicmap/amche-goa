@@ -37,14 +37,14 @@ export const layersConfig = [
     },
     {
         title: 'Motorable Roads',
-        description: 'Road network data updated live from the OpenStreetMap project.',
+        description: 'Road network data from the OpenStreetMap project. See <a href="https://wiki.openstreetmap.org/wiki/India/Tags/Highway">OpenStreetMap India Wiki</a> for details.',
         headerImage: 'assets/map-layer-osm-roads.png',
         type: 'vector',
         id: 'osm-roads',
         url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
         sourceLayer: 'streets',
         maxzoom: 15,
-        attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a> via <a href="https://shortbread-tiles.org/schema/1.0/">Shortbread OSMF vector tiles</a>',
+        attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a> via <a href="https://shortbread-tiles.org/schema/1.0/">Shortbread vector tiles</a>',
         filter:     [
             "match",
             ["get", "kind"],
