@@ -1,10 +1,10 @@
 export const layersConfig = [
     {
-        id: 'streetmap',
+        id: 'mapbox-streets',
         title: 'Street Map रस्त्याचो नकासो',
         description: 'Detailed street map sourced from <a href="https://www.openstreetmap.org/#map=11/15.4054/73.9280" target="_blank">OpenStreetMap contributors</a> and other data sources via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/" target="_blank">Mapbox Streets</a> vector tiles.',
         type: 'style',
-        headerImage: 'assets/map-layer-streetmap.png',
+        headerImage: 'assets/map-layer-mapbox-streets.png',
         initiallyChecked: true,
         layers: [
             { title: 'Places Labels', sourceLayer: 'place_label' },
@@ -34,6 +34,90 @@ export const layersConfig = [
         layers: [
             { title: 'Traffic', sourceLayer: 'traffic' },
         ]
+    },
+    {
+        title: 'Motorable Roads',
+        description: 'Road network data updated live from the OpenStreetMap project.',
+        headerImage: 'assets/map-layer-osm-roads.png',
+        type: 'vector',
+        id: 'osm-roads',
+        url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
+        sourceLayer: 'streets',
+        maxzoom: 15,
+        attribution: '<a href="https://www.openstreetmap.org/#map=16/15.49493/73.82864">© OpenStreetMap contributors</a> via <a href="https://shortbread-tiles.org/schema/1.0/">Shortbread OSMF vector tiles</a>',
+        filter:     [
+            "match",
+            ["get", "kind"],
+            ['pedestrian', 'footway', 'path', 'track','rail'],
+            false,
+            true
+          ],
+        style: {
+            'line-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                0.95,
+                ['boolean', ['feature-state', 'hover'], false],
+                0.6,
+                0.5
+            ],
+            'line-color': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                'yellow',
+                ['boolean', ['feature-state', 'hover'], false],
+                'yellow',
+                [
+                    'match',
+                    ['get', 'kind'],
+                    ['motorway','trunk'],
+                    'black',
+                    ['primary','secondary','tertiary'],
+                    'darkred',
+                    ['residential','living_street','unclassified','service'],
+                    'brown',
+                    ['pedestrian','footway','path','track'],
+                    'red',
+                    'black'
+                ]
+            ],
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                11, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    5,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    5,
+                    [
+                        'match',
+                        ['get', 'kind'],
+                        ['motorway'],
+                        5,
+                        ['trunk'],
+                        3,
+                        ['primary'],
+                        3,
+                        ['secondary'],
+                        3,
+                        ['tertiary'],
+                        2,
+                        ['residential','unclassified',],
+                        1.5,
+                        1
+                    ]
+                ]
+            ],
+        },
+        inspect: {
+            id: 'kind',
+            title: 'OSM Type',
+            label: 'kind',
+            fields: ['surface'],
+            fieldTitles: ['Surface']
+        }
     },
     {
         title: 'Community Pins',
