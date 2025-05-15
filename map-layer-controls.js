@@ -1058,118 +1058,7 @@ export class MapLayerControl {
                 // Add content area to sl-details
                 $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
-                const sourceId = `geojson-${group.id}`;
-                
-                // Add source if it doesn't exist
-                if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'geojson',
-                        data: group.url,
-                        promoteId: group.inspect?.id // Add this line to promote property to feature ID
-                    });
-
-                    // Add fill layer
-                    this._map.addLayer({
-                        id: `${sourceId}-fill`,
-                        type: 'fill',
-                        source: sourceId,
-                        paint: {
-                            'fill-color': group.style?.['fill-color'] || this._defaultStyles.geojson.fill['fill-color'],
-                            'fill-opacity': [
-                                'case',
-                                ['boolean', ['feature-state', 'hover'], false],
-                                0.8,
-                                group.style?.['fill-opacity'] || this._defaultStyles.geojson.fill['fill-opacity']
-                            ]
-                        },
-                        layout: {
-                            visibility: 'none'
-                        }
-                    }, this._getInsertPosition('geojson', 'fill'));
-
-                    // Add line layer
-                    this._map.addLayer({
-                        id: `${sourceId}-line`,
-                        type: 'line',
-                        source: sourceId,
-                        paint: {
-                            'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
-                            'line-width': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                10, 1,  // At zoom level 10, line width will be 1
-                                16, 3,  // At zoom level 16, line width will be 3
-                                22, 5   // At zoom level 22, line width will be 5
-                            ]
-                        },
-                        layout: {
-                            'visibility': 'none'
-                        }
-                    }, this._getInsertPosition('geojson', 'line'));
-
-                    // Add circle layer if circle properties are defined
-                    if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
-                        this._map.addLayer({
-                            id: `${sourceId}-circle`,
-                            type: 'circle',
-                            source: sourceId,
-                            paint: {
-                                'circle-radius': group.style['circle-radius'] || this._defaultStyles.geojson.circle?.['circle-radius'] || 5,
-                                'circle-color': group.style['circle-color'] || this._defaultStyles.geojson.circle?.['circle-color'] || '#FF0000',
-                                'circle-opacity': group.style['circle-opacity'] !== undefined ? group.style['circle-opacity'] : (this._defaultStyles.geojson.circle?.['circle-opacity'] || 0.8),
-                                'circle-stroke-width': group.style['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : (this._defaultStyles.geojson.circle?.['circle-stroke-width'] || 1),
-                                'circle-stroke-color': group.style['circle-stroke-color'] || this._defaultStyles.geojson.circle?.['circle-stroke-color'] || '#FFFFFF',
-                                'circle-stroke-opacity': group.style['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : (this._defaultStyles.geojson.circle?.['circle-stroke-opacity'] || 1),
-                                'circle-blur': group.style['circle-blur'] !== undefined ? group.style['circle-blur'] : (this._defaultStyles.geojson.circle?.['circle-blur'] || 0),
-                                'circle-translate': group.style['circle-translate'] || this._defaultStyles.geojson.circle?.['circle-translate'] || [0, 0],
-                                'circle-translate-anchor': group.style['circle-translate-anchor'] || this._defaultStyles.geojson.circle?.['circle-translate-anchor'] || 'map',
-                                'circle-pitch-alignment': group.style['circle-pitch-alignment'] || this._defaultStyles.geojson.circle?.['circle-pitch-alignment'] || 'viewport',
-                                'circle-pitch-scale': group.style['circle-pitch-scale'] || this._defaultStyles.geojson.circle?.['circle-pitch-scale'] || 'map'
-                            },
-                            layout: {
-                                'visibility': 'none'
-                            }
-                        }, this._getInsertPosition('geojson', 'circle'));
-                    }
-
-                    // Add text layer if text properties are defined
-                    if (group.style?.['text-field'] || group.style?.['text-size']) {
-                        this._map.addLayer({
-                            id: `${sourceId}-label`,
-                            type: 'symbol',
-                            source: sourceId,
-                            layout: {
-                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
-                                'text-field': group.style?.['text-field'] || this._defaultStyles.geojson.text['text-field'],
-                                'text-size': group.style?.['text-size'] || this._defaultStyles.geojson.text['text-size'],
-                                'text-anchor': group.style?.['text-anchor'] || this._defaultStyles.geojson.text['text-anchor'],
-                                'text-justify': group.style?.['text-justify'] || this._defaultStyles.geojson.text['text-justify'],
-                                'text-allow-overlap': group.style?.['text-allow-overlap'] || this._defaultStyles.geojson.text['text-allow-overlap'],
-                                'text-offset': group.style?.['text-offset'] || this._defaultStyles.geojson.text['text-offset'],
-                                'text-transform': group.style?.['text-transform'] || this._defaultStyles.geojson.text['text-transform'],
-                                visibility: 'none'
-                            },
-                            paint: {
-                                'text-color': group.style?.['text-color'] || '#000000',
-                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
-                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
-                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
-                            }
-                        }, this._getInsertPosition('geojson', 'symbol'));
-                    }
-
-                    // Fix interactivity by adding event listeners to all layer types
-                    const layerIds = [`${sourceId}-fill`, `${sourceId}-line`];
-                    if (group.style?.['text-field'] || group.style?.['text-size']) {
-                        layerIds.push(`${sourceId}-label`);
-                    }
-                    if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
-                        layerIds.push(`${sourceId}-circle`);
-                    }
-
-                    this._setupLayerInteractivity(group, layerIds, sourceId);
-                }
+                // Don't add GeoJSON source and layers here - will be loaded when toggled on
             } else if (group.type === 'terrain') {
                 const $sliderContainer = $('<div>', { 
                     class: 'terrain-settings-section' // Add terrain-settings-section class
@@ -1664,104 +1553,13 @@ export class MapLayerControl {
                     mainLayerId
                 };
             } else if (group.type === 'markers' && group.dataUrl) {
-                fetch(group.dataUrl)
-                    .then(response => response.text())
-                    .then(data => {
-                        data = gstableToArray(JSON.parse(data.slice(47, -2)).table)
-                        const sourceId = `markers-${group.id}`;
-
-                        if (!this._map.getSource(sourceId)) {
-                            this._map.addSource(sourceId, {
-                                type: 'geojson',
-                                data: {
-                                    type: 'FeatureCollection',
-                                    features: data.map(item => ({
-                                        type: 'Feature',
-                                        geometry: { type: 'Point', coordinates: [item.Longitude, item.Latitude] },
-                                        properties: item
-                                    }))
-                                },
-                                promoteId: group.inspect?.id // Add this line for marker layers
-                            });
-
-                            this._map.addLayer({
-                                id: `${sourceId}-circles`,
-                                type: 'circle',
-                                source: sourceId,
-                                paint: {
-                                    ...this._defaultStyles.markers.circle,
-                                    'circle-radius': group.style?.['circle-radius'] || this._defaultStyles.markers.circle['circle-radius'],
-                                    'circle-color': group.style?.['circle-color'] || group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color'],
-                                    'circle-opacity': group.style?.['circle-opacity'] !== undefined ? group.style['circle-opacity'] : this._defaultStyles.markers.circle['circle-opacity'],
-                                    'circle-stroke-width': group.style?.['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : this._defaultStyles.markers.circle['circle-stroke-width'],
-                                    'circle-stroke-color': group.style?.['circle-stroke-color'] || this._defaultStyles.markers.circle['circle-stroke-color'],
-                                    'circle-stroke-opacity': group.style?.['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : this._defaultStyles.markers.circle['circle-stroke-opacity'],
-                                    'circle-blur': group.style?.['circle-blur'] !== undefined ? group.style['circle-blur'] : this._defaultStyles.markers.circle['circle-blur'],
-                                    'circle-translate': group.style?.['circle-translate'] || this._defaultStyles.markers.circle['circle-translate'],
-                                    'circle-translate-anchor': group.style?.['circle-translate-anchor'] || this._defaultStyles.markers.circle['circle-translate-anchor'],
-                                    'circle-pitch-alignment': group.style?.['circle-pitch-alignment'] || this._defaultStyles.markers.circle['circle-pitch-alignment'],
-                                    'circle-pitch-scale': group.style?.['circle-pitch-scale'] || this._defaultStyles.markers.circle['circle-pitch-scale']
-                                },
-                                layout: {
-                                    'visibility': 'none'
-                                }
-                            });
-
-                            this._map.on('click', `${sourceId}-circles`, (e) => {
-                                if (e.features.length > 0) {
-                                    const feature = e.features[0];
-                                    const coordinates = feature.geometry.coordinates.slice();
-                                    const content = this._createPopupContent(feature, group, false, {
-                                        lng: coordinates[0],
-                                        lat: coordinates[1]
-                                    });
-                                    new mapboxgl.Popup()
-                                        .setLngLat(coordinates)
-                                        .setDOMContent(content)
-                                        .addTo(this._map);
-                                }
-                            });
-                        }
-                    });
+                // Markers are now loaded on demand when the user toggles them on
+                // The actual loading happens in _toggleSourceControl
             } else if (group.type === 'csv') {
-                this._setupCsvLayer(group);
+                // Don't set up CSV layer yet - will be loaded when toggled on
             } else if (group.type === 'img') {
-                // Create image source and layer for satellite imagery
-                const [west, south, east, north] = group.bbox;
-                const coordinates = [
-                    [west, north],
-                    [east, north],
-                    [east, south],
-                    [west, south]
-                ];
-                
-                this._map.addSource(group.id, {
-                    'type': 'image',
-                    'url': group.url,
-                    'coordinates': coordinates
-                });
-                
-                this._map.addLayer({
-                    'id': group.id,
-                    'type': 'raster',
-                    'source': group.id,
-                    'layout': {
-                        'visibility': group.initiallyChecked ? 'visible' : 'none'
-                    },
-                    'paint': {
-                        'raster-opacity': 0.85,
-                        'raster-fade-duration': 0
-                    }
-                }, this._getInsertPosition('img'));
-                
-                // Define these variables to track the layers
-                const layerId = group.id;
-                const sourceId = group.id;
-                
-                // Set up refresh if needed
-                if (group.refresh) {
-                    this._setupImgRefresh(group);
-                }
+                // Don't create image source and layer here
+                // Will be loaded on-demand when toggled on in _toggleSourceControl
 
                 // ADD THIS SECTION: Create the UI toggle for the image layer
                 const $layerToggle = $('<div>', {
@@ -1937,16 +1735,13 @@ export class MapLayerControl {
                     
                     // Apply filter if defined in group config
                     if (group.filter) {
-                        console.log(group.filter)
                         this._map.setFilter(layer.id, group.filter);
                     }
                 }
             });
 
-            // Initialize CSV layers
-            if (group.type === 'csv') {
-                this._setupCsvLayer(group);
-            }
+            // Don't initialize CSV layers here - they'll be loaded on demand
+            // when the user toggles them on
         });
 
         // Check if this is a vector layer type
@@ -2096,21 +1891,163 @@ export class MapLayerControl {
             });
         } else if (group.type === 'geojson') {
             const sourceId = `geojson-${group.id}`;
-            ['fill', 'line', 'label', 'circle'].forEach(type => {
-                const layerId = `${sourceId}-${type}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            
+            // Only add source and layers if they don't exist yet and should be visible
+            if (visible && !this._map.getSource(sourceId)) {
+                // Add source
+                this._map.addSource(sourceId, {
+                    type: 'geojson',
+                    data: group.url,
+                    promoteId: group.inspect?.id
+                });
+
+                // Add fill layer
+                this._map.addLayer({
+                    id: `${sourceId}-fill`,
+                    type: 'fill',
+                    source: sourceId,
+                    paint: {
+                        'fill-color': group.style?.['fill-color'] || this._defaultStyles.geojson.fill['fill-color'],
+                        'fill-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            0.8,
+                            group.style?.['fill-opacity'] || this._defaultStyles.geojson.fill['fill-opacity']
+                        ]
+                    },
+                    layout: {
+                        visibility: 'visible'
+                    }
+                }, this._getInsertPosition('geojson', 'fill'));
+
+                // Add line layer
+                this._map.addLayer({
+                    id: `${sourceId}-line`,
+                    type: 'line',
+                    source: sourceId,
+                    paint: {
+                        'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
+                        'line-width': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            10, 1,  // At zoom level 10, line width will be 1
+                            16, 3,  // At zoom level 16, line width will be 3
+                            22, 5   // At zoom level 22, line width will be 5
+                        ]
+                    },
+                    layout: {
+                        'visibility': 'visible'
+                    }
+                }, this._getInsertPosition('geojson', 'line'));
+
+                // Add circle layer if circle properties are defined
+                if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
+                    this._map.addLayer({
+                        id: `${sourceId}-circle`,
+                        type: 'circle',
+                        source: sourceId,
+                        paint: {
+                            'circle-radius': group.style['circle-radius'] || this._defaultStyles.geojson.circle?.['circle-radius'] || 5,
+                            'circle-color': group.style['circle-color'] || this._defaultStyles.geojson.circle?.['circle-color'] || '#FF0000',
+                            'circle-opacity': group.style['circle-opacity'] !== undefined ? group.style['circle-opacity'] : (this._defaultStyles.geojson.circle?.['circle-opacity'] || 0.8),
+                            'circle-stroke-width': group.style['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : (this._defaultStyles.geojson.circle?.['circle-stroke-width'] || 1),
+                            'circle-stroke-color': group.style['circle-stroke-color'] || this._defaultStyles.geojson.circle?.['circle-stroke-color'] || '#FFFFFF',
+                            'circle-stroke-opacity': group.style['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : (this._defaultStyles.geojson.circle?.['circle-stroke-opacity'] || 1),
+                            'circle-blur': group.style['circle-blur'] !== undefined ? group.style['circle-blur'] : (this._defaultStyles.geojson.circle?.['circle-blur'] || 0),
+                            'circle-translate': group.style['circle-translate'] || this._defaultStyles.geojson.circle?.['circle-translate'] || [0, 0],
+                            'circle-translate-anchor': group.style['circle-translate-anchor'] || this._defaultStyles.geojson.circle?.['circle-translate-anchor'] || 'map',
+                            'circle-pitch-alignment': group.style['circle-pitch-alignment'] || this._defaultStyles.geojson.circle?.['circle-pitch-alignment'] || 'viewport',
+                            'circle-pitch-scale': group.style['circle-pitch-scale'] || this._defaultStyles.geojson.circle?.['circle-pitch-scale'] || 'map'
+                        },
+                        layout: {
+                            'visibility': 'visible'
+                        }
+                    }, this._getInsertPosition('geojson', 'circle'));
                 }
-            });
+
+                // Add text layer if text properties are defined
+                if (group.style?.['text-field'] || group.style?.['text-size']) {
+                    this._map.addLayer({
+                        id: `${sourceId}-label`,
+                        type: 'symbol',
+                        source: sourceId,
+                        layout: {
+                            'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
+                            'text-field': group.style?.['text-field'] || this._defaultStyles.geojson.text['text-field'],
+                            'text-size': group.style?.['text-size'] || this._defaultStyles.geojson.text['text-size'],
+                            'text-anchor': group.style?.['text-anchor'] || this._defaultStyles.geojson.text['text-anchor'],
+                            'text-justify': group.style?.['text-justify'] || this._defaultStyles.geojson.text['text-justify'],
+                            'text-allow-overlap': group.style?.['text-allow-overlap'] || this._defaultStyles.geojson.text['text-allow-overlap'],
+                            'text-offset': group.style?.['text-offset'] || this._defaultStyles.geojson.text['text-offset'],
+                            'text-transform': group.style?.['text-transform'] || this._defaultStyles.geojson.text['text-transform'],
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'text-color': group.style?.['text-color'] || '#000000',
+                            'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                            'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
+                        }
+                    }, this._getInsertPosition('geojson', 'symbol'));
+                }
+
+                // Fix interactivity by adding event listeners
+                const layerIds = [`${sourceId}-fill`, `${sourceId}-line`];
+                if (group.style?.['text-field'] || group.style?.['text-size']) {
+                    layerIds.push(`${sourceId}-label`);
+                }
+                if (group.style?.['circle-radius'] || group.style?.['circle-color']) {
+                    layerIds.push(`${sourceId}-circle`);
+                }
+
+                this._setupLayerInteractivity(group, layerIds, sourceId);
+            } else {
+                // Just update visibility for existing layers
+                ['fill', 'line', 'label', 'circle'].forEach(type => {
+                    const layerId = `${sourceId}-${type}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            }
         } else if (group.type === 'tms') {
+            const sourceId = `tms-${group.id}`;
             const layerId = `tms-layer-${group.id}`;
-            if (this._map.getLayer(layerId)) {
+
+            // Only add source and layer if they don't exist yet and should be visible
+            if (visible && !this._map.getSource(sourceId)) {
+                this._map.addSource(sourceId, {
+                    type: 'raster',
+                    tiles: [group.url],
+                    tileSize: 256,
+                });
+
+                this._map.addLayer({
+                    id: layerId,
+                    type: 'raster',
+                    source: sourceId,
+                    layout: {
+                        visibility: 'visible'
+                    },
+                    paint: {
+                        'raster-opacity': group.opacity || 1
+                    }
+                }, this._getInsertPosition('tms'));
+            } else if (this._map.getLayer(layerId)) {
+                // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
             }
         } else if (group.type === 'csv') {
             const sourceId = `csv-${group.id}`;
             const layerId = `${sourceId}-circle`;
-            if (this._map.getLayer(layerId)) {
+            
+            // Only set up CSV layer when visible and not already created
+            if (visible && !this._map.getSource(sourceId)) {
+                // Lazy load CSV data when layer is made visible
+                this._setupCsvLayer(group);
+            } else if (this._map.getLayer(layerId)) {
+                // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
                 
                 // Reset refresh timer when toggling visibility
@@ -2122,27 +2059,289 @@ export class MapLayerControl {
                 }
             }
         } else if (group.type === 'vector') {
-            const layerConfig = group._layerConfig;
-            if (!layerConfig) return;
-
-            if (layerConfig.hasFillStyles) {
-                const fillLayerId = `vector-layer-${group.id}`;
-                this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
-            }
+            const sourceId = `vector-${group.id}`;
+            const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
+            const hasLineStyles = group.style && (group.style['line-color'] || group.style['line-width']);
             
-            if (layerConfig.hasLineStyles) {
-                const lineLayerId = `vector-layer-${group.id}-outline`;
-                this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
-            }
+            // Determine the main layer ID based on the primary style type
+            const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
-            // Handle text layer visibility
-            if (group.style?.['text-field']) {
-                const textLayerId = `vector-layer-${group.id}-text`;
-                this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+            // Only add source and layers if they don't exist yet and should be visible
+            if (visible && !this._map.getSource(sourceId)) {
+                // Check if it's a Mapbox hosted tileset
+                if (group.url.startsWith('mapbox://')) {
+                    this._map.addSource(sourceId, {
+                        type: 'vector',
+                        url: group.url,  // Keep the mapbox:// URL as is
+                        maxzoom: group.maxzoom || 22,
+                        promoteId: {
+                            [group.sourceLayer]: group.inspect?.id
+                        }
+                    });
+                } else {
+                    // Handle other vector tile sources
+                    this._map.addSource(sourceId, {
+                        type: 'vector',
+                        tiles: [group.url],
+                        maxzoom: group.maxzoom || 22,
+                        promoteId: {
+                            [group.sourceLayer]: group.inspect?.id
+                        }
+                    });
+                }
+
+                // Only add fill layer if fill styles are defined
+                if (hasFillStyles) {
+                    const fillLayerConfig = {
+                        id: `vector-layer-${group.id}`,
+                        type: 'fill',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer || 'default',
+                        layout: {
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
+                            'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
+                        },
+                        metadata: {
+                            groupId: group.id,
+                            layerType: 'fill'
+                        }
+                    };
+                    
+                    // Only add filter if it's defined
+                    if (group.filter) {
+                        fillLayerConfig.filter = group.filter;
+                    }
+                    
+                    this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector', 'fill'));
+                }
+
+                // Add line layer if line styles are defined
+                if (hasLineStyles) {
+                    const lineLayerConfig = {
+                        id: `vector-layer-${group.id}-outline`,
+                        type: 'line',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer || 'default',
+                        layout: {
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
+                            'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
+                            'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
+                        }
+                    };
+                    
+                    // Only add filter if it's defined
+                    if (group.filter) {
+                        lineLayerConfig.filter = group.filter;
+                    }
+                    
+                    this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
+                }
+
+                // Add text layer if text styles are defined
+                if (group.style?.['text-field']) {
+                    const textLayerConfig = {
+                        id: `vector-layer-${group.id}-text`,
+                        type: 'symbol',
+                        source: sourceId,
+                        'source-layer': group.sourceLayer || 'default',
+                        layout: {
+                            'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
+                            'text-field': group.style?.['text-field'],
+                            'text-size': group.style?.['text-size'] || 12,
+                            'text-anchor': group.style?.['text-anchor'] || 'center',
+                            'text-justify': group.style?.['text-justify'] || 'center',
+                            'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
+                            'text-offset': group.style?.['text-offset'] || [0, 0],
+                            'text-transform': group.style?.['text-transform'] || 'none',
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'text-color': group.style?.['text-color'] || '#000000',
+                            'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
+                            'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1,
+                            'text-opacity': group.style?.['text-opacity'] || [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                1,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.9,
+                                0.7
+                            ]
+                        }
+                    };
+
+                    // Only add filter if it's defined
+                    if (group.filter) {
+                        textLayerConfig.filter = group.filter;
+                    }
+
+                    this._map.addLayer(textLayerConfig, this._getInsertPosition('vector', 'symbol'));
+                }
+
+                // Setup interactivity
+                if (group.inspect) {
+                    // Add event listeners to both fill and line layers if they exist
+                    const layerIds = [];
+                    if (hasFillStyles) layerIds.push(`vector-layer-${group.id}`);
+                    if (hasLineStyles) layerIds.push(`vector-layer-${group.id}-outline`);
+                    if (group.style?.['text-field']) layerIds.push(`vector-layer-${group.id}-text`);
+
+                    this._setupLayerInteractivity(group, layerIds, sourceId);
+                }
+
+                // Store the layer configuration for later use
+                group._layerConfig = {
+                    hasFillStyles,
+                    hasLineStyles,
+                    hasTextStyles: !!group.style?.['text-field'],
+                    mainLayerId
+                };
+            } else {
+                // Just update visibility for existing layers
+                const layerConfig = group._layerConfig;
+                if (!layerConfig) return;
+
+                if (layerConfig.hasFillStyles) {
+                    const fillLayerId = `vector-layer-${group.id}`;
+                    if (this._map.getLayer(fillLayerId)) {
+                        this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                }
+                
+                if (layerConfig.hasLineStyles) {
+                    const lineLayerId = `vector-layer-${group.id}-outline`;
+                    if (this._map.getLayer(lineLayerId)) {
+                        this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                }
+
+                if (group.style?.['text-field']) {
+                    const textLayerId = `vector-layer-${group.id}-text`;
+                    if (this._map.getLayer(textLayerId)) {
+                        this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                }
+            }
+        } else if (group.type === 'markers' && group.dataUrl) {
+            const sourceId = `markers-${group.id}`;
+            const layerId = `${sourceId}-circles`;
+            
+            if (visible && !this._map.getSource(sourceId)) {
+                // Fetch data only when layer is made visible
+                fetch(group.dataUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        // Special handling for Google Sheets data
+                        if (group.dataUrl.includes('spreadsheets.google.com')) {
+                            data = gstableToArray(JSON.parse(data.slice(47, -2)).table);
+                            
+                            const geojson = {
+                                type: 'FeatureCollection',
+                                features: data.map(row => {
+                                    const coords = [row.Longitude, row.Latitude] || [0, 0];
+                                    return {
+                                        type: 'Feature',
+                                        geometry: {
+                                            type: 'Point',
+                                            coordinates: coords
+                                        },
+                                        properties: row
+                                    };
+                                })
+                            };
+                            
+                            // Only add source and layer if they should be visible
+                            if (visible) {
+                                this._map.addSource(sourceId, {
+                                    type: 'geojson',
+                                    data: geojson,
+                                    promoteId: group.inspect?.id
+                                });
+                                
+                                this._map.addLayer({
+                                    id: layerId,
+                                    type: 'circle',
+                                    source: sourceId,
+                                    paint: {
+                                        ...this._defaultStyles.markers.circle,
+                                        'circle-radius': group.style?.['circle-radius'] || this._defaultStyles.markers.circle['circle-radius'],
+                                        'circle-color': group.style?.['circle-color'] || group.style?.['fill-color'] || this._defaultStyles.markers.circle['circle-color'],
+                                        'circle-opacity': group.style?.['circle-opacity'] !== undefined ? group.style['circle-opacity'] : this._defaultStyles.markers.circle['circle-opacity'],
+                                        'circle-stroke-width': group.style?.['circle-stroke-width'] !== undefined ? group.style['circle-stroke-width'] : this._defaultStyles.markers.circle['circle-stroke-width'],
+                                        'circle-stroke-color': group.style?.['circle-stroke-color'] || this._defaultStyles.markers.circle['circle-stroke-color'],
+                                        'circle-stroke-opacity': group.style?.['circle-stroke-opacity'] !== undefined ? group.style['circle-stroke-opacity'] : this._defaultStyles.markers.circle['circle-stroke-opacity'],
+                                        'circle-blur': group.style?.['circle-blur'] !== undefined ? group.style['circle-blur'] : this._defaultStyles.markers.circle['circle-blur'],
+                                        'circle-translate': group.style?.['circle-translate'] || this._defaultStyles.markers.circle['circle-translate'],
+                                        'circle-translate-anchor': group.style?.['circle-translate-anchor'] || this._defaultStyles.markers.circle['circle-translate-anchor'],
+                                        'circle-pitch-alignment': group.style?.['circle-pitch-alignment'] || this._defaultStyles.markers.circle['circle-pitch-alignment'],
+                                        'circle-pitch-scale': group.style?.['circle-pitch-scale'] || this._defaultStyles.markers.circle['circle-pitch-scale']
+                                    },
+                                    layout: {
+                                        'visibility': 'visible'
+                                    }
+                                });
+
+                                this._map.on('click', layerId, (e) => {
+                                    if (e.features.length > 0) {
+                                        const feature = e.features[0];
+                                        const coordinates = feature.geometry.coordinates.slice();
+                                        const content = this._createPopupContent(feature, group, false, {
+                                            lng: coordinates[0],
+                                            lat: coordinates[1]
+                                        });
+                                        new mapboxgl.Popup()
+                                            .setLngLat(coordinates)
+                                            .setDOMContent(content)
+                                            .addTo(this._map);
+                                    }
+                                });
+                            }
+                        }
+                    });
+            } else if (this._map.getLayer(layerId)) {
+                this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
             }
         } else if (group.type === 'img') {
-            // For image layers, simply change the visibility
-            if (this._map.getLayer(group.id)) {
+            // For image layers, set them up or toggle visibility
+            if (visible && !this._map.getSource(group.id)) {
+                // Create image source and layer for satellite imagery
+                this._map.addSource(group.id, {
+                    type: 'image',
+                    url: group.url,
+                    coordinates: [
+                        [group.bounds[0], group.bounds[3]], // top-left (longitude, latitude)
+                        [group.bounds[2], group.bounds[3]], // top-right
+                        [group.bounds[2], group.bounds[1]], // bottom-right
+                        [group.bounds[0], group.bounds[1]]  // bottom-left
+                    ]
+                });
+
+                this._map.addLayer({
+                    id: group.id,
+                    type: 'raster',
+                    source: group.id,
+                    layout: {
+                        visibility: 'visible'
+                    },
+                    paint: {
+                        'raster-opacity': group.opacity || 0.85,
+                        'raster-fade-duration': 0
+                    }
+                }, this._getInsertPosition('img'));
+                
+                // Setup refresh timer if configured
+                if (visible && group.refresh && !group._refreshTimer) {
+                    this._setupImgRefresh(group);
+                }
+            } else if (this._map.getLayer(group.id)) {
+                // For image layers, simply change the visibility
                 this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
                 
                 // Reset refresh timer when toggling visibility
