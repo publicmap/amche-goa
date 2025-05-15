@@ -1560,8 +1560,30 @@ export class MapLayerControl {
             } else if (group.type === 'img') {
                 // Don't create image source and layer here
                 // Will be loaded on-demand when toggled on in _toggleSourceControl
+                
+                // If configured to be initially checked/visible, toggle it on
+                if (group.initiallyChecked) {
+                    // Use requestAnimationFrame to ensure DOM is fully initialized
+                    requestAnimationFrame(() => {
+                        console.log(`Setting up initially-visible image layer: ${group.id}`);
+                        this._toggleSourceControl(groupIndex, true);
+                    });
+                }
+                
+                // Check for "layers" URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('layers')) {
+                    const activeLayers = urlParams.get('layers').split(',').map(s => s.trim());
+                    // If layer is in URL parameter list, toggle it on
+                    if (activeLayers.includes(group.id)) {
+                        requestAnimationFrame(() => {
+                            console.log(`Setting up image layer from URL param: ${group.id}`);
+                            this._toggleSourceControl(groupIndex, true);
+                        });
+                    }
+                }
 
-                // ADD THIS SECTION: Create the UI toggle for the image layer
+                // Create the UI toggle for the image layer
                 const $layerToggle = $('<div>', {
                     class: 'layer-toggle',
                     'data-layer-id': group.id
@@ -2004,12 +2026,12 @@ export class MapLayerControl {
                 this._setupLayerInteractivity(group, layerIds, sourceId);
             } else {
                 // Just update visibility for existing layers
-                ['fill', 'line', 'label', 'circle'].forEach(type => {
-                    const layerId = `${sourceId}-${type}`;
-                    if (this._map.getLayer(layerId)) {
-                        this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-                    }
-                });
+            ['fill', 'line', 'label', 'circle'].forEach(type => {
+                const layerId = `${sourceId}-${type}`;
+                if (this._map.getLayer(layerId)) {
+                    this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            });
             }
         } else if (group.type === 'tms') {
             const sourceId = `tms-${group.id}`;
@@ -2205,27 +2227,27 @@ export class MapLayerControl {
                 };
             } else {
                 // Just update visibility for existing layers
-                const layerConfig = group._layerConfig;
-                if (!layerConfig) return;
+            const layerConfig = group._layerConfig;
+            if (!layerConfig) return;
 
-                if (layerConfig.hasFillStyles) {
-                    const fillLayerId = `vector-layer-${group.id}`;
+            if (layerConfig.hasFillStyles) {
+                const fillLayerId = `vector-layer-${group.id}`;
                     if (this._map.getLayer(fillLayerId)) {
-                        this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
+                this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
                     }
-                }
-                
-                if (layerConfig.hasLineStyles) {
-                    const lineLayerId = `vector-layer-${group.id}-outline`;
+            }
+            
+            if (layerConfig.hasLineStyles) {
+                const lineLayerId = `vector-layer-${group.id}-outline`;
                     if (this._map.getLayer(lineLayerId)) {
-                        this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
+                this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
                     }
-                }
+            }
 
-                if (group.style?.['text-field']) {
-                    const textLayerId = `vector-layer-${group.id}-text`;
+            if (group.style?.['text-field']) {
+                const textLayerId = `vector-layer-${group.id}-text`;
                     if (this._map.getLayer(textLayerId)) {
-                        this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+                this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
                     }
                 }
             }
@@ -2311,37 +2333,91 @@ export class MapLayerControl {
         } else if (group.type === 'img') {
             // For image layers, set them up or toggle visibility
             if (visible && !this._map.getSource(group.id)) {
-                // Create image source and layer for satellite imagery
-                this._map.addSource(group.id, {
-                    type: 'image',
-                    url: group.url,
-                    coordinates: [
-                        [group.bounds[0], group.bounds[3]], // top-left (longitude, latitude)
-                        [group.bounds[2], group.bounds[3]], // top-right
-                        [group.bounds[2], group.bounds[1]], // bottom-right
-                        [group.bounds[0], group.bounds[1]]  // bottom-left
-                    ]
-                });
-
-                this._map.addLayer({
-                    id: group.id,
-                    type: 'raster',
-                    source: group.id,
-                    layout: {
-                        visibility: 'visible'
-                    },
-                    paint: {
-                        'raster-opacity': group.opacity || 0.85,
-                        'raster-fade-duration': 0
-                    }
-                }, this._getInsertPosition('img'));
-                
-                // Setup refresh timer if configured
-                if (visible && group.refresh && !group._refreshTimer) {
-                    this._setupImgRefresh(group);
+                // Check if we have a URL
+                if (!group.url) {
+                    console.error(`Image layer ${group.id} is missing URL. Properties available:`, Object.keys(group));
+                    return;
                 }
+                
+                console.log(`Image layer ${group.id} URL: ${group.url}`);
+                console.log(`Group properties:`, {
+                    id: group.id,
+                    title: group.title,
+                    type: group.type,
+                    url: group.url,
+                    bbox: group.bbox, 
+                    bounds: group.bounds
+                });
+                
+                // Check for either bounds or bbox property
+                const bounds = group.bounds || group.bbox;
+                if (!bounds || bounds.length !== 4) {
+                    console.error(`Image layer ${group.id} has invalid bounds/bbox.`);
+                    return;
+                }
+                
+                // Store bounds for later use
+                group.bounds = bounds;
+                
+                // Log that we're adding the image
+                console.log(`Adding image layer ${group.id} with URL: ${group.url}`);
+                
+                // Add cache-busting parameter for dynamic images
+                const url = group.refresh ? 
+                    (group.url.includes('?') ? `${group.url}&_t=${Date.now()}` : `${group.url}?_t=${Date.now()}`) : 
+                    group.url;
+                
+                // First load the image to ensure it exists
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Enable CORS if needed
+                
+                img.onload = () => {
+                    console.log(`Image loaded successfully: ${url}`);
+                    
+                    // Create image source and layer for satellite imagery
+                    // Use the normalized bounds
+                    const bounds = group.bounds;
+                    console.log(`Using bounds: [${bounds.join(', ')}] for image layer ${group.id}`);
+                    
+                    this._map.addSource(group.id, {
+                        type: 'image',
+                        url: url,
+                        coordinates: [
+                            [bounds[0], bounds[3]], // top-left (longitude, latitude)
+                            [bounds[2], bounds[3]], // top-right
+                            [bounds[2], bounds[1]], // bottom-right
+                            [bounds[0], bounds[1]]  // bottom-left
+                        ]
+                    });
+    
+                    this._map.addLayer({
+                        id: group.id,
+                        type: 'raster',
+                        source: group.id,
+                        layout: {
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'raster-opacity': group.opacity || 0.85,
+                            'raster-fade-duration': 0
+                        }
+                    }, this._getInsertPosition('img'));
+                    
+                    // Setup refresh timer if configured
+                    if (visible && group.refresh && !group._refreshTimer) {
+                        this._setupImgRefresh(group);
+                    }
+                };
+                
+                img.onerror = (e) => {
+                    console.error(`Failed to load image for layer ${group.id}: ${url}`, e);
+                };
+                
+                // Start loading the image
+                img.src = url;
             } else if (this._map.getLayer(group.id)) {
-                // For image layers, simply change the visibility
+            // For image layers, simply change the visibility
+                console.log(`Toggling image layer ${group.id} visibility to ${visible ? 'visible' : 'none'}`);
                 this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
                 
                 // Reset refresh timer when toggling visibility
@@ -4047,12 +4123,37 @@ export class MapLayerControl {
                 ? `${group.url}&_t=${timestamp}` 
                 : `${group.url}?_t=${timestamp}`;
                 
-            this._map.getSource(group.id).updateImage({
-                url: url,
-                coordinates: this._map.getSource(group.id).coordinates
-            });
+            // First preload the new image to ensure it exists
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Enable CORS if needed
             
+            img.onload = () => {
+                // Once image is loaded, update the map source
+                            try {
+                    const source = this._map.getSource(group.id);
+                    if (!source) {
+                        console.error(`Source not found for image layer ${group.id} during refresh`);
+                        return;
+                    }
+                    
+                    console.log(`Updating image for layer ${group.id} with URL: ${url}`);
+                    source.updateImage({
+                        url: url,
+                        coordinates: source.coordinates
+                    });
             console.log(`Refreshed image layer ${group.id} at ${new Date().toLocaleTimeString()}`);
+                } catch (err) {
+                    console.error(`Error updating image layer ${group.id}:`, err);
+                }
+            };
+            
+            img.onerror = (err) => {
+                console.error(`Failed to refresh image for layer ${group.id}:`, err);
+            };
+            
+            // Start loading the new image
+            img.src = url;
+            
         }, group.refresh);
     }
 }

@@ -2146,7 +2146,7 @@ export const layersConfig = [
         type: 'img',
         url: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Goa_Bus_Network_Map_2025.png',
         bbox: [73.657, 14.863, 74.362, 15.861],
-        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Goa_Bus_Network_Map_2025.png">CC-BY Wikipedia/user:Planemad, CC-by <a href="https://ktclgoa.com/gtfs/">Kadamba Transport Corporation Limited GTFS updated Jan 2025</a>'
+        attribution: '<a href="https://commons.wikimedia.org/wiki/File:Goa_Bus_Network_Map_2025.png">CC-BY Wikipedia/user:Planemad</a>, CC-by <a href="https://ktclgoa.com/gtfs/">Kadamba Transport Corporation Limited GTFS updated Jan 2025</a>'
     },
     {
         title: '3D Terrain',
