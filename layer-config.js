@@ -1485,7 +1485,7 @@ export const layersConfig = [
                 14,
                 [
                     "to-string",
-                    ['get', 'kind2']
+                    ['get', 'kind']
                 ]
             ],
             'text-color': [
@@ -1494,6 +1494,8 @@ export const layersConfig = [
                 ['farmland','allotments'],
                 'black',
                 ['recreation_ground','park','playground','garden','golf_course','village_green'],
+                'black',
+                ['beach'],
                 'black',
                 'white']
             ,
@@ -1526,6 +1528,8 @@ export const layersConfig = [
                 'seagreen',
                 ['marsh','wet_meadow'],
                 'lightblue',
+                ['beach'],
+                'gold',
                 'grey'
             ],
             'text-halo-width': 5,
@@ -1559,6 +1563,8 @@ export const layersConfig = [
                 'seagreen',
                 ['marsh','wet_meadow'],
                 'lightblue',
+                ['beach'],
+                'gold',
                 'grey'
             ],
             'fill-opacity': 0.7,
