@@ -1,4 +1,4 @@
-import { layersConfig } from './layer-config.js';
+import { layersConfig } from '../config/map-layer-index.js';
 import { MapLayerControl } from './map-layer-controls.js';
 
 // Initialize the map

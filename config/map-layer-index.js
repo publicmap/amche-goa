@@ -4,7 +4,7 @@ export const layersConfig = [
         title: 'Street Map रस्त्याचो नकासो',
         description: 'Detailed street map sourced from <a href="https://www.openstreetmap.org/#map=11/15.4054/73.9280" target="_blank">OpenStreetMap contributors</a> and other data sources via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/" target="_blank">Mapbox Streets</a> vector tiles.',
         type: 'style',
-        headerImage: 'assets/map-layer-mapbox-streets.png',
+        headerImage: 'assets/map-layers/map-layer-mapbox-streets.png',
         initiallyChecked: true,
         layers: [
             { title: 'Places Labels', sourceLayer: 'place_label' },
@@ -30,7 +30,7 @@ export const layersConfig = [
         title: 'Traffic',
         description: 'Live traffic map via <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/" target="_blank">Mapbox Traffic</a> vector tiles. Updated every 10 minutes.',
         type: 'style',
-        headerImage: 'assets/map-layer-traffic.png',
+        headerImage: 'assets/map-layers/map-layer-traffic.png',
         layers: [
             { title: 'Traffic', sourceLayer: 'traffic' },
         ]
@@ -38,7 +38,7 @@ export const layersConfig = [
     {
         title: 'Motorable Roads',
         description: 'Road network data from the OpenStreetMap project. See <a href="https://wiki.openstreetmap.org/wiki/India/Tags/Highway">OpenStreetMap India Wiki</a> for details.',
-        headerImage: 'assets/map-layer-osm-roads.png',
+        headerImage: 'assets/map-layers/map-layer-osm-roads.png',
         type: 'vector',
         id: 'osm-roads',
         url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
@@ -122,7 +122,7 @@ export const layersConfig = [
     {
         title: 'Community Pins',
         description: 'Pin your notes on the map for the rest of the community to see',
-        headerImage: 'assets/map-layer-pins.png',
+        headerImage: 'assets/map-layers/map-layer-pins.png',
         type: 'markers',
         id: 'community-pins',
         dataUrl: 'https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0',
@@ -141,7 +141,7 @@ export const layersConfig = [
     {
         title: 'Community Maps',
         description: 'Sketches, maps and plans by the people of Goa',
-        headerImage: 'assets/map-layer-community-maps.png',
+        headerImage: 'assets/map-layers/map-layer-community-maps.png',
         type: 'tms',
         id: 'community-maps',
         url: 'https://mapwarper.net/mosaics/tile/2157/{z}/{x}/{y}.png',
@@ -150,7 +150,7 @@ export const layersConfig = [
     {
         title: 'Live Fire Trucks',
         description: 'Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href="https://github.com/publicmap/goa-fire-trucks-geojson/">Goa Fire Trucks API</a>.',
-        headerImage: 'assets/map-layer-fire-trucks.png',
+        headerImage: 'assets/map-layers/map-layer-fire-trucks.png',
         type: 'geojson',
         id: 'firetrucks',
         url: 'https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson',
@@ -192,7 +192,7 @@ export const layersConfig = [
     {
         title: 'Schools',
         description: 'Schools locations by capacity',
-        headerImage: 'assets/map-layer-schools.png',
+        headerImage: 'assets/map-layers/map-layer-schools.png',
         type: 'csv',
         id: 'schools',
         url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv',
@@ -220,7 +220,7 @@ export const layersConfig = [
     {
         id: 'pincode',
         title: 'Pincode Boundaries',
-        headerImage: 'assets/map-layer-pincode.png',
+        headerImage: 'assets/map-layers/map-layer-pincode.png',
         description: 'Government open data of pincode boundaries published May 2025.',
         type: 'vector',
         url: 'https://indianopenmaps.fly.dev/pincodes/datagovin/{z}/{x}/{y}.pbf',
@@ -294,8 +294,8 @@ export const layersConfig = [
     {
         title: 'Plots with No Development Slopes',
         description: 'Survey numbers with No Development Slopes (NDS). The output location of plots having atleast 25% of the plot area with NDS or slopes greater than 1:4 (25% slope).<br>Processed using slope computed with NASADEM 30m data and cadastral boundaries from OneMapGoa GIS. See <a href="https://github.com/publicmap/amche-goa/tree/main/data/slope">processing code</a> for details.',
-        headerImage: 'assets/map-layer-nds-plots.png',
-        legendImage: 'assets/map-layer-slope-legend.png',
+        headerImage: 'assets/map-layers/map-layer-nds-plots.png',
+        legendImage: 'assets/map-layers/map-layer-slope-legend.png',
         type: 'geojson',
         id: 'steep-plots',
         url: 'https://gist.githubusercontent.com/planemad/f378d37b120b0ffc93db27d9541baa70/raw/56ecc74a6fdd3ea8170ee58a4cd2a87ba4f83f3d/goa-steep-plots.geojson',
@@ -378,7 +378,7 @@ export const layersConfig = [
     {
         title: 'Cadastral Plot Boundaries',
         description: 'Cadastral Boundaries from the <a href="Directorate of Settlement & Land Records">Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href="https://goaonline.gov.in" target="_blank" rel="noopener noreferrer">Goa Online</a>',
-        headerImage: 'assets/map-layer-survey.png',
+        headerImage: 'assets/map-layers/map-layer-survey.png',
         type: 'vector',
         id: 'plot',
         url: 'https://indianopenmaps.fly.dev/not-so-open/cadastrals/goa/onemapgoagis/{z}/{x}/{y}.pbf',
@@ -445,7 +445,7 @@ export const layersConfig = [
     {
         id: 'village',
         title: 'Village Boundaries',
-        headerImage: 'assets/map-layer-village.png',
+        headerImage: 'assets/map-layers/map-layer-village.png',
         description: 'Revenue village boundaries with <a href="https://lgdirectory.gov.in/" target="_blank">Local Government Directory</a> attributes.',
         type: 'vector',
         url: 'https://indianopenmaps.fly.dev/not-so-open/villages/lgd/{z}/{x}/{y}.pbf ',
@@ -499,7 +499,7 @@ export const layersConfig = [
     {
         id: 'municipal-wards',
         title: 'Municipal Ward Boundaries',
-        headerImage: 'assets/map-layer-ulb-wards.png',
+        headerImage: 'assets/map-layers/map-layer-ulb-wards.png',
         description: 'Ward boundaries for Panaji Municipal Corporation and Municipal Councils (partial coverage)',
         type: 'vector',
         url: 'https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf',
@@ -553,7 +553,7 @@ export const layersConfig = [
     {
         title: 'Local Body Boundaries',
         description: 'Municipal and Panchayat local body boundaries. Please see <a href="https://grammanchitra.gov.in/gm4MVC" target="_blank">Gramanchiitra</a> for panchayat demographic profile and information on elected representatives.',
-        headerImage: 'assets/map-layer-local-boundaries.png',
+        headerImage: 'assets/map-layers/map-layer-local-boundaries.png',
         type: 'vector',
         id: 'local-body',
         url: 'mapbox://planemad.2bqa1pq1',
@@ -629,7 +629,7 @@ export const layersConfig = [
     {
         title: 'Assembly Constituencies',
         description: 'Members of Legislative Assembly (MLA) constituencies.',
-        headerImage: 'assets/map-layer-assembly-boundaries.png',
+        headerImage: 'assets/map-layers/map-layer-assembly-boundaries.png',
         type: 'vector',
         id: 'assembly-constituencies',
         url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/assembly/lgd/{z}/{x}/{y}.pbf ',
@@ -684,7 +684,7 @@ export const layersConfig = [
     {
         title: 'Parliamentary Constituencies',
         description: 'Members of Parliament (MP) constituencies',
-        headerImage: 'assets/map-layer-parliament-boundaries.png',
+        headerImage: 'assets/map-layers/map-layer-parliament-boundaries.png',
         type: 'vector',
         id: 'parliamentary-constituencies',
         url: 'https://indianopenmaps.fly.dev/not-so-open/constituencies/parliament/lgd/{z}/{x}/{y}.pbf ',
@@ -739,7 +739,7 @@ export const layersConfig = [
     {
         title: 'Rivers',
         description: 'Rivers and streams with stream order',
-        headerImage: 'assets/map-layer-rivers.png',
+        headerImage: 'assets/map-layers/map-layer-rivers.png',
         type: 'vector',
         id: 'rivers',
         url: 'https://indianopenmaps.fly.dev/streams/wris/{z}/{x}/{y}.pbf',
@@ -783,7 +783,7 @@ export const layersConfig = [
     {
         id: 'watershed',
         title: 'Watershed Boundaries',
-        headerImage: 'assets/map-layer-watersheds.png',
+        headerImage: 'assets/map-layers/map-layer-watersheds.png',
         description: 'Watershed Boundaries',
         type: 'vector',
         url: 'https://indianopenmaps.fly.dev/watersheds/wris/{z}/{x}/{y}.pbf',
@@ -810,7 +810,7 @@ export const layersConfig = [
     {
         id: 'micro-watersheds',
         title: 'Micro Watershed Boundaries',
-        headerImage: 'assets/map-layer-micro-watersheds.png',
+        headerImage: 'assets/map-layers/map-layer-micro-watersheds.png',
         description: 'Micro Watershed Boundaries',
         type: 'vector',
         url: 'https://indianopenmaps.fly.dev/micro-watersheds/priorities/slusi/{z}/{x}/{y}.pbf',
@@ -849,7 +849,7 @@ export const layersConfig = [
     {
         title: 'Water Bodies',
         description: 'Water body boundaries',
-        headerImage: 'assets/map-layer-water-bodies.png',
+        headerImage: 'assets/map-layers/map-layer-water-bodies.png',
         type: 'geojson',
         id: 'water-bodies',
         url: 'https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson',
@@ -875,7 +875,7 @@ export const layersConfig = [
     {
         title: 'Wetlands',
         description: 'Wetlands and low lying estuarine areas classified from remote sensing imagery. For methodological details, see <a href="https://vedas.sac.gov.in/static/downloads/atlas/Wetlands/NWIA_Goa_Atlas.pdf">2009 National Wetland Atlas of Goa, Space Applications Centre, ISRO / Ministry of Environment and Forests</a>.',
-        headerImage: 'assets/map-layer-wetland.png',
+        headerImage: 'assets/map-layers/map-layer-wetland.png',
         type: 'vector',
         id: 'wetland',
         url: 'https://indianopenmaps.fly.dev/not-so-open/wetlands/parivesh/{z}/{x}/{y}.pbf',
@@ -959,7 +959,7 @@ export const layersConfig = [
     {
         title: 'Private Forests',
         description: 'Private forests identified by Thomas and Arujao expert committees',
-        headerImage: 'assets/map-layer-forest.png',
+        headerImage: 'assets/map-layers/map-layer-forest.png',
         type: 'geojson',
         id: 'private-forests',
         url: 'https://gist.githubusercontent.com/planemad/54b84c11fc0325889f1127e49b5740db/raw/6b4df018b298f37b1789f1c40405c8d9aee0aadd/goa_private_forest_plots.geojson',
@@ -1001,7 +1001,7 @@ export const layersConfig = [
     {
         title: 'Reserve Forests',
         description: 'Forest areas notified and protectedunder the <a href="http://nbaindia.org/uploaded/Biodiversityindia/Legal/3.%20Indian%20forest%20act.pdf">Indian Forest Act, 1927</a>',
-        headerImage: 'assets/map-layer-forest.png',
+        headerImage: 'assets/map-layers/map-layer-forest.png',
         type: 'vector',
         id: 'forests',
         url: 'https://indianopenmaps.fly.dev/not-so-open/forests/beats/fsi/{z}/{x}/{y}.pbf',
@@ -1044,7 +1044,7 @@ export const layersConfig = [
     {
         title: 'Eco Sensitive Zones',
         description: 'Eco Sensitive Zones as defined in the <a href="https://moef.gov.in/eco-sensitive-zone-esz">National Environment Policy, MoEF</a>',
-        headerImage: 'assets/map-layer-esz.png',
+        headerImage: 'assets/map-layers/map-layer-esz.png',
         type: 'vector',
         id: 'esz',
         url: 'https://indianopenmaps.fly.dev/not-so-open/forests/esz/parivesh/{z}/{x}/{y}.pbf',
@@ -1086,8 +1086,8 @@ export const layersConfig = [
     },
     {
         title: 'Wildlife Reserves and Corridors',
-        description: 'National parks, wildlife sanctuaries and <a href="https://ntca.gov.in/assets/uploads/Reports/corridor/connecting_tiger_populations.pdf">tiger conservations corridors</a>',
-        headerImage: 'assets/map-layer-wildlife-reserve.png',
+        description: 'National parks, wildlife sanctuaries and <a href="https://ntca.gov.in/assets/map-layers/uploads/Reports/corridor/connecting_tiger_populations.pdf">tiger conservations corridors</a>',
+        headerImage: 'assets/map-layers/map-layer-wildlife-reserve.png',
         type: 'vector',
         id: 'wildlife-reserve',
         url: 'https://indianopenmaps.fly.dev/not-so-open/forests/wildlife/reserves-and-corridors/parivesh/{z}/{x}/{y}.pbf ',
@@ -1130,7 +1130,7 @@ export const layersConfig = [
     {
         title: 'Mining Leases',
         description: 'Major mining lease boundaries',
-        headerImage: 'assets/map-layer-mines.png',
+        headerImage: 'assets/map-layers/map-layer-mines.png',
         type: 'vector',
         id: 'mining',
         url: ' https://indianopenmaps.fly.dev/not-so-open/mining/leases/major/ncog/{z}/{x}/{y}.pbf',
@@ -1264,8 +1264,8 @@ export const layersConfig = [
         title: 'Slope Zoning',
         description: 'Slope zone classification using <a href="https://asterweb.jpl.nasa.gov/gdem.asp">NASA NASADEM 30m</a> for entire Goa and <a href="https://bhuvan-app3.nrsc.gov.in/data/">ISRO CartoDEM 2.5m (Bardez)</a> terrain data for Bardez taluka.<br>The output is a 30x30m grid indicating the minimum gradient within that cell. Details of the algorithm are in the <a href="https://github.com/publicmap/amche-goa/blob/main/data/slope/dem_slope_processor.py">slope processor script</a>.',
         type: 'layer-group',
-        headerImage: 'assets/map-layer-slope.png',
-        legendImage: 'assets/map-layer-slope-legend.png',
+        headerImage: 'assets/map-layers/map-layer-slope.png',
+        legendImage: 'assets/map-layers/map-layer-slope-legend.png',
         groups: [
             {
                 id: 'nasadem-30-m',
@@ -1284,7 +1284,7 @@ export const layersConfig = [
     {
         title: 'Construction Sites',
         description: 'Construction Project Sites',
-        headerImage: 'assets/map-layer-construction.png',
+        headerImage: 'assets/map-layers/map-layer-construction.png',
         type: 'geojson',
         id: 'construction-sites',
         url: 'https://gist.githubusercontent.com/planemad/ddca6df1de5ccf1b1663a5b7ab161b93/raw/b15e2dce708ac4e1ef803cb7065527f5f9eb0f0d/goa-construction-project-sites.geojson',
@@ -1323,7 +1323,7 @@ export const layersConfig = [
     {
         title: 'Current Landuse Map (Panjim)',
         description: 'Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under <a http://164.100.87.10/DocumentOMs.aspx">Atal Mission for Rejuvenation and Urban Transformation (AMRUT)</a> at 1:4000 scale.',
-        headerImage: 'assets/map-layer-landuse-amrut.png',
+        headerImage: 'assets/map-layers/map-layer-landuse-amrut.png',
         type: 'vector',
         id: 'landuse-panjim',
         url: 'https://indianopenmaps.fly.dev/not-so-open/goa/urban/land-use/amrut/{z}/{x}/{y}.pbf',
@@ -1469,7 +1469,7 @@ export const layersConfig = [
     {
         title: 'OSM Landuse Sites',
         description: 'High resolution landuse polygons for institutional sites and amenities from the OpenStreetMap project.',
-        headerImage: 'assets/map-layer-osm-landuse.png',
+        headerImage: 'assets/map-layers/map-layer-osm-landuse.png',
         type: 'vector',
         id: 'osm-sites',
         url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
@@ -1553,7 +1553,7 @@ export const layersConfig = [
     {
         title: 'OSM Landuse',
         description: 'High resolution landuse polygons from the OpenStreetMap project.',
-        headerImage: 'assets/map-layer-osm-landuse.png',
+        headerImage: 'assets/map-layers/map-layer-osm-landuse.png',
         type: 'vector',
         id: 'osm-landuse',
         url: 'https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt',
@@ -1684,7 +1684,7 @@ export const layersConfig = [
     {
         title: 'Landcover',
         description: 'Space based Information Support for Decentralized Planning (SISDP) Phase 2 10k Land Usage Land Cover data. Check the <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">SISDP technical manual</a> for background about the project and <a href="https://bhuvanpanchayat.nrsc.gov.in/SISDP/BP-lrdpwrdpmanual.pdf">Bhuvan Panchayat Portal User Manual</a> for more details.',
-        headerImage: 'assets/map-layer-landcover.png',
+        headerImage: 'assets/map-layers/map-layer-landcover.png',
         type: 'vector',
         id: 'landcover',
         url: 'https://indianopenmaps.fly.dev/not-so-open/landuse/10k/sisdpv2/bhuvan/{z}/{x}/{y}.pbf',
@@ -1804,7 +1804,7 @@ export const layersConfig = [
     {
         title: 'Geomorphological Lineaments',
         description: 'Geomorphological lineaments based on <a href="https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf">genesis based classification schema</a>.',
-        headerImage: 'assets/map-layer-lineament.png',
+        headerImage: 'assets/map-layers/map-layer-lineament.png',
         type: 'vector',
         id: 'lineament',
         url: 'https://indianopenmaps.fly.dev/not-so-open/lineament/50k/bhuvan/{z}/{x}/{y}.pbf',
@@ -1853,8 +1853,8 @@ export const layersConfig = [
     {
         title: 'Groundwater Prospects',
         description: 'Groundwater prospect maps prepared at 1:50k scale. Refer to the <a href="https://bhuvan-app1.nrsc.gov.in/gwis/docs/GW_Manual.pdf">methodology</a> and <a href="https://www.nrsc.gov.in/sites/default/files/pdf/ebooks/RGNationalDrinkingWater_UserManual.pdf">user manual</a> for more details. Check <a href"https://ingres.iith.ac.in/gecdataonline/gis/INDIA">INDIA-Groundwater Resource Estimation System (IN-GRES)</a> for taluk level groundwater assessment reports.<br>View  <a href="https://www.cgwb.gov.in/old_website/GW-Assessment/GWR-2022-Reports%20State/Goa.pdf">Dynamic Groundwater Report of Goa State 2022</a> | <a href="https://www.cgwb.gov.in/cgwbpnm/public/uploads/documents/1705640315968744698file.pdf">2024</a>.',
-        headerImage: 'assets/map-layer-groundwater.png',
-        legendImage: 'assets/map-layer-groundwater-legend.pdf',
+        headerImage: 'assets/map-layers/map-layer-groundwater.png',
+        legendImage: 'assets/map-layers/map-layer-groundwater-legend.pdf',
         type: 'vector',
         id: 'groundwater',
         url: ' https://indianopenmaps.fly.dev/not-so-open/groundwater-prospects/lgeom/bhuvan/{z}/{x}/{y}.pbf',
@@ -1905,7 +1905,7 @@ export const layersConfig = [
     {
         title: 'Geomorphological Ecozones',
         description: 'Geomorphological landforms based on <a href="https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf">genesis based classification schema</a>.',
-        headerImage: 'assets/map-layer-geomorphology.png',
+        headerImage: 'assets/map-layers/map-layer-geomorphology.png',
         type: 'vector',
         id: 'geomorphology',
         url: 'https://indianopenmaps.fly.dev/not-so-open/geomorphology/50k/bhuvan/{z}/{x}/{y}.pbf',
@@ -2002,7 +2002,7 @@ export const layersConfig = [
     {
         title: 'Goa Mask',
         description: 'Mask for the state of Goa',
-        headerImage: 'assets/map-layer-mask.png',
+        headerImage: 'assets/map-layers/map-layer-mask.png',
         type: 'vector',
         id: 'mask',
         url: 'https://indianopenmaps.fly.dev/not-so-open/states/lgd/{z}/{x}/{y}.pbf',
@@ -2037,8 +2037,8 @@ export const layersConfig = [
     {
         title: 'SOI Toposheets',
         description: 'Survey of India',
-        headerImage: 'assets/map-layer-soi.png',
-        legendImage: 'assets/map-layer-soi-legend.png',
+        headerImage: 'assets/map-layers/map-layer-soi.png',
+        legendImage: 'assets/map-layers/map-layer-soi-legend.png',
         type: 'tms',
         id: 'goa-soi-map',
         url: 'https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp',
@@ -2047,8 +2047,8 @@ export const layersConfig = [
     {
         title: 'Landuse Development Plans',
         description: 'Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href="https://tcp.goa.gov.in/">Goa Town & Country Planning Department</a> and <a href="https://tcp.goa.gov.in/regional-plan-for-goa-2021">notified</a> as per the <a href="https://indiankanoon.org/doc/3192342/">Goa TCP Act</a>',
-        headerImage: 'assets/map-layer-rdp.png',
-        legendImage: 'assets/map-layer-rdp-legend.jpg',
+        headerImage: 'assets/map-layers/map-layer-rdp.png',
+        legendImage: 'assets/map-layers/map-layer-rdp-legend.jpg',
         type: 'tms',
         id: 'regional-plan',
         url: 'https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png',
@@ -2058,8 +2058,8 @@ export const layersConfig = [
     {
         title: 'Coastal Zone Management Plan',
         description: 'Coastal Zone Management Plan 2019',
-        headerImage: 'assets/map-layer-czmp.png',
-        legendImage: 'assets/map-layer-czmp-legend.jpg',
+        headerImage: 'assets/map-layers/map-layer-czmp.png',
+        legendImage: 'assets/map-layers/map-layer-czmp-legend.jpg',
         type: 'tms',
         id: 'goa-czmp-map',
         url: 'https://indianopenmaps.fly.dev/not-so-open/coastal/goa/regulation/ncscm/{z}/{x}/{y}.webp',
@@ -2068,7 +2068,7 @@ export const layersConfig = [
     {
         title: 'AMS Maps (1970s)',
         description: '1:250000 maps from the U.S. Army Map Service created 1955-1970s',
-        headerImage: 'assets/map-layer-ams.png',
+        headerImage: 'assets/map-layers/map-layer-ams.png',
         type: 'tms',
         id: 'goa-ams-map',
         url: 'https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png',
@@ -2077,7 +2077,7 @@ export const layersConfig = [
     {
         title: 'Goa Admiralty Chart (1914)',
         description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4 for Eat India Company. Not current - not to be used for navigation!',
-        headerImage: 'assets/map-layer-1914-admiralty-chart.png',
+        headerImage: 'assets/map-layers/map-layer-1914-admiralty-chart.png',
         type: 'tms',
         id: '1914-admiralty-chart',
         url: 'https://warper.wmflabs.org/maps/tile/4749/{z}/{x}/{y}.png',
@@ -2086,7 +2086,7 @@ export const layersConfig = [
     {
         title: 'Atlas of India (1827-1906)',
         description: 'Historical atlas of India published in 1827-1906 by Survey of India',
-        headerImage: 'assets/map-layer-1906-india-atlas.png',
+        headerImage: 'assets/map-layers/map-layer-1906-india-atlas.png',
         type: 'tms',
         id: '1906-india-atlas',
         url: 'https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png',
@@ -2095,7 +2095,7 @@ export const layersConfig = [
     {
         title: 'Geological Map of India (1855)',
         description: 'General sketch of the physical and geological features of British India. Compiled by Greenough, George Bellas (1778-1855)',
-        headerImage: 'assets/map-layer-1855-geology.png',
+        headerImage: 'assets/map-layers/map-layer-1855-geology.png',
         type: 'tms',
         id: '1855-geology',
         url: 'https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png',
@@ -2104,7 +2104,7 @@ export const layersConfig = [
     {
         title: 'Lambtons Peninsular Survey  (1802-1814)',
         description: 'Historical trignometrical survey plans by Colnel William Lambton of the Peninsula of India',
-        headerImage: 'assets/map-layer-1814-lambton-survey.png',
+        headerImage: 'assets/map-layers/map-layer-1814-lambton-survey.png',
         type: 'tms',
         id: '1814-lambton-survey',
         url: 'https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png',
@@ -2113,7 +2113,7 @@ export const layersConfig = [
     {
         title: 'Robert Wilkinsons General Atlas  (1792)',
         description: 'Engraved by Thomas Conder and issued as plate no. 37 in the 1792 edition of Robert Wilkinsons General Atlas',
-        headerImage: 'assets/map-layer-1792-general-atlas.png',
+        headerImage: 'assets/map-layers/map-layer-1792-general-atlas.png',
         type: 'tms',
         id: '1792-general-atlas',
         url: 'https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png',
@@ -2122,7 +2122,7 @@ export const layersConfig = [
     {
         title: 'Goa Harbour Admiralty Chart (1775)',
         description: 'Nautical chart of the West Coast of India from Achra River to Cape Ramas. Surveyed by Lieut. A.D. Taylor 1853-4 for Eat India Company. Not current - not to be used for navigation!',
-        headerImage: 'assets/map-layer-1775-admiralty-chart.png',
+        headerImage: 'assets/map-layers/map-layer-1775-admiralty-chart.png',
         type: 'tms',
         id: '1775-admiralty-chart',
         url: 'https://warper.wmflabs.org/maps/tile/8717/{z}/{x}/{y}.png',
@@ -2132,7 +2132,7 @@ export const layersConfig = [
         id: 'osm',
         title: 'OpenStreetMap',
         description: 'OpenStreetMap Data',
-        headerImage: 'assets/map-layer-osm.png',
+        headerImage: 'assets/map-layers/map-layer-osm.png',
         type: 'tms',
         url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         description: 'Map data contributed by the <a href="https://www.openstreetmap.in/">OpenStreetMap India Community.</a>',
@@ -2142,7 +2142,7 @@ export const layersConfig = [
         title: 'Public Transport',
         id: 'bus',
         description: 'Bus route network operated by Kadamba Transport Corporation Limited (KTCL) in Goa as on January 2025.Bus route lines are scaled by trip count.',
-        headerImage: 'assets/map-layer-bus.png',
+        headerImage: 'assets/map-layers/map-layer-bus.png',
         type: 'img',
         url: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Goa_Bus_Network_Map_2025.png',
         bbox: [73.657, 14.863, 74.362, 15.861],
@@ -2151,7 +2151,7 @@ export const layersConfig = [
     {
         title: '3D Terrain',
         description: 'Terrain Controls',
-        headerImage: 'assets/map-layer-terrain.png',
+        headerImage: 'assets/map-layers/map-layer-terrain.png',
         type: 'terrain',
         initiallyChecked: true
     }
