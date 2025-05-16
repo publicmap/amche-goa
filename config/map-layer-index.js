@@ -63,10 +63,10 @@ export const layersConfig = [
             ],
             'line-color': [
                 'case',
-                ['boolean', ['feature-state', 'selected'], false],
-                'yellow',
                 ['boolean', ['feature-state', 'hover'], false],
                 'yellow',
+                ['boolean', ['feature-state', 'selected'], false],
+                'red',
                 [
                     'match',
                     ['get', 'kind'],
