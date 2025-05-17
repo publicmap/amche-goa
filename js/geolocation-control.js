@@ -4,6 +4,7 @@ class GeolocationManager {
         this.setupGeolocation();
         this.locationLabelSet = false;
         this.isTracking = false;
+        this.locationErrorCount = 0;
     }
 
     setupGeolocation() {
@@ -32,9 +33,56 @@ class GeolocationManager {
             $(window).off('deviceorientationabsolute', this.handleOrientation);
         });
 
+        // Handle geolocation errors
+        this.geolocate.on('error', (error) => {
+            this.locationErrorCount++;
+            console.warn('Geolocation error:', error);
+            
+            // Update the geolocate button to show error
+            const $geolocateButton = $('.mapboxgl-ctrl-geolocate');
+            if ($geolocateButton.length) {
+                // Remove any existing location text
+                $geolocateButton.find('span:not(.mapboxgl-ctrl-icon)').remove();
+                
+                // Add error message
+                let errorMessage = 'Location unavailable';
+                if (this.locationErrorCount > 1) {
+                    errorMessage += ' - Try moving to an open area';
+                }
+                
+                $('<span>', {
+                    text: errorMessage,
+                    css: { 
+                        marginLeft: '5px',
+                        color: '#d9534f' 
+                    }
+                }).appendTo($geolocateButton);
+                
+                // Style the button to indicate error
+                $geolocateButton.css({
+                    width: 'auto',
+                    minWidth: '30px',
+                    whiteSpace: 'nowrap',
+                    padding: '6px 10px'
+                });
+                
+                const $buttonParent = $geolocateButton.parent();
+                $buttonParent.css({
+                    minWidth: 'auto',
+                    width: 'auto'
+                });
+            }
+            
+            // Reset the error count after some time
+            setTimeout(() => {
+                this.locationErrorCount = 0;
+            }, 60000);
+        });
+
         // Handle successful geolocation
         this.geolocate.on('geolocate', async (event) => {
             this.lastPosition = event;
+            this.locationErrorCount = 0;
             
             // Set initial map position
             this.map.easeTo({

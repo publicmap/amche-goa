@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - amche.in</title>
+    <style>
+        body {
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .container {
+            max-width: 500px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+        p {
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff9800;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #f57c00;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>It looks like you don't have an internet connection right now. Some features of amche.in may not be available.</p>
+        <p>You can still access previously viewed maps and data that have been cached.</p>
+        <a href="/" class="button">Try Again</a>
+    </div>
+</body>
+</html> 

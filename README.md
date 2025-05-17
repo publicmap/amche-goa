@@ -20,7 +20,7 @@ providing a conducive environment to Indian Companies that will enable them to m
 producing and using their own Geospatial data /information as also compete with foreign companies in the
 global space.
 
-![](./assets/og_image.jpg)
+![](./assets/img/og_image.jpg)
 
 ## Background
 
