@@ -1321,6 +1321,43 @@ export const layersConfig = [
         }
     },
     {
+        title: 'Open Buildings',
+        description: 'Open data of AI generated building footprints from satellite imagery. For technical details see <a href="https://arxiv.org/abs/2107.12283">Continental-Scale Building Detection from High Resolution Satellite Imagery</a>.',
+        headerImage: 'assets/map-layers/map-layer-open-buildings.png',
+        type: 'vector',
+        id: 'open-buildings',
+        url: 'https://indianopenmaps.fly.dev/google-buildings/{z}/{x}/{y}.pbf',
+        sourceLayer: 'google_buildings',
+        maxzoom: 14,
+        attribution: 'CC-BY <a href="https://sites.research.google/open-buildings/">Google Open Buildings</a> - Collected by <a href="https://datameet.org">Datameet Community</a>',
+        style: {
+            'line-color': 'black',
+            'fill-color': 'black',
+            'fill-opacity': 1,
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                14, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    4,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    3,
+                    0
+                ],
+                18, [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    8,
+                    ['boolean', ['feature-state', 'hover'], false],
+                    5,
+                    .1
+                ]
+            ]
+        }
+    },
+    {
         title: 'Current Landuse Map (Panjim)',
         description: 'Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under <a http://164.100.87.10/DocumentOMs.aspx">Atal Mission for Rejuvenation and Urban Transformation (AMRUT)</a> at 1:4000 scale.',
         headerImage: 'assets/map-layers/map-layer-landuse-amrut.png',
