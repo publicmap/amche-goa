@@ -335,7 +335,14 @@ export class MapLayerControl {
                 }
             } else {
                 // Assume JSON format
-                config = JSON.parse(configText);
+                const jsonConfig = JSON.parse(configText);
+                
+                // Check if the config has a layersConfig property
+                if (jsonConfig.layersConfig && Array.isArray(jsonConfig.layersConfig)) {
+                    config = jsonConfig.layersConfig;
+                } else {
+                    config = jsonConfig; // Use the full object if no layersConfig property
+                }
             }
             
             // Update state with new config
