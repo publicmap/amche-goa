@@ -1392,13 +1392,13 @@ export class MapLayerControl {
                     this._map.addLayer({
                         id: layerId,
                         type: 'raster',
-                        source: sourceId,
-                        layout: {
-                            visibility: 'none'
-                        },
-                        paint: {
-                            'raster-opacity': group.opacity || 1
-                        }
+                                            source: sourceId,
+                    layout: {
+                        visibility: 'none'
+                    },
+                    paint: {
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
+                    }
                     }, this._getInsertPosition('tms'));
                 }
             } else if (group.type === 'vector') {
@@ -2057,7 +2057,7 @@ export class MapLayerControl {
                         visibility: 'visible'
                     },
                     paint: {
-                        'raster-opacity': group.opacity || 1
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
                     }
                 }, this._getInsertPosition('tms'));
             } else if (this._map.getLayer(layerId)) {
@@ -2401,10 +2401,10 @@ export class MapLayerControl {
                         layout: {
                             visibility: 'visible'
                         },
-                        paint: {
-                            'raster-opacity': group.opacity || 0.85,
-                            'raster-fade-duration': 0
-                        }
+                                            paint: {
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 0.85,
+                        'raster-fade-duration': 0
+                    }
                     }, this._getInsertPosition('img'));
                     
                     // Setup refresh timer if configured
@@ -3872,7 +3872,7 @@ export class MapLayerControl {
                     type: 'raster',
                     source: sourceId,
                     paint: {
-                        'raster-opacity': newConfig.opacity || 1
+                        'raster-opacity': newConfig.style?.['raster-opacity'] || newConfig.opacity || 1
                     },
                     layout: {
                         visibility: 'none'
