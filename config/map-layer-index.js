@@ -543,11 +543,11 @@ export const layersConfig = [
             ]
         },
         inspect: {
-            title: 'Ward Number',
-            label: 'wardcode',
+            title: 'Ward Name',
+            label: 'wardname',
             id: 'objectid',
-            fields: ['ulbname'],
-            fieldTitles: ['Urban Local Body']
+            fields: ['wardcode', 'ulbname'],
+            fieldTitles: ['Ward Code', 'Urban Local Body']
         }
     },
     {
@@ -1280,6 +1280,40 @@ export const layersConfig = [
                 location: 'Guirim'
             }
         ]
+    },
+    {
+        title: 'Mhadei Project',
+        description: 'Construction Project Sites',
+        headerImage: 'assets/map-layers/map-layer-construction.png',
+        type: 'geojson',
+        id: 'mhadei-project',
+        url: 'https://gist.githubusercontent.com/planemad/841266d3a44935383860dcb4d3c8e322/raw/03002a2ea4f029c39ca22b8865552b94c10435d9/mhadei-project.geojson',
+        attribution: 'Collected by <a href="https://gist.github.com/planemad/841266d3a44935383860dcb4d3c8e322">Amche Goa Community</a>',
+        style: {
+            'line-color': 'blue',
+            'fill-color': 'blue',
+            'fill-opacity': [
+                'match',
+                ['get', 'type'],
+                'reservoir',
+                0.6,
+                'catchment',
+                0.2,
+                0 
+            ],
+            'line-width': 5,
+            'line-opacity': 0.5,
+            'text-color': 'white',
+            'text-halo-color': 'blue',
+            'text-halo-width': 2,
+            'text-size': 12
+        },
+        inspect: {
+            title: 'Name',
+            label: 'name',
+            fields: ['type','description'],
+            fieldTitles: ['Type', 'Description']
+        }
     },
     {
         title: 'Construction Sites',

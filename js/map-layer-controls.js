@@ -1949,17 +1949,14 @@ export class MapLayerControl {
                     source: sourceId,
                     paint: {
                         'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
-                        'line-width': [
-                            'interpolate',
-                            ['linear'],
-                            ['zoom'],
-                            10, 1,  // At zoom level 10, line width will be 1
-                            16, 3,  // At zoom level 16, line width will be 3
-                            22, 5   // At zoom level 22, line width will be 5
-                        ]
+                        'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
+                        'line-opacity': group.style?.['line-opacity'] !== undefined ? group.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
+                        'line-dasharray': group.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
                     },
                     layout: {
-                        'visibility': 'visible'
+                        'visibility': 'visible',
+                        'line-join': 'round',
+                        'line-cap': 'round'
                     }
                 }, this._getInsertPosition('geojson', 'line'));
 
@@ -3801,12 +3798,16 @@ export class MapLayerControl {
                     source: sourceId,
                     paint: {
                         'line-color': newConfig.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
-                        'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width']
+                        'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
+                        'line-opacity': newConfig.style?.['line-opacity'] !== undefined ? newConfig.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
+                        'line-dasharray': newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
                     },
                     layout: {
-                        visibility: 'none'
+                        'visibility': 'visible',
+                        'line-join': 'round',
+                        'line-cap': 'round'
                     }
-                });
+                }, this._getInsertPosition('geojson', 'line'));
                 
                 // Add circle layer if circle properties are defined
                 if (newConfig.style?.['circle-radius'] || newConfig.style?.['circle-color']) {
