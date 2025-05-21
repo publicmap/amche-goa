@@ -11,170 +11,8 @@ export class MapLayerControl {
             groups: Array.isArray(options) ? options : [options]
         };
         
-        // Keep existing initialization code
-        this._defaultStyles = {
-            vector: {
-                fill: {
-                    'fill-color': '#FF0000',
-                    'fill-opacity': [
-                        'case',
-                        ['boolean', ['feature-state', 'selected'], false],
-                        0.2,
-                        ['boolean', ['feature-state', 'hover'], false],
-                        0.8,
-                        0.03
-                    ]
-                },
-                line: {
-                    'line-color':  [
-                        "case",
-                        [
-                          "boolean",
-                          [
-                            "feature-state",
-                            "hover"
-                          ],
-                          false
-                        ],
-                        "yellow",
-                        [
-                          "boolean",
-                          [
-                            "feature-state",
-                            "selected"
-                          ],
-                          false
-                        ],
-                        "red",
-                        "black"
-                      ],
-                    'line-width': [
-                        'interpolate',
-                        ['linear'],
-                        ['zoom'],
-                        10, [
-                            'case',
-                            ['boolean', ['feature-state', 'selected'], false],
-                            2,
-                            ['boolean', ['feature-state', 'hover'], false],
-                            1.5,
-                            0.5
-                        ],
-                        16, [
-                            'case',
-                            ['boolean', ['feature-state', 'selected'], false],
-                            4,
-                            ['boolean', ['feature-state', 'hover'], false],
-                            3,
-                            1
-                        ]
-                    ],
-                    'line-opacity': 1
-                },
-                text: {
-                    'text-color': '#000000',
-                    'text-halo-color': '#ffffff',
-                    'text-halo-width': 1,
-                    'text-opacity': [
-                        'case',
-                        ['boolean', ['feature-state', 'selected'], false],
-                        1,
-                        ['boolean', ['feature-state', 'hover'], false],
-                        0.9,
-                        0.7
-                    ]
-                },
-                circle: {
-                    'circle-radius': 5,
-                    'circle-color': '#FF0000',
-                    'circle-opacity': 0.8,
-                    'circle-stroke-width': 1,
-                    'circle-stroke-color': '#FFFFFF',
-                    'circle-stroke-opacity': 1,
-                    'circle-blur': 0,
-                    'circle-translate': [0, 0],
-                    'circle-translate-anchor': 'map',
-                    'circle-pitch-alignment': 'viewport',
-                    'circle-pitch-scale': 'map'
-                }
-            },
-            geojson: {
-                fill: {
-                    'fill-color': '#ff0000',
-                    'fill-opacity': 0.5
-                },
-                line: {
-                    'line-color': '#ff0000',
-                    'line-width': 2
-                },
-                text: {
-                    'text-field': ['get', 'name'],
-                    'text-size': 12,
-                    'text-color': '#000000',
-                    'text-halo-color': '#ffffff',
-                    'text-halo-width': 2,
-                    'text-offset': [0, 0],
-                    'text-anchor': 'center',
-                    'text-justify': 'center',
-                    'text-allow-overlap': false,
-                    'text-transform': 'none'
-                },
-                circle: {
-                    'circle-radius': 5,
-                    'circle-color': '#ff0000',
-                    'circle-opacity': 0.5,
-                    'circle-stroke-width': 1,
-                    'circle-stroke-color': '#ffffff',
-                    'circle-stroke-opacity': 1,
-                    'circle-blur': 0,
-                    'circle-translate': [0, 0],
-                    'circle-translate-anchor': 'map',
-                    'circle-pitch-alignment': 'viewport',
-                    'circle-pitch-scale': 'map'
-                }
-            },
-            markers: {
-                circle: {
-                    'circle-radius': 6,
-                    'circle-color': '#FF0000',
-                    'circle-opacity': 0.9,
-                    'circle-stroke-width': 1,
-                    'circle-stroke-color': '#ffffff',
-                    'circle-stroke-opacity': 1,
-                    'circle-blur': 0,
-                    'circle-translate': [0, 0],
-                    'circle-translate-anchor': 'map',
-                    'circle-pitch-alignment': 'viewport',
-                    'circle-pitch-scale': 'map'
-                }
-            },
-            csv: {
-                circle: {
-                    'circle-radius': 5,
-                    'circle-color': '#3887be',
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 1.5,
-                    'circle-stroke-color': '#ffffff',
-                    'circle-stroke-opacity': 1,
-                    'circle-blur': 0,
-                    'circle-translate': [0, 0],
-                    'circle-translate-anchor': 'map',
-                    'circle-pitch-alignment': 'viewport',
-                    'circle-pitch-scale': 'map'
-                }
-            },
-            terrain: {
-                exaggeration: 1.5,
-                fog: {
-                    range: [-1, 2],
-                    'horizon-blend': 0.3,
-                    color: '#ffffff',
-                    'high-color': '#add8e6',
-                    'space-color': '#d8f2ff',
-                    'star-intensity': 0.0
-                }
-            }
-        };
+        // Default styles will be loaded from config/default.json styles object
+        this._defaultStyles = {}; 
         
         this._domCache = {};
         this._instanceId = (MapLayerControl.instances || 0) + 1;
@@ -194,6 +32,30 @@ export class MapLayerControl {
 
         this._activeHoverFeatures = new Map(); // Store currently hovered features across layers
         this._consolidatedHoverPopup = null;
+        
+        // Load default styles
+        this._loadDefaultStyles();
+    }
+    
+    // Load default styles from default.json instead of default-styles.json
+    async _loadDefaultStyles() {
+        try {
+            const response = await fetch('/config/default.json');
+            if (!response.ok) {
+                throw new Error(`Failed to load default styles: ${response.status} ${response.statusText}`);
+            }
+            const defaultConfig = await response.json();
+            // Use the styles object from default.json
+            if (defaultConfig.styles) {
+                this._defaultStyles = defaultConfig.styles;
+                console.log('Default styles loaded successfully from default.json');
+            } else {
+                throw new Error('No styles found in default.json');
+            }
+        } catch (error) {
+            console.error('Error loading default styles:', error);
+            // Fallback to empty styles object, features will use their own defaults
+        }
     }
 
     // Add new state management methods
@@ -372,13 +234,18 @@ export class MapLayerControl {
         } catch (error) {
             console.error('Error loading external config:', error);
             alert('Failed to load external configuration. Please check the console for details.');
+            // Rethrow to allow caller to handle the error
+            throw error;
         }
     }
 
     // Update the render method to handle initial config URL
-    renderToContainer(container, map) {
+    async renderToContainer(container, map) {
         this._container = container;
         this._map = map;
+        
+        // Make sure default styles are loaded before proceeding
+        await this._ensureDefaultStylesLoaded();
         
         // Check for config URL in query params
         const params = new URLSearchParams(window.location.search);
@@ -391,15 +258,15 @@ export class MapLayerControl {
                 `/config/${configUrl}.json`;
             
             // Load external config first
-            this.loadExternalConfig(configPath).then(() => {
-                if (this._map.isStyleLoaded()) {
+            await this.loadExternalConfig(configPath);
+            
+            if (this._map.isStyleLoaded()) {
+                this._initializeControl($(container));
+            } else {
+                this._map.on('style.load', () => {
                     this._initializeControl($(container));
-                } else {
-                    this._map.on('style.load', () => {
-                        this._initializeControl($(container));
-                    });
-                }
-            });
+                });
+            }
         } else {
             // Proceed with normal initialization
             if (this._map.isStyleLoaded()) {
@@ -412,6 +279,17 @@ export class MapLayerControl {
         }
         
         $(container).append($('<div>', { class: 'layer-control' }));
+    }
+    
+    // Ensure default styles are loaded before proceeding with initialization
+    async _ensureDefaultStylesLoaded() {
+        // If styles are already loaded, return
+        if (Object.keys(this._defaultStyles).length > 0) {
+            return;
+        }
+        
+        // Wait for styles to load
+        await this._loadDefaultStyles();
     }
 
     _initializeShareLink() {
