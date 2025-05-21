@@ -9,10 +9,10 @@ function getUrlParameter(name) {
 // Function to load configuration
 async function loadConfiguration() {
     // Check if there's a custom config URL in the URL parameters
-    const configUrl = getUrlParameter('config');
+    const configUrl = getUrlParameter('config') || 'default';
     
     // Choose the config source - either from URL parameter or the default JSON file
-    const configSource = configUrl || '/config/map-layer-index.json';
+    const configSource = configUrl.startsWith('http') ? configUrl : `/config/${configUrl}.json`;
     
     try {
         const response = await fetch(configSource);

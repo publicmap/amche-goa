@@ -364,8 +364,13 @@ export class MapLayerControl {
         const configUrl = params.get('config');
         
         if (configUrl) {
+            // Construct the proper config URL (match logic in map-init.js)
+            const configPath = configUrl.startsWith('http') ? 
+                configUrl.replace('@', '') : 
+                `/config/${configUrl}.json`;
+            
             // Load external config first
-            this.loadExternalConfig(configUrl.replace('@', '')).then(() => {
+            this.loadExternalConfig(configPath).then(() => {
                 if (this._map.isStyleLoaded()) {
                     this._initializeControl($(container));
                 } else {
