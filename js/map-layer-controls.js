@@ -26,7 +26,28 @@ export class MapLayerControl {
                     ]
                 },
                 line: {
-                    'line-color': 'green',
+                    'line-color':  [
+                        "case",
+                        [
+                          "boolean",
+                          [
+                            "feature-state",
+                            "hover"
+                          ],
+                          false
+                        ],
+                        "yellow",
+                        [
+                          "boolean",
+                          [
+                            "feature-state",
+                            "selected"
+                          ],
+                          false
+                        ],
+                        "red",
+                        "black"
+                      ],
                     'line-width': [
                         'interpolate',
                         ['linear'],
@@ -1476,7 +1497,7 @@ export class MapLayerControl {
                                 visibility: 'none'
                             },
                             paint: {
-                                'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
+                                'line-color': this._combineWithDefaultStyle(group.style?.['line-color'], this._defaultStyles.vector.line['line-color']),
                                 'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
                                 'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                             }
@@ -1960,7 +1981,7 @@ export class MapLayerControl {
                     type: 'line',
                     source: sourceId,
                     paint: {
-                        'line-color': group.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
+                        'line-color': this._combineWithDefaultStyle(group.style?.['line-color'], this._defaultStyles.geojson.line['line-color']),
                         'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': group.style?.['line-opacity'] !== undefined ? group.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
                         'line-dasharray': group.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
@@ -2160,7 +2181,7 @@ export class MapLayerControl {
                             visibility: 'visible'
                         },
                         paint: {
-                            'line-color': group.style?.['line-color'] || this._defaultStyles.vector.line['line-color'],
+                            'line-color': this._combineWithDefaultStyle(group.style?.['line-color'], this._defaultStyles.vector.line['line-color']),
                             'line-width': group.style?.['line-width'] || this._defaultStyles.vector.line['line-width'],
                             'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                         }
@@ -3730,8 +3751,8 @@ export class MapLayerControl {
                         source: sourceId,
                         'source-layer': newConfig.sourceLayer,
                         paint: {
-                            'line-color': newConfig.style['line-color'] || this._defaultStyles.vector.line['line-color'],
-                            'line-width': newConfig.style['line-width'] || this._defaultStyles.vector.line['line-width']
+                            'line-color': this._combineWithDefaultStyle(newConfig.style?.['line-color'], this._defaultStyles.vector.line['line-color']),
+                            'line-width': newConfig.style?.['line-width'] || this._defaultStyles.vector.line['line-width']
                         },
                         layout: {
                             visibility: 'none'
@@ -3809,7 +3830,7 @@ export class MapLayerControl {
                     type: 'line',
                     source: sourceId,
                     paint: {
-                        'line-color': newConfig.style?.['line-color'] || this._defaultStyles.geojson.line['line-color'],
+                        'line-color': this._combineWithDefaultStyle(newConfig.style?.['line-color'], this._defaultStyles.geojson.line['line-color']),
                         'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': newConfig.style?.['line-opacity'] !== undefined ? newConfig.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
                         'line-dasharray': newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
@@ -4168,6 +4189,23 @@ export class MapLayerControl {
             img.src = url;
             
         }, group.refresh);
+    }
+
+    _combineWithDefaultStyle(userColor, defaultStyleExpression) {
+        // If no user color is provided, return the default style unchanged
+        if (!userColor) return defaultStyleExpression;
+        
+        // If default style is not an expression (just a simple color), return user color
+        if (!Array.isArray(defaultStyleExpression)) return userColor;
+        
+        // Clone the default style expression to avoid modifying the original
+        const result = JSON.parse(JSON.stringify(defaultStyleExpression));
+        
+        // Replace the last value in the case expression (fallback color)
+        // For line-color, this would replace the 'black' value
+        result[result.length - 1] = userColor;
+        
+        return result;
     }
 }
 
