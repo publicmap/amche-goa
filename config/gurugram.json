@@ -13,7 +13,7 @@
       "description": "Detailed street map sourced from <a href='https://www.openstreetmap.org/#map=11/15.4054/73.9280' target='_blank'>OpenStreetMap contributors</a> and other data sources via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/' target='_blank'>Mapbox Streets</a> vector tiles.",
       "type": "style",
       "headerImage": "assets/map-layers/map-layer-mapbox-streets.png",
-      "initiallyChecked": false,
+      "initiallyChecked": true,
       "layers": [
         {
           "title": "Places Labels",
@@ -370,6 +370,109 @@
           "Village",
           "Taluk",
           "District"
+        ]
+      }
+    },
+    {
+      "id": "municipal-wards",
+      "title": "Municipal Ward Boundaries",
+      "headerImage": "assets/map-layers/map-layer-ulb-wards.png",
+      "description": "Ward boundaries for Panaji Municipal Corporation and Municipal Councils (partial coverage)",
+      "type": "vector",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/urban/wards/sbm/{z}/{x}/{y}.pbf",
+      "sourceLayer": "SBM_Wards",
+      "maxzoom": 12,
+      "attribution": "<a href=\"https://sbm-g-esriindia1.hub.arcgis.com/\">Swachh Bharat Mission GIS</a> - Collected by <a href=\"https://datameet.org\">Datameet Community</a>",
+      "style": {
+        "text-field": [
+          "get",
+          "wardcode"
+        ],
+        "text-color": "white",
+        "text-halo-color": "purple",
+        "text-halo-width": 5,
+        "text-size": 13,
+        "fill-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          16,
+          "rgba(0, 0, 0, 0.05)",
+          18,
+          "rgba(0, 0, 0, 0.1)"
+        ],
+        "line-color": "hsl(278, 82%, 57%)",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            4,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            4,
+            1
+          ],
+          18,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            6,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            5,
+            0.5
+          ]
+        ]
+      },
+      "inspect": {
+        "title": "Ward Name",
+        "label": "wardname",
+        "id": "objectid",
+        "fields": [
+          "wardcode",
+          "ulbname"
+        ],
+        "fieldTitles": [
+          "Ward Code",
+          "Urban Local Body"
         ]
       }
     },
@@ -806,75 +909,14 @@
       }
     },
     {
-      "title": "GMLR Project Plan",
-      "description": "Detailed project plan of Goregaon-Mulund Link Road Project",
-      "headerImage": "assets/map-layers/map-layer-gmlr.png",
+      "title": "Gurgaon Master Plan 2031",
+      "description": "Gurgaon Master Plan 2031 from TCP Haryana",
+      "headerImage": "assets/map-layers/gurugram/map-layer-gurugram-plan-2034.png",
+      "legendImage": "assets/map-layers/gurugram/map-layer-gurugram-plan-2034-legend.png",
       "type": "tms",
-      "id": "gmlr-project-plan",
-      "url": "https://mapwarper.net/maps/tile/92974/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.scribd.com/document/468036054/GMLR-EC-Report-pdf'>Proposed flyover at Hedgewar Chowk - MCGM GMLR Project</a> via <a href='https://mapwarper.net/maps/92974'>Map Warper</a>",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          6,
-          0.95,
-          18,
-          0.8,
-          19,
-          0.3
-        ]
-      }
-    },
-    {
-      "title": "BMC T Ward - 2034 DP",
-      "description": "Sanctioned Development Plan of BMC T Ward (Mulund) from MCGM DP 2034",
-      "headerImage": "assets/map-layers/map-layer-gmlr.png",
-      "type": "tms",
-      "id": "dp-2034",
-      "url": "https://mapwarper.net/maps/tile/34909/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC DP 2034</a> via <a href='https://mapwarper.net/maps/34909'>Map Warper</a>"
-    },
-    {
-      "title": "BMC T Ward - 1991 SRDP",
-      "description": "Sanctioned Development Plan of BMC T Ward (Mulund from MCGM SRDP (1991-2011)",
-      "headerImage": "assets/map-layers/map-layer-gmlr.png",
-      "type": "tms",
-      "id": "dp-1991",
-      "url": "https://mapwarper.net/maps/tile/67753/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
-    },
-    {
-      "initiallyChecked": true,
-      "title": "Bombay Guide Map (1933)",
-      "description": "Published under the direction of Colner H.J.Couchman, Officiating Surveyor General of India, 1933",
-      "headerImage": "assets/map-layers/map-layer-1933-bombay-guide.png",
-      "type": "tms",
-      "id": "1933-bombay-guide",
-      "url": "https://mapwarper.net/maps/tile/29682/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.geographicus.com/P/AntiqueMap/Bombay-surveyindia-1933'>Survey Of India</a> via <a href='https://mapwarper.net/maps/29682'>Map Warper</a>",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          6,
-          0.95,
-          15,
-          0.8,
-          16,
-          0.3
-        ]
-      }
+      "id": "gurugram-plan-2034",
+      "url": "https://mapwarper.net/maps/tile/58486/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://tcpharyana.gov.in/Development_Plan/ColouredCopy/GMUC_DDP_2031.pdf'>https://tcpharyana.gov.in/Development_Plan/ColouredCopy/GMUC_DDP_2031.pdf</a> via <a href='https://mapwarper.net/maps/58486'>Map Warper</a>"
     },
     {
       "title": "Atlas of India (1827-1906)",
@@ -908,15 +950,6 @@
       "id": "1855-geology",
       "url": "https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png",
       "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain"
-    },
-    {
-      "title": "Robert Wilkinsons General Atlas  (1792)",
-      "description": "Engraved by Thomas Conder and issued as plate no. 37 in the 1792 edition of Robert Wilkinsons General Atlas",
-      "headerImage": "assets/map-layers/map-layer-1792-general-atlas.png",
-      "type": "tms",
-      "id": "1792-general-atlas",
-      "url": "https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png'>Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
     },
     {
       "id": "osm",
