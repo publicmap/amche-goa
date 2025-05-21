@@ -90,7 +90,6 @@
       "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",
       "sourceLayer": "streets",
       "maxzoom": 15,
-      "initiallyChecked": true,
       "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a> via <a href='https://shortbread-tiles.org/schema/1.0/'>Shortbread vector tiles</a>",
       "filter": [
         "match",
@@ -366,7 +365,6 @@
           ]
         ]
       },
-      "initiallyChecked": false,
       "inspect": {
         "id": "OBJECTID",
         "title": "Survey Number",
@@ -862,13 +860,31 @@
       "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
     },
     {
-      "title": "AMS Maps (1970s)",
-      "description": "1:250000 maps from the U.S. Army Map Service created 1955-1970s",
-      "headerImage": "assets/map-layers/map-layer-ams.png",
+      "initiallyChecked": true,
+      "title": "Bombay Guide Map (1933)",
+      "description": "Published under the direction of Colner H.J.Couchman, Officiating Surveyor General of India, 1933",
+      "headerImage": "assets/map-layers/map-layer-1933-bombay-guide.png",
       "type": "tms",
-      "id": "goa-ams-map",
-      "url": "https://mapwarper.net/maps/tile/89833/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://maps.lib.utexas.edu/maps/ams/india/'>Perry-Castañeda Library Map Collection, The University of Texas at Austin</a> released in public domain"
+      "id": "1933-bombay-guide",
+      "url": "https://mapwarper.net/maps/tile/29682/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://www.geographicus.com/P/AntiqueMap/Bombay-surveyindia-1933'>Survey Of India</a> via <a href='https://mapwarper.net/maps/29682'>Map Warper</a>",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          6,
+          0.95,
+          15,
+          0.8,
+          16,
+          0.3
+        ]
+      }
     },
     {
       "title": "Atlas of India (1827-1906)",
@@ -919,8 +935,7 @@
       "headerImage": "assets/map-layers/map-layer-osm.png",
       "type": "tms",
       "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a>",
-      "initiallyChecked": true
+      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a>"
     },
     {
       "title": "3D Terrain",
