@@ -317,7 +317,7 @@ export class MapLayerControl {
                     // Create a new Function that returns the array directly
                     const extractConfig = new Function(`
                         ${configText}
-                        return layersConfig;
+                        return layers;
                     `);
                     
                     // Execute the function to get the config
@@ -335,7 +335,14 @@ export class MapLayerControl {
                 }
             } else {
                 // Assume JSON format
-                config = JSON.parse(configText);
+                const jsonConfig = JSON.parse(configText);
+                
+                // Check if the config has a layers property
+                if (jsonConfig.layers && Array.isArray(jsonConfig.layers)) {
+                    config = jsonConfig.layers;
+                } else {
+                    config = jsonConfig; // Use the full object if no layers property
+                }
             }
             
             // Update state with new config
@@ -357,8 +364,13 @@ export class MapLayerControl {
         const configUrl = params.get('config');
         
         if (configUrl) {
+            // Construct the proper config URL (match logic in map-init.js)
+            const configPath = configUrl.startsWith('http') ? 
+                configUrl.replace('@', '') : 
+                `/config/${configUrl}.json`;
+            
             // Load external config first
-            this.loadExternalConfig(configUrl.replace('@', '')).then(() => {
+            this.loadExternalConfig(configPath).then(() => {
                 if (this._map.isStyleLoaded()) {
                     this._initializeControl($(container));
                 } else {
@@ -1385,13 +1397,13 @@ export class MapLayerControl {
                     this._map.addLayer({
                         id: layerId,
                         type: 'raster',
-                        source: sourceId,
-                        layout: {
-                            visibility: 'none'
-                        },
-                        paint: {
-                            'raster-opacity': group.opacity || 1
-                        }
+                                            source: sourceId,
+                    layout: {
+                        visibility: 'none'
+                    },
+                    paint: {
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
+                    }
                     }, this._getInsertPosition('tms'));
                 }
             } else if (group.type === 'vector') {
@@ -2050,7 +2062,7 @@ export class MapLayerControl {
                         visibility: 'visible'
                     },
                     paint: {
-                        'raster-opacity': group.opacity || 1
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
                     }
                 }, this._getInsertPosition('tms'));
             } else if (this._map.getLayer(layerId)) {
@@ -2394,10 +2406,10 @@ export class MapLayerControl {
                         layout: {
                             visibility: 'visible'
                         },
-                        paint: {
-                            'raster-opacity': group.opacity || 0.85,
-                            'raster-fade-duration': 0
-                        }
+                                            paint: {
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 0.85,
+                        'raster-fade-duration': 0
+                    }
                     }, this._getInsertPosition('img'));
                     
                     // Setup refresh timer if configured
@@ -3865,7 +3877,7 @@ export class MapLayerControl {
                     type: 'raster',
                     source: sourceId,
                     paint: {
-                        'raster-opacity': newConfig.opacity || 1
+                        'raster-opacity': newConfig.style?.['raster-opacity'] || newConfig.opacity || 1
                     },
                     layout: {
                         visibility: 'none'
