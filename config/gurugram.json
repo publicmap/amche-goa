@@ -108,28 +108,7 @@
         false
       ],
       "style": {
-        "line-opacity": [
-          "case",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
-          ],
-          0.95,
-          [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
-          ],
-          0.6,
-          0.5
-        ],
+        "line-opacity": 0.9,
         "line-color": [
           "match",
           [
@@ -143,42 +122,11 @@
           "blue"
         ],
         "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          11,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            5,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            [
-              "case",
-              ["has",
-              "service"],
-              1,
-              5
-            ]
-          ]
+          "case",
+          ["has",
+          "service"],
+          1,
+          5
         ]
       },
       "inspect": {
@@ -226,28 +174,7 @@
         true
       ],
       "style": {
-        "line-opacity": [
-          "case",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
-          ],
-          0.95,
-          [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
-          ],
-          0.6,
-          0.5
-        ],
+        "line-opacity": 0.8,
         "line-color": 
           [
             "match",
@@ -256,95 +183,60 @@
               "kind"
             ],
             [
-              "motorway",
-              "trunk"
+              "motorway"              
             ],
             "maroon",
             [
-              "primary",
+              "trunk",
+              "primary"
+            ],
+            "brown",
+            [
               "secondary",
               "tertiary"
             ],
-            "darkred",
+            "orangered",
             [
               "residential",
               "living_street",
               "unclassified",
               "service"
             ],
-            "brown",
-            [
-              "pedestrian",
-              "footway",
-              "path",
-              "track"
-            ],
-            "red",
+            "orange",
             "black"
         ],
         "line-width": [
-          "interpolate",
+          "match",
           [
-            "linear"
+            "get",
+            "kind"
           ],
           [
-            "zoom"
+            "motorway"
           ],
-          11,
+          4,
           [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            5,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            [
-              "match",
-              [
-                "get",
-                "kind"
-              ],
-              [
-                "motorway"
-              ],
-              5,
-              [
-                "trunk"
-              ],
-              3,
-              [
-                "primary"
-              ],
-              3,
-              [
-                "secondary"
-              ],
-              3,
-              [
-                "tertiary"
-              ],
-              2,
-              [
-                "residential",
-                "unclassified"
-              ],
-              1.5,
-              1
-            ]
-          ]
+            "trunk"
+          ],
+          3,
+          [
+            "primary"
+          ],
+          2,
+          [
+            "secondary"
+          ],
+          2,
+          [
+            "tertiary"
+          ],
+          1.5,
+          [
+            "residential",
+            "unclassified"
+          ],
+          1.5,
+          0.8
         ]
       },
       "inspect": {
