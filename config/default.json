@@ -1,5 +1,5 @@
 {
-    "layersConfig": [
+    "layers": [
       {
         "id": "mapbox-streets",
         "title": "Street Map रस्त्याचो नकासो",

@@ -317,7 +317,7 @@ export class MapLayerControl {
                     // Create a new Function that returns the array directly
                     const extractConfig = new Function(`
                         ${configText}
-                        return layersConfig;
+                        return layers;
                     `);
                     
                     // Execute the function to get the config
@@ -337,11 +337,11 @@ export class MapLayerControl {
                 // Assume JSON format
                 const jsonConfig = JSON.parse(configText);
                 
-                // Check if the config has a layersConfig property
-                if (jsonConfig.layersConfig && Array.isArray(jsonConfig.layersConfig)) {
-                    config = jsonConfig.layersConfig;
+                // Check if the config has a layers property
+                if (jsonConfig.layers && Array.isArray(jsonConfig.layers)) {
+                    config = jsonConfig.layers;
                 } else {
-                    config = jsonConfig; // Use the full object if no layersConfig property
+                    config = jsonConfig; // Use the full object if no layers property
                 }
             }
             
