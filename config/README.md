@@ -1,4 +1,4 @@
-# Amche Goa Map Configuration Guide
+# Map and Layer Configuration Guide
 
 This document explains how to create and test your own custom map configuration for Amche Goa.
 
