@@ -130,7 +130,18 @@
           0.6,
           0.5
         ],
-        "line-color": "blue",
+        "line-color": [
+          "match",
+          [
+            "get",
+            "kind"
+          ],
+          [
+            "rail"
+          ],
+          "black",
+          "blue"
+        ],
         "line-width": [
           "interpolate",
           [
@@ -161,37 +172,11 @@
             ],
             5,
             [
-              "match",
-              [
-                "get",
-                "kind"
-              ],
-              [
-                "motorway"
-              ],
-              5,
-              [
-                "trunk"
-              ],
-              3,
-              [
-                "primary"
-              ],
-              3,
-              [
-                "secondary"
-              ],
-              3,
-              [
-                "tertiary"
-              ],
-              2,
-              [
-                "residential",
-                "unclassified"
-              ],
-              1.5,
-              1
+              "case",
+              ["has",
+              "service"],
+              1,
+              5
             ]
           ]
         ]
@@ -263,26 +248,7 @@
           0.6,
           0.5
         ],
-        "line-color": [
-          "case",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
-          ],
-          "yellow",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
-          ],
-          "red",
+        "line-color": 
           [
             "match",
             [
@@ -315,7 +281,6 @@
             ],
             "red",
             "black"
-          ]
         ],
         "line-width": [
           "interpolate",
@@ -396,14 +361,14 @@
     },
     {
       "title": "Cadastral Plot Boundaries",
-      "description": "Cadastral Boundaries from the <a href='Directorate of Settlement & Land Records'>Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href='https://goaonline.gov.in' target='_blank' rel='noopener noreferrer'>Goa Online</a>",
+      "description": "Cadastral boundaries for Haryana. The map is provided for information purpose only. An official copy can be obtained from <a href='https://hsac.org.in/eodb/#' target='_blank' rel='noopener noreferrer'>Digital Land Record, Haryana</a>",
       "headerImage": "assets/map-layers/map-layer-survey.png",
       "type": "vector",
       "id": "plot",
-      "url": "https://indianopenmaps.fly.dev/not-so-open/cadastrals/maharashtra/coastal/ncscm/{z}/{x}/{y}.pbf",
-      "sourceLayer": "NCSCM_MH_Cadastrals",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/cadastrals/haryana/hrsac/{z}/{x}/{y}.pbf",
+      "sourceLayer": "HRSAC_HR_Cadastrals",
       "maxzoom": 14,
-      "attribution": "<a href='https://github.com/ramSeraph/indian_cadastrals/releases/tag/maharashtra'>OneMapGoa GIS</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "attribution": "<a href='https://hsac.org.in/eodb/'>Haryana Space Applications Center</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
       "style": {
         "text-font": [
           "Open Sans Bold"
@@ -500,19 +465,19 @@
       },
       "inspect": {
         "id": "OBJECTID",
-        "title": "Survey Number",
-        "label": "Survey_Number",
+        "title": "Survey/Khasra Number",
+        "label": "n_khas_no",
         "fields": [
-          "Ward",
-          "Village",
-          "Taluk",
-          "Remarks"
+          "n_murr_no",
+          "n_v_name",
+          "n_t_name",
+          "n_d_name"
         ],
         "fieldTitles": [
-          "Ward",
+          "Murr No.",
           "Village",
           "Taluk",
-          "Remarks"
+          "District"
         ]
       }
     },
