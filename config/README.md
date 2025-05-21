@@ -28,6 +28,9 @@ The main structure of the configuration file is:
       "attribution": "Attribution information",
       "style": {
         // Style properties
+      },
+      "inspect": {
+        // Popup configuration (see Inspect Popups section)
       }
     },
     // More layers...
@@ -72,6 +75,51 @@ You can also use expressions for dynamic styling:
 ```
 
 For styling and expression schema reference see https://docs.mapbox.com/style-spec/reference/layers/ and https://docs.mapbox.com/style-spec/reference/expressions/
+
+### Inspect Popups
+
+The `inspect` property configures what information appears in the popup when a user clicks on a feature. This is a powerful way to display attribute data to users.
+
+```json
+"inspect": {
+  "id": "property_name",           // Property to use as unique identifier
+  "title": "Popup Title",          // Title displayed at the top of the popup
+  "label": "property_for_label",   // Property to use as the main label
+  "fields": [                      // Array of properties to display
+    "property1",
+    "property2",
+    "property3"
+  ],
+  "fieldTitles": [                 // Human-readable titles for the fields
+    "Property 1 Label",
+    "Property 2 Label",
+    "Property 3 Label"
+  ],
+  "customHtml": "<a href=\"https://example.com/\">Custom link</a>" // Optional custom HTML
+}
+```
+
+Example of an `inspect` configuration for a roads layer:
+
+```json
+"inspect": {
+  "id": "kind",
+  "title": "Road Information",
+  "label": "name",
+  "fields": [
+    "kind",
+    "surface",
+    "lanes"
+  ],
+  "fieldTitles": [
+    "Road Type",
+    "Surface Type",
+    "Number of Lanes"
+  ]
+}
+```
+
+This would create a popup that shows the road name prominently, followed by its type, surface material, and number of lanes.
 
 ## Step-by-Step Guide
 
