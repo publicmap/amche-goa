@@ -49,9 +49,8 @@ async function initializeMap() {
     // Apply map settings from config if available
     const mapOptions = { ...defaultMapOptions };
     if (config.map) {
-        if (config.map.center) mapOptions.center = config.map.center;
-        if (config.map.zoom) mapOptions.zoom = config.map.zoom;
-        // Add any other map options from config as needed
+        // Apply all properties from config.map to mapOptions
+        Object.assign(mapOptions, config.map);
     }
     
     const map = new mapboxgl.Map(mapOptions);
