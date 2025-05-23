@@ -4,6 +4,28 @@ import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
 import { fixLayerOrdering } from './layer-order-manager.js';
 
+// Move deepMerge and isObject outside the class
+function deepMerge(target, source) {
+    const output = Object.assign({}, target);
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target))
+                    Object.assign(output, { [key]: source[key] });
+                else
+                    output[key] = deepMerge(target[key], source[key]);
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    return output;
+}
+
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
 export class MapLayerControl {
     constructor(options) {
         // Add state management properties
@@ -11,7 +33,7 @@ export class MapLayerControl {
             groups: Array.isArray(options) ? options : [options]
         };
         
-        // Default styles will be loaded from config/default.json styles object
+        // Default styles will be loaded from config/index.json styles object
         this._defaultStyles = {}; 
         
         this._domCache = {};
@@ -37,24 +59,54 @@ export class MapLayerControl {
         this._loadDefaultStyles();
     }
     
-    // Load default styles from default.json instead of default-styles.json
+    // Load default styles from index.json instead of default-styles.json
     async _loadDefaultStyles() {
         try {
-            const response = await fetch('/config/default.json');
-            if (!response.ok) {
-                throw new Error(`Failed to load default styles: ${response.status} ${response.statusText}`);
+            // Load and merge both config files
+            const defaultsResponse = await fetch('/config/_defaults.json');
+            const configResponse = await fetch('/config/index.json');
+            
+            if (!defaultsResponse.ok || !configResponse.ok) {
+                throw new Error('Failed to load configuration files');
             }
-            const defaultConfig = await response.json();
-            // Use the styles object from default.json
-            if (defaultConfig.styles) {
-                this._defaultStyles = defaultConfig.styles;
-                console.log('Default styles loaded successfully from default.json');
+
+            const defaults = await defaultsResponse.json();
+            const config = await configResponse.json();
+
+            // Add debugging to see the actual structure
+            console.debug('Defaults structure:', defaults);
+            console.debug('Config structure:', config);
+
+            // Get styles from _defaults.json - check for different possible structures
+            if (defaults.layer && defaults.layer.style) {
+                this._defaultStyles = defaults.layer.style;
+            } else if (defaults.style) {
+                this._defaultStyles = defaults.style;
+            } else if (defaults.styles) {
+                this._defaultStyles = defaults.styles;
             } else {
-                throw new Error('No styles found in default.json');
+                console.warn('Could not find styles in defaults structure:', Object.keys(defaults));
+                this._defaultStyles = {};
             }
+            
+            // If config has style overrides, merge them (but don't let them override defaults)
+            if (config.styles) {
+                this._defaultStyles = deepMerge(config.styles, this._defaultStyles); 
+            }
+
+            console.debug('Final styles configuration:', this._defaultStyles);
+            
         } catch (error) {
             console.error('Error loading default styles:', error);
-            // Fallback to empty styles object, features will use their own defaults
+            // Set minimal fallback default styles for critical properties
+            this._defaultStyles = {
+                vector: {
+                    fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
+                    line: { 'line-color': '#000000', 'line-width': 1 },
+                    text: { 'text-color': '#000000', 'text-halo-width': 1 },
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000' }
+                }
+            };
         }
     }
 
@@ -1476,7 +1528,6 @@ export class MapLayerControl {
                 if (group.initiallyChecked) {
                     // Use requestAnimationFrame to ensure DOM is fully initialized
                     requestAnimationFrame(() => {
-                        console.log(`Setting up initially-visible image layer: ${group.id}`);
                         this._toggleSourceControl(groupIndex, true);
                     });
                 }
@@ -1488,7 +1539,6 @@ export class MapLayerControl {
                     // If layer is in URL parameter list, toggle it on
                     if (activeLayers.includes(group.id)) {
                         requestAnimationFrame(() => {
-                            console.log(`Setting up image layer from URL param: ${group.id}`);
                             this._toggleSourceControl(groupIndex, true);
                         });
                     }
@@ -2247,16 +2297,6 @@ export class MapLayerControl {
                     return;
                 }
                 
-                console.log(`Image layer ${group.id} URL: ${group.url}`);
-                console.log(`Group properties:`, {
-                    id: group.id,
-                    title: group.title,
-                    type: group.type,
-                    url: group.url,
-                    bbox: group.bbox, 
-                    bounds: group.bounds
-                });
-                
                 // Check for either bounds or bbox property
                 const bounds = group.bounds || group.bbox;
                 if (!bounds || bounds.length !== 4) {
@@ -2267,9 +2307,7 @@ export class MapLayerControl {
                 // Store bounds for later use
                 group.bounds = bounds;
                 
-                // Log that we're adding the image
-                console.log(`Adding image layer ${group.id} with URL: ${group.url}`);
-                
+
                 // Add cache-busting parameter for dynamic images
                 const url = group.refresh ? 
                     (group.url.includes('?') ? `${group.url}&_t=${Date.now()}` : `${group.url}?_t=${Date.now()}`) : 
@@ -2280,13 +2318,11 @@ export class MapLayerControl {
                 img.crossOrigin = "Anonymous"; // Enable CORS if needed
                 
                 img.onload = () => {
-                    console.log(`Image loaded successfully: ${url}`);
-                    
+           
                     // Create image source and layer for satellite imagery
                     // Use the normalized bounds
                     const bounds = group.bounds;
-                    console.log(`Using bounds: [${bounds.join(', ')}] for image layer ${group.id}`);
-                    
+
                     this._map.addSource(group.id, {
                         type: 'image',
                         url: url,
@@ -2325,7 +2361,6 @@ export class MapLayerControl {
                 img.src = url;
             } else if (this._map.getLayer(group.id)) {
             // For image layers, simply change the visibility
-                console.log(`Toggling image layer ${group.id} visibility to ${visible ? 'visible' : 'none'}`);
                 this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
                 
                 // Reset refresh timer when toggling visibility
@@ -2665,6 +2700,17 @@ export class MapLayerControl {
             { name: 'ESRI Landsat Explorer',
                 url: `https://livingatlas.arcgis.com/landsatexplorer/#mapCenter=${lng}%2C${lat}%2C${zoom}&mode=dynamic&mainScene=%7CColor+Infrared+for+Visualization%7C`,
                 text: 'LS'
+            },
+            { name: 'Zoom Earth Live Weather',
+                url: `https://zoom.earth/maps/temperature/#view=${lat},${lng},11z`,
+                text: 'ZE'
+            },
+            { name: 'NASA Worldview Explorer',
+                url: (() => {
+                    const bbox = this._calculateBbox(lng, lat, zoom);
+                    return `https://worldview.earthdata.nasa.gov/?v=${bbox.west},${bbox.south},${bbox.east},${bbox.north}&l=Reference_Labels_15m(hidden),Reference_Features_15m(hidden),Coastlines_15m(hidden),VIIRS_SNPP_DayNightBand_At_Sensor_Radiance,VIIRS_Black_Marble,VIIRS_SNPP_CorrectedReflectance_TrueColor(hidden),MODIS_Aqua_CorrectedReflectance_TrueColor(hidden),MODIS_Terra_CorrectedReflectance_TrueColor(hidden)&lg=false&t=2021-01-10-T19%3A18%3A03Z`;
+                })(),
+                text: 'WV'
             },
             {
                 name: 'Global Forest Watch',
@@ -4048,12 +4094,10 @@ export class MapLayerControl {
                         return;
                     }
                     
-                    console.log(`Updating image for layer ${group.id} with URL: ${url}`);
                     source.updateImage({
                         url: url,
                         coordinates: source.coordinates
                     });
-            console.log(`Refreshed image layer ${group.id} at ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(`Error updating image layer ${group.id}:`, err);
                 }
@@ -4084,6 +4128,19 @@ export class MapLayerControl {
         result[result.length - 1] = userColor;
         
         return result;
+    }
+
+    // Helper function to calculate bounding box from center coordinates and zoom
+    _calculateBbox(centerLng, centerLat, zoom) {
+        // Calculate an approximate bbox based on zoom level
+        // Higher zoom = smaller area
+        const offset = 0.5 / Math.pow(2, zoom - 10); // Adjust multiplier as needed
+        return {
+            west: centerLng - offset,
+            south: centerLat - offset,
+            east: centerLng + offset,
+            north: centerLat + offset
+        };
     }
 }
 
