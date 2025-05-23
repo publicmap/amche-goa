@@ -12,9 +12,14 @@ async function loadConfiguration() {
     const configParam = getUrlParameter('config');
     let configPath = 'config/index.json';
     
-    // If a config parameter is provided, use that config file
+    // If a config parameter is provided, determine if it's a URL or local file
     if (configParam) {
-        configPath = `config/${configParam}.json`;
+        // Check if the config parameter is a URL
+        if (configParam.startsWith('http://') || configParam.startsWith('https://')) {
+            configPath = configParam; // Use the URL directly
+        } else {
+            configPath = `config/${configParam}.json`; // Treat as local file
+        }
     }
     
     // Load the configuration file
