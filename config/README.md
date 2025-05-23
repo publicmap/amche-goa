@@ -143,7 +143,28 @@ Want to change how a layer looks? Override specific properties:
 
 ## 🚀 Testing Your Configuration
 
-### Method 1: Use URL Parameter
+### Using the `?config=` URL Parameter
+
+The map supports three different ways to load configurations via the URL parameter:
+
+#### 1. **Local filename**: `?config=maphub`
+- Loads `config/maphub.json` from the local server
+- Example: `https://amche.goa.in/?config=maphub`
+- Best for: Development and predefined configs
+
+#### 2. **Remote URL**: `?config=https://...`
+- Fetches configuration directly from any URL
+- Example: `https://amche.goa.in/?config=https://gist.githubusercontent.com/user/abc123/raw/config.json`
+- Best for: Sharing configs via GitHub Gists, external servers
+
+#### 3. **Serialized JSON**: `?config={"name":"..."}`
+- Parses the JSON configuration directly from the URL
+- Example: `https://amche.goa.in/?config={"name":"My Map","layers":[{"id":"mapbox-streets"}]}`
+- Best for: Quick testing, embedding full configs in URLs
+
+### Additional Testing Methods
+
+### Method 1: GitHub Gist (Recommended for Sharing)
 1. Save your config as a GitHub Gist
 2. Get the "Raw" URL 
 3. Test: `https://amche.goa.in/?config=YOUR_RAW_URL`
