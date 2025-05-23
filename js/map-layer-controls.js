@@ -299,35 +299,13 @@ export class MapLayerControl {
         // Make sure default styles are loaded before proceeding
         await this._ensureDefaultStylesLoaded();
         
-        // Check for config URL in query params
-        const params = new URLSearchParams(window.location.search);
-        const configUrl = params.get('config');
-        
-        if (configUrl) {
-            // Construct the proper config URL (match logic in map-init.js)
-            const configPath = configUrl.startsWith('http') ? 
-                configUrl.replace('@', '') : 
-                `/config/${configUrl}.json`;
-            
-            // Load external config first
-            await this.loadExternalConfig(configPath);
-            
-            if (this._map.isStyleLoaded()) {
-                this._initializeControl($(container));
-            } else {
-                this._map.on('style.load', () => {
-                    this._initializeControl($(container));
-                });
-            }
+        // Proceed with normal initialization since layers are already loaded from map-init.js
+        if (this._map.isStyleLoaded()) {
+            this._initializeControl($(container));
         } else {
-            // Proceed with normal initialization
-            if (this._map.isStyleLoaded()) {
+            this._map.on('style.load', () => {
                 this._initializeControl($(container));
-            } else {
-                this._map.on('style.load', () => {
-                    this._initializeControl($(container));
-                });
-            }
+            });
         }
         
         $(container).append($('<div>', { class: 'layer-control' }));

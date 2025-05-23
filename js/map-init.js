@@ -11,20 +11,32 @@ async function loadConfiguration() {
     // Check if a specific config is requested via URL parameter
     const configParam = getUrlParameter('config');
     let configPath = 'config/index.json';
+    let config;
     
-    // If a config parameter is provided, determine if it's a URL or local file
+    // If a config parameter is provided, determine how to handle it
     if (configParam) {
+        // Check if the config parameter is a JSON string
+        if (configParam.startsWith('{') && configParam.endsWith('}')) {
+            try {
+                config = JSON.parse(configParam); // Parse JSON directly
+            } catch (error) {
+                console.error('Failed to parse config JSON from URL parameter:', error);
+                throw new Error('Invalid JSON in config parameter');
+            }
+        }
         // Check if the config parameter is a URL
-        if (configParam.startsWith('http://') || configParam.startsWith('https://')) {
+        else if (configParam.startsWith('http://') || configParam.startsWith('https://')) {
             configPath = configParam; // Use the URL directly
         } else {
             configPath = `config/${configParam}.json`; // Treat as local file
         }
     }
     
-    // Load the configuration file
-    const configResponse = await fetch(configPath);
-    let config = await configResponse.json();
+    // Load the configuration file (only if we didn't parse JSON directly)
+    if (!config) {
+        const configResponse = await fetch(configPath);
+        config = await configResponse.json();
+    }
 
     // Load defaults
     try {
