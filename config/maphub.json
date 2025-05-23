@@ -1,18 +1,7 @@
 {
-  "name": "Example Maphub layer configuration",
-  "version": "0.1.0",
-  "url": "https://github.com/publicmap/amche-goa/blob/main/config/maphub.json",
-  "map": {
-    "center": [
-      77.4,
-      22.1      
-    ],
-    "zoom": 3.6
-  },
   "layers": [
     {
-      "id": "mapbox-streets",
-      "title": "Street Map रस्त्याचो नकासो"
+      "id": "mapbox-streets"
     },
     {
       "initiallyChecked": true,
