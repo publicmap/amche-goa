@@ -73,15 +73,28 @@ export class MapLayerControl {
             const defaults = await defaultsResponse.json();
             const config = await configResponse.json();
 
-            // Get styles from _defaults.json and merge with any overrides from index.json
-            this._defaultStyles = defaults.layer.style;
+            // Add debugging to see the actual structure
+            console.log('Defaults structure:', defaults);
+            console.log('Config structure:', config);
+
+            // Get styles from _defaults.json - check for different possible structures
+            if (defaults.layer && defaults.layer.style) {
+                this._defaultStyles = defaults.layer.style;
+            } else if (defaults.style) {
+                this._defaultStyles = defaults.style;
+            } else if (defaults.styles) {
+                this._defaultStyles = defaults.styles;
+            } else {
+                console.warn('Could not find styles in defaults structure:', Object.keys(defaults));
+                this._defaultStyles = {};
+            }
             
             // If config has style overrides, merge them
             if (config.styles) {
                 this._defaultStyles = deepMerge(this._defaultStyles, config.styles);
             }
 
-            console.log('Default styles loaded and merged successfully');
+            console.log('Final styles configuration:', this._defaultStyles);
             
         } catch (error) {
             console.error('Error loading default styles:', error);

@@ -1,7 +1,7 @@
 {
-  "name": "Map layer configuration defined by amche-goa community",
+  "name": "Default map layer configuration defined by amche-goa community",
   "version": "0.1.0",
-  "url": "https://github.com/publicmap/amche-goa/blob/main/config/default.json",
+  "url": "https://github.com/publicmap/amche-goa/blob/main/config/index.json",
   "map": {
     "center": [
       73.8,
