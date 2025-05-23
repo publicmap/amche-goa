@@ -8,24 +8,47 @@ function getUrlParameter(name) {
 
 // Function to load configuration
 async function loadConfiguration() {
-    // Check if there's a custom config URL in the URL parameters
-    const configUrl = getUrlParameter('config') || 'default';
+    // Check if a specific config is requested via URL parameter
+    const configParam = getUrlParameter('config');
+    let configPath = 'config/default.json';
     
-    // Choose the config source - either from URL parameter or the default JSON file
-    const configSource = configUrl.startsWith('http') ? configUrl : `/config/${configUrl}.json`;
-    
-    try {
-        const response = await fetch(configSource);
-        if (!response.ok) {
-            console.error(`Failed to load configuration from ${configSource}: ${response.statusText}`);
-            return { layers: [] };
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error(`Error loading configuration from ${configSource}:`, error);
-        return { layers: [] };
+    // If a config parameter is provided, use that config file
+    if (configParam) {
+        configPath = `config/${configParam}.json`;
     }
+    
+    // Load the configuration file
+    const configResponse = await fetch(configPath);
+    let config = await configResponse.json();
+
+    // Try to load the map layer library
+    try {
+        const libraryResponse = await fetch('config/_map-layer-library.json');
+        const layerLibrary = await libraryResponse.json();
+        
+        // Process each layer in the config and merge with library definitions
+        if (config.layers && Array.isArray(config.layers)) {
+            config.layers = config.layers.map(layerConfig => {
+                // If the layer only has an id (or minimal properties), look it up in the library
+                if (layerConfig.id && !layerConfig.type) {
+                    // Find the matching layer in the library
+                    const libraryLayer = layerLibrary.layers.find(lib => lib.id === layerConfig.id);
+                    
+                    if (libraryLayer) {
+                        // Merge the library layer with any custom overrides from config
+                        return { ...libraryLayer, ...layerConfig };
+                    }
+                }
+                // If no match found or it's a fully defined layer, return as is
+                return layerConfig;
+            });
+        }
+    } catch (error) {
+        console.warn('Map layer library not found or invalid, using only config file:', error);
+    }
+    
+    console.log(`Loaded configuration from ${configPath}`, config.map);
+    return config;
 }
 
 // Initialize the map
@@ -52,6 +75,8 @@ async function initializeMap() {
         // Apply all properties from config.map to mapOptions
         Object.assign(mapOptions, config.map);
     }
+
+    console.log(mapOptions);
     
     const map = new mapboxgl.Map(mapOptions);
 

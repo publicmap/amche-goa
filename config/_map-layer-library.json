@@ -1,156 +1,307 @@
 {
-    "map": {
-      "center": [
-        73.8,
-        15.47
-      ],
-      "zoom": 11.4
-    },
   "layers": [
     {
       "id": "mapbox-streets",
-      "title": "Street Map रस्त्याचो नकासो",
-      "initiallyChecked": true
+      "title": "Mapbox Street Map",
+      "description": "Detailed street level map data layers sourced from <a href='https://www.openstreetmap.org/#map=11/15.4054/73.9280' target='_blank'>OpenStreetMap contributors</a> and other data sources via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/' target='_blank'>Mapbox Streets</a> vector tiles.",
+      "type": "style",
+      "headerImage": "assets/map-layers/map-layer-mapbox-streets.png",
+      "initiallyChecked": true,
+      "layers": [
+        {
+          "title": "Places Labels",
+          "sourceLayer": "place_label"
+        },
+        {
+          "title": "Natural Labels",
+          "sourceLayer": "natural_label"
+        },
+        {
+          "title": "Airport Labels",
+          "sourceLayer": "airport_label"
+        },
+        {
+          "title": "Transit Labels",
+          "sourceLayer": "transit_stop_label"
+        },
+        {
+          "title": "Landmark Labels",
+          "sourceLayer": "poi_label"
+        },
+        {
+          "title": "Buildings",
+          "sourceLayer": "building"
+        },
+        {
+          "title": "Structures",
+          "sourceLayer": "structure"
+        },
+        {
+          "title": "Roads & Railways",
+          "sourceLayer": "road"
+        },
+        {
+          "title": "Runways",
+          "sourceLayer": "aeroway"
+        },
+        {
+          "title": "Hillshading",
+          "sourceLayer": "hillshade"
+        },
+        {
+          "title": "Landcover",
+          "sourceLayer": "landcover"
+        },
+        {
+          "title": "Landuse",
+          "sourceLayer": "landuse"
+        },
+        {
+          "title": "Wetlands & National Parks",
+          "sourceLayer": "landuse_overlay"
+        },
+        {
+          "title": "Waterways",
+          "sourceLayer": "waterway"
+        },
+        {
+          "title": "Waterbodies",
+          "sourceLayer": "water"
+        },
+        {
+          "title": "Boundaries",
+          "sourceLayer": "admin"
+        }
+      ]
     },
     {
-      "id": "mapbox-traffic"
+      "id": "mapbox-traffic",
+      "title": "Traffic",
+      "description": "Live traffic map via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/' target='_blank'>Mapbox Traffic</a> vector tiles. Updated every 10 minutes.",
+      "type": "style",
+      "headerImage": "assets/map-layers/map-layer-traffic.png",
+      "layers": [
+        {
+          "title": "Traffic",
+          "sourceLayer": "traffic"
+        }
+      ]
     },
     {
-      "id": "osm-roads"
-    },
-    {
-      "id": "community-pins"
-    },
-    {
-      "id": "community-maps"
-    },
-    {
-      "title": "Live Fire Trucks",
-      "description": "Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href='https://github.com/publicmap/goa-fire-trucks-geojson/'>Goa Fire Trucks API</a>.",
-      "headerImage": "assets/map-layers/map-layer-fire-trucks.png",
-      "type": "geojson",
-      "id": "firetrucks",
-      "url": "https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson",
-      "refresh": 30000,
-      "attribution": "<a href='https://dfes.goa.gov.in/dashboard/'>Directorate of Fire & Emergency Services, Govt. of Goa</a>",
+      "title": "Motorable Roads",
+      "description": "Road network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-osm-roads.png",
+      "type": "vector",
+      "id": "osm-roads",
+      "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",
+      "sourceLayer": "streets",
+      "maxzoom": 15,
+      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a> via <a href='https://shortbread-tiles.org/schema/1.0/'>Shortbread vector tiles</a>",
+      "filter": [
+        "match",
+        [
+          "get",
+          "kind"
+        ],
+        [
+          "pedestrian",
+          "footway",
+          "path",
+          "track",
+          "rail"
+        ],
+        false,
+        true
+      ],
       "style": {
-        "circle-radius": 6,
-        "circle-color": [
-          "match",
+        "line-opacity": [
+          "case",
           [
-            "get",
-            "Status"
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
           ],
-          "RUNNING",
-          "green",
-          "IDLE",
+          0.95,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.6,
+          0.5
+        ],
+        "line-color": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
           "yellow",
-          "STOP",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
           "red",
-          "INACTIVE",
-          "grey",
-          "black"
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            "black",
+            [
+              "primary",
+              "secondary",
+              "tertiary"
+            ],
+            "darkred",
+            [
+              "residential",
+              "living_street",
+              "unclassified",
+              "service"
+            ],
+            "brown",
+            [
+              "pedestrian",
+              "footway",
+              "path",
+              "track"
+            ],
+            "red",
+            "black"
+          ]
         ],
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "text-font": [
-          "Open Sans Regular"
-        ],
-        "text-field": [
-          "step",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
           [
             "zoom"
           ],
-          "",
-          7,
+          11,
           [
-            "to-string",
+            "case",
             [
-              "get",
-              "POI"
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            5,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            5,
+            [
+              "match",
+              [
+                "get",
+                "kind"
+              ],
+              [
+                "motorway"
+              ],
+              5,
+              [
+                "trunk"
+              ],
+              3,
+              [
+                "primary"
+              ],
+              3,
+              [
+                "secondary"
+              ],
+              3,
+              [
+                "tertiary"
+              ],
+              2,
+              [
+                "residential",
+                "unclassified"
+              ],
+              1.5,
+              1
             ]
           ]
         ]
       },
       "inspect": {
-        "id": "Vehicle_No",
-        "title": "Current Location",
-        "label": "Location",
+        "id": "kind",
+        "title": "OSM Type",
+        "label": "kind",
         "fields": [
-          "Status",
-          "Vehicle_No",
-          "Branch",
-          "POI",
-          "Speed",
-          "Datetime"
+          "surface"
         ],
         "fieldTitles": [
-          "Status",
-          "Vehicle No",
-          "Station",
-          "Location",
-          "Speed",
-          "Last Updated"
+          "Surface"
         ]
       }
     },
     {
-      "title": "Schools",
-      "description": "Schools locations by capacity",
-      "headerImage": "assets/map-layers/map-layer-schools.png",
-      "type": "csv",
-      "id": "schools",
-      "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv",
-      "cache": "data/dfes/goa-schools.csv",
-      "attribution": "<a href='https://docs.google.com/spreadsheets/d/11jYu-XsKEDH65W9Q_zy8_pKyYYlyzsdh8FwS7kd-CEM/edit?usp=sharing'>Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa</a>",
+      "title": "Community Pins",
+      "description": "Pin your notes on the map for the rest of the community to see",
+      "headerImage": "assets/map-layers/map-layer-pins.png",
+      "type": "markers",
+      "id": "community-pins",
+      "dataUrl": "https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/gviz/tq?tqx=out:json&tq&gid=0",
+      "attribution": "Collected by amche.in | <a href='https://docs.google.com/spreadsheets/d/1Y0l4aSIdks8G3lmxSxSKxuzLoARL-FCiYbTL9a0b3O0/edit?resourcekey=&gid=485622101#gid=485622101'>View Source Spreadsheet</a>",
       "style": {
-        "circle-radius": [
-          "case",
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            500
-          ],
-          5,
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            100
-          ],
-          3,
-          2
-        ],
-        "circle-color": "#4c7fff",
-        "circle-stroke-width": 1.5,
-        "circle-stroke-color": "#ffffff"
+        "circle-color": "#FF4136",
+        "circle-radius": 8
       },
       "inspect": {
-        "id": "Name",
-        "title": "School",
-        "label": "Name",
+        "title": "Pin Details",
+        "label": "name",
         "fields": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Gr_Panchayat",
-          "Gr_Taluka"
+          "Location Name",
+          "Additional Notes (optional)",
+          "Timestamp_ago"
         ],
         "fieldTitles": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Panchayat",
-          "Taluka"
+          "Name",
+          "Notes",
+          "Added"
         ]
       }
+    },
+    {
+      "title": "Community Maps",
+      "description": "Sketches, maps and plans by the people of Goa",
+      "headerImage": "assets/map-layers/map-layer-community-maps.png",
+      "type": "tms",
+      "id": "community-maps",
+      "url": "https://mapwarper.net/mosaics/tile/2157/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://mapwarper.net/layers/2157'>CC-BY-SA Mapwarper community maps of Goa</a>"
     },
     {
       "id": "pincode",
