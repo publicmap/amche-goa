@@ -8,7 +8,7 @@ The Amche Goa map uses a JSON configuration file to define what map layers are a
 
 ## Creating a Custom Configuration
 
-You can create a custom configuration by copying an existing one and modifying it to suit your needs. The simplest way is to start with a basic configuration like `config/1906-atlas-of-india.json`.
+You can create a custom configuration by copying an existing one and modifying it to suit your needs. Start with making a copy of `config/index.json`.
 
 ### Configuration Structure
 
@@ -16,7 +16,7 @@ The main structure of the configuration file is:
 
 ```json
 {
-  "layersConfig": [
+  "layers": [
     {
       "id": "layer-id",
       "title": "Layer Title",

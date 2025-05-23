@@ -2709,6 +2709,13 @@ export class MapLayerControl {
                 url: `https://zoom.earth/maps/temperature/#view=${lat},${lng},11z`,
                 text: 'ZE'
             },
+            { name: 'NASA Worldview Explorer',
+                url: (() => {
+                    const bbox = this._calculateBbox(lng, lat, zoom);
+                    return `https://worldview.earthdata.nasa.gov/?v=${bbox.west},${bbox.south},${bbox.east},${bbox.north}&l=Reference_Labels_15m(hidden),Reference_Features_15m(hidden),Coastlines_15m(hidden),VIIRS_SNPP_DayNightBand_At_Sensor_Radiance,VIIRS_Black_Marble,VIIRS_SNPP_CorrectedReflectance_TrueColor(hidden),MODIS_Aqua_CorrectedReflectance_TrueColor(hidden),MODIS_Terra_CorrectedReflectance_TrueColor(hidden)&lg=false&t=2021-01-10-T19%3A18%3A03Z`;
+                })(),
+                text: 'WV'
+            },
             {
                 name: 'Global Forest Watch',
                 url: `https://www.globalforestwatch.org/map/?map=${encodeURIComponent(JSON.stringify({
@@ -4127,6 +4134,19 @@ export class MapLayerControl {
         result[result.length - 1] = userColor;
         
         return result;
+    }
+
+    // Helper function to calculate bounding box from center coordinates and zoom
+    _calculateBbox(centerLng, centerLat, zoom) {
+        // Calculate an approximate bbox based on zoom level
+        // Higher zoom = smaller area
+        const offset = 0.5 / Math.pow(2, zoom - 10); // Adjust multiplier as needed
+        return {
+            west: centerLng - offset,
+            south: centerLat - offset,
+            east: centerLng + offset,
+            north: centerLat + offset
+        };
     }
 }
 
