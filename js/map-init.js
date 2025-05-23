@@ -60,8 +60,6 @@ async function loadConfiguration() {
         console.warn('Map layer library not found or invalid, using only config file:', error);
     }
     
-    console.log(`Loaded configuration from ${configPath}`, config.map);
-    console.log('Final styles configuration:', config.styles);
     return config;
 }
 
@@ -114,8 +112,6 @@ async function initializeMap() {
         // Apply all properties from config.map to mapOptions
         Object.assign(mapOptions, config.map);
     }
-
-    console.log(mapOptions);
     
     const map = new mapboxgl.Map(mapOptions);
 

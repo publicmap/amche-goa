@@ -94,7 +94,7 @@ export class MapLayerControl {
                 this._defaultStyles = deepMerge(config.styles, this._defaultStyles); 
             }
 
-            console.log('Final styles configuration:', this._defaultStyles);
+            console.debug('Final styles configuration:', this._defaultStyles);
             
         } catch (error) {
             console.error('Error loading default styles:', error);
@@ -1528,7 +1528,6 @@ export class MapLayerControl {
                 if (group.initiallyChecked) {
                     // Use requestAnimationFrame to ensure DOM is fully initialized
                     requestAnimationFrame(() => {
-                        console.log(`Setting up initially-visible image layer: ${group.id}`);
                         this._toggleSourceControl(groupIndex, true);
                     });
                 }
@@ -1540,7 +1539,6 @@ export class MapLayerControl {
                     // If layer is in URL parameter list, toggle it on
                     if (activeLayers.includes(group.id)) {
                         requestAnimationFrame(() => {
-                            console.log(`Setting up image layer from URL param: ${group.id}`);
                             this._toggleSourceControl(groupIndex, true);
                         });
                     }
@@ -2299,16 +2297,6 @@ export class MapLayerControl {
                     return;
                 }
                 
-                console.log(`Image layer ${group.id} URL: ${group.url}`);
-                console.log(`Group properties:`, {
-                    id: group.id,
-                    title: group.title,
-                    type: group.type,
-                    url: group.url,
-                    bbox: group.bbox, 
-                    bounds: group.bounds
-                });
-                
                 // Check for either bounds or bbox property
                 const bounds = group.bounds || group.bbox;
                 if (!bounds || bounds.length !== 4) {
@@ -2319,9 +2307,7 @@ export class MapLayerControl {
                 // Store bounds for later use
                 group.bounds = bounds;
                 
-                // Log that we're adding the image
-                console.log(`Adding image layer ${group.id} with URL: ${group.url}`);
-                
+
                 // Add cache-busting parameter for dynamic images
                 const url = group.refresh ? 
                     (group.url.includes('?') ? `${group.url}&_t=${Date.now()}` : `${group.url}?_t=${Date.now()}`) : 
@@ -2332,13 +2318,11 @@ export class MapLayerControl {
                 img.crossOrigin = "Anonymous"; // Enable CORS if needed
                 
                 img.onload = () => {
-                    console.log(`Image loaded successfully: ${url}`);
-                    
+           
                     // Create image source and layer for satellite imagery
                     // Use the normalized bounds
                     const bounds = group.bounds;
-                    console.log(`Using bounds: [${bounds.join(', ')}] for image layer ${group.id}`);
-                    
+
                     this._map.addSource(group.id, {
                         type: 'image',
                         url: url,
@@ -2377,7 +2361,6 @@ export class MapLayerControl {
                 img.src = url;
             } else if (this._map.getLayer(group.id)) {
             // For image layers, simply change the visibility
-                console.log(`Toggling image layer ${group.id} visibility to ${visible ? 'visible' : 'none'}`);
                 this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
                 
                 // Reset refresh timer when toggling visibility
@@ -4111,12 +4094,10 @@ export class MapLayerControl {
                         return;
                     }
                     
-                    console.log(`Updating image for layer ${group.id} with URL: ${url}`);
                     source.updateImage({
                         url: url,
                         coordinates: source.coordinates
                     });
-            console.log(`Refreshed image layer ${group.id} at ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(`Error updating image layer ${group.id}:`, err);
                 }
