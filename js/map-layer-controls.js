@@ -2705,6 +2705,10 @@ export class MapLayerControl {
                 url: `https://livingatlas.arcgis.com/landsatexplorer/#mapCenter=${lng}%2C${lat}%2C${zoom}&mode=dynamic&mainScene=%7CColor+Infrared+for+Visualization%7C`,
                 text: 'LS'
             },
+            { name: 'Zoom Earth Live Weather',
+                url: `https://zoom.earth/maps/temperature/#view=${lat},${lng},11z`,
+                text: 'ZE'
+            },
             {
                 name: 'Global Forest Watch',
                 url: `https://www.globalforestwatch.org/map/?map=${encodeURIComponent(JSON.stringify({
