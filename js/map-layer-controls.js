@@ -62,71 +62,36 @@ export class MapLayerControl {
     // Load default styles from default.json instead of default-styles.json
     async _loadDefaultStyles() {
         try {
-            const response = await fetch('/config/default.json');
-            if (!response.ok) {
-                throw new Error(`Failed to load default styles: ${response.status} ${response.statusText}`);
-            }
-            const defaultConfig = await response.json();
+            // Load and merge both config files
+            const defaultsResponse = await fetch('/config/_defaults.json');
+            const configResponse = await fetch('/config/default.json');
             
-            // Use the styles object from default.json
-            if (defaultConfig.styles) {
-                // Initialize with default empty objects for all required style categories
-                this._defaultStyles = {
-                    vector: {
-                        fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
-                        line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
-                        text: { 'text-color': '#000000', 'text-halo-color': '#ffffff', 'text-halo-width': 1, 'text-opacity': 1 },
-                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                    },
-                    geojson: {
-                        fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
-                        line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
-                        text: { 'text-field': '', 'text-size': 12, 'text-anchor': 'center', 'text-justify': 'center', 'text-allow-overlap': false, 'text-offset': [0, 0], 'text-transform': 'none' },
-                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                    },
-                    markers: {
-                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                    },
-                    csv: {
-                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                    },
-                    terrain: {
-                        exaggeration: 1.5,
-                        fog: { 'range': [0, 10], 'horizon-blend': 0.3, 'color': '#ffffff' }
-                    }
-                };
-                
-                // Merge with provided styles from default.json
-                this._defaultStyles = deepMerge(this._defaultStyles, defaultConfig.styles);
-                console.log('Default styles loaded successfully from default.json');
-            } else {
-                throw new Error('No styles found in default.json');
+            if (!defaultsResponse.ok || !configResponse.ok) {
+                throw new Error('Failed to load configuration files');
             }
+
+            const defaults = await defaultsResponse.json();
+            const config = await configResponse.json();
+
+            // Get styles from _defaults.json and merge with any overrides from default.json
+            this._defaultStyles = defaults.layer.style;
+            
+            // If config has style overrides, merge them
+            if (config.styles) {
+                this._defaultStyles = deepMerge(this._defaultStyles, config.styles);
+            }
+
+            console.log('Default styles loaded and merged successfully');
+            
         } catch (error) {
             console.error('Error loading default styles:', error);
-            // Set fallback default styles
+            // Set minimal fallback default styles for critical properties
             this._defaultStyles = {
                 vector: {
                     fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
-                    line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
-                    text: { 'text-color': '#000000', 'text-halo-color': '#ffffff', 'text-halo-width': 1, 'text-opacity': 1 },
-                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                },
-                geojson: {
-                    fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
-                    line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
-                    text: { 'text-field': '', 'text-size': 12, 'text-anchor': 'center', 'text-justify': 'center', 'text-allow-overlap': false, 'text-offset': [0, 0], 'text-transform': 'none' },
-                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                },
-                markers: {
-                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                },
-                csv: {
-                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
-                },
-                terrain: {
-                    exaggeration: 1.5,
-                    fog: { 'range': [0, 10], 'horizon-blend': 0.3, 'color': '#ffffff' }
+                    line: { 'line-color': '#000000', 'line-width': 1 },
+                    text: { 'text-color': '#000000', 'text-halo-width': 1 },
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000' }
                 }
             };
         }

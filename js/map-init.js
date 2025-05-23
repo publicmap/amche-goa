@@ -10,7 +10,7 @@ function getUrlParameter(name) {
 async function loadConfiguration() {
     // Check if a specific config is requested via URL parameter
     const configParam = getUrlParameter('config');
-    let configPath = 'config/default.json';
+    let configPath = 'config/index.json';
     
     // If a config parameter is provided, use that config file
     if (configParam) {
@@ -21,17 +21,17 @@ async function loadConfiguration() {
     const configResponse = await fetch(configPath);
     let config = await configResponse.json();
 
-    // Load default layer styles
+    // Load defaults
     try {
-        const stylesResponse = await fetch('config/_default-layer-styles.json');
-        const defaultStyles = await stylesResponse.json();
+        const configDefaultsResponse = await fetch('config/_defaults.json');
+        const configDefaults = await configDefaultsResponse.json();
         
-        // Merge default styles with any style overrides in config
-        config.styles = config.styles ? 
-            deepMerge(defaultStyles, config.styles) : 
-            defaultStyles;
+        // Merge defaults with anyoverrides in config
+        config.defaults = config.defaults ? 
+            deepMerge(configDefaults, config.defaults) : 
+            configDefaults;
     } catch (error) {
-        console.warn('Default layer styles not found or invalid:', error);
+        console.warn('Default configuration values not found or invalid:', error);
     }
 
     // Try to load the map layer library
