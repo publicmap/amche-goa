@@ -21,6 +21,19 @@ async function loadConfiguration() {
     const configResponse = await fetch(configPath);
     let config = await configResponse.json();
 
+    // Load default layer styles
+    try {
+        const stylesResponse = await fetch('config/_default-layer-styles.json');
+        const defaultStyles = await stylesResponse.json();
+        
+        // Merge default styles with any style overrides in config
+        config.styles = config.styles ? 
+            deepMerge(defaultStyles, config.styles) : 
+            defaultStyles;
+    } catch (error) {
+        console.warn('Default layer styles not found or invalid:', error);
+    }
+
     // Try to load the map layer library
     try {
         const libraryResponse = await fetch('config/_map-layer-library.json');
@@ -48,7 +61,33 @@ async function loadConfiguration() {
     }
     
     console.log(`Loaded configuration from ${configPath}`, config.map);
+    console.log('Final styles configuration:', config.styles);
     return config;
+}
+
+// Helper function to deep merge objects
+function deepMerge(target, source) {
+    const output = Object.assign({}, target);
+    
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = deepMerge(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    
+    return output;
+}
+
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
 // Initialize the map
