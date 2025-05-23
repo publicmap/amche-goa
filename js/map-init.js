@@ -36,7 +36,7 @@ async function loadConfiguration() {
 
     // Try to load the map layer library
     try {
-        const libraryResponse = await fetch('config/_map-layer-library.json');
+        const libraryResponse = await fetch('config/_map-layer-presets.json');
         const layerLibrary = await libraryResponse.json();
         
         // Process each layer in the config and merge with library definitions
