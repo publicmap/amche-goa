@@ -33,7 +33,7 @@ export class MapLayerControl {
             groups: Array.isArray(options) ? options : [options]
         };
         
-        // Default styles will be loaded from config/default.json styles object
+        // Default styles will be loaded from config/index.json styles object
         this._defaultStyles = {}; 
         
         this._domCache = {};
@@ -59,12 +59,12 @@ export class MapLayerControl {
         this._loadDefaultStyles();
     }
     
-    // Load default styles from default.json instead of default-styles.json
+    // Load default styles from index.json instead of default-styles.json
     async _loadDefaultStyles() {
         try {
             // Load and merge both config files
             const defaultsResponse = await fetch('/config/_defaults.json');
-            const configResponse = await fetch('/config/default.json');
+            const configResponse = await fetch('/config/index.json');
             
             if (!defaultsResponse.ok || !configResponse.ok) {
                 throw new Error('Failed to load configuration files');
@@ -73,7 +73,7 @@ export class MapLayerControl {
             const defaults = await defaultsResponse.json();
             const config = await configResponse.json();
 
-            // Get styles from _defaults.json and merge with any overrides from default.json
+            // Get styles from _defaults.json and merge with any overrides from index.json
             this._defaultStyles = defaults.layer.style;
             
             // If config has style overrides, merge them

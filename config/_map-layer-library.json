@@ -4005,6 +4005,15 @@
       }
     },
     {
+      "title": "Real-time Weather Satellite",
+      "description": "Cloud top temperatures colorized to reveal areas of intensity using the infrared band of weather satellite. Imagery updated every 10 minutes.",
+      "headerImage": "assets/map-layers/map-layer-weather-satellite.png",
+      "type": "tms",
+      "id": "weather-satellie",
+      "url": "https://earthlive.maptiles.arcgis.com/arcgis/rest/services/GOES/GOES31D/MapServer/tile/{z}/{y}/{x}",
+      "attribution": "<a href='https://www.arcgis.com/home/item.html?id=37a875ff3611496883b7ccca97f0f5f4'>NOAA GOES East and West + JMA Himawari</a>"
+    },
+    {
       "title": "SOI Toposheets",
       "description": "Survey of India",
       "headerImage": "assets/map-layers/map-layer-soi.png",
