@@ -74,8 +74,8 @@ export class MapLayerControl {
             const config = await configResponse.json();
 
             // Add debugging to see the actual structure
-            console.log('Defaults structure:', defaults);
-            console.log('Config structure:', config);
+            console.debug('Defaults structure:', defaults);
+            console.debug('Config structure:', config);
 
             // Get styles from _defaults.json - check for different possible structures
             if (defaults.layer && defaults.layer.style) {
@@ -89,9 +89,9 @@ export class MapLayerControl {
                 this._defaultStyles = {};
             }
             
-            // If config has style overrides, merge them
+            // If config has style overrides, merge them (but don't let them override defaults)
             if (config.styles) {
-                this._defaultStyles = deepMerge(this._defaultStyles, config.styles);
+                this._defaultStyles = deepMerge(config.styles, this._defaultStyles); 
             }
 
             console.log('Final styles configuration:', this._defaultStyles);
