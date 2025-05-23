@@ -4,6 +4,28 @@ import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
 import { fixLayerOrdering } from './layer-order-manager.js';
 
+// Move deepMerge and isObject outside the class
+function deepMerge(target, source) {
+    const output = Object.assign({}, target);
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target))
+                    Object.assign(output, { [key]: source[key] });
+                else
+                    output[key] = deepMerge(target[key], source[key]);
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    return output;
+}
+
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
 export class MapLayerControl {
     constructor(options) {
         // Add state management properties
@@ -45,16 +67,68 @@ export class MapLayerControl {
                 throw new Error(`Failed to load default styles: ${response.status} ${response.statusText}`);
             }
             const defaultConfig = await response.json();
+            
             // Use the styles object from default.json
             if (defaultConfig.styles) {
-                this._defaultStyles = defaultConfig.styles;
+                // Initialize with default empty objects for all required style categories
+                this._defaultStyles = {
+                    vector: {
+                        fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
+                        line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
+                        text: { 'text-color': '#000000', 'text-halo-color': '#ffffff', 'text-halo-width': 1, 'text-opacity': 1 },
+                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                    },
+                    geojson: {
+                        fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
+                        line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
+                        text: { 'text-field': '', 'text-size': 12, 'text-anchor': 'center', 'text-justify': 'center', 'text-allow-overlap': false, 'text-offset': [0, 0], 'text-transform': 'none' },
+                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                    },
+                    markers: {
+                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                    },
+                    csv: {
+                        circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                    },
+                    terrain: {
+                        exaggeration: 1.5,
+                        fog: { 'range': [0, 10], 'horizon-blend': 0.3, 'color': '#ffffff' }
+                    }
+                };
+                
+                // Merge with provided styles from default.json
+                this._defaultStyles = deepMerge(this._defaultStyles, defaultConfig.styles);
                 console.log('Default styles loaded successfully from default.json');
             } else {
                 throw new Error('No styles found in default.json');
             }
         } catch (error) {
             console.error('Error loading default styles:', error);
-            // Fallback to empty styles object, features will use their own defaults
+            // Set fallback default styles
+            this._defaultStyles = {
+                vector: {
+                    fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
+                    line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
+                    text: { 'text-color': '#000000', 'text-halo-color': '#ffffff', 'text-halo-width': 1, 'text-opacity': 1 },
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                },
+                geojson: {
+                    fill: { 'fill-color': '#000000', 'fill-opacity': 0.5 },
+                    line: { 'line-color': '#000000', 'line-width': 1, 'line-opacity': 1 },
+                    text: { 'text-field': '', 'text-size': 12, 'text-anchor': 'center', 'text-justify': 'center', 'text-allow-overlap': false, 'text-offset': [0, 0], 'text-transform': 'none' },
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                },
+                markers: {
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                },
+                csv: {
+                    circle: { 'circle-radius': 5, 'circle-color': '#000000', 'circle-opacity': 0.8 }
+                },
+                terrain: {
+                    exaggeration: 1.5,
+                    fog: { 'range': [0, 10], 'horizon-blend': 0.3, 'color': '#ffffff' }
+                }
+            };
         }
     }
 
