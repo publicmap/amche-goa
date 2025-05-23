@@ -1,178 +1,302 @@
-# Map and Layer Configuration Guide
+# Map Configuration Guide
 
-This document explains how to create and test your own custom map configuration for Amche Goa.
+**🎯 Quick Start**: Want to create your own custom map? Just edit `config/index.json` - it's now super easy!
 
-## Overview
+## What is this?
 
-The Amche Goa map uses a JSON configuration file to define what map layers are available, how they appear, and what information is displayed. You can create your own custom configuration to highlight specific layers or create a specialized map view.
+The Amche Goa map can be customized to show different layers and focus on different areas. You can create your own version by simply editing a configuration file.
 
-## Creating a Custom Configuration
+## 📋 Easy Configuration with `index.json`
 
-You can create a custom configuration by copying an existing one and modifying it to suit your needs. The simplest way is to start with a basic configuration like `config/1906-atlas-of-india.json`.
-
-### Configuration Structure
-
-The main structure of the configuration file is:
+The main configuration file is `config/index.json`. Here's what it looks like:
 
 ```json
 {
-  "layersConfig": [
+  "name": "My Custom Map",
+  "areaOfInterest": "Goa, India", 
+  "map": {
+    "center": [73.8, 15.47],
+    "zoom": 11.4
+  },
+  "layers": [
     {
-      "id": "layer-id",
-      "title": "Layer Title",
-      "description": "Layer description",
-      "type": "tms|vector|geojson|style|...",
-      "headerImage": "path/to/image.png",
-      "initiallyChecked": true|false,
-      "url": "https://tile-server/{z}/{x}/{y}.png",
-      "attribution": "Attribution information",
-      "style": {
-        // Style properties
-      },
-      "inspect": {
-        // Popup configuration (see Inspect Popups section)
-      }
+      "id": "mapbox-streets",
+      "title": "Street Map",
+      "initiallyChecked": true
     },
-    // More layers...
+    {
+      "id": "village"
+    },
+    {
+      "id": "forests"
+    }
   ]
 }
 ```
 
-Common layer types include:
-- `tms`: Standard tile map service (raster tiles)
-- `vector`: Vector tile layers
-- `geojson`: GeoJSON data layers
-- `style`: Mapbox style layers
-- `terrain`: 3D terrain controls
+That's it! 🎉
 
-### Style Properties
+## 🎯 How It Works (The Magic!)
 
-Style properties control how layers are displayed. Common style properties include:
+1. **Layer Library**: We have a library of 80+ pre-configured layers in `_map-layer-presets.json`
+2. **Simple References**: Just use the layer `id` and you get the full layer automatically
+3. **Easy Customization**: Override only what you want to change
 
-```json
-"style": {
-  "line-color": "red",
-  "line-width": 2,
-  "fill-color": "blue",
-  "fill-opacity": 0.5,
-  "circle-radius": 5,
-  "text-color": "black",
-  "text-halo-color": "white",
-  "text-halo-width": 1
-}
-```
+## 📝 Step-by-Step: Create Your Own Map
 
-You can also use expressions for dynamic styling:
+### 1. Choose Your Layers
 
-```json
-"line-color": [
-  "match",
-  ["get", "property_name"],
-  "value1", "red",
-  "value2", "blue",
-  "default_color"
-]
-```
+Pick from these popular layer IDs:
 
-For styling and expression schema reference see https://docs.mapbox.com/style-spec/reference/layers/ and https://docs.mapbox.com/style-spec/reference/expressions/
+**Basic Maps:**
+- `mapbox-streets` - Street map
+- `osm` - OpenStreetMap
 
-### Inspect Popups
+**Boundaries:**
+- `village` - Village boundaries  
+- `pincode` - Pincode boundaries
+- `local-body` - Panchayat/Municipal boundaries
+- `assembly-constituencies` - MLA constituencies
 
-The `inspect` property configures what information appears in the popup when a user clicks on a feature. This is a powerful way to display attribute data to users.
+**Environment:**
+- `forests` - Forest areas
+- `rivers` - Rivers and streams
+- `water-bodies` - Lakes and ponds
+- `wetland` - Wetlands and mangroves
+- `mining` - Mining lease areas
 
-```json
-"inspect": {
-  "id": "property_name",           // Property to use as unique identifier
-  "title": "Popup Title",          // Title displayed at the top of the popup
-  "label": "property_for_label",   // Property to use as the main label
-  "fields": [                      // Array of properties to display
-    "property1",
-    "property2",
-    "property3"
-  ],
-  "fieldTitles": [                 // Human-readable titles for the fields
-    "Property 1 Label",
-    "Property 2 Label",
-    "Property 3 Label"
-  ],
-  "customHtml": "<a href=\"https://example.com/\">Custom link</a>" // Optional custom HTML
-}
-```
+**Land Use:**
+- `plot` - Property/survey boundaries
+- `landcover` - Satellite-based land cover
+- `osm-landuse` - Detailed land use from OpenStreetMap
 
-Example of an `inspect` configuration for a roads layer:
+**Historical Maps:**
+- `goa-soi-map` - Survey of India topographic maps
+- `regional-plan` - Regional Development Plan 2021
+- `1906-india-atlas` - Historical 1906 atlas
+
+[See the complete list of 80+ layers in `_map-layer-presets.json`]
+
+### 2. Edit Your Configuration
+
+Copy `config/index.json` and modify it:
 
 ```json
-"inspect": {
-  "id": "kind",
-  "title": "Road Information",
-  "label": "name",
-  "fields": [
-    "kind",
-    "surface",
-    "lanes"
-  ],
-  "fieldTitles": [
-    "Road Type",
-    "Surface Type",
-    "Number of Lanes"
+{
+  "name": "My Environmental Map",
+  "map": {
+    "center": [73.9, 15.4],
+    "zoom": 12
+  },
+  "layers": [
+    {
+      "id": "mapbox-streets",
+      "initiallyChecked": true
+    },
+    {
+      "id": "forests",
+      "title": "Protected Forests"
+    },
+    {
+      "id": "rivers"
+    },
+    {
+      "id": "mining",
+      "title": "Mining Areas (⚠️ Environmental Impact)"
+    }
   ]
 }
 ```
 
-This would create a popup that shows the road name prominently, followed by its type, surface material, and number of lanes.
+### 3. Customize Individual Layers (Optional)
 
-## Step-by-Step Guide
-
-1. **Create a copy of a simple configuration**
-   - Start with `config/1906-atlas-of-india.json` as it's simple and easy to customize
-   - Save it with a new name (e.g., `my-custom-config.json`)
-
-2. **Make your modifications**
-   - Change the layer titles, descriptions
-   - Modify the style properties (colors, widths, opacities)
-   - Add or remove layers as needed
-
-3. **Host your configuration file**
-   - Create a [GitHub Gist](https://gist.github.com/) and upload your modified JSON file
-   - Get the "Raw" URL of your Gist (click the "Raw" button when viewing your Gist)
-
-4. **Test your configuration**
-   - Load Amche Goa with your configuration by adding the `?config=` URL parameter:
-   - Example: `https://amche.goa.in/?config=https://gist.githubusercontent.com/yourusername/gistid/raw/filename.json`
-
-## Example: Making a Simple Modification
-
-Here's a simple example of modifying the road layer in the 1906-atlas-of-india.json configuration:
-
-1. Copy the 1906-atlas-of-india.json file
-2. Find the "osm-roads" layer
-3. Change the `"line-color"` property in the style section to make the roads stand out more:
+Want to change how a layer looks? Override specific properties:
 
 ```json
-"style": {
-  "line-color": [
-    "case",
-    ["boolean", ["feature-state", "hover"], false], "yellow",
-    ["boolean", ["feature-state", "selected"], false], "red",
-    "blue"  // Changed from "black" to "blue"
-  ],
-  // Other style properties...
+{
+  "id": "forests",
+  "title": "My Custom Forest Layer",
+  "initiallyChecked": true,
+  "style": {
+    "fill-color": "darkgreen",
+    "fill-opacity": 0.8
+  }
 }
 ```
 
-## Testing Your Configuration
+### 4. Set Your Map Center and Zoom
 
-1. Create a GitHub Gist with your modified configuration
-2. Get the "Raw" URL of your Gist
-3. Visit: `https://amche.goa.in/?config=YOUR_RAW_GIST_URL`
+```json
+{
+  "map": {
+    "center": [73.8274, 15.4406],  // [longitude, latitude]
+    "zoom": 11.4                   // Higher = more zoomed in
+  }
+}
+```
 
-## Tips
+**Finding Coordinates:**
+1. Go to [amche.goa.in](https://amche.goa.in)
+2. Navigate to your area of interest
+3. Look at the URL: `#11.4/15.4406/73.8274` 
+4. Use those numbers: `[73.8274, 15.4406]`
 
-- Start with small changes to understand how each property affects the map
-- If your configuration has errors, the map will fall back to the default configuration
-- You can inspect the official configurations in the `config/` directory for reference
-- JSON is strict about syntax - ensure all quotes, commas, and brackets are correctly placed
+## 🚀 Testing Your Configuration
 
-## Need More Help?
+### Using the `?config=` URL Parameter
 
-For more advanced configuration options, refer to the complete `config/default.json` file which shows all available options and complex configurations. 
+The map supports three different ways to load configurations via the URL parameter:
+
+#### 1. **Local filename**: `?config=maphub`
+- Loads `config/maphub.json` from the local server
+- Example: `https://amche.goa.in/?config=maphub`
+- Best for: Development and predefined configs
+
+#### 2. **Remote URL**: `?config=https://...`
+- Fetches configuration directly from any URL
+- Example: `https://amche.goa.in/?config=https://gist.githubusercontent.com/user/abc123/raw/config.json`
+- Best for: Sharing configs via GitHub Gists, external servers
+
+#### 3. **Serialized JSON**: `?config={"name":"..."}`
+- Parses the JSON configuration directly from the URL
+- Example: `https://amche.goa.in/?config={"name":"My Map","layers":[{"id":"mapbox-streets"}]}`
+- Best for: Quick testing, embedding full configs in URLs
+
+### Additional Testing Methods
+
+### Method 1: GitHub Gist (Recommended for Sharing)
+1. Save your config as a GitHub Gist
+2. Get the "Raw" URL 
+3. Test: `https://amche.goa.in/?config=YOUR_RAW_URL`
+
+### Method 2: Replace the Main Config
+1. Replace `config/index.json` with your version
+2. Visit the map normally
+
+### Method 3: Create Named Config
+1. Save as `config/my-map.json`
+2. Test: `https://amche.goa.in/?config=my-map`
+
+## 💡 Pro Tips
+
+### For Beginners:
+- Start by copying `index.json` and just changing the layer list
+- Remove layers you don't want, add layers you do want
+- Only specify `id` for most layers - the system handles the rest!
+
+### Common Customizations:
+```json
+{
+  "id": "layer-name",
+  "title": "Custom Title",           // Change display name
+  "initiallyChecked": true,         // Turn on by default
+  "description": "Custom description"  // Change description
+}
+```
+
+### Multiple Areas:
+Create different configs for different regions:
+- `config/north-goa.json` - Focus on North Goa
+- `config/panaji.json` - Focus on Panaji city  
+- `config/mining.json` - Mining-focused map
+
+## 🔍 Example Configurations
+
+### Environmental Focus:
+```json
+{
+  "name": "Goa Environmental Map",
+  "layers": [
+    {"id": "mapbox-streets", "initiallyChecked": true},
+    {"id": "forests"},
+    {"id": "wetland"}, 
+    {"id": "water-bodies"},
+    {"id": "mining"},
+    {"id": "esz"}
+  ]
+}
+```
+
+### Urban Planning:
+```json
+{
+  "name": "Urban Planning Map", 
+  "layers": [
+    {"id": "mapbox-streets", "initiallyChecked": true},
+    {"id": "plot"},
+    {"id": "village"},
+    {"id": "local-body"},
+    {"id": "regional-plan"},
+    {"id": "landuse-panjim"}
+  ]
+}
+```
+
+### Historical Research:
+```json
+{
+  "name": "Historical Goa",
+  "layers": [
+    {"id": "1906-india-atlas", "initiallyChecked": true},
+    {"id": "1855-geology"},
+    {"id": "1814-lambton-survey"},
+    {"id": "village"},
+    {"id": "rivers"}
+  ]
+}
+```
+
+## ❓ FAQ
+
+**Q: I want to add a completely new layer, not from the library**
+A: You can still define custom layers with full properties. See the [Advanced Configuration](#advanced-configuration) section below.
+
+**Q: Can I change the styling of existing layers?**  
+A: Yes! Just add a `style` property to override the default styling.
+
+**Q: My JSON has an error**
+A: Use a JSON validator like [jsonlint.com](https://jsonlint.com) to check for syntax errors.
+
+**Q: The map doesn't load my config**
+A: Check the browser console for errors. The map will fall back to the default config if yours has problems.
+
+## 🏗️ Advanced Configuration
+
+If you need to define completely custom layers (not in the preset library), you can still use the full format:
+
+```json
+{
+  "id": "my-custom-layer",
+  "title": "My Custom Layer", 
+  "type": "geojson",
+  "url": "https://example.com/my-data.geojson",
+  "style": {
+    "line-color": "red",
+    "line-width": 3
+  },
+  "inspect": {
+    "title": "Feature Info",
+    "label": "name"
+  }
+}
+```
+
+## 🎨 Available Layer Types
+
+- `tms` - Tile map service (raster images)
+- `vector` - Vector tiles
+- `geojson` - GeoJSON data
+- `style` - Mapbox style layers  
+- `terrain` - 3D terrain controls
+- `markers` - Point markers from CSV/spreadsheet
+- `img` - Single image overlay
+
+## 📚 Resources
+
+- [Live Example](https://amche.in/dev/?config=maphub) - See the config system in action
+- [Layer Library](_map-layer-presets.json) - Browse all 80+ available layers
+- [Default Styling](_defaults.json) - See the default style settings
+- [JSON Validator](https://jsonlint.com) - Check your JSON syntax
+- [Mapbox Style Specification](https://docs.mapbox.com/style-spec/) - For advanced styling
+
+Need help? Open an issue on GitHub! 🙋‍♀️ 

@@ -2,11 +2,10 @@
   "layers": [
     {
       "id": "mapbox-streets",
-      "title": "Street Map रस्त्याचो नकासो",
-      "description": "Detailed street map sourced from <a href='https://www.openstreetmap.org/#map=11/15.4054/73.9280' target='_blank'>OpenStreetMap contributors</a> and other data sources via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/' target='_blank'>Mapbox Streets</a> vector tiles.",
+      "title": "Mapbox Street Map",
+      "description": "Detailed street level map data layers sourced from <a href='https://www.openstreetmap.org/#map=11/15.4054/73.9280' target='_blank'>OpenStreetMap contributors</a> and other data sources via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/' target='_blank'>Mapbox Streets</a> vector tiles.",
       "type": "style",
       "headerImage": "assets/map-layers/map-layer-mapbox-streets.png",
-      "initiallyChecked": true,
       "layers": [
         {
           "title": "Places Labels",
@@ -75,7 +74,7 @@
       ]
     },
     {
-      "id": "traffic",
+      "id": "mapbox-traffic",
       "title": "Traffic",
       "description": "Live traffic map via <a href='https://docs.mapbox.com/data/tilesets/reference/mapbox-traffic-v1/' target='_blank'>Mapbox Traffic</a> vector tiles. Updated every 10 minutes.",
       "type": "style",
@@ -302,134 +301,6 @@
       "id": "community-maps",
       "url": "https://mapwarper.net/mosaics/tile/2157/{z}/{x}/{y}.png",
       "attribution": "<a href='https://mapwarper.net/layers/2157'>CC-BY-SA Mapwarper community maps of Goa</a>"
-    },
-    {
-      "title": "Live Fire Trucks",
-      "description": "Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href='https://github.com/publicmap/goa-fire-trucks-geojson/'>Goa Fire Trucks API</a>.",
-      "headerImage": "assets/map-layers/map-layer-fire-trucks.png",
-      "type": "geojson",
-      "id": "firetrucks",
-      "url": "https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson",
-      "refresh": 30000,
-      "attribution": "<a href='https://dfes.goa.gov.in/dashboard/'>Directorate of Fire & Emergency Services, Govt. of Goa</a>",
-      "style": {
-        "circle-radius": 6,
-        "circle-color": [
-          "match",
-          [
-            "get",
-            "Status"
-          ],
-          "RUNNING",
-          "green",
-          "IDLE",
-          "yellow",
-          "STOP",
-          "red",
-          "INACTIVE",
-          "grey",
-          "black"
-        ],
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "text-font": [
-          "Open Sans Regular"
-        ],
-        "text-field": [
-          "step",
-          [
-            "zoom"
-          ],
-          "",
-          7,
-          [
-            "to-string",
-            [
-              "get",
-              "POI"
-            ]
-          ]
-        ]
-      },
-      "inspect": {
-        "id": "Vehicle_No",
-        "title": "Current Location",
-        "label": "Location",
-        "fields": [
-          "Status",
-          "Vehicle_No",
-          "Branch",
-          "POI",
-          "Speed",
-          "Datetime"
-        ],
-        "fieldTitles": [
-          "Status",
-          "Vehicle No",
-          "Station",
-          "Location",
-          "Speed",
-          "Last Updated"
-        ]
-      }
-    },
-    {
-      "title": "Schools",
-      "description": "Schools locations by capacity",
-      "headerImage": "assets/map-layers/map-layer-schools.png",
-      "type": "csv",
-      "id": "schools",
-      "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv",
-      "cache": "data/dfes/goa-schools.csv",
-      "attribution": "<a href='https://docs.google.com/spreadsheets/d/11jYu-XsKEDH65W9Q_zy8_pKyYYlyzsdh8FwS7kd-CEM/edit?usp=sharing'>Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa</a>",
-      "style": {
-        "circle-radius": [
-          "case",
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            500
-          ],
-          5,
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            100
-          ],
-          3,
-          2
-        ],
-        "circle-color": "#4c7fff",
-        "circle-stroke-width": 1.5,
-        "circle-stroke-color": "#ffffff"
-      },
-      "inspect": {
-        "id": "Name",
-        "title": "School",
-        "label": "Name",
-        "fields": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Gr_Panchayat",
-          "Gr_Taluka"
-        ],
-        "fieldTitles": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Panchayat",
-          "Taluka"
-        ]
-      }
     },
     {
       "id": "pincode",
@@ -4133,6 +4004,15 @@
       }
     },
     {
+      "title": "Real-time Weather Satellite",
+      "description": "Cloud top temperatures colorized to reveal areas of intensity using the infrared band of weather satellite. Imagery updated every 10 minutes.",
+      "headerImage": "assets/map-layers/map-layer-weather-satellite.png",
+      "type": "tms",
+      "id": "weather-satellie",
+      "url": "https://earthlive.maptiles.arcgis.com/arcgis/rest/services/GOES/GOES31D/MapServer/tile/{z}/{y}/{x}",
+      "attribution": "<a href='https://www.arcgis.com/home/item.html?id=37a875ff3611496883b7ccca97f0f5f4'>NOAA GOES East and West + JMA Himawari</a>"
+    },
+    {
       "title": "SOI Toposheets",
       "description": "Survey of India",
       "headerImage": "assets/map-layers/map-layer-soi.png",
@@ -4251,6 +4131,7 @@
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Goa_Bus_Network_Map_2025.png'>CC-BY Wikipedia/user:Planemad</a>, CC-by <a href='https://ktclgoa.com/gtfs/'>Kadamba Transport Corporation Limited GTFS updated Jan 2025</a>"
     },
     {
+      "id": "3d-terrain",
       "title": "3D Terrain",
       "description": "Terrain Controls",
       "headerImage": "assets/map-layers/map-layer-terrain.png",

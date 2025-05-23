@@ -2,25 +2,33 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="canonical" href="https://amche.in" />
-    <title>amche.in - Free Maps of Goa</title>
 
-    <!-- PWA Meta Tags -->
+    <title>amche.in - Free Maps of Goa</title>
+    <link rel="canonical" href="https://amche.in" />
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/assets/img/icon-192x192.png">
+    
+    <!-- 
+    
+    SEO and Social Media Meta Tags
+    Customize this to ensure proper SEO for the application
+
+     -->
+
+    <meta name="description"
+        content="Explore Goa's interactive map featuring detailed cadastral boundaries, land use zones, construction sites, hill slopes, coastal zones (CZMP), and community-contributed locations. 3D terrain views, and regional development plans for comprehensive Goa mapping." />
+    <meta name="keywords"
+        content="Goa maps, land use zones, cadastral maps, Goa construction sites, Goa coastal zones, CZMP, Survey of India, Goa terrain, Goa RDP, Goa hill slopes, interactive mapping, Goa community mapping, Goa land records" />
+
+    <!-- Progressive Web App Meta Tags -->
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="amche.in">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/assets/img/icon-192x192.png">
-
-    <!-- SEO and Social Media Meta Tags -->
-    <meta name="description"
-        content="Explore Goa's interactive map featuring detailed cadastral boundaries, land use zones, construction sites, hill slopes, coastal zones (CZMP), and community-contributed locations. 3D terrain views, and regional development plans for comprehensive Goa mapping." />
-    <meta name="keywords"
-        content="Goa maps, land use zones, cadastral maps, Goa construction sites, Goa coastal zones, CZMP, Survey of India, Goa terrain, Goa RDP, Goa hill slopes, interactive mapping, Goa community mapping, Goa land records" />
 
     <!-- Open Graph Meta Tags for Social Media -->
     <meta property="og:title" content="amche.in - Interactive Map of Goa" />
@@ -39,8 +47,16 @@
         content="Explore and contribute to the various layers of Goa's community maintained GIS map platform. Layers include cadastral boundaries, land use zones, construction sites, hill slopes, coastal regulation zones (CZMP), regional development plans along with user contributed map annotations." />
     <meta name="twitter:image" content="https://amche.in/assets/img/og_image.jpg" />
 
-    <!-- Favicon -->
-    <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <!-- Application Scripts -->
+    <script src="js/geolocation-control.js"></script>
+    <script src="js/mapbox-gl-view-control.js"></script>
+    <script type="module" src="js/map-init.js"></script>
+    <!-- Service Worker Registration -->
+    <script src="js/pwa/register-sw.js"></script>
 
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -65,11 +81,18 @@
 
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="js/geolocation-control.js"></script>
-    <script src="js/mapbox-gl-view-control.js"></script>
-    <script type="module" src="js/map-init.js"></script>
-    <!-- Service Worker Registration -->
-    <script src="js/pwa/register-sw.js"></script>
+
+    <!-- Add this in the head section, before the map-init.js script -->
+    <script>
+        // Preload default layer styles
+        const stylesLink = document.createElement('link');
+        stylesLink.rel = 'preload';
+        stylesLink.href = 'config/_defaults.json';
+        stylesLink.as = 'fetch';
+        stylesLink.crossOrigin = 'anonymous';
+        document.head.appendChild(stylesLink);
+    </script>
+
 </head>
 
 <body class="flex flex-col h-screen">
@@ -85,12 +108,9 @@
                 </svg>
             </a>
             <div>
-                <mapbox-search-box 
-                    id="search-box" 
+                <mapbox-search-box id="search-box"
                     access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ"
-                    proximity="73.87916,15.26032"
-                    country="IN"
-                    language="en"
+                    proximity="73.87916,15.26032" country="IN" language="en"
                     types="place,locality,postcode,region,district,street,address,poi">
                 </mapbox-search-box>
             </div>
@@ -110,7 +130,8 @@
             </sl-input>
             <p class="text-sm text-gray-600">
                 Enter the URL of a JSON configuration file to customize map layers.
-                <a href="/config/default.json" target="_blank" class="text-blue-500 hover:underline">View default config</a>
+                <a href="/config/default.json" target="_blank" class="text-blue-500 hover:underline">View default
+                    config</a>
             </p>
             <div class="flex justify-end gap-2">
                 <sl-button type="button" variant="default" id="cancel-config">Cancel</sl-button>
@@ -185,7 +206,7 @@
         customElements.whenDefined('sl-drawer').then(() => {
             const drawer = document.querySelector('.drawer-placement-start');
             const openButton = document.querySelector('#open-drawer');
-            
+
             // Track if drawer was manually toggled
             let userToggledDrawer = false;
 
@@ -193,7 +214,7 @@
             function handleDrawerState() {
                 // Don't automatically change drawer state if the user manually toggled it
                 if (userToggledDrawer) return;
-                
+
                 if (window.innerWidth > 768) { // Desktop
                     drawer.show();
                 } else { // Mobile
@@ -215,29 +236,29 @@
                 userToggledDrawer = true;
                 drawer.show();
             });
-            
+
             // Listen for drawer close event
             drawer.addEventListener('sl-hide', () => {
                 userToggledDrawer = true;
             });
         });
-        
+
         // Initialize custom configuration dialog
         customElements.whenDefined('sl-dialog').then(() => {
             const configDialog = document.getElementById('config-dialog');
             const loadConfigBtn = document.getElementById('load-config-btn');
             const cancelConfigBtn = document.getElementById('cancel-config');
             const configForm = document.getElementById('config-form');
-            
+
             loadConfigBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 configDialog.show();
             });
-            
+
             cancelConfigBtn.addEventListener('click', () => {
                 configDialog.hide();
             });
-            
+
             configForm.addEventListener('submit', (event) => {
                 event.preventDefault();
                 const configUrl = document.getElementById('config-url').value;

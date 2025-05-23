@@ -1,0 +1,57 @@
+{
+  "layers": [
+    {
+      "id": "mapbox-streets"
+    },
+    {
+      "initiallyChecked": true,
+      "title": "Soil Map of the World",
+      "description": "Soil Map of the World at 1:5M scale. Check <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>documentation</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-geomorphology.png",
+      "legendImage": "https://www.fao.org/4/as360e/as360e.pdf",
+      "type": "vector",
+      "id": "world-soil-map",
+      "url": "https://api-main-432878571563.europe-west4.run.app/tiler/vector/{z}/{x}/{y}?map_id=17870bf2-bfbc-4dac-bd0c-65ede1b06e1f",
+      "sourceLayer": "vector",
+      "maxzoom": 8,
+      "attribution": "<a href='https://www.fao.org/land-water/land/land-governance/land-resources-planning-toolbox/category/details/en/c/1026564/'>FAO Digital Soil Map of the World (DSMW)</a> - via <a href='https://www.maphub.co/map/17870bf2-bfbc-4dac-bd0c-65ede1b06e1f'>Maphub</a>",
+      "style": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "DOMSOI"
+          ],
+          [
+            "Je"
+          ],
+          "green",
+          [
+            "Rd"
+          ],
+          "brown",
+          [
+            "Be"
+          ],
+          "darkblue",
+          [
+            "Nd"
+          ],
+          "blue",
+          "grey"
+        ], 
+        
+        "line-color":"white",
+        "line-width":0.5
+      },
+      "inspect": {
+        "id": "FAOSOIL",
+        "title": "Soil Code",
+        "label": "FAOSOIL",
+        "fields" : ["DOMSOI","COUNTRY"],
+        "fieldTitles": ["Soil Unit", "Country"],
+        "customHtml": "<a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/' target='_blank'>Soil Code Lookup</a> | <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>Soil Unit Lookup</a> | <a href='https://www.fao.org/fileadmin/user_upload/soils/docs/Soil_map_FAOUNESCO/acrobat/South_Asia_VII_II.pdf' target='_blank'>South Asia Soil Unit Map</a>"
+      }
+    }
+  ]
+}

@@ -8,24 +8,101 @@ function getUrlParameter(name) {
 
 // Function to load configuration
 async function loadConfiguration() {
-    // Check if there's a custom config URL in the URL parameters
-    const configUrl = getUrlParameter('config') || 'default';
+    // Check if a specific config is requested via URL parameter
+    const configParam = getUrlParameter('config');
+    let configPath = 'config/index.json';
+    let config;
     
-    // Choose the config source - either from URL parameter or the default JSON file
-    const configSource = configUrl.startsWith('http') ? configUrl : `/config/${configUrl}.json`;
-    
-    try {
-        const response = await fetch(configSource);
-        if (!response.ok) {
-            console.error(`Failed to load configuration from ${configSource}: ${response.statusText}`);
-            return { layers: [] };
+    // If a config parameter is provided, determine how to handle it
+    if (configParam) {
+        // Check if the config parameter is a JSON string
+        if (configParam.startsWith('{') && configParam.endsWith('}')) {
+            try {
+                config = JSON.parse(configParam); // Parse JSON directly
+            } catch (error) {
+                console.error('Failed to parse config JSON from URL parameter:', error);
+                throw new Error('Invalid JSON in config parameter');
+            }
         }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error(`Error loading configuration from ${configSource}:`, error);
-        return { layers: [] };
+        // Check if the config parameter is a URL
+        else if (configParam.startsWith('http://') || configParam.startsWith('https://')) {
+            configPath = configParam; // Use the URL directly
+        } else {
+            configPath = `config/${configParam}.json`; // Treat as local file
+        }
     }
+    
+    // Load the configuration file (only if we didn't parse JSON directly)
+    if (!config) {
+        const configResponse = await fetch(configPath);
+        config = await configResponse.json();
+    }
+
+    // Load defaults
+    try {
+        const configDefaultsResponse = await fetch('config/_defaults.json');
+        const configDefaults = await configDefaultsResponse.json();
+        
+        // Merge defaults with anyoverrides in config
+        config.defaults = config.defaults ? 
+            deepMerge(configDefaults, config.defaults) : 
+            configDefaults;
+    } catch (error) {
+        console.warn('Default configuration values not found or invalid:', error);
+    }
+
+    // Try to load the map layer library
+    try {
+        const libraryResponse = await fetch('config/_map-layer-presets.json');
+        const layerLibrary = await libraryResponse.json();
+        
+        // Process each layer in the config and merge with library definitions
+        if (config.layers && Array.isArray(config.layers)) {
+            config.layers = config.layers.map(layerConfig => {
+                // If the layer only has an id (or minimal properties), look it up in the library
+                if (layerConfig.id && !layerConfig.type) {
+                    // Find the matching layer in the library
+                    const libraryLayer = layerLibrary.layers.find(lib => lib.id === layerConfig.id);
+                    
+                    if (libraryLayer) {
+                        // Merge the library layer with any custom overrides from config
+                        return { ...libraryLayer, ...layerConfig };
+                    }
+                }
+                // If no match found or it's a fully defined layer, return as is
+                return layerConfig;
+            });
+        }
+    } catch (error) {
+        console.warn('Map layer library not found or invalid, using only config file:', error);
+    }
+    
+    return config;
+}
+
+// Helper function to deep merge objects
+function deepMerge(target, source) {
+    const output = Object.assign({}, target);
+    
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = deepMerge(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    
+    return output;
+}
+
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
 // Initialize the map
@@ -49,9 +126,8 @@ async function initializeMap() {
     // Apply map settings from config if available
     const mapOptions = { ...defaultMapOptions };
     if (config.map) {
-        if (config.map.center) mapOptions.center = config.map.center;
-        if (config.map.zoom) mapOptions.zoom = config.map.zoom;
-        // Add any other map options from config as needed
+        // Apply all properties from config.map to mapOptions
+        Object.assign(mapOptions, config.map);
     }
     
     const map = new mapboxgl.Map(mapOptions);
