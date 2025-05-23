@@ -28,6 +28,135 @@
     },
     {
       "id": "osm-roads"
+    },
+    {
+      "id": "community-maps"
+    },
+    {
+      "id": "pincode"
+    },
+    {
+      "id": "steep-plots"
+    },
+    {
+      "id": "plot"
+    },
+    {
+      "id": "village"
+    },
+    {
+      "id": "municipal-wards"
+    },
+    {
+      "id": "local-body"
+    },
+    {
+      "id": "assembly-constituencies"
+    },
+    {
+      "id": "parliamentary-constituencies"
+    },
+    {
+      "id": "rivers"
+    },
+    {
+      "id": "watershed"
+    },
+    {
+      "id": "micro-watersheds"
+    },
+    {
+      "id": "water-bodies"
+    },
+    {
+      "id": "wetland"
+    },
+    {
+      "id": "private-forests"
+    },
+    {
+      "id": "forests"
+    },
+    {
+      "id": "esz"
+    },
+    {
+      "id": "wildlife-reserve"
+    },
+    {
+      "id": "mining"
+    },
+    {
+      "id": "slope"
+    },
+    {
+      "id": "mhadei-project"
+    },
+    {
+      "id": "construction-sites"
+    },
+    {
+      "id": "open-buildings"
+    },
+    {
+      "id": "landuse-panjim"
+    },
+    {
+      "id": "osm-sites"
+    },
+    {
+      "id": "osm-landuse"
+    },
+    {
+      "id": "landcover"
+    },
+    {
+      "id": "lineament"
+    },
+    {
+      "id": "groundwater"
+    },
+    {
+      "id": "geomorphology"
+    },
+    {
+      "id": "mask"
+    },
+    {
+      "id": "goa-soi-map"
+    },
+    {
+      "id": "regional-plan"
+    },
+    {
+      "id": "goa-czmp-map"
+    },
+    {
+      "id": "goa-ams-map"
+    },
+    {
+      "id": "1914-admiralty-chart"
+    },
+    {
+      "id": "1906-india-atlas"
+    },
+    {
+      "id": "1855-geology"
+    },
+    {
+      "id": "1814-lambton-survey"
+    },
+    {
+      "id": "1792-general-atlas"
+    },
+    {
+      "id": "1775-admiralty-chart"
+    },
+    {
+      "id": "osm"
+    },
+    {
+      "id": "bus"
     }
   ]
 }
