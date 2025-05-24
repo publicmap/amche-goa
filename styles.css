@@ -1444,3 +1444,69 @@ sl-divider {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* Dark theme styling for navigation dropdown menu */
+sl-dropdown::part(panel) {
+    background: #1f2937; /* Same as bg-gray-800 */
+    border: 1px solid #374151; /* Gray-700 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+sl-menu {
+    background: #1f2937;
+}
+
+sl-menu-item::part(base) {
+    color: #f9fafb; /* Light gray text */
+    background: transparent;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+sl-menu-item:hover::part(base) {
+    background-color: #374151; /* Gray-700 on hover */
+    color: #ffffff;
+}
+
+sl-menu-item.nav-active::part(base) {
+    color: #F96302; /* Orange for active item */
+    background-color: rgba(249, 99, 2, 0.1);
+}
+
+sl-menu-item.nav-active:hover::part(base) {
+    background-color: rgba(249, 99, 2, 0.2);
+}
+
+/* Dark theme for menu label */
+sl-menu-label {
+    background: #111827; /* Darker background for header */
+    border-bottom: 1px solid #374151;
+}
+
+sl-menu-label a {
+    color: #F96302; /* Orange color for site title */
+}
+
+sl-menu-label a:hover {
+    color: #ff7c33; /* Lighter orange on hover */
+}
+
+/* Dark theme for dividers */
+sl-divider {
+    --color: #374151; /* Gray-700 for dividers */
+}
+
+/* Menu icon styling in dark theme */
+sl-menu-item svg {
+    color: #9ca3af; /* Gray-400 for icons */
+}
+
+sl-menu-item:hover svg {
+    color: #ffffff; /* White icons on hover */
+}
+
+sl-menu-item.nav-active svg {
+    color: #F96302; /* Orange icons for active items */
+}
