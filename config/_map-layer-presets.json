@@ -3572,7 +3572,7 @@
           [
             "BUTP"
           ],
-          "red",
+          "maroon",
           [
             "BUMN"
           ],
@@ -3636,7 +3636,7 @@
               ],
               false
             ],
-            1,
+            4,
             [
               "boolean",
               [
@@ -3693,7 +3693,7 @@
           [
             "BUTP"
           ],
-          "red",
+          "maroon",
           [
             "BUMN"
           ],
@@ -3739,7 +3739,7 @@
         "fill-opacity": 0.8
       },
       "inspect": {
-        "id": "OBJECTID",
+        "id": "lc_code",
         "title": "Description",
         "label": "dscr3",
         "fields": [
