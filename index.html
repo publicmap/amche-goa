@@ -99,14 +99,39 @@
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <h1 class="text-l"><a href="https://amche.in" class="text-white hover:underline">amche.in</a></h1>
-            <a href="/sound/index.html" onclick="navigateToSound(event)" class="text-white hover:text-gray-300"
-                title="Sound Map">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" />
-                </svg>
-            </a>
+            <!-- Left Navigation Dropdown -->
+            <sl-dropdown>
+                <sl-button slot="trigger" variant="text" size="small" class="nav-dropdown-trigger interactive-nav-button">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+                    </svg>
+                </sl-button>
+                <sl-menu>
+                    <sl-menu-label>
+                        <a href="https://amche.in" class="text-orange-500 hover:text-orange-400 font-semibold text-lg">amche.in</a>
+                    </sl-menu-label>
+                    <sl-divider></sl-divider>
+                    <sl-menu-item href="./" class="nav-active">
+                        <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+                        </svg>
+                        Maps
+                    </sl-menu-item>
+                    <sl-menu-item onclick="navigateToSound(event)" href="./sound/">
+                        <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z"/>
+                        </svg>
+                        Noiselogger
+                    </sl-menu-item>
+                    <sl-menu-item href="./contact/">
+                        <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                        </svg>
+                        Goa Contact Sheet
+                    </sl-menu-item>
+                </sl-menu>
+            </sl-dropdown>
+
             <div>
                 <mapbox-search-box id="search-box"
                     access-token="pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ"
@@ -115,10 +140,33 @@
                 </mapbox-search-box>
             </div>
         </div>
-        <div class="flex gap-4">
-            <a href="#" id="load-config-btn" class="text-sm hover:underline">Custom Config</a>
-            <a href="https://github.com/publicmap/amche-goa" class="text-sm hover:underline">Source</a>
-            <a href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank" class="text-sm hover:underline">Feedback</a>
+        <div class="flex gap-4 items-center">
+            <!-- Gear button for Custom Config -->
+            <sl-icon-button name="gear" id="load-config-btn" class="config-gear-button" title="Custom Config"></sl-icon-button>
+            
+            <!-- Right Information Dropdown -->
+            <sl-dropdown>
+                <sl-button slot="trigger" caret variant="text" size="small" class="nav-dropdown-trigger">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    Info
+                </sl-button>
+                <sl-menu>
+                    <sl-menu-item href="https://github.com/publicmap/amche-goa">
+                        <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        Source
+                    </sl-menu-item>
+                    <sl-menu-item href="https://forms.gle/8J4HTJMUM1thWpGK9" target="_blank">
+                        <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"/>
+                        </svg>
+                        Feedback
+                    </sl-menu-item>
+                </sl-menu>
+            </sl-dropdown>
         </div>
     </header>
 
@@ -267,6 +315,28 @@
                     currentUrl.searchParams.set('config', configUrl);
                     window.location.href = currentUrl.toString();
                 }
+            });
+        });
+
+        // Handle navigation dropdown menu clicks
+        customElements.whenDefined('sl-menu-item').then(() => {
+            document.querySelectorAll('sl-menu-item[href]').forEach(item => {
+                item.addEventListener('click', (event) => {
+                    const href = item.getAttribute('href');
+                    if (href && href.startsWith('http')) {
+                        // External links - open in new tab if target="_blank"
+                        if (item.getAttribute('target') === '_blank') {
+                            event.preventDefault();
+                            window.open(href, '_blank');
+                        }
+                    } else if (href) {
+                        // Internal navigation
+                        if (!item.hasAttribute('onclick')) {
+                            event.preventDefault();
+                            window.location.href = href;
+                        }
+                    }
+                });
             });
         });
     </script>

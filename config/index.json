@@ -20,6 +20,9 @@
       "id": "mapbox-traffic"
     },
     {
+      "id": "osm-paths"
+    },
+    {
       "id": "osm-roads"
     },
     {

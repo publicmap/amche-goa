@@ -87,6 +87,184 @@
       ]
     },
     {
+      "title": "Pedestrian Paths and Trails",
+      "description": "Road network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-osm-roads.png",
+      "type": "vector",
+      "id": "osm-paths",
+      "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",
+      "sourceLayer": "streets",
+      "maxzoom": 15,
+      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a> via <a href='https://shortbread-tiles.org/schema/1.0/'>Shortbread vector tiles</a>",
+      "filter": [
+        "match",
+        [
+          "get",
+          "kind"
+        ],
+        [
+          "pedestrian",
+          "footway",
+          "path"
+        ],
+        true,
+        false
+      ],
+      "style": {
+        "line-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          0.95,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.6,
+          0.5
+        ],
+        "line-color": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          "yellow",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          "red",
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            [
+              "motorway",
+              "trunk"
+            ],
+            "black",
+            [
+              "primary",
+              "secondary",
+              "tertiary"
+            ],
+            "darkred",
+            [
+              "residential",
+              "living_street",
+              "unclassified",
+              "service"
+            ],
+            "brown",
+            [
+              "pedestrian",
+              "footway",
+              "path",
+              "track"
+            ],
+            "red",
+            "black"
+          ]
+        ],
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          11,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            5,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            5,
+            [
+              "match",
+              [
+                "get",
+                "kind"
+              ],
+              [
+                "motorway"
+              ],
+              5,
+              [
+                "trunk"
+              ],
+              3,
+              [
+                "primary"
+              ],
+              3,
+              [
+                "secondary"
+              ],
+              3,
+              [
+                "tertiary"
+              ],
+              2,
+              [
+                "residential",
+                "unclassified"
+              ],
+              1.5,
+              1
+            ]
+          ]
+        ]
+      },
+      "inspect": {
+        "id": "kind",
+        "title": "OSM Type",
+        "label": "kind",
+        "fields": [
+          "surface"
+        ],
+        "fieldTitles": [
+          "Surface"
+        ]
+      }
+    },
+    {
       "title": "Motorable Roads",
       "description": "Road network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
       "headerImage": "assets/map-layers/map-layer-osm-roads.png",
