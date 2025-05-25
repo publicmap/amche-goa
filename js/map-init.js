@@ -19,6 +19,31 @@ async function loadConfiguration() {
         if (configParam.startsWith('{') && configParam.endsWith('}')) {
             try {
                 config = JSON.parse(configParam); // Parse JSON directly
+                
+                // Minify the JSON by removing whitespace and rewrite the URL
+                const minifiedJson = JSON.stringify(config);
+                if (minifiedJson !== configParam) {
+                    // Update the URL with minified JSON without URL encoding
+                    const url = new URL(window.location);
+                    const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
+                    const otherParams = new URLSearchParams(url.search);
+                    otherParams.delete('config'); // Remove existing config param
+                    
+                    // Build the new URL manually to avoid URL encoding the JSON
+                    let newUrl = baseUrl;
+                    if (otherParams.toString()) {
+                        newUrl += '?' + otherParams.toString() + '&config=' + minifiedJson;
+                    } else {
+                        newUrl += '?config=' + minifiedJson;
+                    }
+                    
+                    // Add hash if it exists
+                    if (url.hash) {
+                        newUrl += url.hash;
+                    }
+                    
+                    window.history.replaceState({}, '', newUrl);
+                }
             } catch (error) {
                 console.error('Failed to parse config JSON from URL parameter:', error);
                 throw new Error('Invalid JSON in config parameter');
