@@ -52,6 +52,15 @@
       "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain"
     },
     {
+      "title": "Murphy Map of Island of Bombay and Colaba (1843)",
+      "description": "Historical map of the Island of Bombay and Colaba from 1843",
+      "headerImage": "assets/map-layers/map-layer-1843-murphy-map.png",
+      "type": "tms",
+      "id": "1843-murphy-map",
+      "url": "https://warper.wmflabs.org/maps/tile/8737/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:1843_Murphy_Map_of_Island_of_Bombay_and_Colaba.png'>Wikimedia Commons: 1843 Murphy Map of Island of Bombay and Colaba</a> via <a href='https://warper.wmflabs.org/maps/8737'>Wikimaps Warper</a> released in public domain"
+    },
+    {
       "initiallyChecked": true,
       "title": "Niebuhr's Map of Bombay (1764)",
       "description": "Map by Carsten Niebuhr, a Danish traveler and scholar who was part of the Danish East India Company's expedition to the region.",
