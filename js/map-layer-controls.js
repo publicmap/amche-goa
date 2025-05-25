@@ -1331,6 +1331,7 @@ export class MapLayerControl {
                         type: 'raster',
                         tiles: [group.url],
                         tileSize: 256,
+                        maxzoom: group.maxzoom || 22,
                     });
 
                     this._map.addLayer({
@@ -1989,6 +1990,7 @@ export class MapLayerControl {
                     type: 'raster',
                     tiles: [group.url],
                     tileSize: 256,
+                    maxzoom: group.maxzoom || 22,
                 });
 
                 this._map.addLayer({
@@ -3805,7 +3807,8 @@ export class MapLayerControl {
                 this._map.addSource(sourceId, {
                     type: 'raster',
                     tiles: [newConfig.url],
-                    tileSize: 256
+                    tileSize: 256,
+                    maxzoom: newConfig.maxzoom || 22
                 });
                 
                 // Add layer

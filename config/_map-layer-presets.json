@@ -2255,6 +2255,29 @@
       }
     },
     {
+      "title": "Coastal Regulation Zones",
+      "description": "Coastal Regulation Zones as defined in the <a href='https://moef.gov.in/eco-sensitive-zone-esz'>National Environment Policy, MoEF</a>",
+      "headerImage": "assets/map-layers/map-layer-crz.png",
+      "type": "vector",
+      "id": "crz",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/coastal/regulation-zones/parivesh/{z}/{x}/{y}.pbf",
+      "sourceLayer": "Bharatmaps_Parivesh_CRZ_Regulation_Zones",
+      "maxzoom": 14,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>Bharatmaps/Parivesh</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "inspect": {
+        "id": "FID",
+        "title": "ESZ Name",
+        "label": "Name",
+        "fields": [
+          "Zone_Type",
+          "Map_Name",
+          "Set_No",
+          "Page_No",
+          "Remark"
+        ]
+      }
+    },
+    {
       "title": "Mining Leases",
       "description": "Major mining lease boundaries",
       "headerImage": "assets/map-layers/map-layer-mines.png",
@@ -4247,7 +4270,8 @@
       "description": "Cloud top temperatures colorized to reveal areas of intensity using the infrared band of weather satellite. Imagery updated every 10 minutes.",
       "headerImage": "assets/map-layers/map-layer-weather-satellite.png",
       "type": "tms",
-      "id": "weather-satellie",
+      "maxzoom": 9,
+      "id": "weather-satellite",
       "url": "https://earthlive.maptiles.arcgis.com/arcgis/rest/services/GOES/GOES31D/MapServer/tile/{z}/{y}/{x}",
       "attribution": "<a href='https://www.arcgis.com/home/item.html?id=37a875ff3611496883b7ccca97f0f5f4'>NOAA GOES East and West + JMA Himawari</a>"
     },
