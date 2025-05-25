@@ -67,7 +67,7 @@
       "url": "https://warper.wmflabs.org/maps/tile/1848/{z}/{x}/{y}.png",
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Bombay_Niebuhr%27s_Map_1764.jpg'>Wikimedia Commons/British Library: Bombay Niebuhr's Map 1764</a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
     },
-    { "id": "1792-india-atlas" },
+    { "id": "1792-general-atlas" },
     {
       "id": "osm"
     },

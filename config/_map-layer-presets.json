@@ -266,6 +266,66 @@
       }
     },
     {
+      "title": "Railways",
+      "description": "Railway network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-osm-railway.png",
+      "type": "vector",
+      "id": "osm-railway",
+      "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",
+      "sourceLayer": "streets",
+      "maxzoom": 15,
+      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a> via <a href='https://shortbread-tiles.org/schema/1.0/'>Shortbread vector tiles</a>",
+      "filter": [
+        "match",
+        [
+          "get",
+          "kind"
+        ],
+        [
+          "tram",
+          "narrow_gauge",
+          "light_rail",
+          "subway",
+          "rail"
+        ],
+        true,
+        false
+      ],
+      "style": {
+        "line-opacity": 0.9,
+        "line-color": [
+          "match",
+          [
+            "get",
+            "kind"
+          ],
+          [
+            "rail"
+          ],
+          "black",
+          "blue"
+        ],
+        "line-width": [
+          "case",
+          ["has",
+          "service"],
+          1,
+          5
+        ]
+      },
+      "inspect": {
+        "id": "kind",
+        "title": "OSM Type",
+        "label": "kind",
+        "fields": [
+          "surface"
+        ],
+        "fieldTitles": [
+          "Surface"
+        ]
+      }
+    },
+    {
       "title": "Motorable Roads",
       "description": "Road network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
       "headerImage": "assets/map-layers/map-layer-osm-roads.png",

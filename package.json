@@ -1,0 +1,46 @@
+{
+  "name": "amche-goa",
+  "version": "1.0.0",
+  "description": "Interactive map of Goa with community-contributed data layers",
+  "main": "index.html",
+  "scripts": {
+    "start": "vite --port 4035 --host",
+    "dev": "vite --port 4035 --host",
+    "build": "vite build",
+    "preview": "vite preview --port 4035",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "npm run lint:json",
+    "lint:json": "node js/tests/lint-json.js"
+  },
+  "keywords": [
+    "goa",
+    "map",
+    "community",
+    "open-data",
+    "mapbox"
+  ],
+  "author": "Amche Goa Community",
+  "license": "MIT",
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "glob": "^10.3.0",
+    "vitest": "^1.0.0",
+    "vite": "^6.3.5"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/js/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "config/**/*.json",
+      "!**/node_modules/**"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/publicmap/amche-goa.git"
+  },
+  "homepage": "https://amche.in"
+}
