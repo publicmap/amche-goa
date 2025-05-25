@@ -109,6 +109,9 @@ export class MapLayerControl {
                     line: { 'line-color': '#000000', 'line-width': 1 },
                     text: { 'text-color': '#000000', 'text-halo-width': 1 },
                     circle: { 'circle-radius': 5, 'circle-color': '#000000' }
+                },
+                raster: {
+                    'raster-opacity': 1
                 }
             };
         }
@@ -1338,7 +1341,7 @@ export class MapLayerControl {
                         visibility: 'none'
                     },
                     paint: {
-                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
                     }
                     }, this._getInsertPosition('tms'));
                 }
@@ -1996,7 +1999,7 @@ export class MapLayerControl {
                         visibility: 'visible'
                     },
                     paint: {
-                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 1
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
                     }
                 }, this._getInsertPosition('tms'));
             } else if (this._map.getLayer(layerId)) {
@@ -2327,7 +2330,7 @@ export class MapLayerControl {
                             visibility: 'visible'
                         },
                                             paint: {
-                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || 0.85,
+                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 0.85,
                         'raster-fade-duration': 0
                     }
                     }, this._getInsertPosition('img'));
@@ -3811,7 +3814,7 @@ export class MapLayerControl {
                     type: 'raster',
                     source: sourceId,
                     paint: {
-                        'raster-opacity': newConfig.style?.['raster-opacity'] || newConfig.opacity || 1
+                        'raster-opacity': newConfig.style?.['raster-opacity'] || newConfig.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
                     },
                     layout: {
                         visibility: 'none'

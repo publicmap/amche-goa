@@ -231,6 +231,23 @@
           "circle-pitch-scale": "map"
         }
       },
+      "raster": {
+        "raster-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          6,
+          0.9,
+          15,
+          0.8,
+          16,
+          0.2
+        ]
+      },
       "terrain": {
         "exaggeration": 1.5,
         "fog": {

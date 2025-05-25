@@ -1,4 +1,5 @@
-{
+{ 
+  "tags": ["historic", "india", "streets", "traffic", "pedestrian", "roads", "geology", "atlas", "survey", "plan", "regulation"],
   "layers": [
     {
       "id": "mapbox-streets",
@@ -4246,7 +4247,8 @@
       "type": "tms",
       "id": "1906-india-atlas",
       "url": "https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)'>Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href='https://warper.wmflabs.org/mosaics/15#Show_tab'>Wikimaps Warper</a> released in public domain"
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)'>Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href='https://warper.wmflabs.org/mosaics/15#Show_tab'>Wikimaps Warper</a> released in public domain",
+      "tags": ["historic", "india", "atlas"]
     },
     {
       "title": "Geological Map of India (1855)",
@@ -4255,7 +4257,8 @@
       "type": "tms",
       "id": "1855-geology",
       "url": "https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png",
-      "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain"
+      "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain",
+      "tags": ["historic", "india", "geology"]
     },
     {
       "title": "Lambtons Peninsular Survey  (1802-1814)",
@@ -4264,7 +4267,8 @@
       "type": "tms",
       "id": "1814-lambton-survey",
       "url": "https://warper.wmflabs.org/mosaics/tile/13/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey'>Wikimedia Commons: Lambtons peninsular survey</a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/Category:Lambton%27s_peninsular_survey'>Wikimedia Commons: Lambtons peninsular survey</a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain",
+      "tags": ["historic", "deccan", "survey"]
     },
     {
       "title": "Robert Wilkinsons General Atlas  (1792)",
