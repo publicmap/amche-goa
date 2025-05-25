@@ -1,7 +1,7 @@
 {
   "name": "amche-goa",
-  "version": "1.0.0",
-  "description": "Interactive map of Goa with community-contributed data layers",
+  "version": "0.1.0",
+  "description": "Open community web GIS platform to interact with map data from various sources, made in Goa for the world.",
   "main": "index.html",
   "scripts": {
     "start": "vite --port 4035 --host",
