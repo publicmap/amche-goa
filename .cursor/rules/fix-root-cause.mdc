@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- Important: try to fix things at the cause, not the symptom.
+- [index.html](mdc:index.html) is the stating point
+- [styles.css](mdc:styles.css) is where all the site styles is defined
+- [map-layer-controls.js](mdc:map-layer-controls.js) has the main UI component to handle build the list of toggleable layers and control its interaction
+
+This is the technology stack to use:
+- Mapbox GL JS for client side map rendering and interactivity
+- jQuery for easy DOM manipulation
+- Shoelace for UI components. Mainly used for [map-layer-controls.js](mdc:map-layer-controls.js)
+- tailwindcss for responsive CSS framework
