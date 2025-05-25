@@ -2130,8 +2130,8 @@
       }
     },
     {
-      "title": "Coastal Regulation Zone Limits",
-      "description": "Coastal Regulation Zones as defined in the <a href='https://moef.gov.in/eco-sensitive-zone-esz'>National Environment Policy, MoEF</a>",
+      "title": "Coastal Regulation Zone Lines",
+      "description": "Regulatory lines for Coastal Regulation Zones",
       "headerImage": "assets/map-layers/map-layer-crz.png",
       "type": "vector",
       "id": "crz-line",
@@ -2178,7 +2178,7 @@
     },
     {
       "title": "Coastal Regulation Zones",
-      "description": "Coastal Regulation Zones as defined in the <a href='https://moef.gov.in/eco-sensitive-zone-esz'>National Environment Policy, MoEF</a>",
+      "description": "Coastal Regulation Zones",
       "headerImage": "assets/map-layers/map-layer-crz.png",
       "type": "vector",
       "id": "crz",
