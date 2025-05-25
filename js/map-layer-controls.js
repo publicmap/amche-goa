@@ -43,6 +43,10 @@ export class MapLayerControl {
         this._sourceControls = [];
         this._editMode = false;
         
+        // Add global selected feature tracking
+        this._selectedFeatures = new Map(); // Store selected features across all layers
+        this._globalClickHandlerAdded = false; // Track if global handler is added
+        
         // Initialize edit mode toggle
         this._initializeEditMode();
         
@@ -298,6 +302,9 @@ export class MapLayerControl {
         
         // Make sure default styles are loaded before proceeding
         await this._ensureDefaultStylesLoaded();
+        
+        // Add global click handler early
+        this._addGlobalClickHandler();
         
         // Proceed with normal initialization since layers are already loaded from map-init.js
         if (this._map.isStyleLoaded()) {
@@ -2927,6 +2934,9 @@ export class MapLayerControl {
             this._consolidatedHoverPopup = null;
         }
         this._activeHoverFeatures.clear();
+        
+        // Clear all selected features
+        this._clearAllSelectedFeatures();
     }
 
     _setupLayerInteractivity(group, layerIds, sourceId) {
@@ -3047,21 +3057,22 @@ export class MapLayerControl {
                     this._consolidatedHoverPopup.remove();
                     this._activeHoverFeatures.clear();
 
-                    // Clear previous selection
-                    if (selectedFeatureId !== null) {
-                        this._map.setFeatureState(
-                            getFeatureStateParams(selectedFeatureId),
-                            { selected: false }
-                        );
-                    }
+                    // Clear all previous selections
+                    this._clearAllSelectedFeatures();
 
                     // Set new selection
                     if (feature.id !== undefined) {
                         selectedFeatureId = feature.id;
-                        this._map.setFeatureState(
-                            getFeatureStateParams(selectedFeatureId),
-                            { selected: true }
-                        );
+                        const featureStateParams = getFeatureStateParams(selectedFeatureId);
+                        this._map.setFeatureState(featureStateParams, { selected: true });
+                        
+                        // Store in global selected features map
+                        this._selectedFeatures.set(`${sourceId}:${layerId}:${selectedFeatureId}`, {
+                            sourceId,
+                            layerId,
+                            featureId: selectedFeatureId,
+                            featureStateParams
+                        });
                     }
 
                     const content = this._createPopupContent(feature, group, false, e.lngLat);
@@ -4119,6 +4130,58 @@ export class MapLayerControl {
             east: centerLng + offset,
             north: centerLat + offset
         };
+    }
+
+    _clearAllSelectedFeatures() {
+        this._selectedFeatures.forEach((selectedFeature, key) => {
+            try {
+                this._map.setFeatureState(selectedFeature.featureStateParams, { selected: false });
+            } catch (error) {
+                console.warn('Error clearing feature state:', error);
+            }
+        });
+        this._selectedFeatures.clear();
+    }
+
+    _addGlobalClickHandler() {
+        if (this._globalClickHandlerAdded) return;
+        
+        this._map.on('click', (e) => {
+            // Use setTimeout to ensure this runs after layer-specific click handlers
+            setTimeout(() => {
+                // Check if the click was on any feature by querying all rendered features at the point
+                const features = this._map.queryRenderedFeatures(e.point);
+                
+                // Filter out base map features - only check for our custom layers
+                const customFeatures = features.filter(feature => {
+                    const layerId = feature.layer?.id;
+                    return layerId && (
+                        layerId.includes('vector-layer-') ||
+                        layerId.includes('geojson-') ||
+                        layerId.includes('csv-') ||
+                        layerId.includes('tms-layer-') ||
+                        layerId.includes('markers-')
+                    );
+                });
+                
+                // If no custom features were clicked (empty area), clear all selections
+                if (customFeatures.length === 0) {
+                    this._clearAllSelectedFeatures();
+                    
+                    // Also close any open popups
+                    this._map.getCanvas().style.cursor = '';
+                    const popups = document.querySelectorAll('.mapboxgl-popup');
+                    popups.forEach(popup => {
+                        const popupInstance = popup._popup;
+                        if (popupInstance) {
+                            popupInstance.remove();
+                        }
+                    });
+                }
+            }, 0);
+        });
+        
+        this._globalClickHandlerAdded = true;
     }
 }
 
