@@ -4255,7 +4255,7 @@
       "description": "General sketch of the physical and geological features of British India. Compiled by Greenough, George Bellas (1778-1855)",
       "headerImage": "assets/map-layers/map-layer-1855-geology.png",
       "type": "tms",
-      "id": "1855-geology",
+      "id": "1855-indiageology",
       "url": "https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png",
       "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain",
       "tags": ["historic", "india", "geology"]

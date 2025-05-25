@@ -25,38 +25,35 @@
 
     },
     {
-      "title": "Atlas of India (1827-1906)",
-      "description": "Historical atlas of India published in 1827-1906 by Survey of India",
-      "headerImage": "assets/map-layers/map-layer-1906-india-atlas.png",
-      "type": "tms",
-      "id": "1906-india-atlas",
-      "url": "https://warper.wmflabs.org/mosaics/tile/15/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/Category:Atlas_of_India_(1827-1906)'>Wikimedia Commons: Atlas of India (1827-1906)</a> via <a href='https://warper.wmflabs.org/mosaics/15#Show_tab'>Wikimaps Warper</a> released in public domain"
+      "id": "1906-india-atlas"
     },
     {
       "title": "Admiralty Chart of Bombay Harbor (1879)",
       "description": "British Admiralty nautical chart of Bombay Harbor prepared in 1879. Originally published in 1864 under Captain G. H. Richards, updated periodically until 1879. Shows extraordinary detail of Bombay harbor with individual buildings, piers, docks, lighthouses, and depth soundings.",
       "headerImage": "assets/map-layers/map-layer-1879-admiralty-chart.png",
       "type": "tms",
-      "id": "1879-admiralty-chart",
+      "id": "1879-bombay-admiralty-chart",
       "url": "https://warper.wmflabs.org/maps/tile/2056/{z}/{x}/{y}.png",
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_2621_Bombay_Harbor,_India_(_Mumbai_)_-_Geographicus_-_BombayHarbor-admiralty-1879,_Published_1864.jpg'>Wikimedia Commons: British Admiralty Chart No. 2621</a> via <a href='https://warper.wmflabs.org/maps/2056'>Wikimaps Warper</a> released in public domain"
     },
     {
-      "title": "Geological Map of India (1855)",
-      "description": "General sketch of the physical and geological features of British India. Compiled by Greenough, George Bellas (1778-1855)",
-      "headerImage": "assets/map-layers/map-layer-1855-geology.png",
-      "type": "tms",
-      "id": "1855-geology",
-      "url": "https://warper.wmflabs.org/maps/tile/2258/{z}/{x}/{y}.png",
-      "attribution": "<a href=https://commons.wikimedia.org/wiki/File:Greenough_Geology_India_1855.jpg'>Wikimedia Commons: Greenough Geology India 1855</a> via <a href='https://warper.wmflabs.org/maps/2258'>Wikimaps Warper</a> released in public domain"
-    },
+      "id": "1855-india-geology"
+     },
     {
       "title": "Murphy Map of Island of Bombay and Colaba (1843)",
       "description": "Historical map of the Island of Bombay and Colaba from 1843",
       "headerImage": "assets/map-layers/map-layer-1843-murphy-map.png",
       "type": "tms",
-      "id": "1843-murphy-map",
+      "id": "1843",
+      "url": "https://warper.wmflabs.org/maps/tile/8737/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:1843_Murphy_Map_of_Island_of_Bombay_and_Colaba.png'>Wikimedia Commons: 1843 Murphy Map of Island of Bombay and Colaba</a> via <a href='https://warper.wmflabs.org/maps/8737'>Wikimaps Warper</a> released in public domain"
+    },
+    {
+      "title": "Map of Bombay (1816)",
+      "description": "Historical map of the Island of Bombay and Colaba from 1816",
+      "headerImage": "assets/map-layers/map-layer-1816-map-of-bombay.png",
+      "type": "tms",
+      "id": "1816",
       "url": "https://warper.wmflabs.org/maps/tile/8737/{z}/{x}/{y}.png",
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:1843_Murphy_Map_of_Island_of_Bombay_and_Colaba.png'>Wikimedia Commons: 1843 Murphy Map of Island of Bombay and Colaba</a> via <a href='https://warper.wmflabs.org/maps/8737'>Wikimaps Warper</a> released in public domain"
     },
@@ -66,34 +63,16 @@
       "description": "Map by Carsten Niebuhr, a Danish traveler and scholar who was part of the Danish East India Company's expedition to the region.",
       "headerImage": "assets/map-layers/map-layer-1764-niebuhr-map.png",
       "type": "tms",
-      "id": "1764-niebuhr-map",
+      "id": "1764",
       "url": "https://warper.wmflabs.org/maps/tile/1848/{z}/{x}/{y}.png",
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Bombay_Niebuhr%27s_Map_1764.jpg'>Wikimedia Commons/British Library: Bombay Niebuhr's Map 1764</a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
     },
+    { "id": "1792-india-atlas" },
     {
-      "title": "Robert Wilkinsons General Atlas  (1792)",
-      "description": "Engraved by Thomas Conder and issued as plate no. 37 in the 1792 edition of Robert Wilkinsons General Atlas",
-      "headerImage": "assets/map-layers/map-layer-1792-general-atlas.png",
-      "type": "tms",
-      "id": "1792-general-atlas",
-      "url": "https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png'>Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
+      "id": "osm"
     },
     {
-      "id": "osm",
-      "title": "OpenStreetMap",
-      "description": "Map data contributed by the <a href='https://www.openstreetmap.in/'>OpenStreetMap India Community.</a>",
-      "headerImage": "assets/map-layers/map-layer-osm.png",
-      "type": "tms",
-      "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a>"
-    },
-    {
-      "title": "3D Terrain",
-      "description": "Terrain Controls",
-      "headerImage": "assets/map-layers/map-layer-terrain.png",
-      "type": "terrain",
-      "initiallyChecked": true
+      "id": "3d-terrain"
     }
   ]
 }
