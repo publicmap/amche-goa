@@ -1,0 +1,75 @@
+{
+  "version": "0.1.0",
+  "name": "Example map configuration template curated by the amche-goa community",
+  "areaOfInterest": "India",
+  "startDate": "2010",
+  "endDate": "2025",
+  "map": {
+    "center": [
+      72.8,
+      18.93
+    ],
+    "zoom": 12.4
+  },
+  "layers": [
+    {
+      "id": "mapbox-streets"
+    },
+    {"id": "open-buildings"},
+    {
+      "initiallyChecked": true,
+      "title": "Coastal Regulation Zone Lines",
+      "description": "Regulatory lines for Coastal Regulation Zones",
+      "headerImage": "assets/map-layers/map-layer-crz-line.png",
+      "type": "vector",
+      "id": "crz-line",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/coastal/regulation-lines/parivesh/{z}/{x}/{y}.pbf",
+      "sourceLayer": "Bharatmaps_Parivesh_CRZ_Regulatory_Lines",
+      "maxzoom": 14,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>Bharatmaps/Parivesh</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "style": {
+        "line-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "CRZ Boundary",
+          "blue",
+          "High Tide Line",
+          "blue",
+          "Low Tide Line",
+          "blue",
+          "orange"
+        ],
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "CRZ Boundary",
+          3,
+          "High Tide Line",
+          3,
+          1
+        ]
+      },
+      "inspect": {
+        "id": "class",
+        "title": "CRZ Class",
+        "label": "class",
+        "fields": [
+          "state"
+        ]
+      }
+    },
+    {
+      "id": "osm"
+    },
+    {
+      "initiallyChecked": false,
+      "id": "3d-terrain"
+    }
+  ]
+}
