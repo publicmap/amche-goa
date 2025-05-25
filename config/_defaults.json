@@ -3,8 +3,7 @@
     "style": {
       "vector": {
         "fill": {
-          "fill-color": "#FF0000",
-          "fill-opacity": [
+          "fill-color": [
             "case",
             [
               "boolean",
@@ -14,7 +13,7 @@
               ],
               false
             ],
-            0.2,
+            "red",
             [
               "boolean",
               [
@@ -23,8 +22,64 @@
               ],
               false
             ],
-            0.8,
-            1
+            "yellow",
+            "white"
+          ],
+          "fill-opacity": 
+          [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "zoom"
+            ],
+            6,
+            [
+              "case",
+              [
+                "boolean",
+                [
+                  "feature-state",
+                  "selected"
+                ],
+                false
+              ],
+              0.9,
+              [
+                "boolean",
+                [
+                  "feature-state",
+                  "hover"
+                ],
+                false
+              ],
+              0.6,
+              0.5
+            ],
+            16,
+            [
+              "case",
+              [
+                "boolean",
+                [
+                  "feature-state",
+                  "selected"
+                ],
+                false
+              ],
+              0.3,
+              [
+                "boolean",
+                [
+                  "feature-state",
+                  "hover"
+                ],
+                false
+              ],
+              0.2,
+              0.1
+            ]
           ]
         },
         "line": {

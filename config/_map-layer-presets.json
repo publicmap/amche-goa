@@ -89,7 +89,7 @@
     },
     {
       "title": "Pedestrian Paths and Trails",
-      "description": "Road network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
+      "description": "Footpaths and trails from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
       "headerImage": "assets/map-layers/map-layer-osm-roads.png",
       "type": "vector",
       "id": "osm-paths",
@@ -112,146 +112,21 @@
         false
       ],
       "style": {
-        "line-opacity": [
-          "case",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
-          ],
-          0.95,
-          [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
-          ],
-          0.6,
-          0.5
-        ],
         "line-color": [
-          "case",
+          "match",
           [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
+            "get",
+            "kind"
           ],
-          "yellow",
           [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
+            "pedestrian",
+            "footway",
+            "path"
           ],
-          "red",
-          [
-            "match",
-            [
-              "get",
-              "kind"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            "black",
-            [
-              "primary",
-              "secondary",
-              "tertiary"
-            ],
-            "darkred",
-            [
-              "residential",
-              "living_street",
-              "unclassified",
-              "service"
-            ],
-            "brown",
-            [
-              "pedestrian",
-              "footway",
-              "path",
-              "track"
-            ],
-            "red",
-            "black"
-          ]
+          "cyan",
+          "black"
         ],
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          11,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            5,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            [
-              "match",
-              [
-                "get",
-                "kind"
-              ],
-              [
-                "motorway"
-              ],
-              5,
-              [
-                "trunk"
-              ],
-              3,
-              [
-                "primary"
-              ],
-              3,
-              [
-                "secondary"
-              ],
-              3,
-              [
-                "tertiary"
-              ],
-              2,
-              [
-                "residential",
-                "unclassified"
-              ],
-              1.5,
-              1
-            ]
-          ]
-        ]
+        "line-width": 2
       },
       "inspect": {
         "id": "kind",
@@ -2255,25 +2130,119 @@
       }
     },
     {
+      "title": "Coastal Regulation Zone Limits",
+      "description": "Coastal Regulation Zones as defined in the <a href='https://moef.gov.in/eco-sensitive-zone-esz'>National Environment Policy, MoEF</a>",
+      "headerImage": "assets/map-layers/map-layer-crz.png",
+      "type": "vector",
+      "id": "crz-line",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/coastal/regulation-lines/parivesh/{z}/{x}/{y}.pbf",
+      "sourceLayer": "Bharatmaps_Parivesh_CRZ_Regulatory_Lines",
+      "maxzoom": 14,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>Bharatmaps/Parivesh</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "style": {
+        "line-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "CRZ Boundary",
+          "blue",
+          "High Tide Line",
+          "blue",
+          "Low Tide Line",
+          "blue",
+          "orange"
+        ],
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "CRZ Boundary",
+          3,
+          "High Tide Line",
+          3,
+          1
+        ]
+      },
+      "inspect": {
+        "id": "class",
+        "title": "CRZ Class",
+        "label": "class",
+        "fields": [
+          "state"
+        ]
+      }
+    },
+    {
       "title": "Coastal Regulation Zones",
       "description": "Coastal Regulation Zones as defined in the <a href='https://moef.gov.in/eco-sensitive-zone-esz'>National Environment Policy, MoEF</a>",
       "headerImage": "assets/map-layers/map-layer-crz.png",
       "type": "vector",
       "id": "crz",
       "url": "https://indianopenmaps.fly.dev/not-so-open/coastal/regulation-zones/parivesh/{z}/{x}/{y}.pbf",
-      "sourceLayer": "Bharatmaps_Parivesh_CRZ_Regulation_Zones",
+      "sourceLayer": "Bharatmaps_Parivesh_CRZ_Regulatory_Zones",
       "maxzoom": 14,
       "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>Bharatmaps/Parivesh</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "filter": [
+        "!",
+        [
+          "in",
+          [
+            "get",
+            "layer"
+          ],
+          [
+            "literal",
+            ["CRZ_IV_A", "CRZ_IV_B","Nautical_Miles_12_From_HTL"]
+          ]
+        ]
+      ],
+      "style": {
+        "line-color": "#006400",
+        "line-width": [
+          "match",
+          [
+            "get",
+            "layer"
+          ],
+          "CRZ_I_A",
+          3,
+          0.1
+        ],
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "layer"
+          ],
+          "CRZ_I_A",
+          "#859664",
+          "CRZ_I_B",
+          "gold",
+          "CRZ_II",
+          "orange",
+          "NDZ",
+          "blue",
+          "CRZ_Poly",
+          "blue",
+          "CRZ_200m_to_500m_from_HTL",
+          "yellow",
+          "Nautical_Miles_12_From_CRZ_IV_A",
+          "blue",
+          "Fishing_Wards",
+          "cyan",
+          "black"
+        ]
+      },
       "inspect": {
-        "id": "FID",
-        "title": "ESZ Name",
-        "label": "Name",
+        "id": "layer",
+        "title": "Zone",
+        "label": "layer",
         "fields": [
-          "Zone_Type",
-          "Map_Name",
-          "Set_No",
-          "Page_No",
-          "Remark"
+          "crz_class"
         ]
       }
     },

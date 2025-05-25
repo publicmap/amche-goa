@@ -1388,7 +1388,7 @@ export class MapLayerControl {
                                 visibility: 'none'
                             },
                             paint: {
-                                'fill-color': group.style?.['fill-color'] || this._defaultStyles.vector.fill['fill-color'],
+                                'fill-color': this._combineWithDefaultStyle(group.style?.['fill-color'], this._defaultStyles.vector.fill['fill-color']),
                                 'fill-opacity': group.style?.['fill-opacity'] || this._defaultStyles.vector.fill['fill-opacity']
                             },
                             metadata: {
@@ -4115,14 +4115,60 @@ export class MapLayerControl {
         // If default style is not an expression (just a simple color), return user color
         if (!Array.isArray(defaultStyleExpression)) return userColor;
         
+        // If user color contains a zoom expression (interpolate/step with zoom), use it directly
+        if (Array.isArray(userColor) && this._hasZoomExpression(userColor)) {
+            return userColor;
+        }
+        
         // Clone the default style expression to avoid modifying the original
         const result = JSON.parse(JSON.stringify(defaultStyleExpression));
         
-        // Replace the last value in the case expression (fallback color)
-        // For line-color, this would replace the 'black' value
-        result[result.length - 1] = userColor;
+        // Handle different types of expressions
+        if (result[0] === 'case') {
+            // Simple case expression - replace the fallback color (last value)
+            result[result.length - 1] = userColor;
+        } else if (result[0] === 'interpolate' && result[2] && Array.isArray(result[2]) && result[2][0] === 'zoom') {
+            // Interpolate expression with zoom - replace fallback colors in nested case expressions
+            this._replaceColorsInInterpolateExpression(result, userColor);
+        } else {
+            // For other expression types, return user color directly
+            return userColor;
+        }
         
         return result;
+    }
+    
+    _hasZoomExpression(expression) {
+        if (!Array.isArray(expression)) return false;
+        
+        // Check if this is an interpolate or step expression with zoom
+        if ((expression[0] === 'interpolate' || expression[0] === 'step') && 
+            expression.length > 2 && 
+            Array.isArray(expression[2]) && 
+            expression[2][0] === 'zoom') {
+            return true;
+        }
+        
+        // Recursively check nested expressions
+        for (let i = 1; i < expression.length; i++) {
+            if (Array.isArray(expression[i]) && this._hasZoomExpression(expression[i])) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    _replaceColorsInInterpolateExpression(interpolateExpr, newColor) {
+        // For interpolate expressions like: ["interpolate", ["linear"], ["zoom"], 6, caseExpr1, 16, caseExpr2]
+        // We need to replace the fallback color in each case expression
+        for (let i = 4; i < interpolateExpr.length; i += 2) {
+            const valueExpr = interpolateExpr[i];
+            if (Array.isArray(valueExpr) && valueExpr[0] === 'case') {
+                // Replace the fallback color (last value) in the case expression
+                valueExpr[valueExpr.length - 1] = newColor;
+            }
+        }
     }
 
     // Helper function to calculate bounding box from center coordinates and zoom
