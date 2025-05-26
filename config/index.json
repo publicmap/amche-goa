@@ -147,6 +147,9 @@
       }
     },
     {
+      "id": "karmashape-populated-places"
+    },
+    {
       "initiallyChecked": true,
       "id": "osm-paths"
     },

@@ -1510,3 +1510,43 @@ sl-menu-item:hover svg {
 sl-menu-item.nav-active svg {
     color: #F96302; /* Orange icons for active items */
 }
+
+/* Config submenu styles */
+sl-menu sl-menu {
+    margin-left: 0;
+}
+
+sl-menu sl-menu sl-menu-item::part(base) {
+    padding-left: 2rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+sl-menu sl-menu sl-menu-item:hover::part(base) {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+sl-menu sl-menu sl-menu-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem 0.25rem 2rem;
+}
+
+sl-menu sl-menu sl-divider {
+    margin: 0.25rem 1rem;
+}
+
+/* Layer type icons in submenu */
+sl-menu sl-menu sl-menu-item svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: #9ca3af;
+}
+
+sl-menu sl-menu sl-menu-item:hover svg {
+    color: #6b7280;
+}

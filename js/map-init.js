@@ -1,4 +1,5 @@
 import { MapLayerControl } from './map-layer-controls.js';
+import { configControl } from './config-control.js';
 
 // Function to get URL parameters
 function getUrlParameter(name) {
@@ -201,6 +202,9 @@ async function initializeMap() {
         
         // Initialize layer control
         layerControl.renderToContainer(container, map);
+        
+        // Initialize config control after layer control is ready
+        configControl.initialize(layerControl);
         
         // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl({
