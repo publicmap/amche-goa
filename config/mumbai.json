@@ -184,6 +184,87 @@
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Rapid_transit_map_of_Mumbai.jpg'>CC-by-sa-2.0 Rapid transit map of Mumbai, Maximilian Dörrbecker</a> via <a href='https://mapwarper.net/maps/8742'>Wikimaps Warper</a>"
     },
     {
+      "title": "Mumbai Districts",
+      "description": "Mask for the district of Mumbai city and suburbs",
+      "headerImage": "assets/map-layers/map-layer-mumbai-mask.png",
+      "type": "vector",
+      "id": "mumbai-mask",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/districts/lgd/{z}/{x}/{y}.pbf ",
+      "sourceLayer": "LGD_Districts",
+      "maxzoom": 10,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>LGD/Bharatmaps</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/districts'>Datameet Community:LGD_Districts</a>",
+      "initiallyChecked": true,
+      "style": {
+        "fill-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          10,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "dtname"
+              ],
+              "Mumbai Suburban"
+            ],
+            "rgba(0, 0, 0, 0)",
+            [
+              "==",
+              [
+                "get",
+                "dtname"
+              ],
+              "Mumbai"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 1)"
+          ],
+          12,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "dtname"
+              ],
+              "Mumbai Suburban"
+            ],
+            "rgba(0, 0, 0, 0)",
+            [
+              "==",
+              [
+                "get",
+                "dtname"
+              ],
+              "Mumbai"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 0.1)"
+          ]
+        ],
+        "line-width": 1
+      },
+      "inspect": {
+        "id": "objectid",
+        "title": "District",
+        "label": "dtname",
+        "fields": [
+          "stname"
+        ],
+        "fieldTitles": [
+          "State"
+        ]
+      }
+    },
+    {
       "id": "3d-terrain"
     }
   ]
