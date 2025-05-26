@@ -270,6 +270,9 @@ export class ConfigControl {
     createLayerMenuItem(layer, configFile) {
         const menuItem = document.createElement('sl-menu-item');
         
+        // Add CSS class for styling
+        menuItem.classList.add('config-layer-item');
+        
         // Create icon based on layer type
         const icon = this.getLayerTypeIcon(layer.type);
         
@@ -279,6 +282,12 @@ export class ConfigControl {
             </svg>
             ${layer.title}
         `;
+
+        // Add background image if available
+        if (layer.headerImage) {
+            menuItem.style.setProperty('--layer-bg-image', `url('${layer.headerImage}')`);
+            menuItem.classList.add('has-background-image');
+        }
 
         // Add click handler to add layer to current config
         menuItem.addEventListener('click', (event) => {

@@ -1550,3 +1550,97 @@ sl-menu sl-menu sl-menu-item svg {
 sl-menu sl-menu sl-menu-item:hover svg {
     color: #6b7280;
 }
+
+/* Config layer item background styling */
+sl-menu-item.config-layer-item::part(base) {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+sl-menu-item.config-layer-item.has-background-image::part(base) {
+    background-image: var(--layer-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    position: relative;
+}
+
+/* Add overlay for better text contrast */
+sl-menu-item.config-layer-item.has-background-image::part(base)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    z-index: 1;
+}
+
+/* Ensure text and icons are above the overlay */
+sl-menu-item.config-layer-item.has-background-image::part(label),
+sl-menu-item.config-layer-item.has-background-image svg {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Hover effects for background image items */
+sl-menu-item.config-layer-item.has-background-image:hover::part(base) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+sl-menu-item.config-layer-item.has-background-image:hover::part(base)::before {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.2) 50%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
+}
+
+/* Fallback styling for items without background images */
+sl-menu-item.config-layer-item:not(.has-background-image)::part(base) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    color: #495057;
+}
+
+sl-menu-item.config-layer-item:not(.has-background-image):hover::part(base) {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: #212529;
+}
+
+sl-menu-item.config-layer-item:not(.has-background-image) svg {
+    color: #6c757d;
+}
+
+sl-menu-item.config-layer-item:not(.has-background-image):hover svg {
+    color: #495057;
+}
+
+/* Ensure proper spacing and sizing */
+sl-menu-item.config-layer-item::part(base) {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    margin: 2px 0;
+    border-radius: 6px;
+}
+
+/* Icon styling for config layer items */
+sl-menu-item.config-layer-item svg {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
