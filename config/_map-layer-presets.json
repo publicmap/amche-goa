@@ -4238,11 +4238,12 @@
       "title": "Real-time Weather Satellite",
       "description": "Cloud top temperatures colorized to reveal areas of intensity using the infrared band of weather satellite. Imagery updated every 10 minutes.",
       "headerImage": "assets/map-layers/map-layer-weather-satellite.png",
+      "legendImage": "assets/map-layers/map-layer-weather-satellite-legend.png.webp",
       "type": "tms",
       "maxzoom": 9,
       "id": "weather-satellite",
       "url": "https://earthlive.maptiles.arcgis.com/arcgis/rest/services/GOES/GOES31D/MapServer/tile/{z}/{y}/{x}",
-      "attribution": "<a href='https://www.arcgis.com/home/item.html?id=37a875ff3611496883b7ccca97f0f5f4'>NOAA GOES East and West + JMA Himawari</a>"
+      "attribution": "<a href='https://www.star.nesdis.noaa.gov/goes/index.php'>NOAA GOES</a> + <a href='https://himawari8.nict.go.jp'>JMA Himwari</a> via <a href='https://www.arcgis.com/home/item.html?id=37a875ff3611496883b7ccca97f0f5f4'>JMA Himawari</a>"
     },
     {
       "title": "SOI Toposheets",
@@ -4330,7 +4331,7 @@
       "type": "tms",
       "id": "1792-general-atlas",
       "url": "https://warper.wmflabs.org/maps/tile/7050/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png'>Wikimedia Commons: 1792 General Atlas/Southern India </a> via <a href='https://warper.wmflabs.org/mosaics/13#Show_tab'>Wikimaps Warper</a> released in public domain"
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Southern_India_Wilkinson.png'>Wikimedia Commons: Southern India Wilkinson.png </a> via <a href='https://warper.wmflabs.org/maps/7050'>Wikimaps Warper</a> released in public domain"
     },
     {
       "title": "Goa Harbour Admiralty Chart (1775)",
@@ -4348,7 +4349,26 @@
       "headerImage": "assets/map-layers/map-layer-osm.png",
       "type": "tms",
       "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a>"
+      "attribution": "<a href='https://www.openstreetmap.org/#map=16/15.49493/73.82864'>© OpenStreetMap contributors</a>",
+      "style": {
+        "raster-opacity": [
+        "interpolate",
+        [
+          "linear"
+        ],
+        [
+          "zoom"
+        ],
+        6,
+        0.9,
+        14,
+        0.8,
+        18,
+        0.7,
+        19,
+        0.2
+      ]
+      }      
     },
     {
       "title": "Public Transport",

@@ -7,6 +7,7 @@
     "zoom": 12.4
   },
   "layers": [
+    { "id": "mapbox-streets" },
     {
       "title": "Cadastral Plot Boundaries",
       "description": "Cadastral Boundaries from the <a href='Directorate of Settlement & Land Records'>Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href='https://goaonline.gov.in' target='_blank' rel='noopener noreferrer'>Goa Online</a>",
@@ -172,6 +173,15 @@
       "id": "dp-1991",
       "url": "https://mapwarper.net/maps/tile/67753/{z}/{x}/{y}.png",
       "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
+    },
+    {
+      "title": "Mumbai Rapid Transit Map",
+      "description": "Sanctioned and proposed network or rapid transit lines in Mumbai.",
+      "headerImage": "assets/map-layers/map-layer-mumbai-transit.png",
+      "type": "tms",
+      "id": "mumbai-transit",
+      "url": "https://warper.wmflabs.org/maps/tile/8742/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Rapid_transit_map_of_Mumbai.jpg'>CC-by-sa-2.0 Rapid transit map of Mumbai, Maximilian Dörrbecker</a> via <a href='https://mapwarper.net/maps/8742'>Wikimaps Warper</a>"
     },
     {
       "id": "3d-terrain"
