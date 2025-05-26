@@ -66,6 +66,34 @@
     {
       "id": "1855-india-geology"
      },
+     {
+      "title": "Bombay Native Town Plan (1855)",
+      "description": "Map of the native town of Bombay, completed to 1855",
+      "headerImage": "assets/map-layers/map-layer-1855-bombay",
+      "type": "tms",
+      "id": "1855-bombay",
+      "url": "https://warper.wmflabs.org/maps/tile/8739/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Map_of_the_native_town_of_Bombay,_completed_to_1855.png'>Wikimedia Commons: Map of the native town of Bombay, completed to 1855</a> via <a href='https://warper.wmflabs.org/maps/8739'>Wikimaps Warper</a> released in public domain",
+      "style": {
+        "raster-opacity": [
+        "interpolate",
+        [
+          "linear"
+        ],
+        [
+          "zoom"
+        ],
+        6,
+        0.9,
+        14,
+        0.8,
+        18,
+        0.7,
+        19,
+        0.2
+      ]
+      }    
+    },
     {
       "title": "Murphy Map of Island of Bombay and Colaba (1843)",
       "description": "Historical map of the Island of Bombay and Colaba from 1843",

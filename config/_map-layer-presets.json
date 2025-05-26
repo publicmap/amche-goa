@@ -1126,29 +1126,7 @@
           0.9,
           0.7
         ],
-        "fill-color": [
-          "case",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "selected"
-            ],
-            false
-          ],
-          "rgba(0, 0, 0, 0)",
-          [
-            "boolean",
-            [
-              "feature-state",
-              "hover"
-            ],
-            false
-          ],
-          "rgba(0, 0, 0, 0.05)",
-          "rgba(118, 118, 118, 0.4)"
-        ],
-        "fill-opacity": 1,
+        "fill-color":  "rgba(118, 118, 118, 0.4)",
         "line-color": "purple",
         "line-dasharray": [
           6,
