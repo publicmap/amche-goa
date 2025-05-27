@@ -408,6 +408,16 @@ export class MapLayerControl {
                     group._refreshTimer = null;
                 }
                 return [`csv-${group.id}-circle`];
+            } else if (group.type === 'raster-style-layer') {
+                // For raster-style-layer, we need to reset the existing layer to its original state
+                const styleLayerId = group.styleLayer || group.id;
+                if (this._map.getLayer(styleLayerId)) {
+                    // Reset visibility to visible (default state)
+                    this._map.setLayoutProperty(styleLayerId, 'visibility', 'visible');
+                    // Note: We don't reset other properties as they might be part of the original style
+                    // and we don't have a way to know the original values
+                }
+                return []; // Don't remove the layer as it's part of the base style
             } else {
                 return [];
             }
@@ -839,7 +849,7 @@ export class MapLayerControl {
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
-                    if (['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type)) {
+                    if (['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type)) {
                         $opacityButton.toggleClass('hidden', false);
                         $settingsButton.toggleClass('hidden', false);
                     }
@@ -1003,7 +1013,7 @@ export class MapLayerControl {
                 this._showLayerSettings(group);
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img'].includes(group.type) 
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
                     'data-opacity': '0.95',
@@ -1062,6 +1072,15 @@ export class MapLayerControl {
                     // Add opacity toggle for 'img' layer type
                     if (this._map.getLayer(group.id)) {
                         this._map.setPaintProperty(group.id, 'raster-opacity', newOpacityFactor);
+                    }
+                } else if (group.type === 'raster-style-layer') {
+                    // Add opacity toggle for 'raster-style-layer' type
+                    const styleLayerId = group.styleLayer || group.id;
+                    if (this._map.getLayer(styleLayerId)) {
+                        const existingLayer = this._map.getLayer(styleLayerId);
+                        if (existingLayer.type === 'raster') {
+                            this._map.setPaintProperty(styleLayerId, 'raster-opacity', newOpacityFactor);
+                        }
                     }
                 }
             });
@@ -1139,6 +1158,14 @@ export class MapLayerControl {
                     const layerId = `tms-layer-${group.id}`;
                     if (this._map.getLayer(layerId)) {
                         this._map.setPaintProperty(layerId, 'raster-opacity', value);
+                    }
+                } else if (group.type === 'raster-style-layer') {
+                    const styleLayerId = group.styleLayer || group.id;
+                    if (this._map.getLayer(styleLayerId)) {
+                        const existingLayer = this._map.getLayer(styleLayerId);
+                        if (existingLayer.type === 'raster') {
+                            this._map.setPaintProperty(styleLayerId, 'raster-opacity', value);
+                        }
                     }
                 } else if (group.layers) {
                     group.layers.forEach(layer => {
@@ -2611,6 +2638,46 @@ export class MapLayerControl {
                     group._refreshTimer = null;
                 }
             }
+        } else if (group.type === 'raster-style-layer') {
+            // Handle raster-style-layer type - applies styles to existing style layer
+            const styleLayerId = group.styleLayer || group.id;
+            
+            if (this._map.getLayer(styleLayerId)) {
+                // Set visibility
+                this._map.setLayoutProperty(styleLayerId, 'visibility', visible ? 'visible' : 'none');
+                
+                // Apply custom style properties if provided and layer is visible
+                if (visible && group.style) {
+                    // Get the existing layer to determine its type
+                    const existingLayer = this._map.getLayer(styleLayerId);
+                    const layerType = existingLayer.type;
+                    
+                    // Categorize the style properties based on layer type
+                    const { paint, layout } = this._categorizeStyleProperties(group.style, layerType);
+                    
+                    // Apply paint properties
+                    Object.entries(paint).forEach(([property, value]) => {
+                        try {
+                            this._map.setPaintProperty(styleLayerId, property, value);
+                        } catch (error) {
+                            console.warn(`Failed to set paint property ${property} on layer ${styleLayerId}:`, error);
+                        }
+                    });
+                    
+                    // Apply layout properties (excluding visibility which we already set)
+                    Object.entries(layout).forEach(([property, value]) => {
+                        if (property !== 'visibility') {
+                            try {
+                                this._map.setLayoutProperty(styleLayerId, property, value);
+                            } catch (error) {
+                                console.warn(`Failed to set layout property ${property} on layer ${styleLayerId}:`, error);
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.warn(`Style layer '${styleLayerId}' not found in map style`);
+            }
         } else if (group.type === 'terrain') {
             // Toggle terrain
             this._map.setTerrain(visible ? { source: 'mapbox-dem', exaggeration: 1.5 } : null);
@@ -3506,17 +3573,24 @@ export class MapLayerControl {
         const tileJSONSection = content.querySelector('.tilejson-section');
         sourceDetails.innerHTML = '';
         
-        if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson') {
+        if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson' || group.type === 'raster-style-layer') {
             sourceDetails.innerHTML = `
                 <div class="source-details-content bg-gray-100 rounded">
                     <div class="mb-2">
                         <div class="text-xs text-gray-600">Format</div>
                         <div class="font-mono text-sm">${group.type.toUpperCase()}</div>
                     </div>
-                    <div class="mb-2">
-                        <div class="text-xs text-gray-600">URL</div>
-                        <div class="font-mono text-sm break-all">${group.url}</div>
-                    </div>
+                    ${group.type !== 'raster-style-layer' ? `
+                        <div class="mb-2">
+                            <div class="text-xs text-gray-600">URL</div>
+                            <div class="font-mono text-sm break-all">${group.url}</div>
+                        </div>
+                    ` : `
+                        <div class="mb-2">
+                            <div class="text-xs text-gray-600">Style Layer</div>
+                            <div class="font-mono text-sm">${group.styleLayer || group.id}</div>
+                        </div>
+                    `}
                     ${group.type === 'vector' ? `
                         <div class="mb-2">
                             <div class="text-xs text-gray-600">Source Layer</div>
@@ -3531,7 +3605,7 @@ export class MapLayerControl {
             `;
 
             // Fetch and display TileJSON if available
-            if (group.type === 'vector' || group.type === 'tms') {
+            if ((group.type === 'vector' || group.type === 'tms') && group.url) {
                 const tileJSON = await this._fetchTileJSON(group.url);
                 if (tileJSON) {
                     content.querySelector('.tilejson-content').innerHTML = `

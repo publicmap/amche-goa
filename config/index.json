@@ -227,7 +227,7 @@
       "id": "construction-sites"
     },
     {
-      "id": "2016-open-buildings",
+      "id": "open-buildings-2016",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2016",
@@ -348,11 +348,6 @@
     },
     {
       "id": "bus"
-    },
-    {
-      "id": "mapbox-satellite",
-      "tms": "styleV2",
-      "sourceLayer": "satellite"
     },
     {
       "id": "3d-terrain"
