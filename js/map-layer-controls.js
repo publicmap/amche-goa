@@ -412,8 +412,11 @@ export class MapLayerControl {
                 // For raster-style-layer, we need to reset the existing layer to its original state
                 const styleLayerId = group.styleLayer || group.id;
                 if (this._map.getLayer(styleLayerId)) {
-                    // Reset visibility to visible (default state)
-                    this._map.setLayoutProperty(styleLayerId, 'visibility', 'visible');
+                    // Only reset visibility if the layer is not initially checked
+                    // If it's initially checked, leave it as is to avoid hiding it
+                    if (!group.initiallyChecked) {
+                        this._map.setLayoutProperty(styleLayerId, 'visibility', 'none');
+                    }
                     // Note: We don't reset other properties as they might be part of the original style
                     // and we don't have a way to know the original values
                 }
@@ -871,7 +874,7 @@ export class MapLayerControl {
 
             const $summary = $('<div>', {
                 slot: 'summary',
-                class: 'flex items-center relative w-full h-12'
+                class: 'flex items-center relative w-full h-12 bg-gray-800'
             });
 
             // Add a click handler to the summary to control how clicks are processed
@@ -1828,7 +1831,8 @@ export class MapLayerControl {
             } else {
                 const $radioGroup = $('<div>', { class: 'radio-group' });
 
-                group.layers.forEach((layer, index) => {
+                if (group.layers) {
+                    group.layers.forEach((layer, index) => {
                     const $radioLabel = $('<label>', { class: 'radio-label' });
                     const $radio = $('<input>', {
                         type: 'radio',
@@ -1844,9 +1848,10 @@ export class MapLayerControl {
                         $('<span>', { text: layer.label })
                     );
                     $radioGroup.append($radioLabel);
-                });
+                    });
 
-                $sourceControl.append($radioGroup);
+                    $sourceControl.append($radioGroup);
+                }
             }
 
             // When rendering legend images, we need to check if it's a PDF and handle it differently
@@ -1963,7 +1968,7 @@ export class MapLayerControl {
 
     _initializeLayers() {
         this._state.groups.forEach(group => {
-            if (!group.layers || group.type === 'terrain') return;
+            if (!group.layers || group.type === 'terrain' || group.type === 'raster-style-layer') return;
 
             group.layers.forEach(layer => {
                 if (this._map.getLayer(layer.id)) {

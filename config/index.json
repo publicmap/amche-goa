@@ -350,7 +350,28 @@
       "id": "bus"
     },
     {
-      "id": "3d-terrain"
+      "initiallyChecked": true,
+      "id": "mapbox-satellite",
+      "type": "raster-style-layer",
+      "title": "Satellite Imagery",
+      "styleLayer": "satellite",
+      "style":{
+        "raster-brightness-min": 0,
+        "raster-brightness-max": 0.3,
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6, 0.99,
+          18, 0.9,
+          19, 0.2
+        ]
+      }
+    },
+    {
+      "id": "3d-terrain",
+      "title": "3D Terrain",
+      "type": "terrain"
     }
   ]
 }
