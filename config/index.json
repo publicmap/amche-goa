@@ -227,23 +227,55 @@
       "id": "construction-sites"
     },
     {
-      "id": "2023-open-buildings",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-0c7451acc58242d64b7a9707f1bf80df/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2023",
-      "description": "",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings Temporal Dataset, Google</a>",
-      "headerImage": "assets/map-layers/"
-    },
-    {
       "id": "2016-open-buildings",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2016",
       "description": "",
       "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings Temporal Dataset, Google</a>",
-      "headerImage": "assets/map-layers/"
+      "headerImage": "assets/map-layers/",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6, 0.9,
+          16, 0.8,
+          18, 0.7,
+          19, 0.2
+        ],
+        "raster-contrast": 0.3,
+        "raster-brightness-max": 1,
+        "raster-brightness-min": 1,
+        "raster-saturation": 0.2
+      }
     },
+    {
+      "id": "2023-open-buildings",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-0c7451acc58242d64b7a9707f1bf80df/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2023",
+      "description": "",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings Temporal Dataset, Google</a>",
+      "headerImage": "assets/map-layers/",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6, 0.9,
+          16, 0.8,
+          18, 0.7,
+          19, 0.2
+        ],
+        "raster-contrast": 0,
+        "raster-brightness-max": 0.4,
+        "raster-brightness-min": 0,
+        "raster-saturation": 0,
+        "raster-hue-rotate": 180
+      }
+    },
+ 
     {
       "id": "open-buildings"
     },
@@ -309,6 +341,9 @@
     },
     {
       "id": "bus"
+    },
+    {
+      "id": "3d-terrain"
     }
   ]
 }

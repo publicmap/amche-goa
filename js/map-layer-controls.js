@@ -61,8 +61,246 @@ export class MapLayerControl {
         
         // Load default styles
         this._loadDefaultStyles();
+        
+        // Comprehensive Mapbox GL Style Spec property mapping
+        this._stylePropertyMapping = this._initializeStylePropertyMapping();
     }
-    
+
+    /**
+     * Initialize comprehensive mapping of all Mapbox GL style properties
+     * categorized by layer type and property type (paint vs layout)
+     */
+    _initializeStylePropertyMapping() {
+        return {
+            // Common layout properties (apply to all layer types)
+            layout: {
+                common: ['visibility'],
+                fill: ['fill-sort-key'],
+                line: ['line-cap', 'line-join', 'line-miter-limit', 'line-round-limit', 'line-sort-key', 'line-elevation-reference', 'line-cross-slope', 'line-z-offset'],
+                symbol: [
+                    'icon-allow-overlap', 'icon-anchor', 'icon-ignore-placement', 'icon-image', 'icon-keep-upright',
+                    'icon-offset', 'icon-optional', 'icon-padding', 'icon-pitch-alignment', 'icon-rotate',
+                    'icon-rotation-alignment', 'icon-size', 'icon-text-fit', 'icon-text-fit-padding',
+                    'symbol-avoid-edges', 'symbol-elevation-reference', 'symbol-placement', 'symbol-sort-key',
+                    'symbol-spacing', 'symbol-z-elevate', 'symbol-z-order',
+                    'text-allow-overlap', 'text-anchor', 'text-field', 'text-font', 'text-ignore-placement',
+                    'text-justify', 'text-keep-upright', 'text-letter-spacing', 'text-line-height',
+                    'text-max-angle', 'text-max-width', 'text-offset', 'text-optional', 'text-padding',
+                    'text-pitch-alignment', 'text-radial-offset', 'text-rotate', 'text-rotation-alignment',
+                    'text-size', 'text-transform', 'text-variable-anchor', 'text-writing-mode'
+                ],
+                circle: ['circle-sort-key', 'circle-elevation-reference'],
+                raster: [], // Raster layers have no layout properties except visibility
+                'raster-particle': [],
+                'fill-extrusion': [],
+                heatmap: [],
+                hillshade: [],
+                background: [],
+                sky: [],
+                model: ['model-id']
+            },
+            
+            // Paint properties by layer type
+            paint: {
+                fill: [
+                    'fill-antialias', 'fill-color', 'fill-emissive-strength', 'fill-opacity',
+                    'fill-outline-color', 'fill-pattern', 'fill-pattern-cross-fade', 'fill-translate',
+                    'fill-translate-anchor', 'fill-z-offset'
+                ],
+                line: [
+                    'line-blur', 'line-color', 'line-dasharray', 'line-emissive-strength', 'line-gap-width',
+                    'line-gradient', 'line-occlusion-opacity', 'line-offset', 'line-opacity', 'line-pattern',
+                    'line-pattern-cross-fade', 'line-translate', 'line-translate-anchor', 'line-trim-color',
+                    'line-trim-fade-range', 'line-trim-offset', 'line-width', 'line-z-offset'
+                ],
+                symbol: [
+                    'icon-color', 'icon-color-brightness-max', 'icon-color-brightness-min', 'icon-color-contrast',
+                    'icon-color-saturation', 'icon-emissive-strength', 'icon-halo-blur', 'icon-halo-color',
+                    'icon-halo-width', 'icon-image-cross-fade', 'icon-occlusion-opacity', 'icon-opacity',
+                    'icon-translate', 'icon-translate-anchor', 'symbol-z-offset',
+                    'text-color', 'text-emissive-strength', 'text-halo-blur', 'text-halo-color',
+                    'text-halo-width', 'text-occlusion-opacity', 'text-opacity', 'text-translate',
+                    'text-translate-anchor'
+                ],
+                circle: [
+                    'circle-blur', 'circle-color', 'circle-emissive-strength', 'circle-opacity',
+                    'circle-pitch-alignment', 'circle-pitch-scale', 'circle-radius', 'circle-stroke-color',
+                    'circle-stroke-opacity', 'circle-stroke-width', 'circle-translate', 'circle-translate-anchor'
+                ],
+                raster: [
+                    'raster-array-band', 'raster-brightness-max', 'raster-brightness-min', 'raster-color',
+                    'raster-color-mix', 'raster-color-range', 'raster-contrast', 'raster-elevation',
+                    'raster-emissive-strength', 'raster-fade-duration', 'raster-hue-rotate', 'raster-opacity',
+                    'raster-resampling', 'raster-saturation'
+                ],
+                'raster-particle': [
+                    'raster-particle-array-band', 'raster-particle-color', 'raster-particle-count',
+                    'raster-particle-elevation', 'raster-particle-fade-opacity-factor', 'raster-particle-max-speed',
+                    'raster-particle-reset-rate-factor', 'raster-particle-speed-factor'
+                ],
+                'fill-extrusion': [
+                    'fill-extrusion-ambient-occlusion-ground-attenuation', 'fill-extrusion-ambient-occlusion-ground-radius',
+                    'fill-extrusion-ambient-occlusion-intensity', 'fill-extrusion-ambient-occlusion-radius',
+                    'fill-extrusion-ambient-occlusion-wall-radius', 'fill-extrusion-base', 'fill-extrusion-base-alignment',
+                    'fill-extrusion-cast-shadows', 'fill-extrusion-color', 'fill-extrusion-cutoff-fade-range',
+                    'fill-extrusion-edge-radius', 'fill-extrusion-emissive-strength', 'fill-extrusion-flood-light-color',
+                    'fill-extrusion-flood-light-ground-attenuation', 'fill-extrusion-flood-light-ground-radius',
+                    'fill-extrusion-flood-light-intensity', 'fill-extrusion-flood-light-wall-radius',
+                    'fill-extrusion-height', 'fill-extrusion-height-alignment', 'fill-extrusion-line-width',
+                    'fill-extrusion-opacity', 'fill-extrusion-pattern', 'fill-extrusion-pattern-cross-fade',
+                    'fill-extrusion-rounded-roof', 'fill-extrusion-translate', 'fill-extrusion-translate-anchor',
+                    'fill-extrusion-vertical-gradient', 'fill-extrusion-vertical-scale'
+                ],
+                heatmap: [
+                    'heatmap-color', 'heatmap-intensity', 'heatmap-opacity', 'heatmap-radius', 'heatmap-weight'
+                ],
+                hillshade: [
+                    'hillshade-accent-color', 'hillshade-emissive-strength', 'hillshade-exaggeration',
+                    'hillshade-highlight-color', 'hillshade-illumination-anchor', 'hillshade-illumination-direction',
+                    'hillshade-shadow-color'
+                ],
+                background: [
+                    'background-color', 'background-emissive-strength', 'background-opacity', 'background-pattern',
+                    'background-pitch-alignment'
+                ],
+                sky: [
+                    'sky-atmosphere-color', 'sky-atmosphere-halo-color', 'sky-atmosphere-sun',
+                    'sky-atmosphere-sun-intensity', 'sky-gradient', 'sky-gradient-center', 'sky-gradient-radius',
+                    'sky-opacity', 'sky-type'
+                ],
+                model: [
+                    'model-ambient-occlusion-intensity', 'model-cast-shadows', 'model-color', 'model-color-mix-intensity',
+                    'model-cutoff-fade-range', 'model-emissive-strength', 'model-height-based-emissive-strength-multiplier',
+                    'model-opacity', 'model-receive-shadows', 'model-rotation', 'model-roughness', 'model-scale',
+                    'model-translation', 'model-type'
+                ]
+            }
+        };
+    }
+
+    /**
+     * Categorize style properties into paint and layout based on layer type
+     * @param {Object} style - Style object with mixed paint/layout properties
+     * @param {string} layerType - The layer type (e.g., 'raster', 'fill', 'line')
+     * @returns {Object} - Object with separate paint and layout properties
+     */
+    _categorizeStyleProperties(style, layerType) {
+        if (!style || typeof style !== 'object') {
+            return { paint: {}, layout: {} };
+        }
+
+        const paint = {};
+        const layout = {};
+        
+        // Get property lists for this layer type
+        const layoutProps = [
+            ...(this._stylePropertyMapping.layout.common || []),
+            ...(this._stylePropertyMapping.layout[layerType] || [])
+        ];
+        const paintProps = this._stylePropertyMapping.paint[layerType] || [];
+
+        // Categorize each property in the style object
+        Object.keys(style).forEach(property => {
+            if (layoutProps.includes(property)) {
+                layout[property] = style[property];
+            } else if (paintProps.includes(property)) {
+                paint[property] = style[property];
+            } else {
+                // If property is not in our mapping, make an educated guess
+                // Most properties are paint properties, layout properties are fewer
+                if (property === 'visibility' || property.includes('-sort-key') || 
+                    property.includes('-placement') || property.includes('-anchor') ||
+                    property.includes('-field') || property.includes('-font') ||
+                    property.includes('-size') || property.includes('-image') ||
+                    property.includes('-cap') || property.includes('-join')) {
+                    layout[property] = style[property];
+                } else {
+                    paint[property] = style[property];
+                }
+            }
+        });
+
+        return { paint, layout };
+    }
+
+    /**
+     * Apply style properties to a layer, automatically categorizing into paint/layout
+     * @param {string} layerId - The layer ID
+     * @param {Object} style - Style object with mixed properties
+     * @param {string} layerType - The layer type
+     * @param {Object} defaultStyle - Default style to merge with
+     */
+    _applyLayerStyle(layerId, style, layerType, defaultStyle = {}) {
+        if (!this._map.getLayer(layerId)) {
+            console.warn(`Layer ${layerId} not found, cannot apply style`);
+            return;
+        }
+
+        // Merge with defaults
+        const mergedStyle = { ...defaultStyle, ...style };
+        
+        // Categorize properties
+        const { paint, layout } = this._categorizeStyleProperties(mergedStyle, layerType);
+
+        // Apply paint properties
+        Object.keys(paint).forEach(property => {
+            try {
+                this._map.setPaintProperty(layerId, property, paint[property]);
+            } catch (error) {
+                console.warn(`Failed to set paint property ${property} on layer ${layerId}:`, error);
+            }
+        });
+
+        // Apply layout properties
+        Object.keys(layout).forEach(property => {
+            try {
+                this._map.setLayoutProperty(layerId, property, layout[property]);
+            } catch (error) {
+                console.warn(`Failed to set layout property ${property} on layer ${layerId}:`, error);
+            }
+        });
+    }
+
+    /**
+     * Create layer configuration with properly categorized paint/layout properties
+     * @param {Object} config - Layer configuration
+     * @param {string} layerType - The layer type
+     * @returns {Object} - Layer configuration with separated paint/layout
+     */
+    _createLayerConfig(config, layerType) {
+        const { paint, layout } = this._categorizeStyleProperties(config.style || {}, layerType);
+        
+        const layerConfig = {
+            id: config.id,
+            type: layerType,
+            source: config.source,
+            layout: {
+                visibility: config.initiallyChecked !== false ? 'visible' : 'none',
+                ...layout
+            },
+            paint: paint
+        };
+
+        // Add optional properties
+        if (config['source-layer']) {
+            layerConfig['source-layer'] = config['source-layer'];
+        }
+        if (config.filter) {
+            layerConfig.filter = config.filter;
+        }
+        if (config.metadata) {
+            layerConfig.metadata = config.metadata;
+        }
+        if (config.minzoom !== undefined) {
+            layerConfig.minzoom = config.minzoom;
+        }
+        if (config.maxzoom !== undefined) {
+            layerConfig.maxzoom = config.maxzoom;
+        }
+
+        return layerConfig;
+    }
+
     // Load default styles from index.json instead of default-styles.json
     async _loadDefaultStyles() {
         try {
@@ -1334,17 +1572,21 @@ export class MapLayerControl {
                         maxzoom: group.maxzoom || 22,
                     });
 
-                    this._map.addLayer({
+                    // Create layer config using the new flexible style system
+                    const layerConfig = this._createLayerConfig({
                         id: layerId,
-                        type: 'raster',
-                                            source: sourceId,
-                    layout: {
-                        visibility: 'none'
-                    },
-                    paint: {
-                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
-                    }
-                    }, this._getInsertPosition('tms'));
+                        source: sourceId,
+                        style: {
+                            // Merge default raster styles with user-defined styles
+                            ...(this._defaultStyles.raster || {}),
+                            ...(group.style || {}),
+                            // Fallback to legacy opacity property if no raster-opacity is specified
+                            'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
+                        },
+                        initiallyChecked: false // Always start hidden in _initializeLayers
+                    }, 'raster');
+
+                    this._map.addLayer(layerConfig, this._getInsertPosition('tms'));
                 }
             } else if (group.type === 'vector') {
                 const sourceId = `vector-${group.id}`;
@@ -1993,17 +2235,21 @@ export class MapLayerControl {
                     maxzoom: group.maxzoom || 22,
                 });
 
-                this._map.addLayer({
+                // Create layer config using the new flexible style system
+                const layerConfig = this._createLayerConfig({
                     id: layerId,
-                    type: 'raster',
                     source: sourceId,
-                    layout: {
-                        visibility: 'visible'
-                    },
-                    paint: {
+                    style: {
+                        // Merge default raster styles with user-defined styles
+                        ...(this._defaultStyles.raster || {}),
+                        ...(group.style || {}),
+                        // Fallback to legacy opacity property if no raster-opacity is specified
                         'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
-                    }
-                }, this._getInsertPosition('tms'));
+                    },
+                    initiallyChecked: true // Make visible when toggled on
+                }, 'raster');
+
+                this._map.addLayer(layerConfig, this._getInsertPosition('tms'));
             } else if (this._map.getLayer(layerId)) {
                 // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
@@ -2324,18 +2570,22 @@ export class MapLayerControl {
                         ]
                     });
     
-                    this._map.addLayer({
+                    // Create layer config using the new flexible style system
+                    const layerConfig = this._createLayerConfig({
                         id: group.id,
-                        type: 'raster',
                         source: group.id,
-                        layout: {
-                            visibility: 'visible'
+                        style: {
+                            // Merge default raster styles with user-defined styles
+                            ...(this._defaultStyles.raster || {}),
+                            ...(group.style || {}),
+                            // Fallback to legacy opacity property if no raster-opacity is specified
+                            'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 0.85,
+                            'raster-fade-duration': 0
                         },
-                                            paint: {
-                        'raster-opacity': group.style?.['raster-opacity'] || group.opacity || this._defaultStyles.raster?.['raster-opacity'] || 0.85,
-                        'raster-fade-duration': 0
-                    }
-                    }, this._getInsertPosition('img'));
+                        initiallyChecked: true // Make visible when toggled on
+                    }, 'raster');
+
+                    this._map.addLayer(layerConfig, this._getInsertPosition('img'));
                     
                     // Setup refresh timer if configured
                     if (visible && group.refresh && !group._refreshTimer) {
@@ -3811,18 +4061,21 @@ export class MapLayerControl {
                     maxzoom: newConfig.maxzoom || 22
                 });
                 
-                // Add layer
-                this._map.addLayer({
+                // Create layer config using the new flexible style system
+                const layerConfig = this._createLayerConfig({
                     id: layerId,
-                    type: 'raster',
                     source: sourceId,
-                    paint: {
+                    style: {
+                        // Merge default raster styles with user-defined styles
+                        ...(this._defaultStyles.raster || {}),
+                        ...(newConfig.style || {}),
+                        // Fallback to legacy opacity property if no raster-opacity is specified
                         'raster-opacity': newConfig.style?.['raster-opacity'] || newConfig.opacity || this._defaultStyles.raster?.['raster-opacity'] || 1
                     },
-                    layout: {
-                        visibility: 'none'
-                    }
-                }, this._getInsertPosition('tms'));
+                    initiallyChecked: false // Always start hidden in settings save
+                }, 'raster');
+
+                this._map.addLayer(layerConfig, this._getInsertPosition('tms'));
             }
             
             // Update UI
