@@ -90,7 +90,7 @@
     {
       "title": "Pedestrian Paths and Trails",
       "description": "Footpaths and trails from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
-      "headerImage": "assets/map-layers/map-layer-osm-roads.png",
+      "headerImage": "assets/map-layers/map-layer-osm-paths.png",
       "type": "vector",
       "id": "osm-paths",
       "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",
@@ -180,7 +180,7 @@
     {
       "title": "Railways",
       "description": "Railway network data from the OpenStreetMap project. See <a href='https://wiki.openstreetmap.org/wiki/India/Tags/Highway'>OpenStreetMap India Wiki</a> for details.",
-      "headerImage": "assets/map-layers/map-layer-osm-railway.png",
+      "headerImage": "assets/map-layers/map-layer-osm-railways.png",
       "type": "vector",
       "id": "osm-railways",
       "url": "https://vector.openstreetmap.org/shortbread_v1/{z}/{x}/{y}.mvt",

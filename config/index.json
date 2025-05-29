@@ -266,7 +266,7 @@
       "title": "Open Buildings 2020",
       "description": "Building presence in 2020 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
       "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2020.png",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
       "style": {
         "raster-opacity": [
           "interpolate",
@@ -295,7 +295,7 @@
       "title": "Open Buildings 2021",
       "description": "Building presence in 2021 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
       "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2021.png",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
       "style": {
         "raster-opacity": [
           "interpolate",
@@ -324,7 +324,7 @@
       "title": "Open Buildings 2022",
       "description": "Building presence in 2022 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
       "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2022.png",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
       "style": {
         "raster-opacity": [
           "interpolate",
@@ -395,7 +395,7 @@
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/5bc0f5e3b498438cf56cc26f6b4386d6-6e430fa287d620e570d3f001320d8d31/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Landslide Risk",
-      "description": "High resolution landslide susceptibility mapping using ensemble machine learning and geospatial big data. See <a href='https://github.com/hydrosenselab/ILSM'>source code</a> for technical details.",
+      "description": "High resolution (100m) landslide susceptibility mapping using ensemble machine learning and geospatial big data. See <a href='https://github.com/hydrosenselab/ILSM'>source code</a> for technical details.",
       "attribution": "<a href='https://hydrosense.users.earthengine.app/view/ilsm'>Indian Landslide Susceptibility Map (ILSM) (100m), Hydrosense Lab, IIT-Delhi</a>",
       "headerImage": "assets/map-layers/map-layer-landslide-risk.png",
       "legendImage": "assets/map-layers/map-layer-landslide-risk-legend.png"
@@ -411,8 +411,8 @@
     },
     {
       "title": "District",
-      "description": "Mask for the district of Mumbai city and suburbs",
-      "headerImage": "assets/map-layers/map-layer-mumbai-mask.png",
+      "description": "Mask for the district of Goa.",
+      "headerImage": "assets/map-layers/map-layer-goa-districts.png",
       "type": "vector",
       "id": "goa-mask",
       "url": "https://indianopenmaps.fly.dev/not-so-open/districts/lgd/{z}/{x}/{y}.pbf ",
@@ -549,6 +549,8 @@
       "id": "mapbox-satellite",
       "type": "raster-style-layer",
       "title": "Satellite Imagery",
+      "description": "Satellite imagery from Mapbox. See <a href='https://docs.mapbox.com/help/dive-deeper/imagery/'>Mapbox Satellite Imagery</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-satellite.png",
       "styleLayer": "satellite",
       "style":{
         "raster-contrast": 0.2,
