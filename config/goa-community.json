@@ -1,0 +1,356 @@
+{
+  "name": "Community map layer configuration defined by amche-goa community",
+  "areaOfInterest": "Goa, India",
+  "version": "0.1.0",
+  "url": "https://github.com/publicmap/amche-goa/blob/main/config/index.json",
+  "map": {
+    "center": [
+      73.8,
+      15.47
+    ],
+    "zoom": 11.4
+  },
+  "layers": [
+    {
+      "id": "mapbox-streets",
+      "title": "Street Map रस्त्याचो नकासो"
+    },
+    {
+      "id": "mapbox-traffic"
+    },
+    {
+      "title": "Live Fire Trucks",
+      "description": "Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href='https://github.com/publicmap/goa-fire-trucks-geojson/'>Goa Fire Trucks API</a>.",
+      "headerImage": "assets/map-layers/map-layer-fire-trucks.png",
+      "type": "geojson",
+      "id": "firetrucks",
+      "url": "https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson",
+      "refresh": 30000,
+      "attribution": "<a href='https://dfes.goa.gov.in/dashboard/'>Directorate of Fire & Emergency Services, Govt. of Goa</a>",
+      "style": {
+        "circle-radius": 6,
+        "circle-color": [
+          "match",
+          [
+            "get",
+            "Status"
+          ],
+          "RUNNING",
+          "green",
+          "IDLE",
+          "yellow",
+          "STOP",
+          "red",
+          "INACTIVE",
+          "grey",
+          "black"
+        ],
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#ffffff",
+        "text-font": [
+          "Open Sans Regular"
+        ],
+        "text-field": [
+          "step",
+          [
+            "zoom"
+          ],
+          "",
+          7,
+          [
+            "to-string",
+            [
+              "get",
+              "POI"
+            ]
+          ]
+        ]
+      },
+      "inspect": {
+        "id": "Vehicle_No",
+        "title": "Current Location",
+        "label": "Location",
+        "fields": [
+          "Status",
+          "Vehicle_No",
+          "Branch",
+          "POI",
+          "Speed",
+          "Datetime"
+        ],
+        "fieldTitles": [
+          "Status",
+          "Vehicle No",
+          "Station",
+          "Location",
+          "Speed",
+          "Last Updated"
+        ]
+      }
+    },
+    {
+      "title": "Schools",
+      "description": "Schools locations by capacity",
+      "headerImage": "assets/map-layers/map-layer-schools.png",
+      "type": "csv",
+      "id": "goa-schools",
+      "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv",
+      "cache": "data/dfes/goa-schools.csv",
+      "attribution": "<a href='https://docs.google.com/spreadsheets/d/11jYu-XsKEDH65W9Q_zy8_pKyYYlyzsdh8FwS7kd-CEM/edit?usp=sharing'>Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa</a>",
+      "style": {
+        "circle-radius": [
+          "case",
+          [
+            ">",
+            [
+              "get",
+              "Capacity"
+            ],
+            500
+          ],
+          5,
+          [
+            ">",
+            [
+              "get",
+              "Capacity"
+            ],
+            100
+          ],
+          3,
+          2
+        ],
+        "circle-color": "#4c7fff",
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#ffffff"
+      },
+      "inspect": {
+        "id": "Name",
+        "title": "School",
+        "label": "Name",
+        "fields": [
+          "Principal",
+          "Mobile",
+          "Email",
+          "Capacity",
+          "Gr_Panchayat",
+          "Gr_Taluka"
+        ],
+        "fieldTitles": [
+          "Principal",
+          "Mobile",
+          "Email",
+          "Capacity",
+          "Panchayat",
+          "Taluka"
+        ]
+      }
+    },
+    {
+      "initiallyChecked": true,
+      "id": "osm-paths"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "osm-railways"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "osm-roads"
+    },
+    {
+      "id": "community-maps"
+    },
+    {
+      "id": "pincode"
+    },
+    {
+      "id": "plot"
+    },
+    {
+      "id": "village"
+    },
+    {
+      "id": "municipal-wards"
+    },
+    {
+      "id": "local-body"
+    },
+    {
+      "id": "rivers"
+    },
+    {
+      "id": "water-bodies"
+    },
+    {
+      "id": "wetland"
+    },
+    {
+      "id": "forests"
+    },
+    {
+      "id": "esz"
+    },
+    {
+      "id": "wildlife-reserve"
+    },
+    {
+      "id": "mhadei-project"
+    },
+    {
+      "id": "open-buildings-2023"
+    },
+    {
+      "id": "open-buildings"
+    },
+    {
+      "id": "osm-sites"
+    },
+    {
+      "id": "osm-landuse"
+    },
+    {
+      "id": "landcover"
+    },
+    {
+      "title": "District",
+      "description": "Mask for the district of Goa.",
+      "headerImage": "assets/map-layers/map-layer-goa-districts.png",
+      "type": "vector",
+      "id": "goa-mask",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/districts/lgd/{z}/{x}/{y}.pbf ",
+      "sourceLayer": "LGD_Districts",
+      "maxzoom": 10,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>LGD/Bharatmaps</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/districts'>Datameet Community:LGD_Districts</a>",
+      "initiallyChecked": true,
+      "style": {
+        "fill-color":[
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 1)"
+          ],
+          8,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 1)"
+          ],
+          12,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 0.1)"
+          ]
+        ],
+        "fill-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          0,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.3,
+          0.5
+        ],
+        "line-color": "black",
+        "line-width": 0.2
+      },
+      "inspect": {
+        "id": "dtname",
+        "title": "District",
+        "label": "dtname",
+        "fields": ["stname"],
+        "fieldTitles": ["State"]
+      }
+    },
+    {
+      "id": "weather-satellite"
+    },
+    {
+      "id": "osm"
+    },
+    {
+      "id": "bus"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "mapbox-satellite",
+      "type": "raster-style-layer",
+      "title": "Satellite Imagery",
+      "description": "Satellite imagery from Mapbox. See <a href='https://docs.mapbox.com/help/dive-deeper/imagery/'>Mapbox Satellite Imagery</a> for details.",
+      "headerImage": "assets/map-layers/map-layer-satellite.png",
+      "styleLayer": "satellite",
+      "style":{
+        "raster-contrast": 0.2,
+        "raster-saturation": 0.4,
+        "raster-brightness-min": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          8,
+          0.5,
+          16,
+          0.3
+        ],
+        "raster-brightness-max": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          8, 0.7,
+          16, 0.8
+        ],
+        "raster-opacity": 1
+      }
+    },
+    {
+      "id": "3d-terrain",
+      "title": "3D Terrain",
+      "type": "terrain"
+    }
+  ]
+}

@@ -14,6 +14,15 @@
   "layers": [
     {"id": "mapbox-streets"},
     {
+      "title": "Landuse Plan for Bombay Twin Cities (1964)",
+      "description": "Cover illustrating plans for the future twin city and abandoned State Government capitol complex at New Bombay proposed by Charles Correa, Pravina Mehta and Shirish B. Patel and plans for Western and Eastern Island Expressways and trans-harbour links via road and rail bridges proposed by Wilbur Smith Associates.",
+      "headerImage": "assets/map-layers/map-layer-1964-bombay-masterplan.png",
+      "type": "tms",
+      "id": "1964-bombay-masterplan",
+      "url": "https://mapwarper.net/maps/tile/93402/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://www.instagram.com/p/C2UHUQWueiedhd_HRzaMjPHesTSLrce0YNY9-80/?img_index=1'>1964 Symposium on the first Development Plan for Greater Bombay (Mulk Raj Anand, ed., Marg Publications, 1965)</a> via <a href='https://mapwarper.net/maps/93402#Show'>Mapwarper</a>"
+    },
+    {
       "initiallyChecked": true,
       "title": "Bombay Guide Map (1933)",
       "description": "Published under the direction of Colner H.J.Couchman, Officiating Surveyor General of India, 1933",

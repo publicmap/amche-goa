@@ -2733,6 +2733,151 @@
       }
     },
     {
+      "id": "open-buildings-2016",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2016",
+      "description": "Building presence in 2016 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2016.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 55,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.5)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2020",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/cf016de40aa21096351260103f40d203-ef52490ecca45ac6ae3ec5aa9ad79857/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2020",
+      "description": "Building presence in 2020 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 20,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2021",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f829a20bded452949535e9ed117fb471-944ec0958e0c57494508f03f5e942b37/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2021",
+      "description": "Building presence in 2021 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 15,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2022",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/ef164ab3dc8cb7ffff5234de09070c6b-106d894fb8981af4e5063d2dd8f0f0aa/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2022",
+      "description": "Building presence in 2022 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 10,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2023",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-d68a26b174dbee5818429b047466e324/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2023",
+      "description": "Building presence in 2023 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 0,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
       "title": "Current Landuse Map (Panjim)",
       "description": "Current Land-Use data for Panaji Urban Agglomeration collected in 2020-2023 under <a http://164.100.87.10/DocumentOMs.aspx'>Atal Mission for Rejuvenation and Urban Transformation (AMRUT)</a> at 1:4000 scale.",
       "headerImage": "assets/map-layers/map-layer-landuse-amrut.png",
@@ -4278,17 +4423,6 @@
       "id": "goa-soi-map",
       "url": "https://indianopenmaps.fly.dev/soi/osm/{z}/{x}/{y}.webp",
       "attribution": "<a href='https://onlinemaps.surveyofindia.gov.in/FreeMapSpecification.aspx'>Open Series Toposheets from Survey of India</a>"
-    },
-    {
-      "title": "Landuse Development Plans",
-      "description": "Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href='https://tcp.goa.gov.in/'>Goa Town & Country Planning Department</a> and <a href='https://tcp.goa.gov.in/regional-plan-for-goa-2021'>notified</a> as per the <a href='https://indiankanoon.org/doc/3192342/'>Goa TCP Act</a>",
-      "headerImage": "assets/map-layers/map-layer-rdp.png",
-      "legendImage": "assets/map-layers/map-layer-rdp-legend.jpg",
-      "type": "tms",
-      "id": "regional-plan",
-      "url": "https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png",
-      "attribution": "Regional Development Plan for Goa 2021, <a href='https://tcp.goa.gov.in/'>Goa Town & Country Planning Department</a>. Georeferenced using <a href='https://mapwarper.net/layers/2054#Show_tab'>Mapwarper</a>",
-      "initiallyChecked": true
     },
     {
       "title": "Coastal Zone Management Plan",

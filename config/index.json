@@ -16,150 +16,7 @@
       "title": "Street Map रस्त्याचो नकासो"
     },
     {
-      "id": "mapbox-traffic"
-    },
-    {
-      "title": "Live Fire Trucks",
-      "description": "Live locations of fire trucks from the Directorate of Fire Emergency Services. Location updated every 5 minutes from <a href='https://github.com/publicmap/goa-fire-trucks-geojson/'>Goa Fire Trucks API</a>.",
-      "headerImage": "assets/map-layers/map-layer-fire-trucks.png",
-      "type": "geojson",
-      "id": "firetrucks",
-      "url": "https://raw.githubusercontent.com/publicmap/goa-fire-trucks-geojson/refs/heads/main/data/goa-fire-trucks.geojson",
-      "refresh": 30000,
-      "attribution": "<a href='https://dfes.goa.gov.in/dashboard/'>Directorate of Fire & Emergency Services, Govt. of Goa</a>",
-      "style": {
-        "circle-radius": 6,
-        "circle-color": [
-          "match",
-          [
-            "get",
-            "Status"
-          ],
-          "RUNNING",
-          "green",
-          "IDLE",
-          "yellow",
-          "STOP",
-          "red",
-          "INACTIVE",
-          "grey",
-          "black"
-        ],
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "text-font": [
-          "Open Sans Regular"
-        ],
-        "text-field": [
-          "step",
-          [
-            "zoom"
-          ],
-          "",
-          7,
-          [
-            "to-string",
-            [
-              "get",
-              "POI"
-            ]
-          ]
-        ]
-      },
-      "inspect": {
-        "id": "Vehicle_No",
-        "title": "Current Location",
-        "label": "Location",
-        "fields": [
-          "Status",
-          "Vehicle_No",
-          "Branch",
-          "POI",
-          "Speed",
-          "Datetime"
-        ],
-        "fieldTitles": [
-          "Status",
-          "Vehicle No",
-          "Station",
-          "Location",
-          "Speed",
-          "Last Updated"
-        ]
-      }
-    },
-    {
-      "title": "Schools",
-      "description": "Schools locations by capacity",
-      "headerImage": "assets/map-layers/map-layer-schools.png",
-      "type": "csv",
-      "id": "goa-schools",
-      "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAjIaxmEf4dv9eGjASL9YSlVGJLsmvfggZpGApiUP4YD6uexFG4otpwy0wQAWUFW4De4Pz4QKy79yV/pub?gid=1786282296&single=true&output=csv",
-      "cache": "data/dfes/goa-schools.csv",
-      "attribution": "<a href='https://docs.google.com/spreadsheets/d/11jYu-XsKEDH65W9Q_zy8_pKyYYlyzsdh8FwS7kd-CEM/edit?usp=sharing'>Disaster Management Resources and Contacts/Schools, Directorate of Fire & Emergency Services, Govt. of Goa</a>",
-      "style": {
-        "circle-radius": [
-          "case",
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            500
-          ],
-          5,
-          [
-            ">",
-            [
-              "get",
-              "Capacity"
-            ],
-            100
-          ],
-          3,
-          2
-        ],
-        "circle-color": "#4c7fff",
-        "circle-stroke-width": 1.5,
-        "circle-stroke-color": "#ffffff"
-      },
-      "inspect": {
-        "id": "Name",
-        "title": "School",
-        "label": "Name",
-        "fields": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Gr_Panchayat",
-          "Gr_Taluka"
-        ],
-        "fieldTitles": [
-          "Principal",
-          "Mobile",
-          "Email",
-          "Capacity",
-          "Panchayat",
-          "Taluka"
-        ]
-      }
-    },
-    {
-      "initiallyChecked": true,
-      "id": "osm-paths"
-    },
-    {
-      "initiallyChecked": true,
-      "id": "osm-railways"
-    },
-    {
-      "initiallyChecked": true,
       "id": "osm-roads"
-    },
-    {
-      "id": "community-maps"
     },
     {
       "id": "pincode"
@@ -177,7 +34,233 @@
       "id": "municipal-wards"
     },
     {
-      "id": "local-body"
+      "initiallyChecked": true,
+      "title": "Local Body Boundaries",
+      "description": "Municipal and Panchayat local body boundaries. Please see <a href='https://grammanchitra.gov.in/gm4MVC' target='_blank'>Gramanchiitra</a> for panchayat demographic profile and information on elected representatives.",
+      "headerImage": "assets/map-layers/map-layer-local-boundaries.png",
+      "type": "vector",
+      "id": "local-body",
+      "url": "mapbox://planemad.2bqa1pq1",
+      "sourceLayer": "goa-local-body-boundaries",
+      "maxzoom": 10,
+      "attribution": "<a href='https://onemapgoagis.goa.gov.in/map/?c=0%2C0&s=0'>OneMapGoa</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
+      "style": {
+        "text-field": [
+          "step",
+          [
+            "zoom"
+          ],
+          "",
+          9,
+          [
+            "to-string",
+            [
+              "get",
+              "Name"
+            ]
+          ]
+        ],
+        "text-color": "white",
+        "text-halo-color": "purple",
+        "text-halo-width": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          5,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          4,
+          1
+        ],
+        "text-transform": "uppercase",
+        "text-size": 12,
+        "text-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          1,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.9,
+          0.7
+        ],
+        "fill-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          0,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.6,
+          0.3
+        ],
+        "fill-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          9,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            "rgba(255, 0, 0, 0)",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            "rgba(255, 255, 255, 1)",
+            "rgba(255, 255, 255, 0.2)"
+          ],
+          14,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            "rgba(255, 255, 255, 0)",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            "rgba(255, 255, 255, 0.1)",
+            "rgba(255, 255, 255, 0.4)"
+          ]
+        ],
+        "line-color": "purple",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          11,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            1.5,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            1,
+            0
+          ],
+          14,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            4,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            3,
+            1
+          ]
+        ]
+      },
+      "inspect": {
+        "title": "Local Body Name",
+        "label": "Name",
+        "id": "fid",
+        "fields": [
+          "Village Names",
+          "Ward Count",
+          "Subdistrict Name",
+          "District Name",
+          "Code"
+        ],
+        "fieldTitles": [
+          "Villages",
+          "Ward Count",
+          "Sub District",
+          "District",
+          "LGD Code"
+        ]
+      }
     },
     {
       "id": "assembly-constituencies"
@@ -225,155 +308,10 @@
       "id": "slope"
     },
     {
-      "id": "mhadei-project"
+      "id": "open-buildings-2016"
     },
     {
-      "id": "construction-sites"
-    },
-    {
-      "id": "open-buildings-2016",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2016",
-      "description": "Building presence in 2016 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2016.png",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          12, 0.99,
-          16, 0.8,
-          18, 0.2
-        ],
-        "raster-hue-rotate": 55,
-        "raster-color": [
-          "interpolate",
-          ["linear"],
-          ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.5)"
-        ]
-      }
-    },
-    {
-      "id": "open-buildings-2020",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/cf016de40aa21096351260103f40d203-ef52490ecca45ac6ae3ec5aa9ad79857/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2020",
-      "description": "Building presence in 2020 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          12, 0.99,
-          16, 0.8,
-          18, 0.2
-        ],
-        "raster-hue-rotate": 20,
-        "raster-color": [
-          "interpolate",
-          ["linear"],
-          ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.8)"
-        ]
-      }
-    },
-    {
-      "id": "open-buildings-2021",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f829a20bded452949535e9ed117fb471-944ec0958e0c57494508f03f5e942b37/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2021",
-      "description": "Building presence in 2021 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          12, 0.99,
-          16, 0.8,
-          18, 0.2
-        ],
-        "raster-hue-rotate": 15,
-        "raster-color": [
-          "interpolate",
-          ["linear"],
-          ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.8)"
-        ]
-      }
-    },
-    {
-      "id": "open-buildings-2022",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/ef164ab3dc8cb7ffff5234de09070c6b-106d894fb8981af4e5063d2dd8f0f0aa/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2022",
-      "description": "Building presence in 2022 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          12, 0.99,
-          16, 0.8,
-          18, 0.2
-        ],
-        "raster-hue-rotate": 10,
-        "raster-color": [
-          "interpolate",
-          ["linear"],
-          ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.8)"
-        ]
-      }
-    },
-    {
-      "id": "open-buildings-2023",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-d68a26b174dbee5818429b047466e324/tiles/{z}/{x}/{y}",
-      "type": "tms",
-      "title": "Open Buildings 2023",
-      "description": "Building presence in 2023 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
-      "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
-      "style": {
-        "raster-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          12, 0.99,
-          16, 0.8,
-          18, 0.2
-        ],
-        "raster-hue-rotate": 0,
-        "raster-color": [
-          "interpolate",
-          ["linear"],
-          ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.8)"
-        ]
-      }
+      "id": "open-buildings-2023"
     },
     {
       "id": "open-buildings"
@@ -419,7 +357,6 @@
       "sourceLayer": "LGD_Districts",
       "maxzoom": 10,
       "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>LGD/Bharatmaps</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/districts'>Datameet Community:LGD_Districts</a>",
-      "initiallyChecked": true,
       "style": {
         "fill-color":[
           "interpolate",
@@ -506,13 +443,18 @@
       }
     },
     {
-      "id": "weather-satellite"
-    },
-    {
       "id": "goa-soi-map"
     },
     {
-      "id": "regional-plan"
+      "title": "Regional Development Plans",
+      "description": "Regional Development Plan for Goa 2021 (RDP-2021) prepared by the <a href='https://tcp.goa.gov.in/'>Goa Town & Country Planning Department</a> and <a href='https://tcp.goa.gov.in/regional-plan-for-goa-2021'>notified</a> as per the <a href='https://indiankanoon.org/doc/3192342/'>Goa TCP Act</a>",
+      "headerImage": "assets/map-layers/map-layer-rdp.png",
+      "legendImage": "assets/map-layers/map-layer-rdp-legend.jpg",
+      "type": "tms",
+      "id": "regional-plan",
+      "url": "https://mapwarper.net/mosaics/tile/2054/{z}/{x}/{y}.png",
+      "attribution": "<a href='https://tcp.goa.gov.in/'>Regional Development Plan for Goa 2021, Goa Town & Country Planning Department</a>. Georeferenced using <a href='https://mapwarper.net/layers/2054#Show_tab'>Mapwarper</a>",
+      "initiallyChecked": true
     },
     {
       "id": "goa-czmp-map"
@@ -521,28 +463,7 @@
       "id": "goa-ams-map"
     },
     {
-      "id": "1914-admiralty-chart"
-    },
-    {
-      "id": "1906-india-atlas"
-    },
-    {
-      "id": "1855-india-geology"
-    },
-    {
-      "id": "1814-lambton-survey"
-    },
-    {
-      "id": "1792-general-atlas"
-    },
-    {
-      "id": "1775-admiralty-chart"
-    },
-    {
       "id": "osm"
-    },
-    {
-      "id": "bus"
     },
     {
       "initiallyChecked": true,
@@ -575,6 +496,7 @@
       }
     },
     {
+      "initiallyChecked": true,
       "id": "3d-terrain",
       "title": "3D Terrain",
       "type": "terrain"

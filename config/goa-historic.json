@@ -1,0 +1,50 @@
+{
+  "name": "Development map layer configuration defined by amche-goa community",
+  "areaOfInterest": "Goa, India",
+  "version": "0.1.0",
+  "url": "https://github.com/publicmap/amche-goa/blob/main/config/index.json",
+  "map": {
+    "center": [
+      73.8,
+      15.47
+    ],
+    "zoom": 11.4
+  },
+  "layers": [
+    {
+      "id": "mapbox-streets",
+      "title": "Street Map रस्त्याचो नकासो"
+    },
+    {
+      "id": "goa-ams-map"
+    },
+    {
+      "id": "1914-admiralty-chart"
+    },
+    {
+      "id": "1906-india-atlas"
+    },
+    {
+      "id": "1855-india-geology"
+    },
+    {
+      "id": "1814-lambton-survey"
+    },
+    {
+      "id": "1792-general-atlas"
+    },
+    {
+      "id": "1775-admiralty-chart"
+    },
+    {
+      "id": "osm"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "mapbox-satellite"
+    },
+    {
+      "id": "3d-terrain"
+    }
+  ]
+}
