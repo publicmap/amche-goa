@@ -184,7 +184,7 @@
       "attribution": "<a href='https://commons.wikimedia.org/wiki/File:Rapid_transit_map_of_Mumbai.jpg'>CC-by-sa-2.0 Rapid transit map of Mumbai, Maximilian Dörrbecker</a> via <a href='https://mapwarper.net/maps/8742'>Wikimaps Warper</a>"
     },
     {
-      "title": "Mumbai Districts",
+      "title": "Mumbai Districts Mask",
       "description": "Mask for the district of Mumbai city and suburbs",
       "headerImage": "assets/map-layers/map-layer-mumbai-mask.png",
       "type": "vector",

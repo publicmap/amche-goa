@@ -152,6 +152,10 @@
     },
     {
       "initiallyChecked": true,
+      "id": "osm-railways"
+    },
+    {
+      "initiallyChecked": true,
       "id": "osm-roads"
     },
     {
@@ -231,58 +235,146 @@
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2016",
-      "description": "Building presence in 2016 from ",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings Temporal Dataset, Google</a>",
+      "description": "Building presence in 2016 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
       "headerImage": "assets/map-layers/map-layer-open-buildings-2016.png",
       "style": {
         "raster-opacity": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          6, 0.99,
-          18, 0.9,
-          19, 0.2
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
         ],
+        "raster-hue-rotate": 55,
         "raster-color": [
           "interpolate",
           ["linear"],
           ["raster-value"],
-          0, "hsla(47, 100%, 100%, 0.4)",
-          0.1, "hsla(47, 80%, 80%, 0.7)",
-          0.6, "gold",
-          1,"hsla(47, 100%, 10%, 1)"
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.5)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2020",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/cf016de40aa21096351260103f40d203-ef52490ecca45ac6ae3ec5aa9ad79857/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2020",
+      "description": "Building presence in 2020 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2020.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 20,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2021",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f829a20bded452949535e9ed117fb471-944ec0958e0c57494508f03f5e942b37/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2021",
+      "description": "Building presence in 2021 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2021.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 15,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
+        ]
+      }
+    },
+    {
+      "id": "open-buildings-2022",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/ef164ab3dc8cb7ffff5234de09070c6b-106d894fb8981af4e5063d2dd8f0f0aa/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Buildings 2022",
+      "description": "Building presence in 2022 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
+      "headerImage": "assets/map-layers/map-layer-open-buildings-2022.png",
+      "style": {
+        "raster-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
+        ],
+        "raster-hue-rotate": 10,
+        "raster-color": [
+          "interpolate",
+          ["linear"],
+          ["raster-value"],
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
         ]
       }
     },
     {
       "id": "open-buildings-2023",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-0c7451acc58242d64b7a9707f1bf80df/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-d68a26b174dbee5818429b047466e324/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2023",
-      "description": "",
-      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings Temporal Dataset, Google</a>",
+      "description": "Building presence in 2023 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
+      "attribution": "<a href='https://mmeka-ee.projects.earthengine.app/view/open-buildings-temporal-dataset'>Open Buildings 2.5D Temporal Dataset, Google Research</a>",
       "headerImage": "assets/map-layers/map-layer-open-buildings-2023.png",
       "style": {
         "raster-opacity": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          6, 0.99,
-          18, 0.7,
-          19, 0.2
+          12, 0.99,
+          16, 0.8,
+          18, 0.2
         ],
+        "raster-hue-rotate": 0,
         "raster-color": [
           "interpolate",
           ["linear"],
           ["raster-value"],
-          0, "hsla(0, 100%, 100%, 0.4)",
-          0.1, "hsla(0, 80%, 80%, 0.7)",
-          0.6, "red",
-          1,"hsla(0, 100%, 10%, 1)"
+          0, "white",
+          0.1, "hsla(0, 100%, 70%, 1)",
+          0.5, "hsla(0, 100%, 60%, 0.95)",
+          1, "hsla(0, 100%, 20%, 0.8)"
         ]
       }
     },
- 
     {
       "id": "open-buildings"
     },
@@ -299,6 +391,16 @@
       "id": "landcover"
     },
     {
+      "id": "landslide-risk",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/5bc0f5e3b498438cf56cc26f6b4386d6-6e430fa287d620e570d3f001320d8d31/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Landslide Risk",
+      "description": "High resolution landslide susceptibility mapping using ensemble machine learning and geospatial big data. See <a href='https://github.com/hydrosenselab/ILSM'>source code</a> for technical details.",
+      "attribution": "<a href='https://hydrosense.users.earthengine.app/view/ilsm'>Indian Landslide Susceptibility Map (ILSM) (100m), Hydrosense Lab, IIT-Delhi</a>",
+      "headerImage": "assets/map-layers/map-layer-landslide-risk.png",
+      "legendImage": "assets/map-layers/map-layer-landslide-risk-legend.png"
+    },
+    {
       "id": "lineament"
     },
     {
@@ -308,7 +410,100 @@
       "id": "geomorphology"
     },
     {
-      "id": "mask"
+      "title": "District",
+      "description": "Mask for the district of Mumbai city and suburbs",
+      "headerImage": "assets/map-layers/map-layer-mumbai-mask.png",
+      "type": "vector",
+      "id": "goa-mask",
+      "url": "https://indianopenmaps.fly.dev/not-so-open/districts/lgd/{z}/{x}/{y}.pbf ",
+      "sourceLayer": "LGD_Districts",
+      "maxzoom": 10,
+      "attribution": "<a href='https://bharatmaps.gov.in/BharatMaps/Home/Map'>LGD/Bharatmaps</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/districts'>Datameet Community:LGD_Districts</a>",
+      "initiallyChecked": true,
+      "style": {
+        "fill-color":[
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 1)"
+          ],
+          8,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 1)"
+          ],
+          12,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "stname"
+              ],
+              "GOA"
+            ],
+            "rgba(0, 0, 0, 0)",
+            "rgba(255, 255, 255, 0.1)"
+          ]
+        ],
+        "fill-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          0,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.3,
+          0.5
+        ],
+        "line-color": "black",
+        "line-width": 0.2
+      },
+      "inspect": {
+        "id": "dtname",
+        "title": "District",
+        "label": "dtname",
+        "fields": ["stname"],
+        "fieldTitles": ["State"]
+      }
     },
     {
       "id": "weather-satellite"
@@ -356,16 +551,25 @@
       "title": "Satellite Imagery",
       "styleLayer": "satellite",
       "style":{
-        "raster-brightness-min": 0,
-        "raster-brightness-max": 0.3,
-        "raster-opacity": [
+        "raster-contrast": 0.2,
+        "raster-saturation": 0.4,
+        "raster-brightness-min": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          6, 0.99,
-          18, 0.9,
-          19, 0.2
-        ]
+          8,
+          0.5,
+          16,
+          0.3
+        ],
+        "raster-brightness-max": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          8, 0.7,
+          16, 0.8
+        ],
+        "raster-opacity": 1
       }
     },
     {

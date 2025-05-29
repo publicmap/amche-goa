@@ -13,8 +13,9 @@ class GeolocationManager {
             positionOptions: {
                 enableHighAccuracy: true
             },
-            trackUserLocation: false,
+            trackUserLocation: true,
             showUserHeading: true,
+            showAccuracyCircle: true,
             fitBoundsOptions: {
                 zoom: 18
             }
