@@ -30,8 +30,26 @@
       "type": "tms",
       "id": "1933-bombay-guide",
       "url": "https://mapwarper.net/maps/tile/29682/{z}/{x}/{y}.png",
-      "attribution": "<a href='https://www.geographicus.com/P/AntiqueMap/Bombay-surveyindia-1933'>Survey Of India</a> via <a href='https://mapwarper.net/maps/29682'>Map Warper</a>"
-
+      "attribution": "<a href='https://www.geographicus.com/P/AntiqueMap/Bombay-surveyindia-1933'>Survey Of India</a> via <a href='https://mapwarper.net/maps/29682'>Map Warper</a>",
+      "style": {
+        "raster-opacity": [
+        "interpolate",
+        [
+          "linear"
+        ],
+        [
+          "zoom"
+        ],
+        6,
+        0.9,
+        12,
+        0.8,
+        15,
+        0.6,
+        17,
+        0.2
+      ]
+      }    
     },
     {
       "title": "Map of Bombay (1914)",

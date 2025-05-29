@@ -45,9 +45,12 @@ export class ConfigControl {
         
         const configMenuItems = [
             { name: 'Goa (Default)', config: 'index' },
+            { name: 'Goa (Community)', config: 'goa-community' },
+            { name: 'Goa (Historic)', config: 'goa-historic' },
             { name: 'Mumbai', config: 'mumbai' },
             { name: 'Bombay Historical', config: 'bombay' },
             { name: 'Gurugram', config: 'gurugram' },
+            { name: 'Bengaluru Flood', config: 'bengaluru-flood' },
             { name: 'Example Template', config: 'example' },
             { name: 'World Soil Map', config: 'maphub' }
         ];
@@ -424,8 +427,6 @@ export class ConfigControl {
         // If no suitable position found, append at the end
         return currentGroups.length;
     }
-
-
 
     /**
      * Show a toast notification
