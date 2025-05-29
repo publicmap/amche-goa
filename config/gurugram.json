@@ -81,7 +81,7 @@
         }
       ]
     },
-    {"id": "osm-railway"},
+    {"id": "osm-railways"},
     {"id": "osm-roads"},
     {
       "title": "Cadastral Plot Boundaries",

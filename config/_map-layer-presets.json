@@ -305,37 +305,81 @@
           "black"
         ],
         "line-width": [
-          "match",
+          "interpolate",
           [
-            "get",
-            "kind"
+            "linear"
           ],
           [
-            "motorway"
+            "zoom"
           ],
-          5,
+          8,
           [
-            "trunk"
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            [
+              "motorway"
+            ],
+            2,
+            [
+              "trunk"
+            ],
+            1,
+            [
+              "primary"
+            ],
+            0.5,
+            [
+              "secondary"
+            ],
+            0.2,
+            [
+              "tertiary"
+            ],
+            0.1,
+            [
+              "residential",
+              "unclassified"
+            ],
+            0,
+            0
           ],
-          3,
+          12,
           [
-            "primary"
-          ],
-          3,
-          [
-            "secondary"
-          ],
-          3,
-          [
-            "tertiary"
-          ],
-          2,
-          [
-            "residential",
-            "unclassified"
-          ],
-          1.5,
-          1
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            [
+              "motorway"
+            ],
+            5,
+            [
+              "trunk"
+            ],
+            3,
+            [
+              "primary"
+            ],
+            3,
+            [
+              "secondary"
+            ],
+            3,
+            [
+              "tertiary"
+            ],
+            2,
+            [
+              "residential",
+              "unclassified"
+            ],
+            1.5,
+            1
+          ]
         ],
         "line-sort-key": [
           "match",
