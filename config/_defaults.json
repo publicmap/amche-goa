@@ -1,4 +1,8 @@
 {
+  "ui": {
+    "title": "Maps नकासो",
+    "shareButton": "Share वांटो"
+  },
   "layer": {
     "style": {
       "vector": {

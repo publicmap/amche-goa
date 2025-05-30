@@ -1,5 +1,6 @@
 import { MapLayerControl } from './map-layer-controls.js';
 import { configControl } from './config-control.js';
+import { localization } from './localization.js';
 
 // Function to get URL parameters
 function getUrlParameter(name) {
@@ -102,6 +103,9 @@ async function loadConfiguration() {
     } catch (error) {
         console.warn('Map layer library not found or invalid, using only config file:', error);
     }
+    
+    // Load and apply localized UI strings
+    localization.loadStrings(config);
     
     return config;
 }

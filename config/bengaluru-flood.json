@@ -4,6 +4,10 @@
   "areaOfInterest": "Bengaluru, India",
   "startDate": "",
   "endDate": "",
+  "ui": {
+    "title": "Maps ನಕ್ಷೆಗಳು",
+    "shareButton": "Share ಹಂಚಿ"
+  },
   "map": {
     "center": [
       77.53,

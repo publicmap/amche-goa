@@ -3,6 +3,7 @@ import { convertToKML, gstableToArray } from './map-utils.js';
 import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
 import { fixLayerOrdering } from './layer-order-manager.js';
+import { localization } from './localization.js';
 
 // Move deepMerge and isObject outside the class
 function deepMerge(target, source) {
@@ -505,6 +506,7 @@ export class MapLayerControl {
             
             // Handle JS format (assuming it starts with 'let' or 'const')
             let config;
+            let fullConfig;
             if (configText.trim().startsWith('let') || configText.trim().startsWith('const')) {
                 try {
                     // Create a new Function that returns the array directly
@@ -528,14 +530,19 @@ export class MapLayerControl {
                 }
             } else {
                 // Assume JSON format
-                const jsonConfig = JSON.parse(configText);
+                fullConfig = JSON.parse(configText);
                 
                 // Check if the config has a layers property
-                if (jsonConfig.layers && Array.isArray(jsonConfig.layers)) {
-                    config = jsonConfig.layers;
+                if (fullConfig.layers && Array.isArray(fullConfig.layers)) {
+                    config = fullConfig.layers;
                 } else {
-                    config = jsonConfig; // Use the full object if no layers property
+                    config = fullConfig; // Use the full object if no layers property
                 }
+            }
+            
+            // Apply localization if full config is available
+            if (fullConfig) {
+                localization.loadStrings(fullConfig);
             }
             
             // Update state with new config
