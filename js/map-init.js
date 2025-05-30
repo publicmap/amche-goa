@@ -207,6 +207,11 @@ async function initializeMap() {
         // Initialize layer control
         layerControl.renderToContainer(container, map);
         
+        // Force update localization after DOM elements are ready
+        setTimeout(() => {
+            localization.forceUpdateUIElements();
+        }, 100);
+        
         // Initialize config control after layer control is ready
         configControl.initialize(layerControl);
         

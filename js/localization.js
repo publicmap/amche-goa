@@ -3,11 +3,26 @@
  */
 export class Localization {
     constructor() {
+        // These will be overridden by the defaults from config
         this.defaultStrings = {
-            title: "Maps नकासो",
-            shareButton: "Share वांटो"
+            title: "Maps",
+            shareButton: "Share"
         };
         this.currentStrings = { ...this.defaultStrings };
+    }
+
+    /**
+     * Set the default strings from configuration
+     * @param {Object} defaultStrings - Default UI strings from config
+     */
+    setDefaults(defaultStrings) {
+        if (defaultStrings) {
+            this.defaultStrings = { ...this.defaultStrings, ...defaultStrings };
+            // If no current strings are set yet, use the new defaults
+            if (!this.currentStrings || Object.keys(this.currentStrings).length === 0) {
+                this.currentStrings = { ...this.defaultStrings };
+            }
+        }
     }
 
     /**
@@ -15,6 +30,12 @@ export class Localization {
      * @param {Object} config - Configuration object that may contain ui strings
      */
     loadStrings(config) {
+        // First, set defaults if they exist in config.defaults.ui
+        if (config && config.defaults && config.defaults.ui) {
+            this.setDefaults(config.defaults.ui);
+        }
+        
+        // Then apply specific UI strings if they exist
         if (config && config.ui) {
             this.currentStrings = { ...this.defaultStrings, ...config.ui };
             this.updateUIElements();
@@ -38,6 +59,16 @@ export class Localization {
      * Update UI elements with current localized strings
      */
     updateUIElements() {
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+            this._updateUIElementsImpl();
+        });
+    }
+
+    /**
+     * Internal implementation for updating UI elements
+     */
+    _updateUIElementsImpl() {
         // Update drawer title
         const drawer = document.getElementById('map-controls-drawer');
         if (drawer) {
@@ -65,6 +96,13 @@ export class Localization {
                 textContent.textContent = '\n                        ' + this.currentStrings.shareButton + '\n                    ';
             }
         }
+    }
+
+    /**
+     * Force update UI elements (call when DOM is definitely ready)
+     */
+    forceUpdateUIElements() {
+        this._updateUIElementsImpl();
     }
 
     /**

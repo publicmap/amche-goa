@@ -543,6 +543,10 @@ export class MapLayerControl {
             // Apply localization if full config is available
             if (fullConfig) {
                 localization.loadStrings(fullConfig);
+                // Force update UI elements after localization
+                setTimeout(() => {
+                    localization.forceUpdateUIElements();
+                }, 100);
             }
             
             // Update state with new config

@@ -10,6 +10,10 @@
     ],
     "zoom": 11.4
   },
+  "ui": {
+    "title": "Maps नकासो",
+    "shareButton": "Share वांटो"
+  },
   "layers": [
     {
       "id": "mapbox-streets",
