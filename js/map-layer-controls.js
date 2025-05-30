@@ -1715,34 +1715,42 @@ export class MapLayerControl {
 
                     // Add text layer if text styles are defined
                     if (group.style?.['text-field']) {
+                        // Use the proper style categorization to handle all properties correctly
+                        const { paint: textPaint, layout: textLayout } = this._categorizeStyleProperties(group.style, 'symbol');
+                        
                         const textLayerConfig = {
                             id: `vector-layer-${group.id}-text`,
                             type: 'symbol',
                             source: sourceId,
                             'source-layer': group.sourceLayer || 'default',
                             layout: {
-                                'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
-                                'text-field': group.style?.['text-field'],
-                                'text-size': group.style?.['text-size'] || 12,
-                                'text-anchor': group.style?.['text-anchor'] || 'center',
-                                'text-justify': group.style?.['text-justify'] || 'center',
-                                'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
-                                'text-offset': group.style?.['text-offset'] || [0, 0],
-                                'text-transform': group.style?.['text-transform'] || 'none'
+                                // Default layout properties
+                                'text-font': ['Open Sans Bold'],
+                                'text-anchor': 'center',
+                                'text-justify': 'center',
+                                'text-allow-overlap': false,
+                                'text-offset': [0, 0],
+                                'text-transform': 'none',
+                                'text-size': 12,
+                                // Apply categorized layout properties (including text-padding)
+                                ...textLayout
                             },
                             paint: {
-                                'text-color': group.style?.['text-color'] || '#000000',
-                                'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
-                                'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
-                                'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1,
-                                'text-opacity': group.style?.['text-opacity'] || [
+                                // Default paint properties
+                                'text-color': '#000000',
+                                'text-halo-color': '#ffffff',
+                                'text-halo-width': 1,
+                                'text-halo-blur': 1,
+                                'text-opacity': [
                                     'case',
                                     ['boolean', ['feature-state', 'selected'], false],
                                     1,
                                     ['boolean', ['feature-state', 'hover'], false],
                                     0.9,
                                     0.7
-                                ]
+                                ],
+                                // Apply categorized paint properties
+                                ...textPaint
                             }
                         };
 
@@ -2222,26 +2230,36 @@ export class MapLayerControl {
 
                 // Add text layer if text properties are defined
                 if (group.style?.['text-field'] || group.style?.['text-size']) {
+                    // Use proper style categorization to handle all properties correctly
+                    const { paint: textPaint, layout: textLayout } = this._categorizeStyleProperties(group.style, 'symbol');
+                    
                     this._map.addLayer({
                         id: `${sourceId}-label`,
                         type: 'symbol',
                         source: sourceId,
                         layout: {
-                            'text-font': group.style?.['text-font'] || ['Open Sans Bold'],
-                            'text-field': group.style?.['text-field'] || this._defaultStyles.geojson.text['text-field'],
-                            'text-size': group.style?.['text-size'] || this._defaultStyles.geojson.text['text-size'],
-                            'text-anchor': group.style?.['text-anchor'] || this._defaultStyles.geojson.text['text-anchor'],
-                            'text-justify': group.style?.['text-justify'] || this._defaultStyles.geojson.text['text-justify'],
-                            'text-allow-overlap': group.style?.['text-allow-overlap'] || this._defaultStyles.geojson.text['text-allow-overlap'],
-                            'text-offset': group.style?.['text-offset'] || this._defaultStyles.geojson.text['text-offset'],
-                            'text-transform': group.style?.['text-transform'] || this._defaultStyles.geojson.text['text-transform'],
-                            visibility: 'visible'
+                            // Default layout properties
+                            'text-font': ['Open Sans Bold'],
+                            'text-field': this._defaultStyles.geojson.text['text-field'],
+                            'text-size': this._defaultStyles.geojson.text['text-size'],
+                            'text-anchor': this._defaultStyles.geojson.text['text-anchor'],
+                            'text-justify': this._defaultStyles.geojson.text['text-justify'],
+                            'text-allow-overlap': this._defaultStyles.geojson.text['text-allow-overlap'],
+                            'text-offset': this._defaultStyles.geojson.text['text-offset'],
+                            'text-transform': this._defaultStyles.geojson.text['text-transform'],
+                            'text-padding': group.style?.['text-padding'],
+                            visibility: 'visible',
+                            // Apply categorized layout properties (including text-padding)
+                            ...textLayout
                         },
                         paint: {
-                            'text-color': group.style?.['text-color'] || '#000000',
-                            'text-halo-color': group.style?.['text-halo-color'] || '#ffffff',
-                            'text-halo-width': group.style?.['text-halo-width'] !== undefined ? group.style['text-halo-width'] : 1,
-                            'text-halo-blur': group.style?.['text-halo-blur'] !== undefined ? group.style['text-halo-blur'] : 1
+                            // Default paint properties
+                            'text-color': '#000000',
+                            'text-halo-color': '#ffffff',
+                            'text-halo-width': 1,
+                            'text-halo-blur': 1,
+                            // Apply categorized paint properties
+                            ...textPaint
                         }
                     }, this._getInsertPosition('geojson', 'symbol'));
                 }
@@ -2418,6 +2436,7 @@ export class MapLayerControl {
                             'text-allow-overlap': group.style?.['text-allow-overlap'] || false,
                             'text-offset': group.style?.['text-offset'] || [0, 0],
                             'text-transform': group.style?.['text-transform'] || 'none',
+                            'text-padding': group.style?.['text-padding'],
                             visibility: 'visible'
                         },
                         paint: {
@@ -4052,10 +4071,30 @@ export class MapLayerControl {
                         source: sourceId,
                         'source-layer': newConfig.sourceLayer,
                         layout: {
+                            'text-font': newConfig.style?.['text-font'] || ['Open Sans Bold'],
                             'text-field': newConfig.style['text-field'],
-                            'text-font': newConfig.style['text-font'] || ['Open Sans Bold'],
                             'text-size': newConfig.style['text-size'] || 12,
-                            visibility: 'none'
+                            'text-anchor': newConfig.style?.['text-anchor'] || 'center',
+                            'text-justify': newConfig.style?.['text-justify'] || 'center',
+                            'text-allow-overlap': newConfig.style?.['text-allow-overlap'] || false,
+                            'text-offset': newConfig.style?.['text-offset'] || [0, 0],
+                            'text-transform': newConfig.style?.['text-transform'] || 'none',
+                            'text-padding': newConfig.style?.['text-padding'],
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'text-color': newConfig.style?.['text-color'] || '#000000',
+                            'text-halo-color': newConfig.style?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': newConfig.style?.['text-halo-width'] !== undefined ? newConfig.style['text-halo-width'] : 1,
+                            'text-halo-blur': newConfig.style?.['text-halo-blur'] !== undefined ? newConfig.style['text-halo-blur'] : 1,
+                            'text-opacity': newConfig.style?.['text-opacity'] || [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                1,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.9,
+                                0.7
+                            ]
                         }
                     });
                 }
@@ -4132,10 +4171,30 @@ export class MapLayerControl {
                         type: 'symbol',
                         source: sourceId,
                         layout: {
+                            'text-font': newConfig.style?.['text-font'] || ['Open Sans Bold'],
                             'text-field': newConfig.style['text-field'],
-                            'text-font': newConfig.style['text-font'] || ['Open Sans Bold'],
                             'text-size': newConfig.style['text-size'] || 12,
-                            visibility: 'none'
+                            'text-anchor': newConfig.style?.['text-anchor'] || 'center',
+                            'text-justify': newConfig.style?.['text-justify'] || 'center',
+                            'text-allow-overlap': newConfig.style?.['text-allow-overlap'] || false,
+                            'text-offset': newConfig.style?.['text-offset'] || [0, 0],
+                            'text-transform': newConfig.style?.['text-transform'] || 'none',
+                            'text-padding': newConfig.style?.['text-padding'],
+                            visibility: 'visible'
+                        },
+                        paint: {
+                            'text-color': newConfig.style?.['text-color'] || '#000000',
+                            'text-halo-color': newConfig.style?.['text-halo-color'] || '#ffffff',
+                            'text-halo-width': newConfig.style?.['text-halo-width'] !== undefined ? newConfig.style['text-halo-width'] : 1,
+                            'text-halo-blur': newConfig.style?.['text-halo-blur'] !== undefined ? newConfig.style['text-halo-blur'] : 1,
+                            'text-opacity': newConfig.style?.['text-opacity'] || [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                1,
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.9,
+                                0.7
+                            ]
                         }
                     });
                 }

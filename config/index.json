@@ -33,7 +33,7 @@
       "maxzoom": 10,
       "attribution": "<a href='https://www.data.gov.in/resource/delivery-post-office-pincode-boundary'>Ministry of Communications Department of Posts</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/postal'>Datameet Community</a>",
       "style": {
-        "text-padding": 30,
+        "text-padding": 10,
         "text-field": [
           "step",
           [
@@ -92,8 +92,83 @@
             ]
           ]
         ],
-        "text-color": "white",
-        "text-halo-color": "black",
+        "text-color": "black",
+        "text-halo-color": [
+          "concat",
+          "hsl(",
+          [
+            "to-string",
+            [
+              "*",
+              [
+                "/",
+                [
+                  "to-number",
+                  [
+                    "get",
+                    "Pincode"
+                  ]
+                ],
+                10000
+              ],
+              3.6
+            ]
+          ],
+          ", ",
+          [
+            "to-string",
+            [
+              "+",
+              40,
+              [
+                "*",
+                [
+                  "/",
+                  [
+                    "%",
+                    [
+                      "/",
+                      [
+                        "to-number",
+                        [
+                          "get",
+                          "Pincode"
+                        ]
+                      ],
+                      100
+                    ],
+                    100
+                  ],
+                  0.4
+                ]
+              ]
+            ]
+          ],
+          "%, ",
+          [
+            "to-string",
+            [
+              "+",
+              35,
+              [
+                "*",
+                [
+                  "%",
+                  [
+                    "to-number",
+                    [
+                      "get",
+                      "Pincode"
+                    ]
+                  ],
+                  100
+                ],
+                0.3
+              ]
+            ]
+          ],
+          "%)"
+        ],
         "text-halo-width": 5,
         "text-size": 13,
         "fill-color": [
