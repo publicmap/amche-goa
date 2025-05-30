@@ -19,7 +19,7 @@
     {
       "initiallyChecked": true,
       "id": "missing-streams",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/296ade153b729cc614b5bc7804634f5d-08af1fbee1af6720364e2789b383a875/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/296ade153b729cc614b5bc7804634f5d-11ab50f7f20fd7a2f77be5278efbae40/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Missing Streams",
       "description": "",
@@ -27,9 +27,8 @@
       "headerImage": "assets/map-layers/"
     },
     {
-      "initiallyChecked": true,
       "id": "closed-streams",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/e9a50867f2ce14f0435cdd29e0234367-e7436eb1e8ceb80fbc00672fb2996292/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/e9a50867f2ce14f0435cdd29e0234367-0c1ce5c5de09b1ed3b077e6f8adc95cd/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Closed Streams",
       "description": "",
@@ -37,9 +36,8 @@
       "headerImage": "assets/map-layers/"
     },
     {
-      "initiallyChecked": true,
       "id": "altered-streams",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/28b51c8384db55167f884fe6ddfa28cb-c44a23b059bf76c6907ee575b7cc1eed/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/28b51c8384db55167f884fe6ddfa28cb-67e2011e713b28b9e08edb88ff1ff5eb/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Altered Streams",
       "description": "",
@@ -47,9 +45,26 @@
       "headerImage": "assets/map-layers/"
     },
     {
-      "initiallyChecked": true,
+      "id": "open-streams",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/9a772de49bd7c762c8ade79da69c4ec1-731487123b359b4c367860e088ab59c4/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Open Streams",
+      "description": "",
+      "attribution": "<a href='https://sashikumarn.users.earthengine.app/view/blrfloodsv4'>Bengaluru Elevation and Flood-Prone Explorer, Sashi Kumar N</a>",
+      "headerImage": "assets/map-layers/"
+    },
+    {
+      "id": "drains",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/e3fd676155685c91eef14833e880def6-5e46f25ff49ffaac5a131ab2250a3649/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "SWD Drains",
+      "description": "",
+      "attribution": "<a href='https://sashikumarn.users.earthengine.app/view/blrfloodsv4'>Bengaluru Elevation and Flood-Prone Explorer, Sashi Kumar N</a>",
+      "headerImage": "assets/map-layers/"
+    },
+    {
       "id": "streams",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/28f8605dccc7c208b7a082761e0d7ea1-46bbda5ad743536f742db5a45f9ee0e9/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/b1bd6b43ccb538a83b28acf32280bfd1-36ac35168bf362ee5944637426f2a8e9/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Streams",
       "description": "",
@@ -57,8 +72,17 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "id": "stream-order",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/28f8605dccc7c208b7a082761e0d7ea1-64439886dcfa72614d1887f26c007db3/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Stream Order",
+      "description": "",
+      "attribution": "<a href='https://sashikumarn.users.earthengine.app/view/blrfloodsv4'>Bengaluru Elevation and Flood-Prone Explorer, Sashi Kumar N</a>",
+      "headerImage": "assets/map-layers/"
+    },
+    {
       "id": "dem",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/64bf7be0465e7dcf27b5453bb2b61a0d-82d3249dd2732fdfa882980b3a5f332e/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/b3a831bfef0b33c2986ef35a8c0537c9-4c42c2f61b1f812ee0903959ccf90975/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "DEM",
       "description": "",
