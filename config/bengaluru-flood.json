@@ -18,6 +18,26 @@
     {"id": "open-buildings"},
     {
       "initiallyChecked": true,
+      "id": "flooding-points",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/fd30d33602ac0505a2358a53f44dac8b-7d2746b39eac8a278b0e9bfa005a57fc/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Flooding prone points",
+      "description": "Flood vulnerable points are from Open City project",
+      "attribution": "<a href='https://sashikumarn.users.earthengine.app/view/blrfloodsv4'>Bengaluru Elevation and Flood-Prone Explorer, Sashi Kumar N</a>",
+      "headerImage": "assets/map-layers/"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "water-bodies",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/957b5148915002e2ac7a918885c8df77-bc28332bf00314f5db50511f1176e7d5/tiles/{z}/{x}/{y}",
+      "type": "tms",
+      "title": "Water Bodies",
+      "description": "Existing tanks and water bodies",
+      "attribution": "<a href='https://sashikumarn.users.earthengine.app/view/blrfloodsv4'>Bengaluru Elevation and Flood-Prone Explorer, Sashi Kumar N</a>",
+      "headerImage": "assets/map-layers/"
+    },
+    {
+      "initiallyChecked": true,
       "id": "missing-streams",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/296ade153b729cc614b5bc7804634f5d-11ab50f7f20fd7a2f77be5278efbae40/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -27,6 +47,7 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "initiallyChecked": true,
       "id": "closed-streams",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/e9a50867f2ce14f0435cdd29e0234367-0c1ce5c5de09b1ed3b077e6f8adc95cd/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -36,6 +57,7 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "initiallyChecked": true,
       "id": "altered-streams",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/28b51c8384db55167f884fe6ddfa28cb-67e2011e713b28b9e08edb88ff1ff5eb/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -45,6 +67,7 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "initiallyChecked": true,
       "id": "open-streams",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/9a772de49bd7c762c8ade79da69c4ec1-731487123b359b4c367860e088ab59c4/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -54,6 +77,7 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "initiallyChecked": true,
       "id": "drains",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/e3fd676155685c91eef14833e880def6-5e46f25ff49ffaac5a131ab2250a3649/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -63,6 +87,7 @@
       "headerImage": "assets/map-layers/"
     },
     {
+      "initiallyChecked": true,
       "id": "streams",
       "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/b1bd6b43ccb538a83b28acf32280bfd1-36ac35168bf362ee5944637426f2a8e9/tiles/{z}/{x}/{y}",
       "type": "tms",
@@ -93,7 +118,10 @@
       "id": "osm"
     },
     {
-      "initiallyChecked": false,
+      "id": "mapbox-satellite"
+    },
+    {
+      "initiallyChecked": true,
       "id": "3d-terrain"
     }
   ]
