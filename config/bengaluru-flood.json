@@ -13,9 +13,16 @@
   },
   "layers": [
     {
-      "id": "mapbox-streets"
+      "id": "mapbox-streets",
+      "title": "Street Map ನಕ್ಷೆಗಳು"
     },
-    {"id": "open-buildings"},
+    {
+      "id": "open-buildings"
+    },
+    {
+      "initiallyChecked": true,
+      "id": "osm-waterways"
+    },
     {
       "initiallyChecked": true,
       "id": "flooding-points",
