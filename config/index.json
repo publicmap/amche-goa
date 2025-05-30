@@ -23,7 +23,336 @@
       "id": "osm-roads"
     },
     {
-      "id": "pincode"
+      "id": "pincode",
+      "title": "Pincode Boundaries",
+      "headerImage": "assets/map-layers/map-layer-pincode.png",
+      "description": "Government open data of pincode boundaries published May 2025.",
+      "type": "vector",
+      "url": "https://indianopenmaps.fly.dev/pincodes/datagovin/{z}/{x}/{y}.pbf",
+      "sourceLayer": "Datagov_Pincode_Boundaries",
+      "maxzoom": 10,
+      "attribution": "<a href='https://www.data.gov.in/resource/delivery-post-office-pincode-boundary'>Ministry of Communications Department of Posts</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/postal'>Datameet Community</a>",
+      "style": {
+        "text-padding": 30,
+        "text-field": [
+          "step",
+          [
+            "zoom"
+          ],
+          [
+            "to-string",
+            [
+              "slice",
+              [
+                "get",
+                "Pincode"
+              ],
+              0,
+              2
+            ]
+          ],
+          5,
+          [
+            "to-string",
+            [
+              "slice",
+              [
+                "get",
+                "Pincode"
+              ],
+              0,
+              4
+            ]
+          ],
+          8,
+          [
+            "to-string",
+            [
+              "get",
+              "Pincode"
+            ]
+          ],
+          10,
+          [
+            "concat",
+            [
+              "to-string",
+              [
+                "get",
+                "Office_Name"
+              ]
+            ],
+            "\n",
+            [
+              "to-string",
+              [
+                "get",
+                "Pincode"
+              ]
+            ]
+          ]
+        ],
+        "text-color": "white",
+        "text-halo-color": "black",
+        "text-halo-width": 5,
+        "text-size": 13,
+        "fill-color": [
+          "concat",
+          "hsl(",
+          [
+            "to-string",
+            [
+              "*",
+              [
+                "/",
+                [
+                  "to-number",
+                  [
+                    "get",
+                    "Pincode"
+                  ]
+                ],
+                10000
+              ],
+              3.6
+            ]
+          ],
+          ", ",
+          [
+            "to-string",
+            [
+              "+",
+              40,
+              [
+                "*",
+                [
+                  "/",
+                  [
+                    "%",
+                    [
+                      "/",
+                      [
+                        "to-number",
+                        [
+                          "get",
+                          "Pincode"
+                        ]
+                      ],
+                      100
+                    ],
+                    100
+                  ],
+                  0.4
+                ]
+              ]
+            ]
+          ],
+          "%, ",
+          [
+            "to-string",
+            [
+              "+",
+              35,
+              [
+                "*",
+                [
+                  "%",
+                  [
+                    "to-number",
+                    [
+                      "get",
+                      "Pincode"
+                    ]
+                  ],
+                  100
+                ],
+                0.3
+              ]
+            ]
+          ],
+          "%)"
+        ],
+        "fill-opacity": [
+          "case",
+          [
+            "boolean",
+            [
+              "feature-state",
+              "selected"
+            ],
+            false
+          ],
+          0.8,
+          [
+            "boolean",
+            [
+              "feature-state",
+              "hover"
+            ],
+            false
+          ],
+          0.6,
+          0.4
+        ],
+        "line-color": [
+          "concat",
+          "hsl(",
+          [
+            "to-string",
+            [
+              "*",
+              [
+                "/",
+                [
+                  "to-number",
+                  [
+                    "get",
+                    "Pincode"
+                  ]
+                ],
+                10000
+              ],
+              3.6
+            ]
+          ],
+          ", ",
+          [
+            "to-string",
+            [
+              "+",
+              40,
+              [
+                "*",
+                [
+                  "/",
+                  [
+                    "%",
+                    [
+                      "/",
+                      [
+                        "to-number",
+                        [
+                          "get",
+                          "Pincode"
+                        ]
+                      ],
+                      100
+                    ],
+                    100
+                  ],
+                  0.4
+                ]
+              ]
+            ]
+          ],
+          "%, ",
+          [
+            "to-string",
+            [
+              "+",
+              20,
+              [
+                "*",
+                [
+                  "%",
+                  [
+                    "to-number",
+                    [
+                      "get",
+                      "Pincode"
+                    ]
+                  ],
+                  100
+                ],
+                0.2
+              ]
+            ]
+          ],
+          "%)"
+        ],
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            1.5,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            1,
+            0.5
+          ],
+          12,
+          [
+            "case",
+            [
+              "boolean",
+              [
+                "feature-state",
+                "selected"
+              ],
+              false
+            ],
+            3,
+            [
+              "boolean",
+              [
+                "feature-state",
+                "hover"
+              ],
+              false
+            ],
+            2,
+            1
+          ]
+        ]
+      },
+      "inspect": {
+        "title": "Pincode Area",
+        "label": "Pincode",
+        "id": "Pincode",
+        "fields": [
+          "Office_Name",
+          "Office_Type",
+          "Delivery_Status",
+          "Division_Name",
+          "Region_Name",
+          "Circle_Name",
+          "Taluk",
+          "District_Name",
+          "State_Name"
+        ],
+        "fieldTitles": [
+          "Post Office",
+          "Office Type", 
+          "Delivery Status",
+          "Division",
+          "Region",
+          "Circle",
+          "Taluk",
+          "District",
+          "State"
+        ]
+      }
     },
     {
       "id": "steep-plots"

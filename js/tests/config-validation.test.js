@@ -174,7 +174,7 @@ describe('Config File Validation', () => {
         
         // Type should be one of the expected values
         if (layer.type) {
-          const validTypes = ['vector', 'geojson', 'tms', 'markers', 'csv', 'style', 'terrain', 'layer-group', 'img'];
+          const validTypes = ['vector', 'geojson', 'tms', 'markers', 'csv', 'style', 'terrain', 'layer-group', 'img','raster-style-layer'];
           expect(validTypes).toContain(layer.type);
         }
       });
