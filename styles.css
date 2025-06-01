@@ -1399,6 +1399,76 @@ sl-menu-item[href]::part(base) {
         width: 0.875rem;
         height: 0.875rem;
     }
+    
+    /* Mobile optimization for dropdown panel */
+    sl-dropdown::part(panel) {
+        max-width: calc(100vw - 1rem);
+        width: auto;
+        min-width: 260px;
+        left: 0.5rem !important;
+    }
+    
+    /* More aggressive first level menu item compacting */
+    sl-menu-item::part(base) {
+        padding: 0.375rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        min-height: 36px !important;
+    }
+    
+    /* Reduce first level icon sizes */
+    sl-menu-item svg {
+        width: 0.875rem !important;
+        height: 0.875rem !important;
+    }
+    
+    /* Reduce padding and font size for submenu items on mobile */
+    sl-menu sl-menu sl-menu-item::part(base) {
+        padding-left: 0.75rem !important;
+        padding-right: 0.375rem !important;
+        padding-top: 0.375rem !important;
+        padding-bottom: 0.375rem !important;
+        font-size: 0.75rem !important;
+        min-height: 32px !important;
+    }
+    
+    /* Hide icons in submenu items and remove icon spacing */
+    sl-menu sl-menu sl-menu-item svg {
+        display: none !important;
+    }
+    
+    /* Remove icon spacing from submenu items */
+    sl-menu sl-menu sl-menu-item::part(base) {
+        padding-left: 0.5rem !important;
+    }
+    
+    /* Reduce menu label padding on mobile */
+    sl-menu-label {
+        padding: 0.375rem 0.5rem 0.25rem 0.5rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* Optimize config layer items for mobile */
+    sl-menu-item.config-layer-item::part(base) {
+        min-height: 36px !important;
+        padding: 0.375rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Reduce icon sizes in submenu on mobile */
+    sl-menu sl-menu sl-menu-item svg {
+        width: 0.75rem !important;
+        height: 0.75rem !important;
+    }
+    
+    /* Make dividers more compact */
+    sl-divider {
+        margin: 0.25rem 0 !important;
+    }
+    
+    /* Reduce gap between menu items */
+    sl-menu {
+        --sl-spacing-x-small: 0.125rem;
+    }
 }
 
 /* Menu label styling for site title */

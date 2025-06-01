@@ -406,26 +406,12 @@
         "label": "Pincode",
         "id": "Pincode",
         "fields": [
-          "Office_Name",
-          "Office_Type",
-          "Delivery_Status",
-          "Division_Name",
-          "Region_Name",
-          "Circle_Name",
-          "Taluk",
-          "District_Name",
-          "State_Name"
+          "Division",
+          "Region"
         ],
         "fieldTitles": [
-          "Post Office",
-          "Office Type", 
-          "Delivery Status",
           "Division",
-          "Region",
-          "Circle",
-          "Taluk",
-          "District",
-          "State"
+          "Region"
         ]
       }
     },
