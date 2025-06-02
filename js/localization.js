@@ -91,9 +91,14 @@ export class Localization {
         const shareButton = document.getElementById('share-link');
         if (shareButton) {
             // Update the text content while preserving the SVG icon
-            const textContent = shareButton.childNodes[shareButton.childNodes.length - 1];
-            if (textContent && textContent.nodeType === Node.TEXT_NODE) {
-                textContent.textContent = '\n                        ' + this.currentStrings.shareButton + '\n                    ';
+            // Look for the text node that comes after the SVG
+            const textNodes = Array.from(shareButton.childNodes).filter(
+                node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+            );
+            if (textNodes.length > 0) {
+                // Update the last text node (which should be the share text)
+                const lastTextNode = textNodes[textNodes.length - 1];
+                lastTextNode.textContent = '\n                ' + this.currentStrings.shareButton + '\n            ';
             }
         }
     }
