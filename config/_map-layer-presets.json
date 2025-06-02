@@ -2778,7 +2778,7 @@
     },
     {
       "id": "open-buildings-2016",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-8e2d9a4401b530ff43c307885633218b/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f5a6d9be6b633730e82ec8d15e0086c1-78d86fb6f5d7c260f64e95bad95f81ac/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2016",
       "description": "Building presence in 2016 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
@@ -2790,7 +2790,7 @@
           ["linear"],
           ["zoom"],
           12, 0.99,
-          16, 0.8,
+          16, 0.9,
           18, 0.2
         ],
         "raster-hue-rotate": 55,
@@ -2799,15 +2799,15 @@
           ["linear"],
           ["raster-value"],
           0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.5)"
+          0.1, "hsla(0, 100%, 90%, 1)",
+          0.5, "hsla(0, 100%, 80%, 0.95)",
+          1, "hsla(0, 100%, 40%, 0.5)"
         ]
       }
     },
     {
       "id": "open-buildings-2020",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/cf016de40aa21096351260103f40d203-ef52490ecca45ac6ae3ec5aa9ad79857/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/703bf70ae3c3294ddb3e82210ece7585-ca1baffe7de0e93cac88ac5224a6d2f6/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2020",
       "description": "Building presence in 2020 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
@@ -2894,7 +2894,7 @@
     },
     {
       "id": "open-buildings-2023",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-d68a26b174dbee5818429b047466e324/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-c082b7b8187b0ff0ea386766cf8aa066/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2023",
       "description": "Building presence in 2023 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
