@@ -646,6 +646,9 @@ export class MapLayerControl {
                 qrCode.addEventListener('click', (e) => {
                     e.stopPropagation();
                     
+                    // Reset button content immediately when QR code is viewed
+                    shareButton.innerHTML = originalContent;
+                    
                     // Create full screen overlay
                     const overlay = document.createElement('div');
                     overlay.style.position = 'fixed';
@@ -680,7 +683,7 @@ export class MapLayerControl {
                     document.body.appendChild(overlay);
                 });
                 
-                // Auto-revert after 30 seconds
+                // Auto-revert after 30 seconds (if user hasn't clicked the QR code)
                 setTimeout(() => {
                     if (shareButton.contains(qrCode)) {
                         shareButton.innerHTML = originalContent;

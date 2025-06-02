@@ -1684,6 +1684,18 @@ sl-menu-item.config-layer-item svg {
     height: 0.875rem;
 }
 
+/* Hide share button text on mobile, keep only icon */
+.share-button {
+    font-size: 0;
+    gap: 0;
+    padding: 0.5rem;
+}
+
+.share-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
 /* More aggressive first level menu item compacting */
 sl-menu-item::part(base) {
     padding: 0.375rem 0.5rem !important;
