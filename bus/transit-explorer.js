@@ -11,6 +11,9 @@ import {
     DataUtils 
 } from './transit-data.js';
 
+// Import URL API for deep linking support
+import { URLManager } from './url-api.js';
+
 class TransitExplorer {
     constructor() {
         this.map = null;
@@ -19,9 +22,12 @@ class TransitExplorer {
         this.refreshInterval = null;
         this.mapboxToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ';
         this.tilesets = {
-            routes: 'planemad.8obphl95',
+            routes: 'planemad.byjf1hw6',
             stops: 'planemad.2e4x2hzw'
         };
+        
+        // Initialize URL manager for deep linking
+        this.urlManager = null;
         
         this.init();
     }
@@ -35,8 +41,46 @@ class TransitExplorer {
         // Set up event listeners
         this.setupEventListeners();
         
+        // Initialize URL manager after map is set up
+        this.urlManager = new URLManager(this);
+        
         // Request location
         await this.requestLocation();
+        
+        // Apply URL parameters after everything is initialized
+        setTimeout(() => {
+            this.applyURLParametersOnLoad();
+        }, 1000);
+    }
+
+    async applyURLParametersOnLoad() {
+        try {
+            const applied = await this.urlManager.applyURLParameters();
+            if (!applied) {
+                console.log('🔗 No URL parameters applied, proceeding with normal initialization');
+            }
+        } catch (error) {
+            console.error('🔗 Error applying URL parameters on load:', error);
+        }
+    }
+
+    // Method to access URL manager for testing/debugging
+    getURLManager() {
+        return this.urlManager;
+    }
+
+    // Test URL slugification (for debugging)
+    testURLFeatures() {
+        if (this.urlManager) {
+            console.log('🔗 Testing URL features...');
+            this.urlManager.testSlugification();
+            
+            const currentURL = this.urlManager.getShareableURL();
+            console.log('🔗 Current shareable URL:', currentURL);
+            
+            const selections = this.urlManager.getCurrentSelections();
+            console.log('🔗 Current selections:', selections);
+        }
     }
 
     initMap() {
@@ -48,7 +92,8 @@ class TransitExplorer {
             center: [72.8777, 19.0760], // Mumbai center
             zoom: 11,
             pitch: 45,
-            bearing: 0
+            bearing: 0,
+            hash: true
         });
 
         this.map.on('load', () => {
@@ -314,9 +359,37 @@ class TransitExplorer {
             
             // Get route information for display
             this.displayRouteInfo(routeId);
+            
+            // Update URL with route selection
+            if (this.urlManager) {
+                const routeName = this.getRouteNameById(routeId);
+                if (routeName) {
+                    this.urlManager.onRouteSelected(routeName, routeId);
+                }
+            }
         }
         
         console.log(`🎯 Highlighting route: ${routeId}`);
+    }
+
+    getRouteNameById(routeId) {
+        if (!this.map || !this.map.isSourceLoaded('mumbai-routes')) return null;
+        
+        try {
+            const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
+                sourceLayer: 'mumbai-routes',
+                filter: ['==', 'route_id', routeId]
+            });
+            
+            if (routeFeatures.length > 0) {
+                const routeProps = routeFeatures[0].properties;
+                return routeProps.route_short_name || routeProps.route_name;
+            }
+        } catch (error) {
+            console.log('Could not get route name:', error);
+        }
+        
+        return null;
     }
 
     displayRouteInfo(routeId) {
@@ -608,6 +681,11 @@ class TransitExplorer {
         this.clearStopHighlight();
         this.stopBusLocationTracking(); // Stop bus tracking
         this.currentSelectedStop = null;
+        
+        // Update URL to clear parameters
+        if (this.urlManager) {
+            this.urlManager.onSelectionCleared();
+        }
     }
 
     async requestLocation() {
@@ -924,6 +1002,15 @@ class TransitExplorer {
         this.displayStopInfo(stopFeature);
         this.loadDepartures(stopFeature);
         
+        // Update URL with stop selection
+        if (this.urlManager && stopFeature.properties) {
+            const stopName = stopFeature.properties.name || stopFeature.properties.stop_name;
+            const stopId = stopFeature.properties.id || stopFeature.properties.stop_id;
+            if (stopName) {
+                this.urlManager.onStopSelected(stopName, stopId);
+            }
+        }
+        
         // Start auto-refresh for live data
         this.startAutoRefresh();
     }
@@ -1167,6 +1254,11 @@ class TransitExplorer {
         // Update UI
         this.displayStopInfo(busStop.feature, busStop);
         this.loadDepartures(busStop.feature);
+        
+        // Update URL with stop selection
+        if (this.urlManager) {
+            this.urlManager.onStopSelected(busStop.name, busStop.id);
+        }
         
         // Center map on the new stop
         if (busStop.coordinates) {
@@ -1420,15 +1512,6 @@ class TransitExplorer {
         } else {
             this.clearStopHighlight();
         }
-    }
-
-    clearAllSelections() {
-        console.log('🔄 Clearing all selections...');
-        this.clearRouteHighlight();
-        this.clearDepartureHighlights();
-        this.clearStopHighlight();
-        this.stopBusLocationTracking(); // Stop bus tracking
-        this.currentSelectedStop = null;
     }
 
     async loadDepartures(stopFeature) {
@@ -2516,6 +2599,11 @@ class TransitExplorer {
         this.displayStopInfo(primaryStopFeature, primaryBusStop);
         this.loadDepartures(primaryStopFeature);
         
+        // Update URL with stop selection
+        if (this.urlManager) {
+            this.urlManager.onStopSelected(primaryBusStop.name, primaryBusStop.id);
+        }
+        
         // If there are multiple stops at this location or nearby, populate browse panel
         if (allStopFeatures.length > 1) {
             console.log(`🔍 Multiple stops found, populating browse panel with ${allStopFeatures.length} options`);
@@ -2563,6 +2651,11 @@ class TransitExplorer {
             
             // Highlight corresponding departure rows
             this.highlightDepartureRows(routeId, routeName);
+            
+            // Update URL with route selection
+            if (this.urlManager && routeName) {
+                this.urlManager.onRouteSelected(routeName, routeId);
+            }
         }
     }
 
