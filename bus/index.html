@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Transit Explorer - Real-time Bus Routes & Stops</title>
+    <link rel="canonical" href="https://amche.in/bus" />
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/assets/img/icon-192x192.png">
+    
+    <!-- SEO and Social Media Meta Tags -->
+    <meta name="description" content="Explore real-time public transit data with interactive bus route maps, live departure boards, and detailed stop information for Mumbai and other cities." />
+    <meta name="keywords" content="bus routes, public transit, Mumbai buses, real-time departures, transit map, bus stops, city transit" />
+
+    <!-- Progressive Web App Meta Tags -->
+    <meta name="theme-color" content="#1a365d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Transit Explorer">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Transit Explorer - Real-time Bus Routes" />
+    <meta property="og:description" content="Explore real-time public transit data with interactive maps and live departure information." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://amche.in/bus" />
+    <meta property="og:image" content="https://amche.in/assets/img/og_image.jpg" />
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'transit-blue': '#1e40af',
+                        'transit-green': '#059669',
+                        'transit-orange': '#ea580c',
+                        'sim-dark': '#0f172a',
+                        'sim-darker': '#020617'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Mapbox GL JS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js'></script>
+
+    <!-- Open Sans font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Shoelace Components -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/dark.css" />
+
+    <!-- Add jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+        }
+        
+        .sim-container {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+        }
+        
+        .departure-board {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #22c55e;
+            box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.2);
+        }
+        
+        .departure-row {
+            border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .departure-row:hover {
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
+        .route-badge {
+            background: linear-gradient(45deg, #059669, #10b981);
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3);
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-live {
+            background: #22c55e;
+        }
+        
+        .status-scheduled {
+            background: #f59e0b;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .loading-dots::after {
+            content: '';
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+        
+        #map {
+            border: 2px solid rgba(34, 197, 94, 0.5);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .sim-header {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            border-bottom: 2px solid #22c55e;
+        }
+        
+        .info-panel {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body class="bg-sim-dark text-green-400">
+    <!-- Header -->
+    <header class="sim-header text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-white hover:text-green-400 transition-colors">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <svg class="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"/>
+                    </svg>
+                    Transit Explorer
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <sl-badge variant="success" class="sim-badge">Mumbai</sl-badge>
+                <div id="location-status" class="flex items-center gap-2 text-sm">
+                    <div class="status-indicator status-scheduled"></div>
+                    <span>Locating...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Location Permission Banner -->
+        <div id="location-banner" class="sim-container rounded-lg p-4 mb-6 border-l-4 border-transit-orange hidden">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-transit-orange" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-white">Location Access Required</h3>
+                    <p class="text-gray-300 text-sm">Enable location access to find the nearest bus stop and real-time departures.</p>
+                </div>
+                <sl-button id="enable-location-btn" variant="primary" size="small">
+                    Enable Location
+                </sl-button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Panel - Stop Information -->
+            <div class="lg:col-span-1">
+                <!-- Current Stop Info -->
+                <div class="sim-container rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        </svg>
+                        Nearest Stop
+                    </h2>
+                    
+                    <div id="stop-info" class="space-y-3">
+                        <div class="flex items-center justify-center py-8">
+                            <sl-spinner style="font-size: 2rem;"></sl-spinner>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Departure Board -->
+                <div class="departure-board rounded-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-green-400 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                            </svg>
+                            Departures (Next 60 min)
+                        </h3>
+                        <div class="text-xs text-gray-400" id="last-updated">
+                            Updating<span class="loading-dots"></span>
+                        </div>
+                    </div>
+                    
+                    <div id="departure-list" class="space-y-2">
+                        <div class="flex items-center justify-center py-8 text-gray-400">
+                            <sl-spinner style="font-size: 1.5rem;"></sl-spinner>
+                            <span class="ml-2">Loading departures...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Map -->
+            <div class="lg:col-span-2">
+                <div class="sim-container rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+                            </svg>
+                            Transit Network
+                        </h2>
+                        
+                        <div class="flex gap-2">
+                            <sl-button id="center-location-btn" variant="default" size="small" disabled>
+                                <svg slot="prefix" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                Center
+                            </sl-button>
+                        </div>
+                    </div>
+                    
+                    <div id="map" class="w-full h-96 lg:h-[600px] rounded-lg"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module" src="transit-explorer.js"></script>
+</body>
+
+</html> 
