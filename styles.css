@@ -1757,3 +1757,224 @@ sl-divider {
 sl-menu {
     --sl-spacing-x-small: 0.125rem;
 }
+
+sl-menu {
+    border: none;
+}
+
+/* Bus tracking and live departure board styles */
+.departure-row {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.departure-row:hover {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.departure-row-selected {
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    border-color: rgba(34, 197, 94, 0.6) !important;
+}
+
+.departure-row-hover {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Status indicators */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-live {
+    background-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    animation: pulse 2s infinite;
+}
+
+.status-scheduled {
+    background-color: #f59e0b;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Route badges */
+.route-badge {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.route-badge-text {
+    font-weight: bold;
+}
+
+/* Selection indicator */
+.selection-indicator {
+    margin-bottom: 0.5rem;
+}
+
+/* Bus tracking notification */
+#bus-tracking-notification {
+    z-index: 1000;
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Bus location markers on map */
+.user-location-marker {
+    cursor: pointer;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mapbox popup styles for bus info */
+.mapboxgl-popup-content {
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: white;
+    min-width: 200px;
+}
+
+.mapboxgl-popup-tip {
+    border-top-color: rgba(17, 24, 39, 0.95) !important;
+}
+
+/* Enhanced departure board styling */
+.departure-board {
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Live tracking badge */
+.tracking-badge {
+    background: linear-gradient(45deg, #22c55e, #16a34a);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bus location layer cursor */
+.mapboxgl-canvas {
+    cursor: crosshair;
+}
+
+/* Nearby stops panel */
+.nearby-stop-item {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.nearby-stop-item:hover {
+    border-color: rgba(34, 197, 94, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    #bus-tracking-notification {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+    
+    .departure-row {
+        padding: 0.75rem;
+    }
+    
+    .route-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Bus popup enhanced styling */
+.bus-popup-content {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(31, 41, 55, 0.98));
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px);
+}
+
+/* Location banner enhanced styling */
+#location-banner {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.95));
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Enhanced stop info styling */
+#stop-info {
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+/* Loading states for live data */
+.loading-departures {
+    position: relative;
+}
+
+.loading-departures::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}

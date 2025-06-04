@@ -1,342 +1,15 @@
 // Transit Explorer - Main Application Module
 // Handles geolocation, map initialization, stop finding, and departure boards
 
-// Configuration for tileset schema mapping
-const TILESET_SCHEMA = {
-    routes: {
-        layer: 'mumbai-routes',
-        fields: {
-            id: 'route_id',
-            shortName: 'route_short_name',
-            longName: 'route_name',
-            description: 'route_desc',
-            color: 'route_color',
-            textColor: 'route_text_color',
-            isLive: 'is_live',
-            agency: 'agency_name',
-            city: 'city_name',
-            routeType: 'route_type',
-            fareType: 'fare_type'
-        }
-    },
-    stops: {
-        layer: 'mumbai-stops',
-        fields: {
-            id: 'stop_id',
-            name: 'name',
-            description: 'stop_description',
-            lat: 'stop_lat',
-            lon: 'stop_lon',
-            timetable: 'stop_timetable',
-            routeList: 'route_name_list',
-            tripCount: 'trip_count',
-            avgWaitTime: 'avg_wait_time',
-            zoneId: 'zone_id',
-            stopUrl: 'stop_url',
-            locationType: 'location_type'
-        }
-    }
-};
-
-// Transit Agency styling configuration
-const AGENCY_STYLES = {
-    'BEST': {
-        name: 'Brihanmumbai Electric Supply and Transport',
-        colors: {
-            'AC': {
-                background: '#2563eb',      // Blue-600
-                text: '#ffffff',
-                mapLine: '#3b82f6'          // Blue-500
-            },
-            'Regular': {
-                background: '#dc2626',      // Red-600
-                text: '#ffffff', 
-                mapLine: '#ef4444'          // Red-500
-            },
-            'default': {
-                background: '#059669',      // Green-600
-                text: '#ffffff',
-                mapLine: '#10b981'          // Green-500
-            }
-        }
-    },
-    'default': {
-        name: 'Transit Agency',
-        colors: {
-            'default': {
-                background: '#059669',      // Green-600
-                text: '#ffffff',
-                mapLine: '#10b981'          // Green-500
-            }
-        }
-    }
-};
-
-// Transit Agency data class
-class TransitAgency {
-    constructor(agencyName) {
-        this.name = agencyName || 'default';
-        this.config = AGENCY_STYLES[this.name] || AGENCY_STYLES['default'];
-    }
-    
-    getRouteStyle(fareType = null, routeType = null) {
-        // Determine the service type for styling
-        let serviceType = 'default';
-        
-        if (fareType) {
-            serviceType = fareType;
-        } else if (routeType) {
-            // Map route types to service types if needed
-            serviceType = this.mapRouteTypeToService(routeType);
-        }
-        
-        // Get colors for the service type, fallback to default
-        const colors = this.config.colors[serviceType] || this.config.colors['default'];
-        
-        return {
-            backgroundColor: colors.background,
-            textColor: colors.text,
-            mapLineColor: colors.mapLine,
-            serviceType: serviceType
-        };
-    }
-    
-    mapRouteTypeToService(routeType) {
-        // Map GTFS route types or custom route types to service types
-        const routeTypeMap = {
-            'AC': 'AC',
-            'ac': 'AC',
-            'Air Conditioned': 'AC',
-            'Regular': 'Regular',
-            'regular': 'Regular',
-            'Ordinary': 'Regular',
-            'Express': 'Regular',
-            'Limited': 'Regular'
-        };
-        
-        return routeTypeMap[routeType] || 'default';
-    }
-    
-    getAllServiceTypes() {
-        return Object.keys(this.config.colors);
-    }
-    
-    getDisplayInfo() {
-        return {
-            name: this.config.name,
-            shortName: this.name,
-            serviceTypes: this.getAllServiceTypes()
-        };
-    }
-}
-
-// Bus Route data class
-class BusRoute {
-    constructor(feature, schema = TILESET_SCHEMA.routes) {
-        this.feature = feature;
-        this.schema = schema;
-        this.properties = feature.properties || {};
-        
-        // Map schema fields to properties
-        this.id = this.getProperty('id');
-        this.shortName = this.getProperty('shortName');
-        this.longName = this.getProperty('longName');
-        this.description = this.getProperty('description');
-        this.color = this.getProperty('color');
-        this.textColor = this.getProperty('textColor');
-        this.isLive = this.getBooleanProperty('isLive');
-        this.agency = this.getProperty('agency');
-        this.city = this.getProperty('city');
-        this.routeType = this.getProperty('routeType');
-        this.fareType = this.getProperty('fareType');
-        
-        // Computed properties
-        this.displayName = this.shortName || this.longName || this.id;
-        this.fullDescription = this.description || this.longName || '';
-        
-        // Initialize agency styling
-        this.transitAgency = new TransitAgency(this.agency);
-        this.styling = this.transitAgency.getRouteStyle(this.fareType, this.routeType);
-    }
-    
-    getProperty(schemaKey) {
-        const fieldName = this.schema.fields[schemaKey];
-        return fieldName ? this.properties[fieldName] : null;
-    }
-    
-    getBooleanProperty(schemaKey) {
-        const value = this.getProperty(schemaKey);
-        return value === true || value === 'true' || value === 1 || value === '1';
-    }
-    
-    getDisplayInfo() {
-        return {
-            name: this.displayName,
-            description: this.fullDescription,
-            status: this.isLive ? 'Live Tracking' : 'Scheduled',
-            agency: this.agency,
-            city: this.city,
-            serviceType: this.styling.serviceType,
-            styling: this.styling
-        };
-    }
-    
-    getMapLineColor() {
-        // Use agency styling if available, fallback to manual color or default
-        return this.styling.mapLineColor || this.color || '#10b981';
-    }
-    
-    getRouteHtml(size = 'normal') {
-        const sizeClasses = {
-            small: 'px-1.5 py-0.5 text-xs',
-            normal: 'px-2 py-1 text-xs',
-            large: 'px-3 py-1.5 text-sm'
-        };
-        
-        const sizeClass = sizeClasses[size] || sizeClasses.normal;
-        
-        return `
-            <span class="route-badge ${sizeClass} rounded font-bold" 
-                  style="background-color: ${this.styling.backgroundColor}; color: ${this.styling.textColor};">
-                <span class="route-badge-text">${this.displayName}</span>
-                ${this.fareType === 'AC' ? '<span class="text-blue-200 text-xs ml-1">AC</span>' : ''}
-            </span>
-        `;
-    }
-}
-
-// Bus Stop data class
-class BusStop {
-    constructor(feature, schema = TILESET_SCHEMA.stops) {
-        this.feature = feature;
-        this.schema = schema;
-        this.properties = feature.properties || {};
-        
-        // Map schema fields to properties
-        this.id = this.getProperty('id');
-        this.name = this.getProperty('name');
-        this.description = this.getProperty('description');
-        this.lat = this.getNumericProperty('lat');
-        this.lon = this.getNumericProperty('lon');
-        this.timetable = this.getProperty('timetable');
-        this.routeList = this.getProperty('routeList');
-        this.tripCount = this.getNumericProperty('tripCount');
-        this.avgWaitTime = this.getNumericProperty('avgWaitTime');
-        this.zoneId = this.getProperty('zoneId');
-        this.stopUrl = this.getProperty('stopUrl');
-        this.locationType = this.getProperty('locationType');
-        
-        // Computed properties
-        this.coordinates = feature.geometry ? feature.geometry.coordinates : [this.lon, this.lat];
-        this.routes = this.parseRouteList();
-        this.hasLiveData = this.id && this.id.length > 0;
-    }
-    
-    getProperty(schemaKey) {
-        const fieldName = this.schema.fields[schemaKey];
-        return fieldName ? this.properties[fieldName] : null;
-    }
-    
-    getNumericProperty(schemaKey) {
-        const value = this.getProperty(schemaKey);
-        return value ? parseFloat(value) : null;
-    }
-    
-    parseRouteList() {
-        if (!this.routeList) return [];
-        
-        try {
-            // Handle semicolon-separated route list (most common format)
-            if (typeof this.routeList === 'string') {
-                return this.routeList.split(/[;,]/).map(route => route.trim()).filter(Boolean);
-            }
-            return Array.isArray(this.routeList) ? this.routeList : [];
-        } catch (error) {
-            console.warn('Error parsing route list:', error);
-            return [];
-        }
-    }
-    
-    getRoutesFromTimetable() {
-        // Extract route information from timetable data
-        const timetableData = this.parseTimetable();
-        const routeMap = new Map();
-        
-        timetableData.forEach(routeInfo => {
-            if (routeInfo.route_short_name || routeInfo.route_name) {
-                const routeName = routeInfo.route_short_name || routeInfo.route_name;
-                routeMap.set(routeName, {
-                    name: routeName,
-                    agency: routeInfo.agency_name || 'BEST',
-                    fareType: this.detectFareType(routeName),
-                    isAC: this.isACRoute(routeName)
-                });
-            }
-        });
-        
-        return Array.from(routeMap.values());
-    }
-
-    detectFareType(routeName) {
-        const name = routeName.toLowerCase();
-        if (name.includes('ac') || name.includes('a-') || name.includes('a/c')) {
-            return 'AC';
-        }
-        return 'Regular';
-    }
-
-    isACRoute(routeName) {
-        return this.detectFareType(routeName) === 'AC';
-    }
-    
-    parseTimetable() {
-        if (!this.timetable) return [];
-        
-        try {
-            let timetableData = typeof this.timetable === 'string' ? 
-                JSON.parse(this.timetable) : this.timetable;
-            
-            return Array.isArray(timetableData) ? timetableData : [];
-        } catch (error) {
-            console.warn('Error parsing timetable:', error);
-            return [];
-        }
-    }
-    
-    getDistance(userLocation) {
-        if (!userLocation || !this.coordinates) return null;
-        
-        const R = 6371; // Earth's radius in kilometers
-        const dLat = this.toRadians(this.lat - userLocation.lat);
-        const dLon = this.toRadians(this.lon - userLocation.lng);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(this.toRadians(userLocation.lat)) * Math.cos(this.toRadians(this.lat)) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-    
-    toRadians(degrees) {
-        return degrees * (Math.PI / 180);
-    }
-    
-    getDisplayInfo(userLocation = null) {
-        const distance = userLocation ? this.getDistance(userLocation) : null;
-        
-        return {
-            name: this.name || 'Bus Stop',
-            description: this.description,
-            distance: distance ? `${(distance * 1000).toFixed(0)}m` : null,
-            routeCount: this.routes.length,
-            routes: this.routes.slice(0, 5), // Show first 5 routes
-            moreRoutes: Math.max(0, this.routes.length - 5),
-            tripCount: this.tripCount,
-            avgWaitTime: this.avgWaitTime,
-            hasLiveData: this.hasLiveData,
-            coordinates: this.coordinates
-        };
-    }
-}
+// Import data models and utilities
+import { 
+    TILESET_SCHEMA, 
+    AGENCY_STYLES, 
+    TransitAgency, 
+    BusRoute, 
+    BusStop, 
+    DataUtils 
+} from './transit-data.js';
 
 class TransitExplorer {
     constructor() {
@@ -384,7 +57,7 @@ class TransitExplorer {
             console.log('🗺️ Map loaded successfully');
             
             // Add route interaction handlers
-            this.setupRouteInteractions();
+            // this.setupRouteInteractions();
         });
 
         // Add navigation controls
@@ -481,11 +154,11 @@ class TransitExplorer {
                     'interpolate',
                     ['linear'],
                     ['zoom'],
-                    10, 4,
-                    16, 8
+                    10, 1,
+                    16, 3
                 ],
                 'circle-color': '#f59e0b',
-                'circle-stroke-width': 2,
+                'circle-stroke-width': 1,
                 'circle-stroke-color': '#ffffff',
                 'circle-opacity': 0.9
             }
@@ -514,26 +187,29 @@ class TransitExplorer {
             filter: ['==', 'stop_id', ''] // Initially filter out everything
         });
 
-        // Add hover effects for stops
-        this.map.on('mouseenter', 'stops', () => {
-            this.map.getCanvas().style.cursor = 'pointer';
-        });
+        // Add bus location layer for live tracking
+        this.addBusLocationLayer();
 
-        this.map.on('mouseleave', 'stops', () => {
-            this.map.getCanvas().style.cursor = '';
-        });
+        // Add hover effects for stops
+        // this.map.on('mouseenter', 'stops', () => {
+        //     this.map.getCanvas().style.cursor = 'pointer';
+        // });
+
+        // this.map.on('mouseleave', 'stops', () => {
+        //     this.map.getCanvas().style.cursor = '';
+        // });
 
         // Handle stop clicks
-        this.map.on('click', 'stops', (e) => {
-            if (e.features.length > 0) {
-                this.selectStop(e.features[0]);
-            }
-        });
+        // this.map.on('click', 'stops', (e) => {
+        //     if (e.features.length > 0) {
+        //         this.selectStop(e.features[0]);
+        //     }
+        // });
 
         console.log('✅ Route interactions set up successfully');
         
-        // Set up stop interactions
-        this.setupStopInteractions();
+        // Set up unified map interactions
+        this.setupMapInteractions();
     }
 
     setupRouteInteractions() {
@@ -740,6 +416,7 @@ class TransitExplorer {
                 const routeBadge = row.querySelector('.route-badge-text');
                 const routeId = row.dataset.routeId;
                 const routeName = routeBadge ? routeBadge.textContent.trim() : '';
+                const departureData = this.getDepartureData(index);
                 
                 if (routeId && routeName) {
                     console.log(`🚌 Departure row clicked: ${routeName} (ID: ${routeId})`);
@@ -747,6 +424,7 @@ class TransitExplorer {
                     // Clear previous selections
                     this.clearDepartureHighlights();
                     this.clearRouteHighlight();
+                    this.stopBusLocationUpdates(); // Stop previous bus tracking
                     
                     // Highlight this row
                     row.classList.add('departure-row-selected');
@@ -754,9 +432,16 @@ class TransitExplorer {
                     // Highlight corresponding route on map
                     this.highlightRoute(routeId);
                     
+                    // Start tracking bus locations for this route
+                    this.startBusLocationTracking(routeId, departureData);
+                    
                     // Store selection
                     this.currentHighlightedRoute = routeId;
                     this.currentHighlightedDepartures = { routeId, routeName };
+                    this.currentTrackedRoute = { routeId, routeName, departureData };
+                    
+                    // Update selection indicator
+                    this.updateSelectionIndicator(`Tracking Route ${routeName} - Live bus locations updating`);
                 }
             });
             
@@ -787,6 +472,99 @@ class TransitExplorer {
                 }
             });
         });
+    }
+
+    getDepartureData(departureIndex) {
+        // Get departure data from the stored departures
+        if (this.currentDepartures && this.currentDepartures[departureIndex]) {
+            return this.currentDepartures[departureIndex];
+        }
+        return null;
+    }
+
+    async startBusLocationTracking(routeId, departureData) {
+        console.log(`🔄 Starting bus location tracking for route: ${routeId}`);
+        
+        // Get current stop ID
+        const currentStopId = this.currentStop?.properties?.id || this.currentStop?.properties?.stop_id;
+        const stopIds = currentStopId ? [currentStopId] : [];
+        
+        // Start bus location updates
+        this.startBusLocationUpdates(routeId, stopIds);
+        
+        // Show tracking notification
+        this.showBusTrackingNotification(routeId, departureData);
+    }
+
+    showBusTrackingNotification(routeId, departureData) {
+        // Create or update tracking notification
+        let notification = document.getElementById('bus-tracking-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'bus-tracking-notification';
+            notification.className = 'fixed top-4 right-4 z-50 max-w-sm';
+            document.body.appendChild(notification);
+        }
+        
+        const routeName = departureData?.route || 'Unknown Route';
+        const vehicleNo = departureData?.vehicleId || '';
+        const destination = departureData?.destination || '';
+        
+        notification.innerHTML = `
+            <div class="bg-green-800 border border-green-600 rounded-lg p-4 shadow-lg">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <div>
+                            <div class="font-semibold text-white">Tracking Route ${routeName}</div>
+                            <div class="text-sm text-green-200">
+                                ${destination}
+                                ${vehicleNo ? ` • Bus ${vehicleNo}` : ''}
+                            </div>
+                            <div class="text-xs text-green-300 mt-1">
+                                Live bus locations updating every minute
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="window.transitExplorer.stopBusLocationTracking()" 
+                            class="text-green-300 hover:text-white ml-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Auto-hide notification after 5 seconds
+        setTimeout(() => {
+            if (notification) {
+                notification.style.opacity = '0.7';
+            }
+        }, 5000);
+    }
+
+    stopBusLocationTracking() {
+        console.log('🛑 Stopping bus location tracking');
+        
+        // Stop updates
+        this.stopBusLocationUpdates();
+        
+        // Clear tracking state
+        this.currentTrackedRoute = null;
+        
+        // Hide notification
+        const notification = document.getElementById('bus-tracking-notification');
+        if (notification) {
+            notification.remove();
+        }
+        
+        // Update selection indicator
+        if (this.currentHighlightedDepartures) {
+            this.updateSelectionIndicator(`Route ${this.currentHighlightedDepartures.routeName} selected`);
+        } else {
+            this.updateSelectionIndicator('');
+        }
     }
 
     setupEventListeners() {
@@ -828,6 +606,7 @@ class TransitExplorer {
         this.clearRouteHighlight();
         this.clearDepartureHighlights();
         this.clearStopHighlight();
+        this.stopBusLocationTracking(); // Stop bus tracking
         this.currentSelectedStop = null;
     }
 
@@ -1011,7 +790,7 @@ class TransitExplorer {
                     features = features.filter(feature => {
                         if (feature.geometry && feature.geometry.coordinates) {
                             const stopCoords = feature.geometry.coordinates;
-                            const distance = this.calculateDistance(
+                            const distance = DataUtils.calculateDistance(
                                 this.userLocation.lat, this.userLocation.lng,
                                 stopCoords[1], stopCoords[0]
                             );
@@ -1038,7 +817,7 @@ class TransitExplorer {
             features.forEach(feature => {
                 if (feature.geometry && feature.geometry.coordinates) {
                     const stopCoords = feature.geometry.coordinates;
-                    const distance = this.calculateDistance(
+                    const distance = DataUtils.calculateDistance(
                         this.userLocation.lat, this.userLocation.lng,
                         stopCoords[1], stopCoords[0]
                     );
@@ -1107,7 +886,7 @@ class TransitExplorer {
             features.forEach(feature => {
                 if (feature.geometry && feature.geometry.coordinates) {
                     const stopCoords = feature.geometry.coordinates;
-                    const distance = this.calculateDistance(
+                    const distance = DataUtils.calculateDistance(
                         this.userLocation.lat, this.userLocation.lng,
                         stopCoords[1], stopCoords[0]
                     );
@@ -1138,21 +917,6 @@ class TransitExplorer {
             console.error('Error finding nearest stop (forced):', error);
             this.showStopError('Unable to find nearby stops.');
         }
-    }
-
-    calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Earth's radius in kilometers
-        const dLat = this.toRadians(lat2 - lat1);
-        const dLon = this.toRadians(lon2 - lon1);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-
-    toRadians(degrees) {
-        return degrees * (Math.PI / 180);
     }
 
     selectStop(stopFeature) {
@@ -1195,6 +959,12 @@ class TransitExplorer {
         
         const stopInfoEl = document.getElementById('stop-info');
         const displayInfo = busStop.getDisplayInfo(this.userLocation);
+        
+        // Use DataUtils for route badges
+        const routeBadgesHtml = displayInfo.routes.map(routeName => {
+            const routeInfo = busStop.getRoutesFromTimetable().find(r => r.name === routeName);
+            return DataUtils.getStyledRouteBadge(routeName, routeInfo, 'small');
+        }).join(' ');
         
         stopInfoEl.innerHTML = `
             <div class="bg-gray-800 rounded-lg p-4 border border-green-500/30">
@@ -1240,7 +1010,7 @@ class TransitExplorer {
                     <div class="col-span-2">
                         <span class="text-gray-400">Service Routes:</span>
                         <div class="flex flex-wrap gap-1 mt-1">
-                            ${this.getStyledRouteBadges(displayInfo.routes, busStop)}
+                            ${routeBadgesHtml}
                             ${displayInfo.moreRoutes > 0 ? 
                                 `<span class="text-gray-400 text-xs">+${displayInfo.moreRoutes}</span>` : ''}
                         </div>
@@ -1567,21 +1337,80 @@ class TransitExplorer {
     highlightStop(stopId, isTemporary = false) {
         if (!stopId) return;
 
+        // Dynamically determine the correct field name for the filter
+        // Check if we have access to current stop feature to determine field name
+        let fieldName = 'stop_id'; // default
+        
+        if (this.currentStop && this.currentStop.properties) {
+            // Determine which field name is actually used in the tileset
+            if (this.currentStop.properties.id !== undefined) {
+                fieldName = 'id';
+            } else if (this.currentStop.properties.stop_id !== undefined) {
+                fieldName = 'stop_id';
+            }
+        }
+        
+        // If we don't have currentStop to check, try to query a sample feature
+        if (!this.currentStop && this.map && this.map.isSourceLoaded('mumbai-stops')) {
+            try {
+                const sampleFeatures = this.map.querySourceFeatures('mumbai-stops', {
+                    sourceLayer: 'mumbai-stops'
+                });
+                
+                if (sampleFeatures.length > 0) {
+                    const sample = sampleFeatures[0].properties;
+                    if (sample.id !== undefined) {
+                        fieldName = 'id';
+                    } else if (sample.stop_id !== undefined) {
+                        fieldName = 'stop_id';
+                    }
+                }
+            } catch (error) {
+                console.log('Could not sample features for field detection:', error);
+            }
+        }
+
+        console.log(`🎯 Using field '${fieldName}' for stop highlight filter`);
+
         // Update the highlight layer filter to show only the selected stop
-        this.map.setFilter('stops-highlight', ['==', 'stop_id', stopId]);
+        this.map.setFilter('stops-highlight', ['==', fieldName, stopId]);
         
         // Store current highlight for cleanup
         if (!isTemporary) {
             this.currentHighlightedStop = stopId;
+            this.currentHighlightedStopField = fieldName; // Store field name for cleanup
         }
         
-        console.log(`🎯 Highlighting stop: ${stopId}`);
+        console.log(`🎯 Highlighting stop: ${stopId} using field: ${fieldName}`);
     }
 
     clearStopHighlight() {
-        // Hide the highlight layer
-        this.map.setFilter('stops-highlight', ['==', 'stop_id', '']);
+        // Use the stored field name if available, otherwise detect it
+        let fieldName = this.currentHighlightedStopField || 'stop_id'; // default
+        
+        if (!this.currentHighlightedStopField && this.map && this.map.isSourceLoaded('mumbai-stops')) {
+            try {
+                const sampleFeatures = this.map.querySourceFeatures('mumbai-stops', {
+                    sourceLayer: 'mumbai-stops'
+                });
+                
+                if (sampleFeatures.length > 0) {
+                    const sample = sampleFeatures[0].properties;
+                    if (sample.id !== undefined) {
+                        fieldName = 'id';
+                    } else if (sample.stop_id !== undefined) {
+                        fieldName = 'stop_id';
+                    }
+                }
+            } catch (error) {
+                console.log('Could not sample features for field detection in clear:', error);
+            }
+        }
+
+        // Hide the highlight layer by setting an impossible filter
+        this.map.setFilter('stops-highlight', ['==', fieldName, '']);
         this.currentHighlightedStop = null;
+        this.currentHighlightedStopField = null;
     }
 
     clearTemporaryStopHighlights() {
@@ -1598,6 +1427,7 @@ class TransitExplorer {
         this.clearRouteHighlight();
         this.clearDepartureHighlights();
         this.clearStopHighlight();
+        this.stopBusLocationTracking(); // Stop bus tracking
         this.currentSelectedStop = null;
     }
 
@@ -1660,11 +1490,35 @@ class TransitExplorer {
         try {
             console.log(`🌐 Calling Chalo API for stop: ${stopId}`);
             
-            const response = await fetch(`https://chalo.com/app/api/vasudha/stop/mumbai/${stopId}`, {
-                method: 'GET',
+            // First, we need to get route information for this stop to build the request
+            const routeInfo = await this.getStopRouteInfo(stopId);
+            if (!routeInfo || routeInfo.length === 0) {
+                console.log(`❌ No route info found for stop: ${stopId}`);
+                return [];
+            }
+
+            // Build the stopIdRouteIdList for the API call
+            const stopIdRouteIdList = routeInfo.map(route => `${stopId}:${route.routeId}`);
+
+            const response = await fetch('https://chalo.com/app/api/vasudha/cities/mumbai/stop-route-eta', {
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'AccessToken': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWZyZXNoVG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKMWMyVnlTV1FpT2lJNU9ERTVNRGsxTURJMElpd2laR1YyYVdObFNXUWlPaUptWXprNU0yWmhaRFpsT1dFd09URm1aakZoTkROaE1UZzNaREV4WlRFek15SXNJbWxoZENJNk1UWTRNVEV5TlRFMU9YMC5DdjVLcTJuNnI4SHU1SWd3bWIxcm5NaHJzYUw1cUs2U1hBUnBJT3RUSXVFIiwiZGV2aWNlSWQiOiJmYzk5M2ZhZDZlOWEwOTFmZjFhNDNhMTg3ZDExZTEzMyIsInVzZXJJZCI6Ijk4MTkwOTUwMjQiLCJpYXQiOjE2ODMzMTkxMjAsImV4cCI6MTY4MzMyNjMyMCwianRpIjoibDEwbG8xbGhiMHFwc2UifQ.6F-PFbdPRLW_MUb9pBKF9tm8apDsJTevWJsbKKbiYBY',
+                    'AuthType': 'ACCESS_TOKEN',
+                    'DeviceId': 'fc993fad6e9a091ff1a43a187d11e133',
+                    'Origin': 'https://chalo.com',
+                    'Referer': 'https://chalo.com/app/nearest-bus-stop',
+                    'Source': '1',
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+                    'UserId': 'undefined',
+                    'X-Type': 'pass'
                 },
+                body: JSON.stringify({
+                    stopIdRouteIdList: stopIdRouteIdList
+                })
             });
 
             if (!response.ok) {
@@ -1675,7 +1529,7 @@ class TransitExplorer {
             const data = await response.json();
             console.log('📡 Live API Response:', data);
 
-            return this.parseLiveApiData(data);
+            return this.parseChaloApiData(data);
 
         } catch (error) {
             console.error('❌ Error fetching live data:', error);
@@ -1683,166 +1537,459 @@ class TransitExplorer {
         }
     }
 
-    parseLiveApiData(apiData) {
+    async getStopRouteInfo(stopId) {
+        // Try to get route information from the current stop's data
+        if (this.currentStop && this.currentStop.properties) {
+            const busStop = new BusStop(this.currentStop);
+            const timetableRoutes = busStop.getRoutesFromTimetable();
+            
+            if (timetableRoutes.length > 0) {
+                // Generate route IDs - in a real scenario, these would come from your data
+                // For now, we'll try to find route IDs from the map data
+                const routeInfo = [];
+                
+                for (const route of timetableRoutes) {
+                    const routeId = await this.findRouteIdByName(route.name);
+                    if (routeId) {
+                        routeInfo.push({
+                            routeName: route.name,
+                            routeId: routeId,
+                            agency: route.agency
+                        });
+                    }
+                }
+                
+                return routeInfo;
+            }
+        }
+        
+        // Fallback: try to extract from route list
+        if (this.currentStop && this.currentStop.properties.route_name_list) {
+            const routeNames = this.currentStop.properties.route_name_list.split(/[;,]/).map(r => r.trim());
+            const routeInfo = [];
+            
+            for (const routeName of routeNames.slice(0, 5)) { // Limit to first 5 routes
+                const routeId = await this.findRouteIdByName(routeName);
+                if (routeId) {
+                    routeInfo.push({
+                        routeName: routeName,
+                        routeId: routeId,
+                        agency: 'BEST'
+                    });
+                }
+            }
+            
+            return routeInfo;
+        }
+        
+        return [];
+    }
+
+    async findRouteIdByName(routeName) {
+        // Try to find route ID from map data
+        if (this.map && this.map.isSourceLoaded('mumbai-routes')) {
+            try {
+                const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
+                    sourceLayer: 'mumbai-routes'
+                });
+                
+                const foundRoute = routeFeatures.find(feature => 
+                    feature.properties.route_short_name === routeName ||
+                    feature.properties.route_name === routeName
+                );
+                
+                if (foundRoute && foundRoute.properties.route_id) {
+                    return foundRoute.properties.route_id;
+                }
+            } catch (error) {
+                console.log('Could not query route info:', error);
+            }
+        }
+        
+        // Generate a fallback route ID based on route name
+        // In production, you would have a proper mapping
+        return `route_${routeName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    }
+
+    parseChaloApiData(apiData) {
         try {
             const departures = [];
             const now = new Date();
 
-            // The API response structure may vary - need to adapt based on actual response
-            // Common patterns in transit APIs:
-            
-            if (apiData.routes && Array.isArray(apiData.routes)) {
-                // Pattern 1: routes array with arrival predictions
-                apiData.routes.forEach(route => {
-                    if (route.arrivals && Array.isArray(route.arrivals)) {
-                        route.arrivals.forEach(arrival => {
-                            const arrivalTime = this.parseApiTime(arrival.eta || arrival.arrival_time || arrival.time, now);
-                            if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
-                                departures.push({
-                                    route: route.short_name || route.name || arrival.route_name,
-                                    routeId: route.route_id || route.id || arrival.route_id,
-                                    time: arrivalTime,
-                                    isLive: true,
-                                    destination: route.destination || arrival.destination || 'Unknown',
-                                    platform: arrival.platform || '1',
-                                    vehicleId: arrival.vehicle_id,
-                                    delay: arrival.delay || 0,
-                                    isRealTime: true
-                                });
-                            }
-                        });
-                    }
-                });
-            } else if (apiData.arrivals && Array.isArray(apiData.arrivals)) {
-                // Pattern 2: direct arrivals array
-                apiData.arrivals.forEach(arrival => {
-                    const arrivalTime = this.parseApiTime(arrival.eta || arrival.arrival_time || arrival.time, now);
-                    if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
-                        departures.push({
-                            route: arrival.route_short_name || arrival.route_name || arrival.route,
-                            routeId: arrival.route_id || arrival.id,
-                            time: arrivalTime,
-                            isLive: true,
-                            destination: arrival.destination || arrival.headsign || 'Unknown',
-                            platform: arrival.platform || '1',
-                            vehicleId: arrival.vehicle_id,
-                            delay: arrival.delay || 0,
-                            isRealTime: true
-                        });
-                    }
-                });
-            } else if (apiData.eta && Array.isArray(apiData.eta)) {
-                // Pattern 3: eta array (common in Indian transit APIs)
-                apiData.eta.forEach(eta => {
-                    const arrivalTime = this.parseApiTime(eta.minutes || eta.time || eta.eta, now);
-                    if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
-                        departures.push({
-                            route: eta.route_name || eta.route || eta.service,
-                            routeId: eta.route_id || eta.id,
-                            time: arrivalTime,
-                            isLive: true,
-                            destination: eta.destination || eta.towards || 'Unknown',
-                            platform: eta.platform || '1',
-                            vehicleId: eta.vehicle_id,
-                            delay: eta.delay || 0,
-                            isRealTime: true
-                        });
-                    }
-                });
-            }
+            // Handle the correct API response structure
+            const routeEtaData = apiData.stopRouteEtas || apiData;
 
-            // Sort by arrival time
-            return departures.sort((a, b) => a.time - b.time).slice(0, 12);
-
-        } catch (error) {
-            console.error('Error parsing live API data:', error);
-            return [];
-        }
-    }
-
-    parseApiTime(timeValue, baseTime) {
-        try {
-            if (typeof timeValue === 'number') {
-                // Assume minutes from now
-                return new Date(baseTime.getTime() + (timeValue * 60 * 1000));
-            }
-            
-            if (typeof timeValue === 'string') {
-                // Try different time formats
-                if (timeValue.includes(':')) {
-                    // HH:MM format
-                    return this.parseTimeString(timeValue, baseTime);
-                } else {
-                    // Assume minutes from now
-                    const minutes = parseInt(timeValue);
-                    if (!isNaN(minutes)) {
-                        return new Date(baseTime.getTime() + (minutes * 60 * 1000));
-                    }
-                }
-            }
-            
-            // ISO timestamp
-            if (timeValue instanceof Date || (typeof timeValue === 'string' && timeValue.includes('T'))) {
-                return new Date(timeValue);
-            }
-
-            return null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    getNextDayDepartures(timetableStr) {
-        try {
-            let timetableData;
-            if (typeof timetableStr === 'string') {
-                timetableData = JSON.parse(timetableStr);
-            } else {
-                timetableData = timetableStr;
-            }
-
-            if (!Array.isArray(timetableData)) {
-                return [];
-            }
-
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0); // Start of next day
-
-            const departures = [];
-
-            // Get first few departures of next day
-            timetableData.forEach(routeInfo => {
-                if (!routeInfo.stop_times || !Array.isArray(routeInfo.stop_times)) {
+            // Process each stop-route combination
+            Object.keys(routeEtaData).forEach(stopRouteKey => {
+                const routeData = routeEtaData[stopRouteKey];
+                
+                // Skip empty route data
+                if (!routeData || Object.keys(routeData).length === 0) {
                     return;
                 }
-
-                // Take first 2 departures of the day for each route
-                routeInfo.stop_times.slice(0, 2).forEach(timeStr => {
-                    const departure = this.parseTimeString(timeStr, tomorrow);
-                    if (departure) {
-                        departures.push({
-                            route: routeInfo.route_short_name || routeInfo.route_name,
-                            routeId: routeInfo.route_id,
-                            time: departure,
-                            isLive: false, // Next day departures are scheduled
-                            destination: routeInfo.last_stop_name || 'Unknown',
-                            agencyName: routeInfo.agency_name || 'BEST',
-                            cityName: routeInfo.city_name || 'Mumbai',
-                            headway: routeInfo.trip_headway || 60,
-                            acService: routeInfo.ac_service || false,
-                            isNextDay: true
-                        });
+                
+                // Each route data contains bus entries
+                Object.keys(routeData).forEach(busKey => {
+                    try {
+                        // Handle both JSON string and object formats
+                        let busData;
+                        const rawData = routeData[busKey];
+                        
+                        if (typeof rawData === 'string') {
+                            // Parse JSON string
+                            busData = JSON.parse(rawData);
+                        } else if (typeof rawData === 'object' && rawData !== null) {
+                            // Already an object
+                            busData = rawData;
+                        } else {
+                            console.warn('Unexpected bus data format:', rawData);
+                            return;
+                        }
+                        
+                        // Extract bus information
+                        const eta = busData.eta;
+                        const vehicleNo = busData.vNo;
+                        const destination = busData.dest;
+                        const routeName = busData.rN;
+                        const agency = busData.ag;
+                        const distance = busData.dist;
+                        const isHalted = busData.isHalted;
+                        const timestamp = busData.tS;
+                        
+                        // Calculate data freshness
+                        let dataFreshness = '';
+                        if (timestamp) {
+                            const dataTime = new Date(timestamp);
+                            const timeDiffSeconds = Math.floor((now - dataTime) / 1000);
+                            
+                            if (timeDiffSeconds < 60) {
+                                dataFreshness = `${timeDiffSeconds} seconds ago`;
+                            } else if (timeDiffSeconds < 3600) {
+                                const minutes = Math.floor(timeDiffSeconds / 60);
+                                dataFreshness = `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                            } else {
+                                const hours = Math.floor(timeDiffSeconds / 3600);
+                                dataFreshness = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                            }
+                        }
+                        
+                        // Calculate arrival time
+                        let arrivalTime;
+                        if (eta > 0) {
+                            // ETA in seconds
+                            arrivalTime = new Date(now.getTime() + (eta * 1000));
+                        } else if (eta === 0) {
+                            // Bus is at the stop or due
+                            arrivalTime = now;
+                        } else {
+                            // For buses with eta -1, try to estimate from timestamp
+                            if (timestamp) {
+                                const dataTime = new Date(timestamp);
+                                // If data is recent (less than 10 minutes old), show as recently passed
+                                if (now - dataTime < 10 * 60 * 1000) {
+                                    arrivalTime = new Date(now.getTime() + (2 * 60 * 1000)); // Show in 2 minutes as estimate
+                                } else {
+                                    return; // Skip old data with no ETA
+                                }
+                            } else {
+                                return; // Skip if no valid time
+                            }
+                        }
+                        
+                        // Only include buses arriving within the next hour (or recently passed)
+                        const timeDiff = arrivalTime - now;
+                        if (timeDiff >= -5 * 60 * 1000 && timeDiff <= 60 * 60 * 1000) { // -5 minutes to +60 minutes
+                            departures.push({
+                                route: routeName,
+                                routeId: stopRouteKey.split(':')[1], // Extract route ID from the key
+                                time: arrivalTime,
+                                isLive: true,
+                                isRealTime: eta >= 0, // Real-time if we have ETA
+                                destination: destination,
+                                vehicleId: vehicleNo,
+                                agencyName: agency ? agency.toUpperCase() : 'BEST',
+                                distance: distance,
+                                isHalted: isHalted,
+                                eta: eta,
+                                dataFreshness: dataFreshness,
+                                lastUpdated: timestamp ? new Date(timestamp) : null,
+                                busKey: busKey, // Store for tracking
+                                stopRouteKey: stopRouteKey
+                            });
+                        }
+                        
+                    } catch (parseError) {
+                        console.warn('Error parsing bus data:', parseError, 'Raw data:', routeData[busKey]);
                     }
                 });
             });
 
-            // Sort by departure time and return next few
-            return departures.sort((a, b) => a.time - b.time).slice(0, 6);
+            // Sort by arrival time and return
+            return departures.sort((a, b) => a.time - b.time).slice(0, 12);
 
         } catch (error) {
-            console.error('Error getting next day departures:', error);
+            console.error('Error parsing Chalo API data:', error);
             return [];
+        }
+    }
+
+    async fetchRouteLiveInfo(routeId, stopIds = []) {
+        try {
+            console.log(`🚌 Fetching live route info for: ${routeId}`);
+            
+            // Build the stopIds query parameter
+            const stopIdsParam = stopIds.length > 0 ? `?stopIds=${stopIds.join(',')}` : '';
+            
+            const response = await fetch(`https://chalo.com/app/api/vasudha/track/route-live-info/mumbai/${routeId}${stopIdsParam}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Origin': 'https://chalo.com',
+                    'Referer': `https://chalo.com/app/live-tracking/route-map/${routeId}`,
+                    'Source': '1',
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+                    'X-Type': 'pass'
+                }
+            });
+
+            if (!response.ok) {
+                console.log(`❌ Route live info API response not ok: ${response.status}`);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log('🚌 Route live info response:', data);
+
+            return this.parseRouteLiveInfo(data);
+
+        } catch (error) {
+            console.error('❌ Error fetching route live info:', error);
+            return null;
+        }
+    }
+
+    parseRouteLiveInfo(data) {
+        try {
+            const buses = [];
+            
+            if (data.routeLiveInfo) {
+                Object.keys(data.routeLiveInfo).forEach(busKey => {
+                    try {
+                        // Handle both JSON string and object formats
+                        let busData;
+                        const rawData = data.routeLiveInfo[busKey];
+                        
+                        if (typeof rawData === 'string') {
+                            // Parse JSON string
+                            busData = JSON.parse(rawData);
+                        } else if (typeof rawData === 'object' && rawData !== null) {
+                            // Already an object
+                            busData = rawData;
+                        } else {
+                            console.warn('Unexpected route live data format:', rawData);
+                            return;
+                        }
+                        
+                        buses.push({
+                            busKey: busKey,
+                            vehicleNo: busData.vNo,
+                            latitude: busData._latitude,
+                            longitude: busData._longitude,
+                            eta: busData.eta,
+                            isHalted: busData._isHalted,
+                            timestamp: busData.tS,
+                            currentStopId: busData.sId,
+                            lastStopTime: busData.psTime,
+                            operatorId: busData.opId
+                        });
+                        
+                    } catch (parseError) {
+                        console.warn('Error parsing bus live info:', parseError, 'Raw data:', data.routeLiveInfo[busKey]);
+                    }
+                });
+            }
+            
+            return {
+                buses: buses,
+                stopsEta: data.stopsEta || {}
+            };
+            
+        } catch (error) {
+            console.error('Error parsing route live info:', error);
+            return { buses: [], stopsEta: {} };
+        }
+    }
+
+    addBusLocationLayer() {
+        // Add bus locations source
+        if (!this.map.getSource('bus-locations')) {
+            this.map.addSource('bus-locations', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+        }
+
+        // Add bus location layer if it doesn't exist
+        if (!this.map.getLayer('bus-locations')) {
+            this.map.addLayer({
+                id: 'bus-locations',
+                type: 'circle',
+                source: 'bus-locations',
+                paint: {
+                    'circle-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        10, 6,
+                        16, 12
+                    ],
+                    'circle-color': [
+                        'case',
+                        ['get', 'isHalted'], '#f59e0b', // Orange for halted buses
+                        '#22c55e' // Green for moving buses
+                    ],
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-opacity': 0.9
+                }
+            });
+
+            // Add bus labels
+            this.map.addLayer({
+                id: 'bus-labels',
+                type: 'symbol',
+                source: 'bus-locations',
+                layout: {
+                    'text-field': ['get', 'vehicleNo'],
+                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                    'text-size': 10,
+                    'text-offset': [0, -2],
+                    'text-anchor': 'bottom'
+                },
+                paint: {
+                    'text-color': '#ffffff',
+                    'text-halo-color': '#000000',
+                    'text-halo-width': 1
+                }
+            });
+        }
+
+        // Add click interaction for buses
+        this.map.on('click', 'bus-locations', (e) => {
+            if (e.features.length > 0) {
+                this.showBusPopup(e.features[0], e.lngLat);
+            }
+        });
+
+        // Add hover effect for buses
+        this.map.on('mouseenter', 'bus-locations', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.map.on('mouseleave', 'bus-locations', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+    }
+
+    updateBusLocations(buses) {
+        if (!buses || buses.length === 0) {
+            // Clear bus locations
+            this.map.getSource('bus-locations').setData({
+                type: 'FeatureCollection',
+                features: []
+            });
+            return;
+        }
+
+        const features = buses.map(bus => ({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [bus.longitude, bus.latitude]
+            },
+            properties: {
+                busKey: bus.busKey,
+                vehicleNo: bus.vehicleNo,
+                eta: bus.eta,
+                isHalted: bus.isHalted,
+                timestamp: bus.timestamp,
+                currentStopId: bus.currentStopId,
+                lastStopTime: bus.lastStopTime
+            }
+        }));
+
+        this.map.getSource('bus-locations').setData({
+            type: 'FeatureCollection',
+            features: features
+        });
+
+        console.log(`🚌 Updated ${buses.length} bus locations on map`);
+    }
+
+    showBusPopup(busFeature, lngLat) {
+        const props = busFeature.properties;
+        const lastUpdate = new Date(props.timestamp).toLocaleTimeString();
+        
+        const popupContent = `
+            <div class="text-sm">
+                <div class="font-bold text-green-400 mb-2">Bus ${props.vehicleNo}</div>
+                <div class="space-y-1 text-gray-300">
+                    <div>Status: ${props.isHalted ? '🛑 Stopped' : '🚌 Moving'}</div>
+                    ${props.eta > 0 ? `<div>ETA: ${props.eta} seconds</div>` : ''}
+                    <div class="text-xs text-gray-400">Updated: ${lastUpdate}</div>
+                </div>
+            </div>
+        `;
+
+        new mapboxgl.Popup()
+            .setLngLat(lngLat)
+            .setHTML(popupContent)
+            .addTo(this.map);
+    }
+
+    startBusLocationUpdates(routeId, stopIds = []) {
+        // Clear existing interval
+        if (this.busUpdateInterval) {
+            clearInterval(this.busUpdateInterval);
+        }
+
+        // Initial fetch
+        this.updateBusLocationsForRoute(routeId, stopIds);
+
+        // Update every minute
+        this.busUpdateInterval = setInterval(() => {
+            this.updateBusLocationsForRoute(routeId, stopIds);
+        }, 60000); // 60 seconds
+
+        console.log(`🔄 Started bus location updates for route: ${routeId}`);
+    }
+
+    stopBusLocationUpdates() {
+        if (this.busUpdateInterval) {
+            clearInterval(this.busUpdateInterval);
+            this.busUpdateInterval = null;
+        }
+
+        // Clear bus locations from map
+        if (this.map.getSource('bus-locations')) {
+            this.updateBusLocations([]);
+        }
+
+        console.log('🛑 Stopped bus location updates');
+    }
+
+    async updateBusLocationsForRoute(routeId, stopIds = []) {
+        try {
+            const routeLiveInfo = await this.fetchRouteLiveInfo(routeId, stopIds);
+            if (routeLiveInfo && routeLiveInfo.buses) {
+                this.updateBusLocations(routeLiveInfo.buses);
+            }
+        } catch (error) {
+            console.error('Error updating bus locations:', error);
         }
     }
 
@@ -1874,8 +2021,8 @@ class TransitExplorer {
 
                 // Convert stop times to departure objects
                 routeInfo.stop_times.forEach(timeStr => {
-                    const departure = this.parseTimeString(timeStr, now);
-                    if (departure && this.isWithinNext60Minutes(departure, now)) {
+                    const departure = DataUtils.parseTimeString(timeStr, now);
+                    if (departure && DataUtils.isWithinNext60Minutes(departure, now)) {
                         departures.push({
                             route: routeInfo.route_short_name || routeInfo.route_name,
                             routeId: routeInfo.route_id,
@@ -1922,37 +2069,11 @@ class TransitExplorer {
         return Math.random() > 0.4; // 60% chance of live tracking as fallback
     }
 
-    parseTimeString(timeStr, baseDate) {
-        try {
-            // Parse "HH:MM" format
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            
-            if (isNaN(hours) || isNaN(minutes)) {
-                return null;
-            }
-
-            const departure = new Date(baseDate);
-            departure.setHours(hours, minutes, 0, 0);
-
-            // Handle next day scenarios (for times after midnight)
-            if (departure < baseDate) {
-                departure.setDate(departure.getDate() + 1);
-            }
-
-            return departure;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    isWithinNext60Minutes(departureTime, currentTime) {
-        const timeDiff = departureTime - currentTime;
-        // Within next 60 minutes (3.6 million milliseconds)
-        return timeDiff >= 0 && timeDiff <= 60 * 60 * 1000;
-    }
-
     displayDepartures(departures) {
         const departureList = document.getElementById('departure-list');
+        
+        // Store departures for later reference
+        this.currentDepartures = departures;
         
         if (departures.length === 0) {
             departureList.innerHTML = `
@@ -1967,6 +2088,11 @@ class TransitExplorer {
             `;
             return;
         }
+
+        // Get current stop ID for Chalo links
+        const currentStopId = this.currentStop?.properties?.id || 
+                             this.currentStop?.properties?.stop_id || 
+                             'unknown';
 
         const departureHTML = departures.map((departure, index) => {
             const timeStr = departure.time.toLocaleTimeString('en-US', { 
@@ -1992,8 +2118,12 @@ class TransitExplorer {
                 timeDisplay = `${minutesUntil} min`;
             }
 
-            // Enhanced route badge with AC indicator - now using agency styling
-            const routeHtml = this.getStyledDepartureBadge(departure);
+            // Enhanced route badge with AC indicator - now using DataUtils
+            const routeInfo = {
+                agency: departure.agencyName || 'BEST',
+                fareType: departure.acService ? 'AC' : DataUtils.detectFareTypeFromRoute(departure.route)
+            };
+            const routeHtml = DataUtils.getStyledRouteBadge(departure.route, routeInfo, 'normal');
 
             // Live status with better indicators
             const statusClass = departure.isRealTime ? 'status-live' : 
@@ -2029,6 +2159,25 @@ class TransitExplorer {
             const realtimeIcon = departure.isRealTime ? 
                 '<svg class="w-3 h-3 text-green-400 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : '';
             
+            // Add tracking indicator for live buses
+            const trackingIndicator = departure.isRealTime ? 
+                '<span class="text-xs text-green-400 ml-2 cursor-pointer" title="Click to track on map">📍 Track</span>' : '';
+            
+            // Chalo tracking link - available for all departures with route ID
+            const chaloTrackingUrl = departure.routeId && currentStopId !== 'unknown' ? 
+                `https://chalo.com/app/live-tracking/route-map/${departure.routeId}/${currentStopId}` : null;
+            
+            const chaloLink = chaloTrackingUrl ? 
+                `<a href="${chaloTrackingUrl}" target="_blank" rel="noopener noreferrer" 
+                    class="text-xs text-blue-400 hover:text-blue-300 ml-2 cursor-pointer transition-colors" 
+                    title="Track on Chalo app">
+                    🚌 Track on Chalo
+                </a>` : '';
+            
+            // Data freshness info for live buses
+            const dataFreshnessInfo = departure.dataFreshness ? 
+                `<div class="text-xs text-gray-500 mt-1">Live position updated ${departure.dataFreshness}</div>` : '';
+            
             return `
                 <div class="departure-row flex items-center justify-between p-3 rounded transition-all duration-200" 
                      data-route-id="${departure.routeId || ''}" 
@@ -2040,6 +2189,8 @@ class TransitExplorer {
                                 ${routeHtml}
                                 <span class="text-white font-medium">${departure.destination}</span>
                                 ${realtimeIcon}
+                                ${trackingIndicator}
+                                ${chaloLink}
                             </div>
                             <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
                                 <span>${statusText}</span>
@@ -2047,6 +2198,7 @@ class TransitExplorer {
                                 ${agencyInfo ? `<span>•</span><span>${agencyInfo}${cityInfo}</span>` : ''}
                                 ${vehicleInfo ? `<span>${vehicleInfo}</span>` : ''}
                             </div>
+                            ${dataFreshnessInfo}
                         </div>
                     </div>
                     <div class="text-right">
@@ -2143,62 +2295,6 @@ class TransitExplorer {
         `;
     }
 
-    getStyledRouteBadges(routes, busStop = null) {
-        return routes.map(routeName => {
-            // Try to get route info from the current stop's timetable first
-            let routeInfo = null;
-            
-            if (busStop) {
-                const timetableRoutes = busStop.getRoutesFromTimetable();
-                routeInfo = timetableRoutes.find(r => r.name === routeName);
-            }
-            
-            if (routeInfo) {
-                // Use route info from timetable
-                const transitAgency = new TransitAgency(routeInfo.agency);
-                const styling = transitAgency.getRouteStyle(routeInfo.fareType);
-                
-                const acIndicator = routeInfo.isAC ? '<span class="text-blue-200 text-xs ml-1">AC</span>' : '';
-                
-                return `<span class="route-badge px-2 py-1 rounded text-xs font-bold" style="background-color: ${styling.backgroundColor}; color: ${styling.textColor};">
-                            <span class="route-badge-text">${routeName}</span>${acIndicator}
-                        </span>`;
-            } else {
-                // Fallback: try to find route information from the map data
-                let mapRouteInfo = this.getRouteInfoByName(routeName);
-                
-                if (mapRouteInfo) {
-                    const busRoute = new BusRoute(mapRouteInfo);
-                    return busRoute.getRouteHtml('small');
-                } else {
-                    // Intelligent fallback based on route name patterns
-                    let backgroundColor = '#059669'; // Default green
-                    let textColor = '#ffffff';
-                    let isAC = false;
-                    
-                    // Detect AC routes from name patterns
-                    const routeNameLower = routeName.toLowerCase();
-                    if (routeNameLower.includes('a-') || 
-                        routeNameLower.includes('ac') || 
-                        routeNameLower.includes('a/c') ||
-                        routeNameLower.includes('air con')) {
-                        backgroundColor = '#2563eb'; // Blue for AC
-                        isAC = true;
-                    } else {
-                        // Assume Regular BEST service gets red
-                        backgroundColor = '#dc2626'; // Red for Regular
-                    }
-                    
-                    const acIndicator = isAC ? '<span class="text-blue-200 text-xs ml-1">AC</span>' : '';
-                    
-                    return `<span class="route-badge px-2 py-1 rounded text-xs font-bold" style="background-color: ${backgroundColor}; color: ${textColor};">
-                                <span class="route-badge-text">${routeName}</span>${acIndicator}
-                            </span>`;
-                }
-            }
-        }).join('');
-    }
-
     getRouteInfoByName(routeName) {
         // Query route features from the map to get detailed information
         if (this.map && this.map.isSourceLoaded('mumbai-routes')) {
@@ -2220,45 +2316,6 @@ class TransitExplorer {
         return null;
     }
 
-    getStyledDepartureBadge(departure) {
-        // Try to find route information for styling
-        let routeInfo = this.getRouteInfoByName(departure.route);
-        
-        if (routeInfo) {
-            const busRoute = new BusRoute(routeInfo);
-            return busRoute.getRouteHtml('normal');
-        } else {
-            // Intelligent fallback styling based on departure info
-            let backgroundColor = '#059669'; // Default green
-            let textColor = '#ffffff';
-            let isAC = false;
-            
-            // Check multiple sources for AC indication
-            const routeNameLower = departure.route.toLowerCase();
-            if (departure.acService || 
-                departure.fareType === 'AC' ||
-                routeNameLower.includes('a-') ||
-                routeNameLower.includes('ac') || 
-                routeNameLower.includes('a/c') ||
-                routeNameLower.includes('air con')) {
-                backgroundColor = '#2563eb'; // Blue for AC
-                isAC = true;
-            } else {
-                // Use agency name to determine if this is BEST
-                if (departure.agencyName === 'BEST') {
-                    backgroundColor = '#dc2626'; // Red for Regular BEST
-                }
-            }
-            
-            const acIndicator = isAC ? '<span class="text-blue-200 text-xs ml-1">AC</span>' : '';
-            
-            return `<span class="route-badge px-2 py-1 rounded text-xs font-bold" style="background-color: ${backgroundColor}; color: ${textColor};">
-                        <span class="route-badge-text">${departure.route}</span>${acIndicator}
-                    </span>`;
-        }
-    }
-
-    // Debug method to check source status
     debugSourceStatus() {
         console.log('🔍 Debugging source status:');
         
@@ -2299,6 +2356,357 @@ class TransitExplorer {
             
         } catch (error) {
             console.error('Error in source debug:', error);
+        }
+    }
+
+    getNextDayDepartures(timetableStr) {
+        try {
+            let timetableData;
+            if (typeof timetableStr === 'string') {
+                timetableData = JSON.parse(timetableStr);
+            } else {
+                timetableData = timetableStr;
+            }
+
+            if (!Array.isArray(timetableData)) {
+                return [];
+            }
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0); // Start of next day
+
+            const departures = [];
+
+            // Get first few departures of next day
+            timetableData.forEach(routeInfo => {
+                if (!routeInfo.stop_times || !Array.isArray(routeInfo.stop_times)) {
+                    return;
+                }
+
+                // Take first 2 departures of the day for each route
+                routeInfo.stop_times.slice(0, 2).forEach(timeStr => {
+                    const departure = DataUtils.parseTimeString(timeStr, tomorrow);
+                    if (departure) {
+                        departures.push({
+                            route: routeInfo.route_short_name || routeInfo.route_name,
+                            routeId: routeInfo.route_id,
+                            time: departure,
+                            isLive: false, // Next day departures are scheduled
+                            destination: routeInfo.last_stop_name || 'Unknown',
+                            agencyName: routeInfo.agency_name || 'BEST',
+                            cityName: routeInfo.city_name || 'Mumbai',
+                            headway: routeInfo.trip_headway || 60,
+                            acService: routeInfo.ac_service || false,
+                            isNextDay: true
+                        });
+                    }
+                });
+            });
+
+            // Sort by departure time and return next few
+            return departures.sort((a, b) => a.time - b.time).slice(0, 6);
+
+        } catch (error) {
+            console.error('Error getting next day departures:', error);
+            return [];
+        }
+    }
+
+    setupMapInteractions() {
+        console.log('🎯 Setting up unified map interactions...');
+        
+        // Unified map click handler to handle overlapping features
+        this.map.on('click', (e) => {
+            // Query all features at the click point
+            const features = this.map.queryRenderedFeatures(e.point);
+            const stopFeatures = features.filter(f => f.layer.id === 'stops');
+            const routeFeatures = features.filter(f => f.layer.id === 'routes');
+            
+            console.log(`🎯 Map click - Found ${stopFeatures.length} stops, ${routeFeatures.length} routes`);
+            
+            // Priority: stops first, then routes
+            if (stopFeatures.length > 0) {
+                // Handle stop selection (first stop if multiple)
+                const primaryStop = stopFeatures[0];
+                this.handleStopClick(primaryStop, stopFeatures);
+            } else if (routeFeatures.length > 0) {
+                // Handle route selection (first route if multiple)
+                const primaryRoute = routeFeatures[0];
+                this.handleRouteClick(primaryRoute);
+            } else {
+                // Clear selections if clicking on empty map
+                this.clearAllSelections();
+            }
+        });
+        
+        // Add route hover effects (separate from click handling)
+        this.map.on('mouseenter', 'routes', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.map.on('mouseleave', 'routes', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+
+        // Add route hover interaction for temporary highlighting
+        this.map.on('mouseenter', 'routes', (e) => {
+            if (e.features && e.features.length > 0) {
+                const feature = e.features[0];
+                if (feature && feature.properties) {
+                    const routeId = feature.properties.route_id;
+                    const routeName = feature.properties.route_short_name || 
+                                    feature.properties.route_name;
+                    
+                    // Only highlight if not already selected
+                    if (this.currentHighlightedRoute !== routeId) {
+                        console.log(`🎯 Hovering route: ${routeName} (ID: ${routeId})`);
+                        // Temporary highlight on hover
+                        this.highlightRoute(routeId, true);
+                        this.highlightDepartureRows(routeId, routeName, true);
+                    }
+                }
+            }
+        });
+
+        // Clear hover highlights when mouse leaves routes
+        this.map.on('mouseleave', 'routes', () => {
+            this.clearTemporaryHighlights();
+        });
+
+        // Add stop hover interaction for temporary highlighting
+        this.map.on('mouseenter', 'stops', (e) => {
+            if (e.features && e.features.length > 0) {
+                const feature = e.features[0];
+                if (feature && feature.properties) {
+                    const busStop = new BusStop(feature);
+                    
+                    // Only highlight if not already selected
+                    if (!this.currentSelectedStop || this.currentSelectedStop.id !== busStop.id) {
+                        this.highlightStop(busStop.id, true);
+                    }
+                }
+            }
+        });
+
+        // Clear hover highlights when mouse leaves stops
+        this.map.on('mouseleave', 'stops', () => {
+            this.clearTemporaryStopHighlights();
+        });
+
+        console.log('✅ Unified map interactions set up successfully');
+    }
+
+    handleStopClick(primaryStopFeature, allStopFeatures) {
+        console.log('🚏 Handling stop click with', allStopFeatures.length, 'stops at location');
+        
+        const primaryBusStop = new BusStop(primaryStopFeature);
+        console.log(`🚏 Primary stop: ${primaryBusStop.name} (ID: ${primaryBusStop.id})`);
+        
+        // Clear previous selections
+        this.clearAllSelections();
+        
+        // Highlight the primary stop on map
+        this.highlightStop(primaryBusStop.id);
+        
+        // Store the selected stop
+        this.currentSelectedStop = primaryBusStop;
+        
+        // Update UI with stop information
+        this.displayStopInfo(primaryStopFeature, primaryBusStop);
+        this.loadDepartures(primaryStopFeature);
+        
+        // If there are multiple stops at this location or nearby, populate browse panel
+        if (allStopFeatures.length > 1) {
+            console.log(`🔍 Multiple stops found, populating browse panel with ${allStopFeatures.length} options`);
+            
+            // Convert all stop features to BusStop objects with distance info
+            const allStops = allStopFeatures.map(feature => {
+                const busStop = new BusStop(feature);
+                return {
+                    ...busStop,
+                    distance: this.userLocation ? busStop.getDistance(this.userLocation) : null,
+                    isSelected: busStop.id === primaryBusStop.id
+                };
+            });
+            
+            // Load additional nearby stops and combine
+            this.loadNearbyStopsWithOverlapping(primaryBusStop, allStops);
+        } else {
+            // Load normal nearby stops
+            this.loadNearbyStops(primaryBusStop);
+        }
+        
+        // Auto-show browse panel if there are multiple stops
+        if (allStopFeatures.length > 1) {
+            setTimeout(() => {
+                this.showNearbyStopsPanel();
+            }, 500);
+        }
+    }
+
+    handleRouteClick(routeFeature) {
+        console.log('🚌 Handling route click');
+        
+        if (routeFeature && routeFeature.properties) {
+            const routeId = routeFeature.properties.route_id;
+            const routeName = routeFeature.properties.route_short_name || 
+                            routeFeature.properties.route_name;
+            
+            console.log(`🚌 Route clicked: ${routeName} (ID: ${routeId})`);
+            
+            // Clear previous selections
+            this.clearAllSelections();
+            
+            // Highlight the route on map
+            this.highlightRoute(routeId);
+            
+            // Highlight corresponding departure rows
+            this.highlightDepartureRows(routeId, routeName);
+        }
+    }
+
+    async loadNearbyStopsWithOverlapping(currentStop, overlappingStops) {
+        console.log('🔍 Loading nearby stops with overlapping consideration...');
+        
+        try {
+            // Query all stop features from the map
+            const allStopFeatures = this.map.querySourceFeatures('mumbai-stops', {
+                sourceLayer: 'mumbai-stops'
+            });
+            
+            if (!allStopFeatures || allStopFeatures.length === 0) {
+                console.warn('No stop features found');
+                return;
+            }
+            
+            // Convert to BusStop objects and calculate distances
+            const nearbyStops = allStopFeatures
+                .map(feature => new BusStop(feature))
+                .filter(stop => stop.id !== currentStop.id) // Exclude current stop
+                .map(stop => ({
+                    ...stop,
+                    distance: this.userLocation ? stop.getDistance(this.userLocation) : null,
+                    isOverlapping: overlappingStops.some(os => os.id === stop.id && !os.isSelected)
+                }))
+                .filter(stop => stop.distance === null || stop.distance <= 2) // Within 2km
+                .sort((a, b) => {
+                    // Prioritize overlapping stops, then by distance
+                    if (a.isOverlapping && !b.isOverlapping) return -1;
+                    if (!a.isOverlapping && b.isOverlapping) return 1;
+                    
+                    if (a.distance === null && b.distance === null) return 0;
+                    if (a.distance === null) return 1;
+                    if (b.distance === null) return -1;
+                    return a.distance - b.distance;
+                })
+                .slice(0, 15); // Increased limit to show more options
+            
+            this.nearbyStops = nearbyStops;
+            this.displayNearbyStopsEnhanced(nearbyStops);
+            
+        } catch (error) {
+            console.error('Error loading nearby stops with overlapping:', error);
+        }
+    }
+
+    displayNearbyStopsEnhanced(stops) {
+        const nearbyStopsList = document.getElementById('nearby-stops-list');
+        
+        if (stops.length === 0) {
+            nearbyStopsList.innerHTML = `
+                <div class="text-center py-4 text-gray-400">
+                    <p class="text-sm">No nearby stops found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const stopsHTML = stops.map(stop => {
+            const displayInfo = stop.getDisplayInfo(this.userLocation);
+            const isOverlapping = stop.isOverlapping;
+            
+            // Get route information with enhanced details
+            const routesInfo = stop.getRoutesFromTimetable();
+            const topRoutes = routesInfo.slice(0, 4); // Show top 4 routes
+            const remainingCount = Math.max(0, routesInfo.length - 4);
+            
+            // Get agency distribution
+            const agencies = [...new Set(routesInfo.map(r => r.agency).filter(a => a))];
+            const agencyText = agencies.length > 0 ? agencies.join(', ') : 'Multiple agencies';
+            
+            // Calculate service frequency (average of all routes)
+            const avgHeadway = routesInfo.length > 0 ? 
+                Math.round(routesInfo.reduce((sum, r) => sum + (r.headway || 60), 0) / routesInfo.length) : 60;
+            
+            return `
+                <div class="nearby-stop-item bg-gray-700/50 rounded p-3 cursor-pointer hover:bg-gray-700 transition-colors ${isOverlapping ? 'ring-1 ring-yellow-500/50 bg-yellow-900/20' : ''}"
+                     data-stop-id="${stop.id}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h5 class="font-medium text-white text-sm">${displayInfo.name}</h5>
+                                ${isOverlapping ? '<span class="text-xs bg-yellow-600 text-yellow-100 px-1 rounded">Same location</span>' : ''}
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mb-2">
+                                ${displayInfo.distance ? `
+                                    <span class="text-xs text-gray-400">${displayInfo.distance}</span>
+                                    <span class="text-gray-500">•</span>
+                                ` : ''}
+                                <span class="text-xs text-gray-400">${displayInfo.routeCount} routes</span>
+                                <span class="text-gray-500">•</span>
+                                <span class="text-xs text-gray-400">~${avgHeadway}min avg</span>
+                                <div class="status-indicator status-${displayInfo.hasLiveData ? 'live' : 'scheduled'} scale-75"></div>
+                            </div>
+                            
+                            <div class="text-xs text-gray-500 mb-2">${agencyText}</div>
+                            
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                ${topRoutes.map(route => {
+                                    const routeInfo = {
+                                        agency: route.agency || 'BEST',
+                                        fareType: route.fareType || DataUtils.detectFareTypeFromRoute(route.name)
+                                    };
+                                    return DataUtils.getStyledRouteBadge(route.name, routeInfo, 'small');
+                                }).join('')}
+                                ${remainingCount > 0 ? 
+                                    `<span class="text-gray-400 text-xs">+${remainingCount}</span>` : ''}
+                            </div>
+                            
+                            ${displayInfo.description ? `
+                                <div class="text-xs text-gray-400 truncate">${displayInfo.description}</div>
+                            ` : ''}
+                        </div>
+                        <button class="select-stop-btn text-green-400 hover:text-green-300 ml-2 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        nearbyStopsList.innerHTML = stopsHTML;
+        
+        // Add click handlers for nearby stops
+        nearbyStopsList.querySelectorAll('.nearby-stop-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const stopId = item.dataset.stopId;
+                const stop = stops.find(s => s.id === stopId);
+                if (stop) {
+                    this.selectStopFromNearby(stop);
+                }
+            });
+        });
+    }
+
+    showNearbyStopsPanel() {
+        const panel = document.getElementById('nearby-stops-panel');
+        if (panel && panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            console.log('📋 Showing nearby stops panel');
         }
     }
 }
