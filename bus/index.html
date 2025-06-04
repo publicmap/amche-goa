@@ -247,40 +247,85 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Panel - Stop Information -->
             <div class="lg:col-span-1">
-                <!-- Current Stop Info -->
+                <!-- Integrated Next Bus Panel -->
                 <div class="sim-container rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"/>
                         </svg>
-                        Nearest Stop
+                        Next Bus
                     </h2>
                     
-                    <div id="stop-info" class="space-y-3">
+                    <!-- Stop Selection -->
+                    <div class="mb-4">
+                        <div class="flex items-center gap-2 text-sm text-gray-300 mb-2">
+                            <span>From</span>
+                        </div>
+                        <div class="relative">
+                            <button id="stop-selector-btn" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-left text-white font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                                <div id="selected-stop-name" class="flex items-center gap-2">
+                                    <sl-spinner style="font-size: 1rem;"></sl-spinner>
+                                    <span>Loading nearest stop...</span>
+                                </div>
+                                <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <!-- Dropdown for stop selection -->
+                            <div id="stop-dropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+                                <div id="stop-search-container" class="p-3 border-b border-gray-600">
+                                    <input 
+                                        id="stop-search-input" 
+                                        type="text" 
+                                        placeholder="Search stops..." 
+                                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                                    />
+                                </div>
+                                <div id="stop-options-list" class="py-2">
+                                    <div class="px-4 py-3 text-gray-400 text-sm">Loading nearby stops...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stop Details -->
+                    <div id="stop-info" class="space-y-3 mb-6">
                         <div class="flex items-center justify-center py-8">
                             <sl-spinner style="font-size: 2rem;"></sl-spinner>
                         </div>
                     </div>
-                </div>
-
-                <!-- Departure Board -->
-                <div class="departure-board rounded-lg p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-green-400 flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                            </svg>
-                            Departures (Next 60 min)
-                        </h3>
-                        <div class="text-xs text-gray-400" id="last-updated">
-                            Updating<span class="loading-dots"></span>
+                    
+                    <!-- Current Stop Routes (Interactive) -->
+                    <div id="stop-routes-container" class="mb-6 hidden">
+                        <div class="flex items-center gap-2 text-sm text-gray-300 mb-3">
+                            <span>Available Routes</span>
+                            <div class="status-indicator status-live"></div>
+                        </div>
+                        <div id="interactive-routes-list" class="flex flex-wrap gap-2">
+                            <!-- Route badges will be populated here -->
                         </div>
                     </div>
                     
-                    <div id="departure-list" class="space-y-2">
-                        <div class="flex items-center justify-center py-8 text-gray-400">
-                            <sl-spinner style="font-size: 1.5rem;"></sl-spinner>
-                            <span class="ml-2">Loading departures...</span>
+                    <!-- Departures Section -->
+                    <div class="border-t border-gray-600 pt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-green-400 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                To
+                            </h3>
+                            <div class="text-xs text-gray-400" id="last-updated">
+                                Updating<span class="loading-dots"></span>
+                            </div>
+                        </div>
+                        
+                        <div id="departure-list" class="space-y-2">
+                            <div class="flex items-center justify-center py-8 text-gray-400">
+                                <sl-spinner style="font-size: 1.5rem;"></sl-spinner>
+                                <span class="ml-2">Loading departures...</span>
+                            </div>
                         </div>
                     </div>
                 </div>

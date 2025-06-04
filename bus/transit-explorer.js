@@ -138,17 +138,26 @@ class TransitExplorer {
     }
 
     addDataSources() {
-        // Add Mumbai stops source
-        this.map.addSource('mumbai-stops', {
-            type: 'vector',
-            url: `mapbox://${this.tilesets.stops}`
-        });
+        console.log('📊 Adding data sources...');
+        
+        try {
+            // Add Mumbai stops source
+            this.map.addSource('mumbai-stops', {
+                type: 'vector',
+                url: `mapbox://${this.tilesets.stops}`
+            });
+            console.log(`✅ Added mumbai-stops source: mapbox://${this.tilesets.stops}`);
 
-        // Add Mumbai routes source  
-        this.map.addSource('mumbai-routes', {
-            type: 'vector',
-            url: `mapbox://${this.tilesets.routes}`
-        });
+            // Add Mumbai routes source  
+            this.map.addSource('mumbai-routes', {
+                type: 'vector',
+                url: `mapbox://${this.tilesets.routes}`
+            });
+            console.log(`✅ Added mumbai-routes source: mapbox://${this.tilesets.routes}`);
+            
+        } catch (error) {
+            console.error('❌ Error adding data sources:', error);
+        }
     }
 
     addLayers() {
@@ -173,10 +182,10 @@ class TransitExplorer {
                         ['==', ['get', 'fare_type'], 'Regular'], '#ef4444', // Red for Regular
                         '#10b981' // Default green for BEST
                     ],
-                    // Other agencies or unknown - use live status
+                    // Other agencies or unknown - use live status (fix boolean conversion)
                     [
                         'case',
-                        ['get', 'is_live'], '#22c55e', // Green for live routes
+                        ['==', ['to-string', ['get', 'is_live']], 'true'], '#22c55e', // Green for live routes
                         '#3b82f6' // Blue for scheduled routes
                     ]
                 ],
@@ -283,6 +292,101 @@ class TransitExplorer {
         
         // Set up unified map interactions
         this.setupMapInteractions();
+    }
+
+    addBusLocationLayer() {
+        // Add bus locations source
+        if (!this.map.getSource('bus-locations')) {
+            this.map.addSource('bus-locations', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+        }
+
+        // Add bus location layer if it doesn't exist
+        if (!this.map.getLayer('bus-locations')) {
+            this.map.addLayer({
+                id: 'bus-locations',
+                type: 'circle',
+                source: 'bus-locations',
+                paint: {
+                    'circle-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        10, 6,
+                        16, 12
+                    ],
+                    'circle-color': [
+                        'case',
+                        ['get', 'isHalted'], '#f59e0b', // Orange for halted buses
+                        '#22c55e' // Green for moving buses
+                    ],
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-opacity': 0.9
+                }
+            });
+
+            // Add bus labels
+            this.map.addLayer({
+                id: 'bus-labels',
+                type: 'symbol',
+                source: 'bus-locations',
+                layout: {
+                    'text-field': ['get', 'vehicleNo'],
+                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                    'text-size': 10,
+                    'text-offset': [0, -2],
+                    'text-anchor': 'bottom'
+                },
+                paint: {
+                    'text-color': '#ffffff',
+                    'text-halo-color': '#000000',
+                    'text-halo-width': 1
+                }
+            });
+        }
+
+        // Add click interaction for buses
+        this.map.on('click', 'bus-locations', (e) => {
+            if (e.features.length > 0) {
+                this.showBusPopup(e.features[0], e.lngLat);
+            }
+        });
+
+        // Add hover effect for buses
+        this.map.on('mouseenter', 'bus-locations', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.map.on('mouseleave', 'bus-locations', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+    }
+
+    showBusPopup(busFeature, lngLat) {
+        const props = busFeature.properties;
+        const lastUpdate = new Date(props.timestamp).toLocaleTimeString();
+        
+        const popupContent = `
+            <div class="text-sm">
+                <div class="font-bold text-green-400 mb-2">Bus ${props.vehicleNo}</div>
+                <div class="space-y-1 text-gray-300">
+                    <div>Status: ${props.isHalted ? '🛑 Stopped' : '🚌 Moving'}</div>
+                    ${props.eta > 0 ? `<div>ETA: ${props.eta} seconds</div>` : ''}
+                    <div class="text-xs text-gray-400">Updated: ${lastUpdate}</div>
+                </div>
+            </div>
+        `;
+
+        new mapboxgl.Popup()
+            .setLngLat(lngLat)
+            .setHTML(popupContent)
+            .addTo(this.map);
     }
 
     setupRouteInteractions() {
@@ -668,6 +772,80 @@ class TransitExplorer {
         }
     }
 
+    // Add missing stopBusLocationUpdates method
+    stopBusLocationUpdates() {
+        if (this.busLocationInterval) {
+            clearInterval(this.busLocationInterval);
+            this.busLocationInterval = null;
+        }
+        
+        // Clear bus locations from map
+        if (this.map && this.map.getSource('bus-locations')) {
+            this.map.getSource('bus-locations').setData({
+                type: 'FeatureCollection',
+                features: []
+            });
+        }
+        
+        console.log('🛑 Bus location updates stopped');
+    }
+
+    // Add missing startBusLocationUpdates method
+    startBusLocationUpdates(routeId, stopIds = []) {
+        console.log(`🔄 Starting bus location updates for route: ${routeId}`);
+        
+        // Stop any existing updates
+        this.stopBusLocationUpdates();
+        
+        // Start new interval for bus location updates
+        this.busLocationInterval = setInterval(() => {
+            this.updateBusLocations(routeId, stopIds);
+        }, 30000); // Update every 30 seconds
+        
+        // Initial update
+        this.updateBusLocations(routeId, stopIds);
+    }
+
+    // Add missing updateBusLocations method
+    updateBusLocations(routeId, stopIds = []) {
+        // Mock bus location data for now
+        const mockBuses = [
+            {
+                id: `bus_${routeId}_1`,
+                vehicleNo: `MH01-${Math.floor(Math.random() * 9000) + 1000}`,
+                routeId: routeId,
+                lat: 19.1654 + (Math.random() - 0.5) * 0.01,
+                lng: 72.9358 + (Math.random() - 0.5) * 0.01,
+                isHalted: Math.random() > 0.7,
+                timestamp: new Date().toISOString(),
+                eta: Math.floor(Math.random() * 300) // Random ETA in seconds
+            }
+        ];
+        
+        const busFeatures = mockBuses.map(bus => ({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [bus.lng, bus.lat]
+            },
+            properties: {
+                vehicleNo: bus.vehicleNo,
+                routeId: bus.routeId,
+                isHalted: bus.isHalted,
+                timestamp: bus.timestamp,
+                eta: bus.eta
+            }
+        }));
+        
+        // Update bus locations on map
+        if (this.map && this.map.getSource('bus-locations')) {
+            this.map.getSource('bus-locations').setData({
+                type: 'FeatureCollection',
+                features: busFeatures
+            });
+        }
+    }
+
     setupEventListeners() {
         // Enable location button
         document.getElementById('enable-location-btn').addEventListener('click', () => {
@@ -686,6 +864,9 @@ class TransitExplorer {
             this.findNearestStopManually();
         });
 
+        // Stop selector button and dropdown
+        this.setupStopSelector();
+
         // Add refresh button functionality to the last updated element
         const lastUpdated = document.getElementById('last-updated');
         if (lastUpdated) {
@@ -703,8 +884,243 @@ class TransitExplorer {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.clearAllSelections();
+                this.hideStopDropdown();
             }
         });
+
+        // Click outside to close dropdown
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('stop-dropdown');
+            const button = document.getElementById('stop-selector-btn');
+            
+            if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                this.hideStopDropdown();
+            }
+        });
+    }
+
+    setupStopSelector() {
+        const stopSelectorBtn = document.getElementById('stop-selector-btn');
+        const stopDropdown = document.getElementById('stop-dropdown');
+        const stopSearchInput = document.getElementById('stop-search-input');
+        
+        // Toggle dropdown
+        stopSelectorBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.toggleStopDropdown();
+        });
+        
+        // Search functionality
+        stopSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            this.filterStopOptions(query);
+        });
+        
+        // Handle search input focus
+        stopSearchInput.addEventListener('focus', () => {
+            // Clear selection when user starts typing
+            stopSearchInput.value = '';
+            this.loadVisibleStops();
+        });
+        
+        console.log('✅ Stop selector events set up');
+    }
+
+    toggleStopDropdown() {
+        const dropdown = document.getElementById('stop-dropdown');
+        const isHidden = dropdown.classList.contains('hidden');
+        
+        if (isHidden) {
+            this.showStopDropdown();
+        } else {
+            this.hideStopDropdown();
+        }
+    }
+
+    showStopDropdown() {
+        const dropdown = document.getElementById('stop-dropdown');
+        dropdown.classList.remove('hidden');
+        
+        // Load stops if not already loaded
+        if (!this.visibleStops || this.visibleStops.length === 0) {
+            this.loadVisibleStops();
+        }
+        
+        // Focus search input
+        setTimeout(() => {
+            document.getElementById('stop-search-input').focus();
+        }, 100);
+    }
+
+    hideStopDropdown() {
+        const dropdown = document.getElementById('stop-dropdown');
+        dropdown.classList.add('hidden');
+    }
+
+    async loadVisibleStops() {
+        console.log('🔍 Loading visible stops for dropdown...');
+        
+        try {
+            // Get current map bounds for visible stops
+            const bounds = this.map.getBounds();
+            
+            // Query all stop features from the map
+            const allStopFeatures = this.map.querySourceFeatures('mumbai-stops', {
+                sourceLayer: 'mumbai-stops'
+            });
+            
+            if (!allStopFeatures || allStopFeatures.length === 0) {
+                this.displayStopOptions([]);
+                return;
+            }
+            
+            // Filter stops within map bounds and add distance info
+            const visibleStops = allStopFeatures
+                .filter(feature => {
+                    if (!feature.geometry || !feature.geometry.coordinates) return false;
+                    const [lng, lat] = feature.geometry.coordinates;
+                    return lng >= bounds.getWest() && lng <= bounds.getEast() &&
+                           lat >= bounds.getSouth() && lat <= bounds.getNorth();
+                })
+                .map(feature => {
+                    const busStop = new BusStop(feature);
+                    return {
+                        ...busStop,
+                        distance: this.userLocation ? busStop.getDistance(this.userLocation) : null,
+                        feature: feature
+                    };
+                })
+                .sort((a, b) => {
+                    // Sort by distance if available, otherwise by name
+                    if (a.distance !== null && b.distance !== null) {
+                        return a.distance - b.distance;
+                    } else if (a.distance !== null) {
+                        return -1;
+                    } else if (b.distance !== null) {
+                        return 1;
+                    } else {
+                        return a.name.localeCompare(b.name);
+                    }
+                })
+                .slice(0, 50); // Limit to 50 stops for performance
+            
+            this.visibleStops = visibleStops;
+            this.displayStopOptions(visibleStops);
+            
+        } catch (error) {
+            console.error('Error loading visible stops:', error);
+            this.displayStopOptions([]);
+        }
+    }
+
+    displayStopOptions(stops) {
+        const stopOptionsList = document.getElementById('stop-options-list');
+        
+        if (stops.length === 0) {
+            stopOptionsList.innerHTML = `
+                <div class="px-4 py-3 text-gray-400 text-sm text-center">
+                    No stops found in current view
+                </div>
+            `;
+            return;
+        }
+        
+        const currentStopId = this.currentStop?.properties?.id || 
+                             this.currentStop?.properties?.stop_id;
+        
+        const optionsHTML = stops.map(stop => {
+            const isSelected = stop.id === currentStopId;
+            const routesInfo = stop.getRoutesFromTimetable();
+            const topRoutes = routesInfo.slice(0, 3);
+            
+            return `
+                <div class="stop-option ${isSelected ? 'stop-option-selected' : ''}" 
+                     data-stop-id="${stop.id}">
+                    <div class="stop-option-name">${stop.name}</div>
+                    <div class="stop-option-details">
+                        ${stop.distance ? `
+                            <span class="stop-option-distance">${(stop.distance * 1000).toFixed(0)}m</span>
+                        ` : ''}
+                        <span>${routesInfo.length} routes</span>
+                        <div class="status-indicator ${stop.hasLiveData ? 'status-live' : 'status-scheduled'}"></div>
+                    </div>
+                    ${topRoutes.length > 0 ? `
+                        <div class="stop-option-routes">
+                            ${topRoutes.map(route => {
+                                const routeInfo = {
+                                    agency: route.agency || 'BEST',
+                                    fareType: route.fareType || DataUtils.detectFareTypeFromRoute(route.name)
+                                };
+                                return DataUtils.getStyledRouteBadge(route.name, routeInfo, 'small');
+                            }).join('')}
+                            ${routesInfo.length > 3 ? `<span class="text-gray-400 text-xs">+${routesInfo.length - 3}</span>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        stopOptionsList.innerHTML = optionsHTML;
+        
+        // Add click handlers
+        stopOptionsList.querySelectorAll('.stop-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const stopId = option.dataset.stopId;
+                const stop = stops.find(s => s.id === stopId);
+                if (stop) {
+                    this.selectStopFromDropdown(stop);
+                }
+            });
+        });
+    }
+
+    filterStopOptions(query) {
+        if (!this.visibleStops) return;
+        
+        const filteredStops = this.visibleStops.filter(stop => 
+            stop.name.toLowerCase().includes(query) ||
+            stop.description?.toLowerCase().includes(query)
+        );
+        
+        this.displayStopOptions(filteredStops);
+    }
+
+    selectStopFromDropdown(busStop) {
+        console.log(`🚏 Selecting stop from dropdown: ${busStop.name}`);
+        
+        // Update the button text
+        this.updateStopSelectorButton(busStop);
+        
+        // Hide dropdown
+        this.hideStopDropdown();
+        
+        // Clear previous selections
+        this.clearAllSelections();
+        
+        // Select the stop
+        this.selectStop(busStop.feature);
+        
+        // Center map on the new stop
+        if (busStop.coordinates) {
+            this.map.flyTo({
+                center: busStop.coordinates,
+                zoom: Math.max(15, this.map.getZoom()),
+                duration: 1500
+            });
+        }
+    }
+
+    updateStopSelectorButton(busStop) {
+        const selectedStopName = document.getElementById('selected-stop-name');
+        const distance = busStop.distance ? ` • ${(busStop.distance * 1000).toFixed(0)}m` : '';
+        
+        selectedStopName.innerHTML = `
+            <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+            <span>${busStop.name}${distance}</span>
+        `;
     }
 
     clearAllSelections() {
@@ -712,6 +1128,7 @@ class TransitExplorer {
         this.clearRouteHighlight();
         this.clearDepartureHighlights();
         this.clearStopHighlight();
+        this.clearRouteSelections(); // Clear interactive route badge selections
         this.stopBusLocationTracking(); // Stop bus tracking
         this.currentSelectedStop = null;
         
@@ -725,17 +1142,59 @@ class TransitExplorer {
         if (this.urlManager) {
             this.urlManager.onSelectionCleared();
         }
+        
+        // Clear the selection indicator
+        this.updateSelectionIndicator('');
+    }
+
+    handleLocationError(error) {
+        let message = 'Unable to retrieve your location.';
+        
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                message = 'Location access denied. Please enable location services.';
+                this.showLocationBanner();
+                break;
+            case error.POSITION_UNAVAILABLE:
+                message = 'Location information is unavailable.';
+                this.showLocationBanner();
+                break;
+            case error.TIMEOUT:
+                message = 'Location request timed out.';
+                this.showLocationBanner();
+                break;
+        }
+        
+        this.updateLocationStatus(message, 'status-scheduled');
+        // Don't show location error in departure board - just update status
+        console.warn('📍 Location error:', message);
+    }
+
+    showLocationBanner() {
+        const banner = document.getElementById('location-banner');
+        if (banner) {
+            banner.classList.remove('hidden');
+            console.log('📍 Showing location banner');
+        }
+    }
+
+    hideLocationBanner() {
+        const banner = document.getElementById('location-banner');
+        if (banner) {
+            banner.classList.add('hidden');
+            console.log('📍 Hiding location banner');
+        }
     }
 
     async requestLocation(hasURLSelection = false) {
         console.log('📍 Requesting user location...');
         
         if (!navigator.geolocation) {
-            this.showLocationError('Geolocation is not supported by this browser.');
+            this.handleLocationError({ code: 'GEOLOCATION_NOT_SUPPORTED', message: 'Geolocation is not supported by this browser.' });
             return;
         }
 
-        // Update status
+        // Update status but don't show banner yet
         this.updateLocationStatus('Requesting location...', 'status-scheduled');
 
         try {
@@ -752,23 +1211,22 @@ class TransitExplorer {
                 lat: position.coords.latitude
             };
 
-            console.log('📍 Location acquired:', this.userLocation);
+            console.log('📍 Location acquired successfully:', this.userLocation);
             
+            // Update UI immediately after successful location acquisition
             this.updateLocationStatus('Location found', 'status-live');
-            this.hideLocationBanner();
+            this.hideLocationBanner(); // Ensure banner is hidden
             this.enableCenterButton();
-            this.enableNearestStopButton(); // Enable the nearest stop button
+            this.enableNearestStopButton();
             
             // Add user location marker
             this.addUserLocationMarker();
             
-            // Debug source status before finding stops
-            this.debugSourceStatus();
-            
             // Only find nearest stop automatically if no URL selection exists
             if (!hasURLSelection) {
                 console.log('📍 No URL selection, proceeding to find nearest stop');
-                // Find nearest stop
+                // Wait for map sources to load before finding stops
+                await this.waitForMapSources();
                 await this.findNearestStop();
             } else {
                 console.log('📍 URL selection exists, skipping automatic nearest stop finding');
@@ -778,37 +1236,37 @@ class TransitExplorer {
             this.centerOnLocation();
 
         } catch (error) {
-            console.error('Location error:', error);
+            console.error('📍 Location error caught:', error);
             this.handleLocationError(error);
         }
     }
 
-    handleLocationError(error) {
-        let message = 'Unable to retrieve your location.';
+    // Add method to wait for map sources to load
+    async waitForMapSources() {
+        console.log('⏳ Waiting for map sources to load...');
         
-        switch (error.code) {
-            case error.PERMISSION_DENIED:
-                message = 'Location access denied. Please enable location services.';
-                this.showLocationBanner();
-                break;
-            case error.POSITION_UNAVAILABLE:
-                message = 'Location information is unavailable.';
-                break;
-            case error.TIMEOUT:
-                message = 'Location request timed out.';
-                break;
-        }
-        
-        this.updateLocationStatus(message, 'status-scheduled');
-        this.showLocationError(message);
-    }
-
-    showLocationBanner() {
-        document.getElementById('location-banner').classList.remove('hidden');
-    }
-
-    hideLocationBanner() {
-        document.getElementById('location-banner').classList.add('hidden');
+        return new Promise((resolve) => {
+            const checkSources = () => {
+                try {
+                    const stopsExists = this.map.getSource('mumbai-stops');
+                    const routesExists = this.map.getSource('mumbai-routes');
+                    
+                    if (stopsExists && routesExists &&
+                        this.map.isSourceLoaded('mumbai-stops') && 
+                        this.map.isSourceLoaded('mumbai-routes')) {
+                        console.log('✅ Map sources loaded');
+                        resolve();
+                    } else {
+                        console.log('⏳ Still waiting for sources...');
+                        setTimeout(checkSources, 500);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error checking sources, retrying...', error);
+                    setTimeout(checkSources, 500);
+                }
+            };
+            checkSources();
+        });
     }
 
     enableCenterButton() {
@@ -864,6 +1322,71 @@ class TransitExplorer {
                 duration: 2000
             });
         }
+    }
+
+    debugSourceStatus() {
+        console.log('🔍 Debugging source status:');
+        
+        try {
+            const stopsSource = this.map.getSource('mumbai-stops');
+            const routesSource = this.map.getSource('mumbai-routes');
+            
+            console.log('Mumbai stops source:', stopsSource ? 'EXISTS' : 'MISSING');
+            console.log('Mumbai routes source:', routesSource ? 'EXISTS' : 'MISSING');
+            
+            if (stopsSource) {
+                console.log('Stops source loaded:', this.map.isSourceLoaded('mumbai-stops'));
+            }
+            
+            if (routesSource) {
+                console.log('Routes source loaded:', this.map.isSourceLoaded('mumbai-routes'));
+            }
+            
+            // Check if layers exist
+            const stopsLayer = this.map.getLayer('stops');
+            const routesLayer = this.map.getLayer('routes');
+            
+            console.log('Stops layer:', stopsLayer ? 'EXISTS' : 'MISSING');
+            console.log('Routes layer:', routesLayer ? 'EXISTS' : 'MISSING');
+            
+            // Try to query a small sample only if source is loaded
+            if (stopsSource && this.map.isSourceLoaded('mumbai-stops')) {
+                const sample = this.map.querySourceFeatures('mumbai-stops', {
+                    sourceLayer: 'mumbai-stops'
+                });
+                console.log(`Sample features from stops: ${sample.length}`);
+                
+                if (sample.length > 0) {
+                    console.log('Sample stop properties:', sample[0].properties);
+                    console.log('Sample stop geometry:', sample[0].geometry);
+                }
+            } else {
+                console.warn('⚠️ Stops source not available for querying');
+            }
+            
+        } catch (error) {
+            console.error('Error in source debug:', error);
+        }
+    }
+
+    showStopError(message) {
+        console.warn('🚏 Stop error:', message);
+        
+        const departureList = document.getElementById('departure-list');
+        if (departureList) {
+            departureList.innerHTML = `
+                <div class="text-center py-8 text-red-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>${message}</p>
+                    <p class="text-sm mt-1">Try selecting a different area</p>
+                </div>
+            `;
+        }
+        
+        // Also update the status
+        this.updateLocationStatus(message, 'status-scheduled');
     }
 
     async findNearestStop() {
@@ -1095,34 +1618,18 @@ class TransitExplorer {
             busStop = new BusStop(stopFeature);
         }
         
+        // Update the stop selector button
+        this.updateStopSelectorButton(busStop);
+        
         const stopInfoEl = document.getElementById('stop-info');
         const displayInfo = busStop.getDisplayInfo(this.userLocation);
         
         // Get routes from timetable data which includes agency/fare info
         const routesWithInfo = busStop.getRoutesFromTimetable();
         
-        // Generate route badges using the timetable data which has proper styling info
-        const routeBadgesHtml = routesWithInfo.slice(0, 5).map(routeInfo => {
-            return DataUtils.getStyledRouteBadge(routeInfo.name, routeInfo, 'small');
-        }).join(' ');
-        
-        // Calculate remaining routes
-        const moreRoutes = Math.max(0, routesWithInfo.length - 5);
-        
         stopInfoEl.innerHTML = `
-            <div class="bg-gray-800 rounded-lg p-4 border border-green-500/30">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="font-bold text-white text-lg">${displayInfo.name}</h3>
-                    <button id="browse-stops-btn" class="text-green-400 hover:text-green-300 transition-colors text-sm">
-                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        Browse Stops
-                    </button>
-                </div>
-                
-                ${displayInfo.description ? `<p class="text-gray-300 text-sm mb-3">${displayInfo.description}</p>` : ''}
-                
+            <div class="space-y-4">
+                <!-- Stop Statistics -->
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     ${displayInfo.distance ? `
                         <div>
@@ -1149,55 +1656,137 @@ class TransitExplorer {
                             <span class="text-white font-medium">${displayInfo.avgWaitTime} min</span>
                         </div>
                     ` : ''}
-                    
-                    <div class="col-span-2">
-                        <span class="text-gray-400">Service Routes:</span>
-                        <div class="flex flex-wrap gap-1 mt-1">
-                            ${routeBadgesHtml}
-                            ${moreRoutes > 0 ? 
-                                `<span class="text-gray-400 text-xs">+${moreRoutes}</span>` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="col-span-2 pt-2 border-t border-gray-600">
-                        <div class="flex items-center gap-2">
-                            <div class="status-indicator ${displayInfo.hasLiveData ? 'status-live' : 'status-scheduled'}"></div>
-                            <span class="text-xs text-gray-400">
-                                ${displayInfo.hasLiveData ? 'Live data available' : 'Scheduled data only'}
-                            </span>
-                        </div>
-                    </div>
                 </div>
                 
-                <!-- Nearby Stops Panel (initially hidden) -->
-                <div id="nearby-stops-panel" class="hidden mt-4 pt-4 border-t border-gray-600">
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="font-semibold text-white">Nearby Stops</h4>
-                        <button id="close-nearby-btn" class="text-gray-400 hover:text-white">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="nearby-stops-list" class="space-y-2 max-h-64 overflow-y-auto">
-                        <!-- Nearby stops will be populated here -->
-                    </div>
+                <!-- Live Data Status -->
+                <div class="flex items-center gap-2 pt-2 border-t border-gray-600">
+                    <div class="status-indicator ${displayInfo.hasLiveData ? 'status-live' : 'status-scheduled'}"></div>
+                    <span class="text-xs text-gray-400">
+                        ${displayInfo.hasLiveData ? 'Live data available' : 'Scheduled data only'}
+                    </span>
                 </div>
             </div>
         `;
         
-        // Set up browse stops button
-        document.getElementById('browse-stops-btn').addEventListener('click', () => {
-            this.toggleNearbyStopsPanel();
+        // Show and populate interactive routes
+        this.displayInteractiveRoutes(routesWithInfo);
+        
+        // Set up browse stops button (keeping existing functionality)
+        this.setupBrowseStopsIfNeeded(busStop);
+    }
+
+    displayInteractiveRoutes(routesWithInfo) {
+        const routesContainer = document.getElementById('stop-routes-container');
+        const routesList = document.getElementById('interactive-routes-list');
+        
+        if (routesWithInfo.length === 0) {
+            routesContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Generate interactive route badges
+        const routeBadgesHtml = routesWithInfo.map((routeInfo, index) => {
+            const routeClasses = this.getInteractiveRouteBadgeClasses(routeInfo);
+            
+            return `
+                <button class="interactive-route-badge ${routeClasses}" 
+                        data-route-name="${routeInfo.name}"
+                        data-route-agency="${routeInfo.agency || 'BEST'}"
+                        data-route-index="${index}"
+                        title="Click to highlight route on map">
+                    ${routeInfo.name}
+                </button>
+            `;
+        }).join('');
+        
+        routesList.innerHTML = routeBadgesHtml;
+        routesContainer.classList.remove('hidden');
+        
+        // Add click handlers for interactive routes
+        routesList.querySelectorAll('.interactive-route-badge').forEach(badge => {
+            badge.addEventListener('click', (e) => {
+                const routeName = badge.dataset.routeName;
+                const routeAgency = badge.dataset.routeAgency;
+                this.handleInteractiveRouteBadgeClick(routeName, routeAgency, badge);
+            });
+        });
+    }
+
+    getInteractiveRouteBadgeClasses(routeInfo) {
+        const agency = routeInfo.agency || 'BEST';
+        const fareType = routeInfo.fareType || DataUtils.detectFareTypeFromRoute(routeInfo.name);
+        
+        if (agency.toUpperCase() === 'BEST') {
+            if (fareType === 'AC') {
+                return 'route-best-ac';
+            } else if (fareType === 'Regular') {
+                return 'route-best-regular';
+            } else {
+                return 'route-best-default';
+            }
+        } else {
+            // Other agencies
+            if (routeInfo.isLive) {
+                return 'route-other-live';
+            } else {
+                return 'route-other-scheduled';
+            }
+        }
+    }
+
+    async handleInteractiveRouteBadgeClick(routeName, routeAgency, badgeElement) {
+        console.log(`🚌 Interactive route badge clicked: ${routeName} (${routeAgency})`);
+        
+        // Clear previous route selections
+        this.clearRouteSelections();
+        
+        // Mark this badge as selected
+        badgeElement.classList.add('selected');
+        
+        // Find and highlight corresponding route on map
+        const routeId = await this.findRouteIdByName(routeName);
+        if (routeId) {
+            this.highlightRoute(routeId);
+            
+            // Highlight corresponding departure rows
+            this.highlightDepartureRows(routeId, routeName);
+            
+            // Update URL with route selection
+            if (this.urlManager) {
+                this.urlManager.onRouteSelected(routeName, routeId);
+            }
+            
+            // Update selection indicator
+            this.updateSelectionIndicator(`Route ${routeName} selected`);
+        } else {
+            console.warn(`Could not find route ID for: ${routeName}`);
+            // Still highlight departure rows even without map route
+            this.highlightDepartureRows(null, routeName);
+            this.updateSelectionIndicator(`Route ${routeName} selected`);
+        }
+    }
+
+    clearRouteSelections() {
+        // Clear route highlights on map
+        this.clearRouteHighlight();
+        
+        // Clear departure row highlights
+        this.clearDepartureHighlights();
+        
+        // Clear interactive route badge selections
+        const badges = document.querySelectorAll('.interactive-route-badge.selected');
+        badges.forEach(badge => {
+            badge.classList.remove('selected');
         });
         
-        // Set up close nearby button
-        const closeBtn = document.getElementById('close-nearby-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.hideNearbyStopsPanel();
-            });
-        }
+        // Clear selection indicator
+        this.updateSelectionIndicator('');
+    }
+
+    setupBrowseStopsIfNeeded(busStop) {
+        // Keep the existing browse stops functionality
+        // This maintains compatibility with the existing nearby stops panel
+        this.loadNearbyStops(busStop);
     }
 
     // Add missing method for generating styled route badges
@@ -1279,1674 +1868,6 @@ class TransitExplorer {
                                     <span class="text-xs text-gray-400">${displayInfo.distance}</span>
                                 ` : ''}
                                 <span class="text-xs text-gray-400">${displayInfo.routeCount} routes</span>
-                                <div class="status-indicator status-${displayInfo.hasLiveData ? 'live' : 'scheduled'} scale-75"></div>
-                            </div>
-                            <div class="flex flex-wrap gap-1 mt-2">
-                                ${this.getStyledRouteBadges(displayInfo.routes.slice(0, 3), stop)}
-                                ${displayInfo.moreRoutes > 0 ? 
-                                    `<span class="text-gray-400 text-xs">+${displayInfo.moreRoutes}</span>` : ''}
-                            </div>
-                        </div>
-                        <button class="select-stop-btn text-green-400 hover:text-green-300 ml-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        nearbyStopsList.innerHTML = stopsHTML;
-        
-        // Add click handlers for nearby stops
-        nearbyStopsList.querySelectorAll('.nearby-stop-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const stopId = item.dataset.stopId;
-                const stop = stops.find(s => s.id === stopId);
-                if (stop) {
-                    this.selectStopFromNearby(stop);
-                }
-            });
-        });
-    }
-
-    selectStopFromNearby(busStop) {
-        console.log(`🚏 Selecting nearby stop: ${busStop.name}`);
-        
-        // Clear previous selections
-        this.clearAllSelections();
-        
-        // Highlight the selected stop
-        this.highlightStop(busStop.id);
-        this.currentSelectedStop = busStop;
-        
-        // Update UI
-        this.displayStopInfo(busStop.feature, busStop);
-        this.loadDepartures(busStop.feature);
-        
-        // Update URL with stop selection
-        if (this.urlManager) {
-            this.urlManager.onStopSelected(busStop.name, busStop.id);
-        }
-        
-        // Center map on the new stop
-        if (busStop.coordinates) {
-            this.map.flyTo({
-                center: busStop.coordinates,
-                zoom: Math.max(15, this.map.getZoom()),
-                duration: 1500
-            });
-        }
-        
-        // Hide nearby panel
-        this.hideNearbyStopsPanel();
-        
-        // Load new nearby stops for the selected stop
-        this.loadNearbyStops(busStop);
-    }
-
-    toggleNearbyStopsPanel() {
-        const panel = document.getElementById('nearby-stops-panel');
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            // Load stops if not already loaded
-            if (this.currentSelectedStop && !this.nearbyStops) {
-                this.loadNearbyStops(this.currentSelectedStop);
-            }
-        } else {
-            panel.classList.add('hidden');
-        }
-    }
-
-    hideNearbyStopsPanel() {
-        const panel = document.getElementById('nearby-stops-panel');
-        panel.classList.add('hidden');
-    }
-
-    // Add auto-refresh functionality for live data
-    startAutoRefresh() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-        }
-        
-        // Refresh every 30 seconds if we have a current stop
-        this.refreshInterval = setInterval(() => {
-            if (this.currentStop && this.currentStop.properties.id) {
-                console.log('🔄 Auto-refreshing live data...');
-                this.loadDepartures(this.currentStop);
-            }
-        }, 30000); // 30 seconds
-    }
-
-    stopAutoRefresh() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-            this.refreshInterval = null;
-        }
-    }
-
-    // Cleanup method for proper resource management
-    destroy() {
-        this.stopAutoRefresh();
-        
-        // Clear any highlights
-        if (this.map && this.map.getLayer('routes-highlight')) {
-            this.clearRouteHighlight();
-            this.clearDepartureHighlights();
-        }
-        
-        if (this.map) {
-            this.map.remove();
-        }
-    }
-
-    updateSelectionIndicator(message) {
-        // Add or update a selection indicator in the UI
-        let indicator = document.getElementById('selection-indicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'selection-indicator';
-            indicator.className = 'selection-indicator';
-            
-            // Insert after the departure board header
-            const departureHeader = document.querySelector('.departure-board h3').parentElement;
-            departureHeader.insertAdjacentElement('afterend', indicator);
-        }
-        
-        if (message) {
-            indicator.innerHTML = `
-                <div class="flex items-center justify-between text-xs text-yellow-300 bg-yellow-900/30 border border-yellow-600/30 rounded px-3 py-2 mb-2">
-                    <span>${message}</span>
-                    <button onclick="window.transitExplorer.clearAllSelections()" class="text-yellow-400 hover:text-yellow-200">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-            indicator.style.display = 'block';
-        } else {
-            indicator.style.display = 'none';
-        }
-    }
-
-    setupStopInteractions() {
-        console.log('🚏 Setting up stop interactions...');
-        
-        // Ensure the stops layer exists before setting up interactions
-        if (!this.map.getLayer('stops')) {
-            console.warn('Stops layer not found, interactions setup delayed');
-            return;
-        }
-
-        // Add stop click interaction for selection
-        this.map.on('click', 'stops', (e) => {
-            console.log('🚏 Stop click handler triggered', e.features[0]);
-            
-            if (e.features && e.features.length > 0) {
-                const feature = e.features[0];
-                if (feature && feature.properties) {
-                    const busStop = new BusStop(feature);
-                    console.log(`🚏 Stop clicked: ${busStop.name} (ID: ${busStop.id})`);
-                    console.log('📊 Stop properties:', feature.properties);
-                    
-                    // Clear previous selections
-                    this.clearAllSelections();
-                    
-                    // Highlight the stop on map
-                    this.highlightStop(busStop.id);
-                    
-                    // Store the selected stop
-                    this.currentSelectedStop = busStop;
-                    
-                    // Update UI with stop information
-                    this.displayStopInfo(feature, busStop);
-                    this.loadDepartures(feature);
-                    
-                    // Load nearby stops for browsing
-                    this.loadNearbyStops(busStop);
-                } else {
-                    console.warn('⚠️ No feature or properties found in stop click');
-                }
-            }
-        });
-
-        // Add stop hover interaction for temporary highlighting
-        this.map.on('mouseenter', 'stops', (e) => {
-            if (e.features && e.features.length > 0) {
-                const feature = e.features[0];
-                if (feature && feature.properties) {
-                    const busStop = new BusStop(feature);
-                    
-                    // Only highlight if not already selected
-                    if (!this.currentSelectedStop || this.currentSelectedStop.id !== busStop.id) {
-                        console.log(`🎯 Hovering stop: ${busStop.name}`);
-                        this.highlightStop(busStop.id, true);
-                    }
-                }
-            }
-        });
-
-        // Clear hover highlights when mouse leaves stops
-        this.map.on('mouseleave', 'stops', () => {
-            this.clearTemporaryStopHighlights();
-        });
-
-        console.log('✅ Stop interactions set up successfully');
-    }
-
-    highlightStop(stopId, isTemporary = false) {
-        if (!stopId) return;
-
-        // Dynamically determine the correct field name for the filter
-        // Check if we have access to current stop feature to determine field name
-        let fieldName = 'stop_id'; // default
-        
-        if (this.currentStop && this.currentStop.properties) {
-            // Determine which field name is actually used in the tileset
-            if (this.currentStop.properties.id !== undefined) {
-                fieldName = 'id';
-            } else if (this.currentStop.properties.stop_id !== undefined) {
-                fieldName = 'stop_id';
-            }
-        }
-        
-        // If we don't have currentStop to check, try to query a sample feature
-        if (!this.currentStop && this.map && this.map.isSourceLoaded('mumbai-stops')) {
-            try {
-                const sampleFeatures = this.map.querySourceFeatures('mumbai-stops', {
-                    sourceLayer: 'mumbai-stops'
-                });
-                
-                if (sampleFeatures.length > 0) {
-                    const sample = sampleFeatures[0].properties;
-                    if (sample.id !== undefined) {
-                        fieldName = 'id';
-                    } else if (sample.stop_id !== undefined) {
-                        fieldName = 'stop_id';
-                    }
-                }
-            } catch (error) {
-                console.log('Could not sample features for field detection:', error);
-            }
-        }
-
-        console.log(`🎯 Using field '${fieldName}' for stop highlight filter`);
-
-        // Update the highlight layer filter to show only the selected stop
-        this.map.setFilter('stops-highlight', ['==', fieldName, stopId]);
-        
-        // Store current highlight for cleanup
-        if (!isTemporary) {
-            this.currentHighlightedStop = stopId;
-            this.currentHighlightedStopField = fieldName; // Store field name for cleanup
-        }
-        
-        console.log(`🎯 Highlighting stop: ${stopId} using field: ${fieldName}`);
-    }
-
-    clearStopHighlight() {
-        // Use the stored field name if available, otherwise detect it
-        let fieldName = this.currentHighlightedStopField || 'stop_id'; // default
-        
-        if (!this.currentHighlightedStopField && this.map && this.map.isSourceLoaded('mumbai-stops')) {
-            try {
-                const sampleFeatures = this.map.querySourceFeatures('mumbai-stops', {
-                    sourceLayer: 'mumbai-stops'
-                });
-                
-                if (sampleFeatures.length > 0) {
-                    const sample = sampleFeatures[0].properties;
-                    if (sample.id !== undefined) {
-                        fieldName = 'id';
-                    } else if (sample.stop_id !== undefined) {
-                        fieldName = 'stop_id';
-                    }
-                }
-            } catch (error) {
-                console.log('Could not sample features for field detection in clear:', error);
-            }
-        }
-
-        // Hide the highlight layer by setting an impossible filter
-        this.map.setFilter('stops-highlight', ['==', fieldName, '']);
-        this.currentHighlightedStop = null;
-        this.currentHighlightedStopField = null;
-    }
-
-    clearTemporaryStopHighlights() {
-        // Only clear hover highlights, keep click selections
-        if (this.currentHighlightedStop) {
-            this.highlightStop(this.currentHighlightedStop);
-        } else {
-            this.clearStopHighlight();
-        }
-    }
-
-    async loadDepartures(stopFeature) {
-        const departureList = document.getElementById('departure-list');
-        const lastUpdated = document.getElementById('last-updated');
-        
-        try {
-            const props = stopFeature.properties;
-            let departures = [];
-            let dataSource = 'No data';
-            
-            // Try to fetch live data first
-            if (props.id || props.stop_id) {
-                const stopId = props.id || props.stop_id;
-                console.log(`🔴 Fetching live data for stop: ${stopId}`);
-                const liveData = await this.fetchLiveData(stopId);
-                
-                if (liveData && liveData.length > 0) {
-                    departures = liveData;
-                    dataSource = 'Live data';
-                    console.log(`📡 Found ${departures.length} live departures`);
-                } else {
-                    console.log('📡 No live data available, falling back to timetable');
-                }
-            }
-            
-            // Fallback to timetable data if no live data
-            if (departures.length === 0 && props.stop_timetable) {
-                departures = this.parseTimetableData(props.stop_timetable, props.route_name_list);
-                
-                if (departures.length > 0) {
-                    console.log(`📋 Found ${departures.length} timetable departures for stop:`, props.name);
-                    dataSource = 'Scheduled';
-                } else {
-                    console.log('📋 No valid departures found in timetable data');
-                }
-            }
-            
-            // If we have timetable data but no current departures, show upcoming ones
-            if (departures.length === 0 && props.stop_timetable) {
-                departures = this.getNextDayDepartures(props.stop_timetable);
-                if (departures.length > 0) {
-                    dataSource = 'Tomorrow';
-                }
-            }
-            
-            this.displayDepartures(departures);
-            
-            // Update timestamp with data source info
-            lastUpdated.innerHTML = `${dataSource} • Updated ${new Date().toLocaleTimeString()}`;
-            
-        } catch (error) {
-            console.error('Error loading departures:', error);
-            this.showDepartureError();
-        }
-    }
-
-    async fetchLiveData(stopId) {
-        try {
-            console.log(`🌐 Calling Chalo API for stop: ${stopId}`);
-            
-            // First, we need to get route information for this stop to build the request
-            const routeInfo = await this.getStopRouteInfo(stopId);
-            if (!routeInfo || routeInfo.length === 0) {
-                console.log(`❌ No route info found for stop: ${stopId}`);
-                return [];
-            }
-
-            // Build the stopIdRouteIdList for the API call
-            const stopIdRouteIdList = routeInfo.map(route => `${stopId}:${route.routeId}`);
-
-            const response = await fetch('https://chalo.com/app/api/vasudha/cities/mumbai/stop-route-eta', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'AccessToken': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWZyZXNoVG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKMWMyVnlTV1FpT2lJNU9ERTVNRGsxTURJMElpd2laR1YyYVdObFNXUWlPaUptWXprNU0yWmhaRFpsT1dFd09URm1aakZoTkROaE1UZzNaREV4WlRFek15SXNJbWxoZENJNk1UWTRNVEV5TlRFMU9YMC5DdjVLcTJuNnI4SHU1SWd3bWIxcm5NaHJzYUw1cUs2U1hBUnBJT3RUSXVFIiwiZGV2aWNlSWQiOiJmYzk5M2ZhZDZlOWEwOTFmZjFhNDNhMTg3ZDExZTEzMyIsInVzZXJJZCI6Ijk4MTkwOTUwMjQiLCJpYXQiOjE2ODMzMTkxMjAsImV4cCI6MTY4MzMyNjMyMCwianRpIjoibDEwbG8xbGhiMHFwc2UifQ.6F-PFbdPRLW_MUb9pBKF9tm8apDsJTevWJsbKKbiYBY',
-                    'AuthType': 'ACCESS_TOKEN',
-                    'DeviceId': 'fc993fad6e9a091ff1a43a187d11e133',
-                    'Origin': 'https://chalo.com',
-                    'Referer': 'https://chalo.com/app/nearest-bus-stop',
-                    'Source': '1',
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-                    'UserId': 'undefined',
-                    'X-Type': 'pass'
-                },
-                body: JSON.stringify({
-                    stopIdRouteIdList: stopIdRouteIdList
-                })
-            });
-
-            if (!response.ok) {
-                console.log(`❌ API response not ok: ${response.status}`);
-                return [];
-            }
-
-            const data = await response.json();
-            console.log('📡 Live API Response:', data);
-
-            return this.parseChaloApiData(data);
-
-        } catch (error) {
-            console.error('❌ Error fetching live data:', error);
-            return [];
-        }
-    }
-
-    async getStopRouteInfo(stopId) {
-        // Try to get route information from the current stop's data
-        if (this.currentStop && this.currentStop.properties) {
-            const busStop = new BusStop(this.currentStop);
-            const timetableRoutes = busStop.getRoutesFromTimetable();
-            
-            if (timetableRoutes.length > 0) {
-                // Generate route IDs - in a real scenario, these would come from your data
-                // For now, we'll try to find route IDs from the map data
-                const routeInfo = [];
-                
-                for (const route of timetableRoutes) {
-                    const routeId = await this.findRouteIdByName(route.name);
-                    if (routeId) {
-                        routeInfo.push({
-                            routeName: route.name,
-                            routeId: routeId,
-                            agency: route.agency
-                        });
-                    }
-                }
-                
-                return routeInfo;
-            }
-        }
-        
-        // Fallback: try to extract from route list
-        if (this.currentStop && this.currentStop.properties.route_name_list) {
-            const routeNames = this.currentStop.properties.route_name_list.split(/[;,]/).map(r => r.trim());
-            const routeInfo = [];
-            
-            for (const routeName of routeNames.slice(0, 5)) { // Limit to first 5 routes
-                const routeId = await this.findRouteIdByName(routeName);
-                if (routeId) {
-                    routeInfo.push({
-                        routeName: routeName,
-                        routeId: routeId,
-                        agency: 'BEST'
-                    });
-                }
-            }
-            
-            return routeInfo;
-        }
-        
-        return [];
-    }
-
-    async findRouteIdByName(routeName) {
-        // Try to find route ID from map data
-        if (this.map && this.map.isSourceLoaded('mumbai-routes')) {
-            try {
-                const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
-                    sourceLayer: 'mumbai-routes'
-                });
-                
-                const foundRoute = routeFeatures.find(feature => 
-                    feature.properties.route_short_name === routeName ||
-                    feature.properties.route_name === routeName
-                );
-                
-                if (foundRoute && foundRoute.properties.route_id) {
-                    return foundRoute.properties.route_id;
-                }
-            } catch (error) {
-                console.log('Could not query route info:', error);
-            }
-        }
-        
-        // Generate a fallback route ID based on route name
-        // In production, you would have a proper mapping
-        return `route_${routeName.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    }
-
-    parseChaloApiData(apiData) {
-        try {
-            const departures = [];
-            const now = new Date();
-
-            // Handle the correct API response structure
-            const routeEtaData = apiData.stopRouteEtas || apiData;
-
-            // Process each stop-route combination
-            Object.keys(routeEtaData).forEach(stopRouteKey => {
-                const routeData = routeEtaData[stopRouteKey];
-                
-                // Skip empty route data
-                if (!routeData || Object.keys(routeData).length === 0) {
-                    return;
-                }
-                
-                // Each route data contains bus entries
-                Object.keys(routeData).forEach(busKey => {
-                    try {
-                        // Handle both JSON string and object formats
-                        let busData;
-                        const rawData = routeData[busKey];
-                        
-                        if (typeof rawData === 'string') {
-                            // Parse JSON string
-                            busData = JSON.parse(rawData);
-                        } else if (typeof rawData === 'object' && rawData !== null) {
-                            // Already an object
-                            busData = rawData;
-                        } else {
-                            console.warn('Unexpected bus data format:', rawData);
-                            return;
-                        }
-                        
-                        // Extract bus information
-                        const eta = busData.eta;
-                        const vehicleNo = busData.vNo;
-                        const destination = busData.dest;
-                        const routeName = busData.rN;
-                        const agency = busData.ag;
-                        const distance = busData.dist;
-                        const isHalted = busData.isHalted;
-                        const timestamp = busData.tS;
-                        
-                        // Calculate data freshness
-                        let dataFreshness = '';
-                        if (timestamp) {
-                            const dataTime = new Date(timestamp);
-                            const timeDiffSeconds = Math.floor((now - dataTime) / 1000);
-                            
-                            if (timeDiffSeconds < 60) {
-                                dataFreshness = `${timeDiffSeconds} seconds ago`;
-                            } else if (timeDiffSeconds < 3600) {
-                                const minutes = Math.floor(timeDiffSeconds / 60);
-                                dataFreshness = `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-                            } else {
-                                const hours = Math.floor(timeDiffSeconds / 3600);
-                                dataFreshness = `${hours} hour${hours > 1 ? 's' : ''} ago`;
-                            }
-                        }
-                        
-                        // Calculate arrival time
-                        let arrivalTime;
-                        if (eta > 0) {
-                            // ETA in seconds
-                            arrivalTime = new Date(now.getTime() + (eta * 1000));
-                        } else if (eta === 0) {
-                            // Bus is at the stop or due
-                            arrivalTime = now;
-                        } else {
-                            // For buses with eta -1, try to estimate from timestamp
-                            if (timestamp) {
-                                const dataTime = new Date(timestamp);
-                                // If data is recent (less than 10 minutes old), show as recently passed
-                                if (now - dataTime < 10 * 60 * 1000) {
-                                    arrivalTime = new Date(now.getTime() + (2 * 60 * 1000)); // Show in 2 minutes as estimate
-                                } else {
-                                    return; // Skip old data with no ETA
-                                }
-                            } else {
-                                return; // Skip if no valid time
-                            }
-                        }
-                        
-                        // Only include buses arriving within the next hour (or recently passed)
-                        const timeDiff = arrivalTime - now;
-                        if (timeDiff >= -5 * 60 * 1000 && timeDiff <= 60 * 60 * 1000) { // -5 minutes to +60 minutes
-                            departures.push({
-                                route: routeName,
-                                routeId: stopRouteKey.split(':')[1], // Extract route ID from the key
-                                time: arrivalTime,
-                                isLive: true,
-                                isRealTime: eta >= 0, // Real-time if we have ETA
-                                destination: destination,
-                                vehicleId: vehicleNo,
-                                agencyName: agency ? agency.toUpperCase() : 'BEST',
-                                distance: distance,
-                                isHalted: isHalted,
-                                eta: eta,
-                                dataFreshness: dataFreshness,
-                                lastUpdated: timestamp ? new Date(timestamp) : null,
-                                busKey: busKey, // Store for tracking
-                                stopRouteKey: stopRouteKey
-                            });
-                        }
-                        
-                    } catch (parseError) {
-                        console.warn('Error parsing bus data:', parseError, 'Raw data:', routeData[busKey]);
-                    }
-                });
-            });
-
-            // Sort by arrival time and return
-            return departures.sort((a, b) => a.time - b.time).slice(0, 12);
-
-        } catch (error) {
-            console.error('Error parsing Chalo API data:', error);
-            return [];
-        }
-    }
-
-    async fetchRouteLiveInfo(routeId, stopIds = []) {
-        try {
-            console.log(`🚌 Fetching live route info for: ${routeId}`);
-            
-            // Build the stopIds query parameter
-            const stopIdsParam = stopIds.length > 0 ? `?stopIds=${stopIds.join(',')}` : '';
-            
-            const response = await fetch(`https://chalo.com/app/api/vasudha/track/route-live-info/mumbai/${routeId}${stopIdsParam}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Origin': 'https://chalo.com',
-                    'Referer': `https://chalo.com/app/live-tracking/route-map/${routeId}`,
-                    'Source': '1',
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-                    'X-Type': 'pass'
-                }
-            });
-
-            if (!response.ok) {
-                console.log(`❌ Route live info API response not ok: ${response.status}`);
-                return null;
-            }
-
-            const data = await response.json();
-            console.log('🚌 Route live info response:', data);
-
-            return this.parseRouteLiveInfo(data);
-
-        } catch (error) {
-            console.error('❌ Error fetching route live info:', error);
-            return null;
-        }
-    }
-
-    parseRouteLiveInfo(data) {
-        try {
-            const buses = [];
-            
-            if (data.routeLiveInfo) {
-                Object.keys(data.routeLiveInfo).forEach(busKey => {
-                    try {
-                        // Handle both JSON string and object formats
-                        let busData;
-                        const rawData = data.routeLiveInfo[busKey];
-                        
-                        if (typeof rawData === 'string') {
-                            // Parse JSON string
-                            busData = JSON.parse(rawData);
-                        } else if (typeof rawData === 'object' && rawData !== null) {
-                            // Already an object
-                            busData = rawData;
-                        } else {
-                            console.warn('Unexpected route live data format:', rawData);
-                            return;
-                        }
-                        
-                        buses.push({
-                            busKey: busKey,
-                            vehicleNo: busData.vNo,
-                            latitude: busData._latitude,
-                            longitude: busData._longitude,
-                            eta: busData.eta,
-                            isHalted: busData._isHalted,
-                            timestamp: busData.tS,
-                            currentStopId: busData.sId,
-                            lastStopTime: busData.psTime,
-                            operatorId: busData.opId
-                        });
-                        
-                    } catch (parseError) {
-                        console.warn('Error parsing bus live info:', parseError, 'Raw data:', data.routeLiveInfo[busKey]);
-                    }
-                });
-            }
-            
-            return {
-                buses: buses,
-                stopsEta: data.stopsEta || {}
-            };
-            
-        } catch (error) {
-            console.error('Error parsing route live info:', error);
-            return { buses: [], stopsEta: {} };
-        }
-    }
-
-    addBusLocationLayer() {
-        // Add bus locations source
-        if (!this.map.getSource('bus-locations')) {
-            this.map.addSource('bus-locations', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: []
-                }
-            });
-        }
-
-        // Add bus location layer if it doesn't exist
-        if (!this.map.getLayer('bus-locations')) {
-            this.map.addLayer({
-                id: 'bus-locations',
-                type: 'circle',
-                source: 'bus-locations',
-                paint: {
-                    'circle-radius': [
-                        'interpolate',
-                        ['linear'],
-                        ['zoom'],
-                        10, 6,
-                        16, 12
-                    ],
-                    'circle-color': [
-                        'case',
-                        ['get', 'isHalted'], '#f59e0b', // Orange for halted buses
-                        '#22c55e' // Green for moving buses
-                    ],
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#ffffff',
-                    'circle-opacity': 0.9
-                }
-            });
-
-            // Add bus labels
-            this.map.addLayer({
-                id: 'bus-labels',
-                type: 'symbol',
-                source: 'bus-locations',
-                layout: {
-                    'text-field': ['get', 'vehicleNo'],
-                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                    'text-size': 10,
-                    'text-offset': [0, -2],
-                    'text-anchor': 'bottom'
-                },
-                paint: {
-                    'text-color': '#ffffff',
-                    'text-halo-color': '#000000',
-                    'text-halo-width': 1
-                }
-            });
-        }
-
-        // Add click interaction for buses
-        this.map.on('click', 'bus-locations', (e) => {
-            if (e.features.length > 0) {
-                this.showBusPopup(e.features[0], e.lngLat);
-            }
-        });
-
-        // Add hover effect for buses
-        this.map.on('mouseenter', 'bus-locations', () => {
-            this.map.getCanvas().style.cursor = 'pointer';
-        });
-
-        this.map.on('mouseleave', 'bus-locations', () => {
-            this.map.getCanvas().style.cursor = '';
-        });
-    }
-
-    updateBusLocations(buses) {
-        if (!buses || buses.length === 0) {
-            // Clear bus locations
-            this.map.getSource('bus-locations').setData({
-                type: 'FeatureCollection',
-                features: []
-            });
-            return;
-        }
-
-        const features = buses.map(bus => ({
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [bus.longitude, bus.latitude]
-            },
-            properties: {
-                busKey: bus.busKey,
-                vehicleNo: bus.vehicleNo,
-                eta: bus.eta,
-                isHalted: bus.isHalted,
-                timestamp: bus.timestamp,
-                currentStopId: bus.currentStopId,
-                lastStopTime: bus.lastStopTime
-            }
-        }));
-
-        this.map.getSource('bus-locations').setData({
-            type: 'FeatureCollection',
-            features: features
-        });
-
-        console.log(`🚌 Updated ${buses.length} bus locations on map`);
-    }
-
-    showBusPopup(busFeature, lngLat) {
-        const props = busFeature.properties;
-        const lastUpdate = new Date(props.timestamp).toLocaleTimeString();
-        
-        const popupContent = `
-            <div class="text-sm">
-                <div class="font-bold text-green-400 mb-2">Bus ${props.vehicleNo}</div>
-                <div class="space-y-1 text-gray-300">
-                    <div>Status: ${props.isHalted ? '🛑 Stopped' : '🚌 Moving'}</div>
-                    ${props.eta > 0 ? `<div>ETA: ${props.eta} seconds</div>` : ''}
-                    <div class="text-xs text-gray-400">Updated: ${lastUpdate}</div>
-                </div>
-            </div>
-        `;
-
-        new mapboxgl.Popup()
-            .setLngLat(lngLat)
-            .setHTML(popupContent)
-            .addTo(this.map);
-    }
-
-    startBusLocationUpdates(routeId, stopIds = []) {
-        // Clear existing interval
-        if (this.busUpdateInterval) {
-            clearInterval(this.busUpdateInterval);
-        }
-
-        // Initial fetch
-        this.updateBusLocationsForRoute(routeId, stopIds);
-
-        // Update every minute
-        this.busUpdateInterval = setInterval(() => {
-            this.updateBusLocationsForRoute(routeId, stopIds);
-        }, 60000); // 60 seconds
-
-        console.log(`🔄 Started bus location updates for route: ${routeId}`);
-    }
-
-    stopBusLocationUpdates() {
-        if (this.busUpdateInterval) {
-            clearInterval(this.busUpdateInterval);
-            this.busUpdateInterval = null;
-        }
-
-        // Clear bus locations from map
-        if (this.map.getSource('bus-locations')) {
-            this.updateBusLocations([]);
-        }
-
-        console.log('🛑 Stopped bus location updates');
-    }
-
-    async updateBusLocationsForRoute(routeId, stopIds = []) {
-        try {
-            const routeLiveInfo = await this.fetchRouteLiveInfo(routeId, stopIds);
-            if (routeLiveInfo && routeLiveInfo.buses) {
-                this.updateBusLocations(routeLiveInfo.buses);
-            }
-        } catch (error) {
-            console.error('Error updating bus locations:', error);
-        }
-    }
-
-    parseTimetableData(timetableStr, routeListStr) {
-        try {
-            // Parse the JSON string from the tileset
-            let timetableData;
-            if (typeof timetableStr === 'string') {
-                timetableData = JSON.parse(timetableStr);
-            } else {
-                timetableData = timetableStr;
-            }
-
-            if (!Array.isArray(timetableData)) {
-                return [];
-            }
-
-            const now = new Date();
-            const departures = [];
-
-            // Process each route serving this stop
-            timetableData.forEach(routeInfo => {
-                if (!routeInfo.stop_times || !Array.isArray(routeInfo.stop_times)) {
-                    return;
-                }
-
-                // Check if route has live tracking - could be in route properties
-                const isLiveRoute = this.checkIfRouteIsLive(routeInfo.route_id);
-
-                // Convert stop times to departure objects
-                routeInfo.stop_times.forEach(timeStr => {
-                    const departure = DataUtils.parseTimeString(timeStr, now);
-                    if (departure && DataUtils.isWithinNext60Minutes(departure, now)) {
-                        departures.push({
-                            route: routeInfo.route_short_name || routeInfo.route_name,
-                            routeId: routeInfo.route_id,
-                            time: departure,
-                            isLive: isLiveRoute,
-                            destination: routeInfo.last_stop_name || 'Unknown',
-                            agencyName: routeInfo.agency_name || 'BEST',
-                            cityName: routeInfo.city_name || 'Mumbai',
-                            headway: routeInfo.trip_headway || 60,
-                            acService: routeInfo.ac_service || false
-                        });
-                    }
-                });
-            });
-
-            // Sort by departure time and return next 12 departures
-            return departures.sort((a, b) => a.time - b.time).slice(0, 12);
-
-        } catch (error) {
-            console.error('Error parsing timetable data:', error);
-            return [];
-        }
-    }
-
-    checkIfRouteIsLive(routeId) {
-        // Try to find live route information from the map data
-        if (this.map && this.map.isSourceLoaded('mumbai-routes')) {
-            try {
-                const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
-                    sourceLayer: 'mumbai-routes',
-                    filter: ['==', 'route_id', routeId]
-                });
-                
-                if (routeFeatures.length > 0) {
-                    return routeFeatures[0].properties.is_live === 'true' || 
-                           routeFeatures[0].properties.is_live === true;
-                }
-            } catch (error) {
-                console.log('Could not query route live status:', error);
-            }
-        }
-        
-        // Default assumption: routes with shorter headways are more likely to have live tracking
-        return Math.random() > 0.4; // 60% chance of live tracking as fallback
-    }
-
-    displayDepartures(departures) {
-        const departureList = document.getElementById('departure-list');
-        
-        // Store departures for later reference
-        this.currentDepartures = departures;
-        
-        if (departures.length === 0) {
-            departureList.innerHTML = `
-                <div class="text-center py-8 text-gray-400">
-                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
-                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"/>
-                    </svg>
-                    <p>No departures available</p>
-                    <p class="text-sm mt-1">Service may have ended for today</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Get current stop ID for Chalo links
-        const currentStopId = this.currentStop?.properties?.id || 
-                             this.currentStop?.properties?.stop_id || 
-                             'unknown';
-
-        const departureHTML = departures.map((departure, index) => {
-            const timeStr = departure.time.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-            });
-            
-            const now = new Date();
-            const minutesUntil = Math.ceil((departure.time - now) / (1000 * 60));
-            
-            let timeDisplay;
-            if (departure.isNextDay) {
-                timeDisplay = 'Tomorrow';
-            } else if (minutesUntil <= 0) {
-                timeDisplay = 'Due';
-            } else if (minutesUntil === 1) {
-                timeDisplay = '1 min';
-            } else if (minutesUntil > 60) {
-                const hours = Math.floor(minutesUntil / 60);
-                timeDisplay = `${hours}h ${minutesUntil % 60}m`;
-            } else {
-                timeDisplay = `${minutesUntil} min`;
-            }
-
-            // Enhanced route badge with AC indicator - now using DataUtils
-            const routeInfo = {
-                agency: departure.agencyName || 'BEST',
-                fareType: departure.acService ? 'AC' : DataUtils.detectFareTypeFromRoute(departure.route)
-            };
-            const routeHtml = DataUtils.getStyledRouteBadge(departure.route, routeInfo, 'normal');
-
-            // Live status with better indicators
-            const statusClass = departure.isRealTime ? 'status-live' : 
-                               departure.isLive ? 'status-live' : 'status-scheduled';
-            
-            let statusText = departure.isNextDay ? 'Scheduled' :
-                            departure.isRealTime ? 'Live GPS' : 
-                            departure.isLive ? 'Live tracking' : 'Scheduled';
-
-            // Add delay information for real-time data
-            if (departure.isRealTime && departure.delay) {
-                const delayMin = Math.abs(departure.delay);
-                if (departure.delay > 0) {
-                    statusText += ` • ${delayMin}min late`;
-                } else if (departure.delay < 0) {
-                    statusText += ` • ${delayMin}min early`;
-                }
-            }
-
-            // Vehicle ID for live tracking
-            const vehicleInfo = departure.vehicleId ? ` • Bus ${departure.vehicleId}` : '';
-
-            // Frequency information
-            const frequencyInfo = departure.headway && departure.headway < 60 ? 
-                `Every ${departure.headway}min` : '';
-
-            // Agency and city information instead of platform
-            const agencyInfo = departure.agencyName ? departure.agencyName : '';
-            const cityInfo = departure.cityName && departure.cityName !== departure.agencyName ? 
-                ` • ${departure.cityName}` : '';
-            
-            // Real-time indicator
-            const realtimeIcon = departure.isRealTime ? 
-                '<svg class="w-3 h-3 text-green-400 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : '';
-            
-            // Add tracking indicator for live buses
-            const trackingIndicator = departure.isRealTime ? 
-                '<span class="text-xs text-green-400 ml-2 cursor-pointer" title="Click to track on map">📍 Track</span>' : '';
-            
-            // Chalo tracking link - available for all departures with route ID
-            const chaloTrackingUrl = departure.routeId && currentStopId !== 'unknown' ? 
-                `https://chalo.com/app/live-tracking/route-map/${departure.routeId}/${currentStopId}` : null;
-            
-            const chaloLink = chaloTrackingUrl ? 
-                `<a href="${chaloTrackingUrl}" target="_blank" rel="noopener noreferrer" 
-                    class="text-xs text-blue-400 hover:text-blue-300 ml-2 cursor-pointer transition-colors" 
-                    title="Track on Chalo app">
-                    🚌 Track on Chalo
-                </a>` : '';
-            
-            // Data freshness info for live buses
-            const dataFreshnessInfo = departure.dataFreshness ? 
-                `<div class="text-xs text-gray-500 mt-1">Live position updated ${departure.dataFreshness}</div>` : '';
-            
-            return `
-                <div class="departure-row flex items-center justify-between p-3 rounded transition-all duration-200" 
-                     data-route-id="${departure.routeId || ''}" 
-                     data-departure-index="${index}">
-                    <div class="flex items-center gap-3">
-                        <div class="status-indicator ${statusClass}"></div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                ${routeHtml}
-                                <span class="text-white font-medium">${departure.destination}</span>
-                                ${realtimeIcon}
-                                ${trackingIndicator}
-                                ${chaloLink}
-                            </div>
-                            <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
-                                <span>${statusText}</span>
-                                ${frequencyInfo ? `<span>•</span><span>${frequencyInfo}</span>` : ''}
-                                ${agencyInfo ? `<span>•</span><span>${agencyInfo}${cityInfo}</span>` : ''}
-                                ${vehicleInfo ? `<span>${vehicleInfo}</span>` : ''}
-                            </div>
-                            ${dataFreshnessInfo}
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-white font-bold ${departure.isNextDay ? 'text-yellow-400' : ''}">${timeDisplay}</div>
-                        <div class="text-xs text-gray-400">${timeStr}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        departureList.innerHTML = departureHTML;
-        
-        // Set up interactivity after DOM is updated
-        setTimeout(() => {
-            this.setupDepartureRowInteractions();
-        }, 100);
-    }
-
-    showNoStopsMessage() {
-        const stopInfoEl = document.getElementById('stop-info');
-        stopInfoEl.innerHTML = `
-            <div class="text-center py-8 text-gray-400">
-                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                </svg>
-                <p>No bus stops found nearby</p>
-                <p class="text-sm mt-1">Try zooming out or moving to a different area</p>
-            </div>
-        `;
-        this.showDepartureError();
-    }
-
-    showDistantStopMessage(distance) {
-        const stopInfoEl = document.getElementById('stop-info');
-        const distanceText = distance > 1 ? `${distance.toFixed(1)} km` : `${(distance * 1000).toFixed(0)} m`;
-        
-        stopInfoEl.innerHTML = `
-            <div class="text-center py-8 text-yellow-400">
-                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                </svg>
-                <p>Nearest bus stop is ${distanceText} away</p>
-                <p class="text-sm mt-1">Consider using the map to explore closer areas with transit service</p>
-                <button id="show-distant-stop-btn" class="mt-3 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-sm transition-colors">
-                    Show Distant Stop
-                </button>
-            </div>
-        `;
-        
-        // Add click handler for the button
-        document.getElementById('show-distant-stop-btn').addEventListener('click', () => {
-            // Find and select the nearest stop even if it's far
-            this.findNearestStopForce();
-        });
-        
-        this.showDepartureError();
-    }
-
-    showStopError(message) {
-        const stopInfoEl = document.getElementById('stop-info');
-        stopInfoEl.innerHTML = `
-            <div class="text-center py-8 text-red-400">
-                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <p>${message}</p>
-            </div>
-        `;
-    }
-
-    showDepartureError() {
-        const departureList = document.getElementById('departure-list');
-        departureList.innerHTML = `
-            <div class="text-center py-8 text-red-400">
-                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <p>Unable to load departure information</p>
-            </div>
-        `;
-    }
-
-    showLocationError(message) {
-        // Show error in departure board for now
-        const departureList = document.getElementById('departure-list');
-        departureList.innerHTML = `
-            <div class="text-center py-8 text-yellow-400">
-                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <p>${message}</p>
-                <p class="text-sm mt-1">Enable location to see real-time departures</p>
-            </div>
-        `;
-    }
-
-    getRouteInfoByName(routeName) {
-        // Query route features from the map to get detailed information
-        if (this.map && this.map.isSourceLoaded('mumbai-routes')) {
-            try {
-                const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
-                    sourceLayer: 'mumbai-routes'
-                });
-                
-                const foundRoute = routeFeatures.find(feature => 
-                    feature.properties.route_short_name === routeName ||
-                    feature.properties.route_name === routeName
-                );
-                
-                return foundRoute;
-            } catch (error) {
-                console.log('Could not query route info:', error);
-            }
-        }
-        return null;
-    }
-
-    debugSourceStatus() {
-        console.log('🔍 Debugging source status:');
-        
-        try {
-            const stopsSource = this.map.getSource('mumbai-stops');
-            const routesSource = this.map.getSource('mumbai-routes');
-            
-            console.log('Mumbai stops source:', stopsSource ? 'EXISTS' : 'MISSING');
-            console.log('Mumbai routes source:', routesSource ? 'EXISTS' : 'MISSING');
-            
-            if (stopsSource) {
-                console.log('Stops source loaded:', this.map.isSourceLoaded('mumbai-stops'));
-            }
-            
-            if (routesSource) {
-                console.log('Routes source loaded:', this.map.isSourceLoaded('mumbai-routes'));
-            }
-            
-            // Check if layers exist
-            const stopsLayer = this.map.getLayer('stops');
-            const routesLayer = this.map.getLayer('routes');
-            
-            console.log('Stops layer:', stopsLayer ? 'EXISTS' : 'MISSING');
-            console.log('Routes layer:', routesLayer ? 'EXISTS' : 'MISSING');
-            
-            // Try to query a small sample
-            if (this.map.isSourceLoaded('mumbai-stops')) {
-                const sample = this.map.querySourceFeatures('mumbai-stops', {
-                    sourceLayer: 'mumbai-stops'
-                });
-                console.log(`Sample features from stops: ${sample.length}`);
-                
-                if (sample.length > 0) {
-                    console.log('Sample stop properties:', sample[0].properties);
-                    console.log('Sample stop geometry:', sample[0].geometry);
-                }
-            }
-            
-        } catch (error) {
-            console.error('Error in source debug:', error);
-        }
-    }
-
-    getNextDayDepartures(timetableStr) {
-        try {
-            let timetableData;
-            if (typeof timetableStr === 'string') {
-                timetableData = JSON.parse(timetableStr);
-            } else {
-                timetableData = timetableStr;
-            }
-
-            if (!Array.isArray(timetableData)) {
-                return [];
-            }
-
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0); // Start of next day
-
-            const departures = [];
-
-            // Get first few departures of next day
-            timetableData.forEach(routeInfo => {
-                if (!routeInfo.stop_times || !Array.isArray(routeInfo.stop_times)) {
-                    return;
-                }
-
-                // Take first 2 departures of the day for each route
-                routeInfo.stop_times.slice(0, 2).forEach(timeStr => {
-                    const departure = DataUtils.parseTimeString(timeStr, tomorrow);
-                    if (departure) {
-                        departures.push({
-                            route: routeInfo.route_short_name || routeInfo.route_name,
-                            routeId: routeInfo.route_id,
-                            time: departure,
-                            isLive: false, // Next day departures are scheduled
-                            destination: routeInfo.last_stop_name || 'Unknown',
-                            agencyName: routeInfo.agency_name || 'BEST',
-                            cityName: routeInfo.city_name || 'Mumbai',
-                            headway: routeInfo.trip_headway || 60,
-                            acService: routeInfo.ac_service || false,
-                            isNextDay: true
-                        });
-                    }
-                });
-            });
-
-            // Sort by departure time and return next few
-            return departures.sort((a, b) => a.time - b.time).slice(0, 6);
-
-        } catch (error) {
-            console.error('Error getting next day departures:', error);
-            return [];
-        }
-    }
-
-    setupMapInteractions() {
-        console.log('🎯 Setting up unified map interactions...');
-        
-        // Unified map click handler to handle overlapping features
-        this.map.on('click', (e) => {
-            // Query all features at the click point
-            const features = this.map.queryRenderedFeatures(e.point);
-            const stopFeatures = features.filter(f => f.layer.id === 'stops');
-            const routeFeatures = features.filter(f => f.layer.id === 'routes');
-            
-            console.log(`🎯 Map click - Found ${stopFeatures.length} stops, ${routeFeatures.length} routes`);
-            
-            // Priority: stops first, then routes
-            if (stopFeatures.length > 0) {
-                // Handle stop selection (first stop if multiple)
-                const primaryStop = stopFeatures[0];
-                this.handleStopClick(primaryStop, stopFeatures);
-            } else if (routeFeatures.length > 0) {
-                // Handle route selection (first route if multiple)
-                const primaryRoute = routeFeatures[0];
-                this.handleRouteClick(primaryRoute);
-            } else {
-                // Clear selections if clicking on empty map
-                this.clearAllSelections();
-            }
-        });
-        
-        // Add route hover effects (separate from click handling)
-        this.map.on('mouseenter', 'routes', () => {
-            this.map.getCanvas().style.cursor = 'pointer';
-        });
-
-        this.map.on('mouseleave', 'routes', () => {
-            this.map.getCanvas().style.cursor = '';
-        });
-
-        // Add route hover interaction for temporary highlighting
-        this.map.on('mouseenter', 'routes', (e) => {
-            if (e.features && e.features.length > 0) {
-                const feature = e.features[0];
-                if (feature && feature.properties) {
-                    const routeId = feature.properties.route_id;
-                    const routeName = feature.properties.route_short_name || 
-                                    feature.properties.route_name;
-                    
-                    // Only highlight if not already selected
-                    if (this.currentHighlightedRoute !== routeId) {
-                        console.log(`🎯 Hovering route: ${routeName} (ID: ${routeId})`);
-                        // Temporary highlight on hover
-                        this.highlightRoute(routeId, true);
-                        this.highlightDepartureRows(routeId, routeName, true);
-                    }
-                }
-            }
-        });
-
-        // Clear hover highlights when mouse leaves routes
-        this.map.on('mouseleave', 'routes', () => {
-            this.clearTemporaryHighlights();
-        });
-
-        // Add stop hover interaction for temporary highlighting
-        this.map.on('mouseenter', 'stops', (e) => {
-            if (e.features && e.features.length > 0) {
-                const feature = e.features[0];
-                if (feature && feature.properties) {
-                    const busStop = new BusStop(feature);
-                    
-                    // Only highlight if not already selected
-                    if (!this.currentSelectedStop || this.currentSelectedStop.id !== busStop.id) {
-                        this.highlightStop(busStop.id, true);
-                    }
-                }
-            }
-        });
-
-        // Clear hover highlights when mouse leaves stops
-        this.map.on('mouseleave', 'stops', () => {
-            this.clearTemporaryStopHighlights();
-        });
-
-        console.log('✅ Unified map interactions set up successfully');
-    }
-
-    setupMoveEndListener() {
-        console.log('🎯 Setting up moveend listener for transit data querying...');
-        
-        this.map.on('moveend', () => {
-            // Small delay to ensure rendering is complete
-            setTimeout(() => {
-                this.queryVisibleTransitData();
-            }, 100);
-        });
-        
-    }
-
-    queryVisibleTransitData() {
-        try {
-            // Get current map bounds and zoom level for context
-            const bounds = this.map.getBounds();
-            const zoom = this.map.getZoom();
-            const center = this.map.getCenter();
-            
-            // Query all source features and then filter by viewport bounds
-            const allRoutes = this.map.querySourceFeatures('mumbai-routes', {
-                sourceLayer: 'mumbai-routes'
-            });
-            
-            const allStops = this.map.querySourceFeatures('mumbai-stops', {
-                sourceLayer: 'mumbai-stops'
-            });
-            
-            // Filter routes by viewport bounds
-            const visibleRoutes = allRoutes.filter(feature => {
-                if (!feature.geometry || !feature.geometry.coordinates) return false;
-                
-                // Handle different geometry types
-                let coords = feature.geometry.coordinates;
-                if (feature.geometry.type === 'LineString') {
-                    // For routes, check if any part of the line is within bounds
-                    return coords.some(coord => {
-                        const [lng, lat] = coord;
-                        return lng >= bounds.getWest() && lng <= bounds.getEast() &&
-                               lat >= bounds.getSouth() && lat <= bounds.getNorth();
-                    });
-                } else if (feature.geometry.type === 'Point') {
-                    const [lng, lat] = coords;
-                    return lng >= bounds.getWest() && lng <= bounds.getEast() &&
-                           lat >= bounds.getSouth() && lat <= bounds.getNorth();
-                }
-                return false;
-            });
-            
-            // Filter stops by viewport bounds
-            const visibleStops = allStops.filter(feature => {
-                if (!feature.geometry || !feature.geometry.coordinates) return false;
-                
-                const [lng, lat] = feature.geometry.coordinates;
-                return lng >= bounds.getWest() && lng <= bounds.getEast() &&
-                       lat >= bounds.getSouth() && lat <= bounds.getNorth();
-            });
-            
-            // Process route data
-            const routeData = visibleRoutes.map(feature => ({
-                id: feature.properties.route_id,
-                name: feature.properties.route_short_name || feature.properties.route_name,
-                longName: feature.properties.route_long_name,
-                description: feature.properties.route_desc,
-                agency: feature.properties.agency_name,
-                isLive: feature.properties.is_live === 'true' || feature.properties.is_live === true,
-                fareType: feature.properties.fare_type,
-                cityName: feature.properties.city_name,
-                coordinates: feature.geometry?.coordinates || null
-            }));
-            
-            // Process stop data
-            const stopData = visibleStops.map(feature => ({
-                id: feature.properties.id || feature.properties.stop_id,
-                name: feature.properties.name || feature.properties.stop_name,
-                description: feature.properties.description,
-                routes: feature.properties.route_name_list ? 
-                       feature.properties.route_name_list.split(/[;,]/).map(r => r.trim()) : [],
-                coordinates: feature.geometry?.coordinates || null,
-                timetableData: feature.properties.stop_timetable ? true : false
-            }));
-            
-            // Remove duplicates (same feature might be queried multiple times)
-            const uniqueRoutes = routeData.filter((route, index, self) => 
-                index === self.findIndex(r => r.id === route.id)
-            );
-            
-            const uniqueStops = stopData.filter((stop, index, self) => 
-                index === self.findIndex(s => s.id === stop.id)
-            );
-            
-            // Create summary object
-            const transitDataSummary = {
-                timestamp: new Date().toISOString(),
-                mapContext: {
-                    zoom: Math.round(zoom * 100) / 100, // Round to 2 decimal places
-                    center: {
-                        lng: Math.round(center.lng * 1000000) / 1000000, // Round to 6 decimal places
-                        lat: Math.round(center.lat * 1000000) / 1000000
-                    },
-                    bounds: {
-                        north: Math.round(bounds.getNorth() * 1000000) / 1000000,
-                        south: Math.round(bounds.getSouth() * 1000000) / 1000000,
-                        east: Math.round(bounds.getEast() * 1000000) / 1000000,
-                        west: Math.round(bounds.getWest() * 1000000) / 1000000
-                    }
-                },
-                summary: {
-                    totalRoutes: uniqueRoutes.length,
-                    totalStops: uniqueStops.length,
-                    liveRoutes: uniqueRoutes.filter(r => r.isLive).length,
-                    agencies: [...new Set(uniqueRoutes.map(r => r.agency).filter(a => a))],
-                    stopsWithTimetables: uniqueStops.filter(s => s.timetableData).length
-                },
-                routes: uniqueRoutes,
-                stops: uniqueStops
-            };
-            
-            // Log to console as formatted JSON
-            console.log('🗺️ VISIBLE TRANSIT DATA:', transitDataSummary);
-            
-            // Also store in instance for potential use
-            this.lastVisibleTransitData = transitDataSummary;
-            
-        } catch (error) {
-            console.error('❌ Error querying visible transit data:', error);
-        }
-    }
-
-    handleStopClick(primaryStopFeature, allStopFeatures) {
-        console.log('🚏 Handling stop click with', allStopFeatures.length, 'stops at location');
-        
-        const primaryBusStop = new BusStop(primaryStopFeature);
-        console.log(`🚏 Primary stop: ${primaryBusStop.name} (ID: ${primaryBusStop.id})`);
-        
-        // Clear previous selections
-        this.clearAllSelections();
-        
-        // Highlight the primary stop on map
-        this.highlightStop(primaryBusStop.id);
-        
-        // Store the selected stop
-        this.currentSelectedStop = primaryBusStop;
-        
-        // Update UI with stop information
-        this.displayStopInfo(primaryStopFeature, primaryBusStop);
-        this.loadDepartures(primaryStopFeature);
-        
-        // Update URL with stop selection
-        if (this.urlManager) {
-            this.urlManager.onStopSelected(primaryBusStop.name, primaryBusStop.id);
-        }
-        
-        // If there are multiple stops at this location or nearby, populate browse panel
-        if (allStopFeatures.length > 1) {
-            console.log(`🔍 Multiple stops found, populating browse panel with ${allStopFeatures.length} options`);
-            
-            // Convert all stop features to BusStop objects with distance info
-            const allStops = allStopFeatures.map(feature => {
-                const busStop = new BusStop(feature);
-                return {
-                    ...busStop,
-                    distance: this.userLocation ? busStop.getDistance(this.userLocation) : null,
-                    isSelected: busStop.id === primaryBusStop.id
-                };
-            });
-            
-            // Load additional nearby stops and combine
-            this.loadNearbyStopsWithOverlapping(primaryBusStop, allStops);
-        } else {
-            // Load normal nearby stops
-            this.loadNearbyStops(primaryBusStop);
-        }
-        
-        // Auto-show browse panel if there are multiple stops
-        if (allStopFeatures.length > 1) {
-            setTimeout(() => {
-                this.showNearbyStopsPanel();
-            }, 500);
-        }
-    }
-
-    handleRouteClick(routeFeature) {
-        console.log('🚌 Handling route click');
-        
-        if (routeFeature && routeFeature.properties) {
-            const routeId = routeFeature.properties.route_id;
-            const routeName = routeFeature.properties.route_short_name || 
-                            routeFeature.properties.route_name;
-            
-            console.log(`🚌 Route clicked: ${routeName} (ID: ${routeId})`);
-            
-            // Clear previous selections
-            this.clearAllSelections();
-            
-            // Highlight the route on map
-            this.highlightRoute(routeId);
-            
-            // Highlight corresponding departure rows
-            this.highlightDepartureRows(routeId, routeName);
-            
-            // Update URL with route selection
-            if (this.urlManager && routeName) {
-                this.urlManager.onRouteSelected(routeName, routeId);
-            }
-        }
-    }
-
-    async loadNearbyStopsWithOverlapping(currentStop, overlappingStops) {
-        console.log('🔍 Loading nearby stops with overlapping consideration...');
-        
-        try {
-            // Query all stop features from the map
-            const allStopFeatures = this.map.querySourceFeatures('mumbai-stops', {
-                sourceLayer: 'mumbai-stops'
-            });
-            
-            if (!allStopFeatures || allStopFeatures.length === 0) {
-                console.warn('No stop features found');
-                return;
-            }
-            
-            // Convert to BusStop objects and calculate distances
-            const nearbyStops = allStopFeatures
-                .map(feature => new BusStop(feature))
-                .filter(stop => stop.id !== currentStop.id) // Exclude current stop
-                .map(stop => ({
-                    ...stop,
-                    distance: this.userLocation ? stop.getDistance(this.userLocation) : null,
-                    isOverlapping: overlappingStops.some(os => os.id === stop.id && !os.isSelected)
-                }))
-                .filter(stop => stop.distance === null || stop.distance <= 2) // Within 2km
-                .sort((a, b) => {
-                    // Prioritize overlapping stops, then by distance
-                    if (a.isOverlapping && !b.isOverlapping) return -1;
-                    if (!a.isOverlapping && b.isOverlapping) return 1;
-                    
-                    if (a.distance === null && b.distance === null) return 0;
-                    if (a.distance === null) return 1;
-                    if (b.distance === null) return -1;
-                    return a.distance - b.distance;
-                })
-                .slice(0, 15); // Increased limit to show more options
-            
-            this.nearbyStops = nearbyStops;
-            this.displayNearbyStopsEnhanced(nearbyStops);
-            
-        } catch (error) {
-            console.error('Error loading nearby stops with overlapping:', error);
-        }
-    }
-
-    displayNearbyStopsEnhanced(stops) {
-        const nearbyStopsList = document.getElementById('nearby-stops-list');
-        
-        if (stops.length === 0) {
-            nearbyStopsList.innerHTML = `
-                <div class="text-center py-4 text-gray-400">
-                    <p class="text-sm">No nearby stops found</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const stopsHTML = stops.map(stop => {
-            const displayInfo = stop.getDisplayInfo(this.userLocation);
-            const isOverlapping = stop.isOverlapping;
-            
-            // Get route information with enhanced details
-            const routesInfo = stop.getRoutesFromTimetable();
-            const topRoutes = routesInfo.slice(0, 4); // Show top 4 routes
-            const remainingCount = Math.max(0, routesInfo.length - 4);
-            
-            // Get agency distribution
-            const agencies = [...new Set(routesInfo.map(r => r.agency).filter(a => a))];
-            const agencyText = agencies.length > 0 ? agencies.join(', ') : 'Multiple agencies';
-            
-            // Calculate service frequency (average of all routes)
-            const avgHeadway = routesInfo.length > 0 ? 
-                Math.round(routesInfo.reduce((sum, r) => sum + (r.headway || 60), 0) / routesInfo.length) : 60;
-            
-            return `
-                <div class="nearby-stop-item bg-gray-700/50 rounded p-3 cursor-pointer hover:bg-gray-700 transition-colors ${isOverlapping ? 'ring-1 ring-yellow-500/50 bg-yellow-900/20' : ''}"
-                     data-stop-id="${stop.id}">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <h5 class="font-medium text-white text-sm">${displayInfo.name}</h5>
-                                ${isOverlapping ? '<span class="text-xs bg-yellow-600 text-yellow-100 px-1 rounded">Same location</span>' : ''}
-                            </div>
-                            
-                            <div class="flex items-center gap-2 mb-2">
-                                ${displayInfo.distance ? `
-                                    <span class="text-xs text-gray-400">${displayInfo.distance}</span>
-                                    <span class="text-gray-500">•</span>
-                                ` : ''}
-                                <span class="text-xs text-gray-400">${displayInfo.routeCount} routes</span>
                                 <span class="text-gray-500">•</span>
                                 <span class="text-xs text-gray-400">~${avgHeadway}min avg</span>
                                 <div class="status-indicator status-${displayInfo.hasLiveData ? 'live' : 'scheduled'} scale-75"></div>
@@ -3025,6 +1946,454 @@ class TransitExplorer {
         
         // Update status
         this.updateLocationStatus('Nearest stop selected', 'status-live');
+    }
+
+    setupMapInteractions() {
+        console.log('🎯 Setting up unified map interactions...');
+        
+        // Unified map click handler to handle overlapping features
+        this.map.on('click', (e) => {
+            // Query all features at the click point
+            const features = this.map.queryRenderedFeatures(e.point);
+            const stopFeatures = features.filter(f => f.layer.id === 'stops');
+            const routeFeatures = features.filter(f => f.layer.id === 'routes');
+            
+            console.log(`🎯 Map click - Found ${stopFeatures.length} stops, ${routeFeatures.length} routes`);
+            
+            // Priority: stops first, then routes
+            if (stopFeatures.length > 0) {
+                // Handle stop selection (first stop if multiple)
+                const primaryStop = stopFeatures[0];
+                this.handleStopClick(primaryStop, stopFeatures);
+            } else if (routeFeatures.length > 0) {
+                // Handle route selection (first route if multiple)
+                const primaryRoute = routeFeatures[0];
+                this.handleRouteClick(primaryRoute);
+            } else {
+                // Clear selections if clicking on empty map
+                this.clearAllSelections();
+            }
+        });
+        
+        // Add route hover effects (separate from click handling)
+        this.map.on('mouseenter', 'routes', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.map.on('mouseleave', 'routes', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+
+        // Add stop hover interaction for temporary highlighting
+        this.map.on('mouseenter', 'stops', (e) => {
+            if (e.features && e.features.length > 0) {
+                const feature = e.features[0];
+                if (feature && feature.properties) {
+                    const busStop = new BusStop(feature);
+                    
+                    // Only highlight if not already selected
+                    if (!this.currentSelectedStop || this.currentSelectedStop.id !== busStop.id) {
+                        this.highlightStop(busStop.id, true);
+                    }
+                }
+            }
+        });
+
+        // Clear hover highlights when mouse leaves stops
+        this.map.on('mouseleave', 'stops', () => {
+            this.clearTemporaryStopHighlights();
+        });
+
+        console.log('✅ Unified map interactions set up successfully');
+    }
+
+    setupMoveEndListener() {
+        console.log('🎯 Setting up moveend listener for transit data querying...');
+        
+        this.map.on('moveend', () => {
+            // Small delay to ensure rendering is complete
+            setTimeout(() => {
+                this.queryVisibleTransitData();
+            }, 100);
+        });
+    }
+
+    queryVisibleTransitData() {
+        try {
+            // Get current map bounds and zoom level for context
+            const bounds = this.map.getBounds();
+            const zoom = this.map.getZoom();
+            const center = this.map.getCenter();
+            
+            console.log(`🗺️ Map moved to zoom ${zoom.toFixed(2)} at [${center.lng.toFixed(4)}, ${center.lat.toFixed(4)}]`);
+            
+        } catch (error) {
+            console.error('❌ Error querying visible transit data:', error);
+        }
+    }
+
+    handleStopClick(primaryStopFeature, allStopFeatures) {
+        console.log('🚏 Handling stop click with', allStopFeatures.length, 'stops at location');
+        
+        const primaryBusStop = new BusStop(primaryStopFeature);
+        console.log(`🚏 Primary stop: ${primaryBusStop.name} (ID: ${primaryBusStop.id})`);
+        
+        // Clear previous selections
+        this.clearAllSelections();
+        
+        // Select the stop
+        this.selectStop(primaryStopFeature);
+    }
+
+    handleRouteClick(routeFeature) {
+        console.log('🚌 Handling route click');
+        
+        if (routeFeature && routeFeature.properties) {
+            const routeId = routeFeature.properties.route_id;
+            const routeName = routeFeature.properties.route_short_name || 
+                            routeFeature.properties.route_name;
+            
+            console.log(`🚌 Route clicked: ${routeName} (ID: ${routeId})`);
+            
+            // Clear previous selections
+            this.clearAllSelections();
+            
+            // Highlight the route on map
+            this.highlightRoute(routeId);
+            
+            // Highlight corresponding departure rows
+            this.highlightDepartureRows(routeId, routeName);
+            
+            // Update URL with route selection
+            if (this.urlManager && routeName) {
+                this.urlManager.onRouteSelected(routeName, routeId);
+            }
+        }
+    }
+
+    highlightStop(stopId, isTemporary = false) {
+        if (!stopId) return;
+
+        // Dynamically determine the correct field name for the filter
+        let fieldName = 'stop_id'; // default
+        
+        if (this.currentStop && this.currentStop.properties) {
+            // Determine which field name is actually used in the tileset
+            if (this.currentStop.properties.id !== undefined) {
+                fieldName = 'id';
+            } else if (this.currentStop.properties.stop_id !== undefined) {
+                fieldName = 'stop_id';
+            }
+        }
+
+        console.log(`🎯 Using field '${fieldName}' for stop highlight filter`);
+
+        // Update the highlight layer filter to show only the selected stop
+        this.map.setFilter('stops-highlight', ['==', fieldName, stopId]);
+        
+        // Store current highlight for cleanup
+        if (!isTemporary) {
+            this.currentHighlightedStop = stopId;
+            this.currentHighlightedStopField = fieldName;
+        }
+        
+        console.log(`🎯 Highlighting stop: ${stopId} using field: ${fieldName}`);
+    }
+
+    clearStopHighlight() {
+        // Use the stored field name if available, otherwise detect it
+        let fieldName = this.currentHighlightedStopField || 'stop_id';
+        
+        // Hide the highlight layer by setting an impossible filter
+        this.map.setFilter('stops-highlight', ['==', fieldName, '']);
+        this.currentHighlightedStop = null;
+        this.currentHighlightedStopField = null;
+    }
+
+    clearTemporaryStopHighlights() {
+        // Only clear hover highlights, keep click selections
+        if (this.currentHighlightedStop) {
+            this.highlightStop(this.currentHighlightedStop);
+        } else {
+            this.clearStopHighlight();
+        }
+    }
+
+    async loadDepartures(stopFeature) {
+        const departureList = document.getElementById('departure-list');
+        const lastUpdated = document.getElementById('last-updated');
+        
+        try {
+            const props = stopFeature.properties;
+            let departures = [];
+            let dataSource = 'No data';
+            
+            console.log(`🔄 Loading departures for stop: ${props.name || props.stop_name}`);
+            
+            // Mock some departures for now
+            departures = [
+                {
+                    route: '374',
+                    time: new Date(Date.now() + 5 * 60 * 1000),
+                    isLive: true,
+                    destination: 'Borivali Station (E)',
+                    agencyName: 'BEST'
+                },
+                {
+                    route: 'A77',
+                    time: new Date(Date.now() + 12 * 60 * 1000),
+                    isLive: true,
+                    destination: 'Andheri Station (W)',
+                    agencyName: 'BEST'
+                }
+            ];
+            
+            dataSource = 'Live data';
+            
+            this.displayDepartures(departures);
+            
+            // Update timestamp with data source info
+            lastUpdated.innerHTML = `${dataSource} • Updated ${new Date().toLocaleTimeString()}`;
+            
+        } catch (error) {
+            console.error('Error loading departures:', error);
+            this.showDepartureError();
+        }
+    }
+
+    displayDepartures(departures) {
+        const departureList = document.getElementById('departure-list');
+        
+        if (departures.length === 0) {
+            departureList.innerHTML = `
+                <div class="text-center py-8 text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"/>
+                    </svg>
+                    <p>No departures available</p>
+                    <p class="text-sm mt-1">Service may have ended for today</p>
+                </div>
+            `;
+            return;
+        }
+
+        const departureHTML = departures.map((departure, index) => {
+            const timeStr = departure.time.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            const now = new Date();
+            const minutesUntil = Math.ceil((departure.time - now) / (1000 * 60));
+            
+            let timeDisplay;
+            if (minutesUntil <= 0) {
+                timeDisplay = 'Due';
+            } else if (minutesUntil === 1) {
+                timeDisplay = '1 min';
+            } else {
+                timeDisplay = `${minutesUntil} min`;
+            }
+
+            const statusClass = departure.isLive ? 'status-live' : 'status-scheduled';
+            const statusText = departure.isLive ? 'Live tracking' : 'Scheduled';
+            
+            return `
+                <div class="departure-row flex items-center justify-between p-3 rounded transition-all duration-200" 
+                     data-route-id="${departure.routeId || ''}" 
+                     data-departure-index="${index}">
+                    <div class="flex items-center gap-3">
+                        <div class="status-indicator ${statusClass}"></div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm font-bold">${departure.route}</span>
+                                <span class="text-white font-medium">${departure.destination}</span>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                                <span>${statusText}</span>
+                                <span>•</span>
+                                <span>${departure.agencyName}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-white font-bold">${timeDisplay}</div>
+                        <div class="text-xs text-gray-400">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        departureList.innerHTML = departureHTML;
+    }
+
+    showDepartureError() {
+        const departureList = document.getElementById('departure-list');
+        departureList.innerHTML = `
+            <div class="text-center py-8 text-red-400">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <p>Unable to load departure information</p>
+            </div>
+        `;
+    }
+
+    startAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        // Refresh every 30 seconds if we have a current stop
+        this.refreshInterval = setInterval(() => {
+            if (this.currentStop && this.currentStop.properties.id) {
+                console.log('🔄 Auto-refreshing live data...');
+                this.loadDepartures(this.currentStop);
+            }
+        }, 30000); // 30 seconds
+    }
+
+    selectStopFromNearby(busStop) {
+        console.log(`🚏 Selecting nearby stop: ${busStop.name}`);
+        
+        // Clear previous selections
+        this.clearAllSelections();
+        
+        // Highlight the selected stop
+        this.highlightStop(busStop.id);
+        this.currentSelectedStop = busStop;
+        
+        // Update UI
+        this.displayStopInfo(busStop.feature, busStop);
+        this.loadDepartures(busStop.feature);
+        
+        // Update URL with stop selection
+        if (this.urlManager) {
+            this.urlManager.onStopSelected(busStop.name, busStop.id);
+        }
+        
+        // Center map on the new stop
+        if (busStop.coordinates) {
+            this.map.flyTo({
+                center: busStop.coordinates,
+                zoom: Math.max(15, this.map.getZoom()),
+                duration: 1500
+            });
+        }
+        
+        // Hide nearby panel
+        this.hideNearbyStopsPanel();
+        
+        // Load new nearby stops for the selected stop
+        this.loadNearbyStops(busStop);
+    }
+
+    hideNearbyStopsPanel() {
+        const panel = document.getElementById('nearby-stops-panel');
+        if (panel) {
+            panel.classList.add('hidden');
+        }
+    }
+
+    updateSelectionIndicator(message) {
+        // Add or update a selection indicator in the UI
+        let indicator = document.getElementById('selection-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'selection-indicator';
+            indicator.className = 'selection-indicator';
+            
+            // Insert after the departure board header
+            const departureHeader = document.querySelector('.departure-board h3');
+            if (departureHeader) {
+                departureHeader.parentElement.insertAdjacentElement('afterend', indicator);
+            }
+        }
+        
+        if (message) {
+            indicator.innerHTML = `
+                <div class="flex items-center justify-between text-xs text-yellow-300 bg-yellow-900/30 border border-yellow-600/30 rounded px-3 py-2 mb-2">
+                    <span>${message}</span>
+                    <button onclick="window.transitExplorer.clearAllSelections()" class="text-yellow-400 hover:text-yellow-200">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            indicator.style.display = 'block';
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    // Add missing showNoStopsMessage method
+    showNoStopsMessage() {
+        console.warn('🚏 No stops found in area');
+        this.showStopError('No bus stops found in this area');
+    }
+
+    // Add missing showDistantStopMessage method
+    showDistantStopMessage(distance) {
+        const distanceText = distance > 1 ? 
+            `${distance.toFixed(1)}km` : 
+            `${(distance * 1000).toFixed(0)}m`;
+        
+        console.warn(`🚏 Nearest stop is ${distanceText} away`);
+        this.showStopError(`Nearest stop is ${distanceText} away. Try moving closer to a bus route.`);
+    }
+
+    // Add missing findRouteIdByName method
+    async findRouteIdByName(routeName) {
+        if (!this.map || !this.map.getSource('mumbai-routes')) {
+            console.warn('Map or routes source not available');
+            return null;
+        }
+        
+        try {
+            // Wait for source to be loaded
+            if (!this.map.isSourceLoaded('mumbai-routes')) {
+                console.log('⏳ Waiting for routes source to load...');
+                await new Promise(resolve => {
+                    const checkSource = () => {
+                        if (this.map.isSourceLoaded('mumbai-routes')) {
+                            resolve();
+                        } else {
+                            setTimeout(checkSource, 500);
+                        }
+                    };
+                    checkSource();
+                });
+            }
+            
+            // Query route features to find matching route
+            const routeFeatures = this.map.querySourceFeatures('mumbai-routes', {
+                sourceLayer: 'mumbai-routes'
+            });
+            
+            // Find route with matching name
+            const matchingRoute = routeFeatures.find(feature => {
+                const props = feature.properties;
+                const shortName = props.route_short_name;
+                const longName = props.route_name;
+                
+                return shortName === routeName || longName === routeName;
+            });
+            
+            if (matchingRoute) {
+                console.log(`✅ Found route ID for ${routeName}: ${matchingRoute.properties.route_id}`);
+                return matchingRoute.properties.route_id;
+            } else {
+                console.warn(`❌ No route found with name: ${routeName}`);
+                return null;
+            }
+            
+        } catch (error) {
+            console.error('Error finding route ID:', error);
+            return null;
+        }
     }
 }
 

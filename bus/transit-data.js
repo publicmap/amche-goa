@@ -24,16 +24,12 @@ export const TILESET_SCHEMA = {
         fields: {
             id: ['id', 'stop_id'], // Try both field names
             name: 'name',
-            description: 'stop_description',
-            lat: 'stop_lat',
-            lon: 'stop_lon',
             timetable: 'stop_timetable',
             routeList: 'route_name_list',
             tripCount: 'trip_count',
             avgWaitTime: 'avg_wait_time',
-            zoneId: 'zone_id',
-            stopUrl: 'stop_url',
-            locationType: 'location_type'
+            description: 'stop_description',
+            towardsStop: 'towards_stop',
         }
     }
 };

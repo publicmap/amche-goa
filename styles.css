@@ -1978,3 +1978,208 @@ sl-menu {
         transform: translateX(100%);
     }
 }
+
+/* Stop selector dropdown styles */
+#stop-selector-btn {
+    position: relative;
+    z-index: 10;
+}
+
+#stop-dropdown {
+    z-index: 60;
+    backdrop-filter: blur(10px);
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+.stop-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.stop-option:hover {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #22c55e;
+    transform: translateX(2px);
+}
+
+.stop-option:last-child {
+    border-bottom: none;
+}
+
+.stop-option-selected {
+    background-color: rgba(34, 197, 94, 0.2);
+    border-left: 3px solid #22c55e;
+}
+
+.stop-option-name {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.stop-option-details {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stop-option-distance {
+    color: #22c55e;
+    font-weight: 500;
+}
+
+.stop-option-routes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+/* Interactive route badges */
+.interactive-route-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.interactive-route-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.interactive-route-badge:active {
+    transform: translateY(0);
+}
+
+.interactive-route-badge.selected {
+    border-color: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+    animation: route-glow 2s infinite;
+}
+
+@keyframes route-glow {
+    0%, 100% {
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    }
+}
+
+/* BEST agency route styling */
+.route-best-ac {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.route-best-regular {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.route-best-default {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+/* Other agency routes */
+.route-other-live {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+}
+
+.route-other-scheduled {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+/* Route badge size variants */
+.route-badge-small {
+    padding: 2px 6px;
+    font-size: 0.7rem;
+}
+
+.route-badge-normal {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+}
+
+/* Search input focus states */
+#stop-search-input:focus {
+    background-color: rgba(55, 65, 81, 0.8);
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Loading states */
+.stop-option-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.stop-option-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #bus-tracking-notification {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+    
+    .departure-row {
+        padding: 0.75rem;
+    }
+    
+    .route-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    #stop-dropdown {
+        max-height: 50vh;
+    }
+    
+    .stop-option {
+        padding: 10px 12px;
+    }
+    
+    .interactive-route-badge {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+}
