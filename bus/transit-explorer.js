@@ -985,11 +985,13 @@ class TransitExplorer {
                 })
                 .map(feature => {
                     const busStop = new BusStop(feature);
-                    return {
-                        ...busStop,
-                        distance: this.userLocation ? busStop.getDistance(this.userLocation) : null,
-                        feature: feature
-                    };
+                    // Add distance as a property to the BusStop instance
+                    if (this.userLocation) {
+                        busStop.distance = busStop.getDistance(this.userLocation);
+                    } else {
+                        busStop.distance = null;
+                    }
+                    return busStop;
                 })
                 .sort((a, b) => {
                     // Sort by distance if available, otherwise by name
@@ -1098,7 +1100,7 @@ class TransitExplorer {
         // Clear previous selections
         this.clearAllSelections();
         
-        // Select the stop
+        // Select the stop using the feature from the BusStop object
         this.selectStop(busStop.feature);
         
         // Center map on the new stop
@@ -1845,6 +1847,12 @@ class TransitExplorer {
     displayNearbyStops(stops) {
         const nearbyStopsList = document.getElementById('nearby-stops-list');
         
+        // Check if the element exists, if not, log a warning and return
+        if (!nearbyStopsList) {
+            console.warn('⚠️ nearby-stops-list element not found in DOM - nearby stops display not available');
+            return;
+        }
+        
         if (stops.length === 0) {
             nearbyStopsList.innerHTML = `
                 <div class="text-center py-4 text-gray-400">
@@ -1856,6 +1864,15 @@ class TransitExplorer {
         
         const stopsHTML = stops.map(stop => {
             const displayInfo = stop.getDisplayInfo(this.userLocation);
+            
+            // Get route information for display
+            const routes = stop.getRoutesFromTimetable();
+            const topRoutes = routes.slice(0, 3);
+            const remainingCount = Math.max(0, routes.length - 3);
+            
+            // Generate headway and agency text
+            const avgHeadway = displayInfo.avgWaitTime || '15';
+            const agencyText = routes.length > 0 ? routes[0].agency || 'BEST' : 'BEST';
             
             return `
                 <div class="nearby-stop-item bg-gray-700/50 rounded p-3 cursor-pointer hover:bg-gray-700 transition-colors"
