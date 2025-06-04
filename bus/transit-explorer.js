@@ -44,23 +44,48 @@ class TransitExplorer {
         // Initialize URL manager after map is set up
         this.urlManager = new URLManager(this);
         
-        // Request location
-        await this.requestLocation();
+        // Check if URL has parameters before requesting location
+        const urlParams = this.urlManager.parseURLParameters();
+        const hasURLSelection = urlParams.route || urlParams.stop;
+        
+        // Request location (but don't auto-find nearest stop if URL has selections)
+        await this.requestLocation(hasURLSelection);
         
         // Apply URL parameters after everything is initialized
         setTimeout(() => {
-            this.applyURLParametersOnLoad();
+            this.applyURLParametersOnLoad(hasURLSelection);
         }, 1000);
     }
 
-    async applyURLParametersOnLoad() {
+    async applyURLParametersOnLoad(hasURLSelection = false) {
         try {
-            const applied = await this.urlManager.applyURLParameters();
-            if (!applied) {
-                console.log('🔗 No URL parameters applied, proceeding with normal initialization');
+            if (hasURLSelection) {
+                const applied = await this.urlManager.applyURLParameters();
+                if (!applied) {
+                    console.log('🔗 Failed to apply URL parameters, falling back to nearest stop');
+                    // If URL parameters failed to apply, find nearest stop as fallback
+                    await this.findNearestStopIfLocationAvailable();
+                } else {
+                    console.log('🔗 Successfully applied URL parameters');
+                }
+            } else {
+                console.log('🔗 No URL parameters, finding nearest stop');
+                // No URL parameters, proceed with normal nearest stop finding
+                await this.findNearestStopIfLocationAvailable();
             }
         } catch (error) {
             console.error('🔗 Error applying URL parameters on load:', error);
+            // Fallback to nearest stop if there's an error
+            await this.findNearestStopIfLocationAvailable();
+        }
+    }
+
+    async findNearestStopIfLocationAvailable() {
+        if (this.userLocation) {
+            console.log('📍 User location available, finding nearest stop...');
+            await this.findNearestStop();
+        } else {
+            console.log('📍 User location not available, skipping nearest stop finding');
         }
     }
 
@@ -656,6 +681,11 @@ class TransitExplorer {
             }
         });
 
+        // Nearest stop button
+        document.getElementById('nearest-stop-btn').addEventListener('click', () => {
+            this.findNearestStopManually();
+        });
+
         // Add refresh button functionality to the last updated element
         const lastUpdated = document.getElementById('last-updated');
         if (lastUpdated) {
@@ -685,13 +715,19 @@ class TransitExplorer {
         this.stopBusLocationTracking(); // Stop bus tracking
         this.currentSelectedStop = null;
         
+        // Clean up any remaining markers
+        if (this.nearestStopMarker) {
+            this.nearestStopMarker.remove();
+            this.nearestStopMarker = null;
+        }
+        
         // Update URL to clear parameters
         if (this.urlManager) {
             this.urlManager.onSelectionCleared();
         }
     }
 
-    async requestLocation() {
+    async requestLocation(hasURLSelection = false) {
         console.log('📍 Requesting user location...');
         
         if (!navigator.geolocation) {
@@ -721,6 +757,7 @@ class TransitExplorer {
             this.updateLocationStatus('Location found', 'status-live');
             this.hideLocationBanner();
             this.enableCenterButton();
+            this.enableNearestStopButton(); // Enable the nearest stop button
             
             // Add user location marker
             this.addUserLocationMarker();
@@ -728,8 +765,14 @@ class TransitExplorer {
             // Debug source status before finding stops
             this.debugSourceStatus();
             
-            // Find nearest stop
-            await this.findNearestStop();
+            // Only find nearest stop automatically if no URL selection exists
+            if (!hasURLSelection) {
+                console.log('📍 No URL selection, proceeding to find nearest stop');
+                // Find nearest stop
+                await this.findNearestStop();
+            } else {
+                console.log('📍 URL selection exists, skipping automatic nearest stop finding');
+            }
             
             // Center map on user location
             this.centerOnLocation();
@@ -771,6 +814,13 @@ class TransitExplorer {
     enableCenterButton() {
         const btn = document.getElementById('center-location-btn');
         btn.disabled = false;
+    }
+
+    enableNearestStopButton() {
+        const btn = document.getElementById('nearest-stop-btn');
+        if (btn) {
+            btn.disabled = false;
+        }
     }
 
     updateLocationStatus(message, statusClass) {
@@ -1002,6 +1052,15 @@ class TransitExplorer {
 
     selectStop(stopFeature) {
         this.currentStop = stopFeature;
+        
+        // Clear any previous highlights and markers
+        this.clearAllSelections();
+        
+        // Highlight the selected stop using the layer system
+        const busStop = new BusStop(stopFeature);
+        this.highlightStop(busStop.id);
+        this.currentSelectedStop = busStop;
+        
         this.displayStopInfo(stopFeature);
         this.loadDepartures(stopFeature);
         
@@ -1019,27 +1078,16 @@ class TransitExplorer {
     }
 
     highlightNearestStop(stopFeature) {
-        const coordinates = stopFeature.geometry.coordinates;
+        // Remove the old marker-based highlighting
+        // The selectStop method will handle highlighting via the layer system
+        const busStop = new BusStop(stopFeature);
+        console.log(`🚏 Found nearest stop: ${busStop.name}`);
         
-        // Add a highlighted marker for the nearest stop
-        const el = document.createElement('div');
-        el.style.cssText = `
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #22c55e;
-            border: 3px solid white;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.7);
-            animation: pulse 2s infinite;
-        `;
-
+        // Clean up any existing marker
         if (this.nearestStopMarker) {
             this.nearestStopMarker.remove();
+            this.nearestStopMarker = null;
         }
-
-        this.nearestStopMarker = new mapboxgl.Marker(el)
-            .setLngLat(coordinates)
-            .addTo(this.map);
     }
 
     displayStopInfo(stopFeature, busStop = null) {
@@ -2952,6 +3000,31 @@ class TransitExplorer {
             panel.classList.remove('hidden');
             console.log('📋 Showing nearby stops panel');
         }
+    }
+
+    async findNearestStopManually() {
+        console.log('🎯 Manual nearest stop finding triggered...');
+        
+        if (!this.userLocation) {
+            console.warn('❌ Cannot find nearest stop: user location not available');
+            this.updateLocationStatus('Location required for nearest stop', 'status-scheduled');
+            this.showLocationBanner();
+            return;
+        }
+
+        // Clear current selections
+        this.clearAllSelections();
+        
+        // Update URL to clear parameters since we're resetting to nearest stop
+        if (this.urlManager) {
+            this.urlManager.onSelectionCleared();
+        }
+        
+        // Find and select nearest stop
+        await this.findNearestStop();
+        
+        // Update status
+        this.updateLocationStatus('Nearest stop selected', 'status-live');
     }
 }
 
