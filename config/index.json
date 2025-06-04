@@ -20,6 +20,12 @@
       "title": "Street Map रस्त्याचो नकासो"
     },
     {
+      "id": "osm-paths"
+    },
+    {
+      "id": "osm-railways"
+    },
+    {
       "id": "osm-roads"
     },
     {

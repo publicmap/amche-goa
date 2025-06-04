@@ -6,6 +6,7 @@ class TransitExplorer {
         this.map = null;
         this.userLocation = null;
         this.currentStop = null;
+        this.refreshInterval = null;
         this.mapboxToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiY2l3ZmNjNXVzMDAzZzJ0cDV6b2lkOG9odSJ9.eep6sUoBS0eMN4thZUWpyQ';
         this.tilesets = {
             routes: 'planemad.6fl8vqim',
@@ -142,6 +143,19 @@ class TransitExplorer {
                 this.centerOnLocation();
             }
         });
+
+        // Add refresh button functionality to the last updated element
+        const lastUpdated = document.getElementById('last-updated');
+        if (lastUpdated) {
+            lastUpdated.style.cursor = 'pointer';
+            lastUpdated.title = 'Click to refresh departures';
+            lastUpdated.addEventListener('click', () => {
+                if (this.currentStop) {
+                    console.log('🔄 Manual refresh triggered...');
+                    this.loadDepartures(this.currentStop);
+                }
+            });
+        }
     }
 
     async requestLocation() {
@@ -334,6 +348,9 @@ class TransitExplorer {
         this.currentStop = stopFeature;
         this.displayStopInfo(stopFeature);
         this.loadDepartures(stopFeature);
+        
+        // Start auto-refresh for live data
+        this.startAutoRefresh();
     }
 
     highlightNearestStop(stopFeature) {
@@ -415,45 +432,190 @@ class TransitExplorer {
         `;
     }
 
-    loadDepartures(stopFeature) {
+    async loadDepartures(stopFeature) {
         const departureList = document.getElementById('departure-list');
         const lastUpdated = document.getElementById('last-updated');
         
         try {
             const props = stopFeature.properties;
             let departures = [];
+            let dataSource = 'No data';
             
-            // Try to parse real timetable data first
-            if (props.stop_timetable) {
-                departures = this.parseTimetableData(props.stop_timetable, props.route_name_list);
+            // Try to fetch live data first
+            if (props.id) {
+                console.log(`🔴 Fetching live data for stop: ${props.id}`);
+                const liveData = await this.fetchLiveData(props.id);
                 
-                if (departures.length > 0) {
-                    console.log(`📋 Found ${departures.length} real departures for stop:`, props.name);
+                if (liveData && liveData.length > 0) {
+                    departures = liveData;
+                    dataSource = 'Live data';
+                    console.log(`📡 Found ${departures.length} live departures`);
                 } else {
-                    console.log('📋 No valid departures found in timetable data, falling back to mock data');
+                    console.log('📡 No live data available, falling back to timetable');
                 }
             }
             
-            // Fallback to mock data if no real departures available
-            if (departures.length === 0 && props.route_name_list) {
-                console.log('📋 Generating mock departures based on route list');
-                departures = this.generateMockDepartures(props.route_name_list);
+            // Fallback to timetable data if no live data
+            if (departures.length === 0 && props.stop_timetable) {
+                departures = this.parseTimetableData(props.stop_timetable, props.route_name_list);
+                
+                if (departures.length > 0) {
+                    console.log(`📋 Found ${departures.length} timetable departures for stop:`, props.name);
+                    dataSource = 'Scheduled';
+                } else {
+                    console.log('📋 No valid departures found in timetable data');
+                }
             }
             
             // If we have timetable data but no current departures, show upcoming ones
             if (departures.length === 0 && props.stop_timetable) {
                 departures = this.getNextDayDepartures(props.stop_timetable);
+                if (departures.length > 0) {
+                    dataSource = 'Tomorrow';
+                }
             }
             
             this.displayDepartures(departures);
             
             // Update timestamp with data source info
-            const dataSource = props.stop_timetable && departures.length > 0 ? 'Real-time data' : 'Estimated';
             lastUpdated.innerHTML = `${dataSource} • Updated ${new Date().toLocaleTimeString()}`;
             
         } catch (error) {
             console.error('Error loading departures:', error);
             this.showDepartureError();
+        }
+    }
+
+    async fetchLiveData(stopId) {
+        try {
+            console.log(`🌐 Calling Chalo API for stop: ${stopId}`);
+            
+            const response = await fetch(`https://chalo.com/app/api/vasudha/stop/mumbai/${stopId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                console.log(`❌ API response not ok: ${response.status}`);
+                return [];
+            }
+
+            const data = await response.json();
+            console.log('📡 Live API Response:', data);
+
+            return this.parseLiveApiData(data);
+
+        } catch (error) {
+            console.error('❌ Error fetching live data:', error);
+            return [];
+        }
+    }
+
+    parseLiveApiData(apiData) {
+        try {
+            const departures = [];
+            const now = new Date();
+
+            // The API response structure may vary - need to adapt based on actual response
+            // Common patterns in transit APIs:
+            
+            if (apiData.routes && Array.isArray(apiData.routes)) {
+                // Pattern 1: routes array with arrival predictions
+                apiData.routes.forEach(route => {
+                    if (route.arrivals && Array.isArray(route.arrivals)) {
+                        route.arrivals.forEach(arrival => {
+                            const arrivalTime = this.parseApiTime(arrival.eta || arrival.arrival_time || arrival.time, now);
+                            if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
+                                departures.push({
+                                    route: route.short_name || route.name || arrival.route_name,
+                                    time: arrivalTime,
+                                    isLive: true,
+                                    destination: route.destination || arrival.destination || 'Unknown',
+                                    platform: arrival.platform || '1',
+                                    vehicleId: arrival.vehicle_id,
+                                    delay: arrival.delay || 0,
+                                    isRealTime: true
+                                });
+                            }
+                        });
+                    }
+                });
+            } else if (apiData.arrivals && Array.isArray(apiData.arrivals)) {
+                // Pattern 2: direct arrivals array
+                apiData.arrivals.forEach(arrival => {
+                    const arrivalTime = this.parseApiTime(arrival.eta || arrival.arrival_time || arrival.time, now);
+                    if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
+                        departures.push({
+                            route: arrival.route_short_name || arrival.route_name || arrival.route,
+                            time: arrivalTime,
+                            isLive: true,
+                            destination: arrival.destination || arrival.headsign || 'Unknown',
+                            platform: arrival.platform || '1',
+                            vehicleId: arrival.vehicle_id,
+                            delay: arrival.delay || 0,
+                            isRealTime: true
+                        });
+                    }
+                });
+            } else if (apiData.eta && Array.isArray(apiData.eta)) {
+                // Pattern 3: eta array (common in Indian transit APIs)
+                apiData.eta.forEach(eta => {
+                    const arrivalTime = this.parseApiTime(eta.minutes || eta.time || eta.eta, now);
+                    if (arrivalTime && this.isWithinNext60Minutes(arrivalTime, now)) {
+                        departures.push({
+                            route: eta.route_name || eta.route || eta.service,
+                            time: arrivalTime,
+                            isLive: true,
+                            destination: eta.destination || eta.towards || 'Unknown',
+                            platform: eta.platform || '1',
+                            vehicleId: eta.vehicle_id,
+                            delay: eta.delay || 0,
+                            isRealTime: true
+                        });
+                    }
+                });
+            }
+
+            // Sort by arrival time
+            return departures.sort((a, b) => a.time - b.time).slice(0, 12);
+
+        } catch (error) {
+            console.error('Error parsing live API data:', error);
+            return [];
+        }
+    }
+
+    parseApiTime(timeValue, baseTime) {
+        try {
+            if (typeof timeValue === 'number') {
+                // Assume minutes from now
+                return new Date(baseTime.getTime() + (timeValue * 60 * 1000));
+            }
+            
+            if (typeof timeValue === 'string') {
+                // Try different time formats
+                if (timeValue.includes(':')) {
+                    // HH:MM format
+                    return this.parseTimeString(timeValue, baseTime);
+                } else {
+                    // Assume minutes from now
+                    const minutes = parseInt(timeValue);
+                    if (!isNaN(minutes)) {
+                        return new Date(baseTime.getTime() + (minutes * 60 * 1000));
+                    }
+                }
+            }
+            
+            // ISO timestamp
+            if (timeValue instanceof Date || (typeof timeValue === 'string' && timeValue.includes('T'))) {
+                return new Date(timeValue);
+            }
+
+            return null;
+        } catch (error) {
+            return null;
         }
     }
 
@@ -490,8 +652,9 @@ class TransitExplorer {
                             route: routeInfo.route_short_name || routeInfo.route_name,
                             time: departure,
                             isLive: false, // Next day departures are scheduled
-                            destination: routeInfo.last_stop_name || this.generateDestination(),
-                            platform: '1',
+                            destination: routeInfo.last_stop_name || 'Unknown',
+                            agencyName: routeInfo.agency_name || 'BEST',
+                            cityName: routeInfo.city_name || 'Mumbai',
                             headway: routeInfo.trip_headway || 60,
                             acService: routeInfo.ac_service || false,
                             routeId: routeInfo.route_id,
@@ -544,8 +707,9 @@ class TransitExplorer {
                             route: routeInfo.route_short_name || routeInfo.route_name,
                             time: departure,
                             isLive: isLiveRoute,
-                            destination: routeInfo.last_stop_name || this.generateDestination(),
-                            platform: this.generatePlatform(routeInfo.route_short_name),
+                            destination: routeInfo.last_stop_name || 'Unknown',
+                            agencyName: routeInfo.agency_name || 'BEST',
+                            cityName: routeInfo.city_name || 'Mumbai',
                             headway: routeInfo.trip_headway || 60,
                             acService: routeInfo.ac_service || false,
                             routeId: routeInfo.route_id
@@ -585,24 +749,6 @@ class TransitExplorer {
         return Math.random() > 0.4; // 60% chance of live tracking as fallback
     }
 
-    generatePlatform(routeName) {
-        // Generate platform numbers based on route characteristics
-        if (!routeName) return '1';
-        
-        // AC routes typically use higher numbered platforms
-        if (routeName.startsWith('A-') || routeName.includes('AC')) {
-            return Math.floor(Math.random() * 3) + 3; // Platforms 3-5
-        }
-        
-        // Express routes use specific platforms
-        if (routeName.includes('EXP') || routeName.includes('EXPRESS')) {
-            return Math.floor(Math.random() * 2) + 2; // Platforms 2-3
-        }
-        
-        // Regular routes use platforms 1-2
-        return Math.floor(Math.random() * 2) + 1;
-    }
-
     parseTimeString(timeStr, baseDate) {
         try {
             // Parse "HH:MM" format
@@ -630,43 +776,6 @@ class TransitExplorer {
         const timeDiff = departureTime - currentTime;
         // Within next 60 minutes (3.6 million milliseconds)
         return timeDiff >= 0 && timeDiff <= 60 * 60 * 1000;
-    }
-
-    generateMockDepartures(routeListStr) {
-        if (!routeListStr) return [];
-        
-        const routes = routeListStr.split(',').slice(0, 8); // Show up to 8 routes
-        const departures = [];
-        const now = new Date();
-        
-        routes.forEach((route, index) => {
-            // Generate 2-3 departures per route in next 60 minutes
-            const numDepartures = Math.floor(Math.random() * 2) + 2;
-            
-            for (let i = 0; i < numDepartures; i++) {
-                const departureTime = new Date(now.getTime() + (Math.random() * 60 * 60 * 1000)); // Within 60 minutes
-                const isLive = Math.random() > 0.3; // 70% chance of being live
-                
-                departures.push({
-                    route: route.trim(),
-                    time: departureTime,
-                    isLive: isLive,
-                    destination: this.generateDestination(),
-                    platform: `${index + 1}`
-                });
-            }
-        });
-        
-        // Sort by departure time
-        return departures.sort((a, b) => a.time - b.time).slice(0, 12); // Show next 12 departures
-    }
-
-    generateDestination() {
-        const destinations = [
-            'CST', 'Dadar', 'Bandra', 'Andheri', 'Borivali', 'Thane', 
-            'Kurla', 'Ghatkopar', 'Mulund', 'Vikhroli', 'Powai', 'BKC'
-        ];
-        return destinations[Math.floor(Math.random() * destinations.length)];
     }
 
     displayDepartures(departures) {
@@ -719,13 +828,38 @@ class TransitExplorer {
                 '<span class="text-blue-200 text-xs ml-1">AC</span>' : '';
 
             // Live status with better indicators
-            const statusClass = departure.isLive ? 'status-live' : 'status-scheduled';
-            const statusText = departure.isNextDay ? 'Scheduled' :
-                              departure.isLive ? 'Live tracking' : 'Scheduled';
+            const statusClass = departure.isRealTime ? 'status-live' : 
+                               departure.isLive ? 'status-live' : 'status-scheduled';
+            
+            let statusText = departure.isNextDay ? 'Scheduled' :
+                            departure.isRealTime ? 'Live GPS' : 
+                            departure.isLive ? 'Live tracking' : 'Scheduled';
+
+            // Add delay information for real-time data
+            if (departure.isRealTime && departure.delay) {
+                const delayMin = Math.abs(departure.delay);
+                if (departure.delay > 0) {
+                    statusText += ` • ${delayMin}min late`;
+                } else if (departure.delay < 0) {
+                    statusText += ` • ${delayMin}min early`;
+                }
+            }
+
+            // Vehicle ID for live tracking
+            const vehicleInfo = departure.vehicleId ? ` • Bus ${departure.vehicleId}` : '';
 
             // Frequency information
             const frequencyInfo = departure.headway && departure.headway < 60 ? 
                 `Every ${departure.headway}min` : '';
+
+            // Agency and city information instead of platform
+            const agencyInfo = departure.agencyName ? departure.agencyName : '';
+            const cityInfo = departure.cityName && departure.cityName !== departure.agencyName ? 
+                ` • ${departure.cityName}` : '';
+            
+            // Real-time indicator
+            const realtimeIcon = departure.isRealTime ? 
+                '<svg class="w-3 h-3 text-green-400 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : '';
             
             return `
                 <div class="departure-row flex items-center justify-between p-3 rounded">
@@ -737,11 +871,13 @@ class TransitExplorer {
                                     ${departure.route}${acIndicator}
                                 </span>
                                 <span class="text-white font-medium">${departure.destination}</span>
+                                ${realtimeIcon}
                             </div>
                             <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
                                 <span>${statusText}</span>
                                 ${frequencyInfo ? `<span>•</span><span>${frequencyInfo}</span>` : ''}
-                                ${departure.platform !== '1' ? `<span>•</span><span>Platform ${departure.platform}</span>` : ''}
+                                ${agencyInfo ? `<span>•</span><span>${agencyInfo}${cityInfo}</span>` : ''}
+                                ${vehicleInfo ? `<span>${vehicleInfo}</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -806,6 +942,36 @@ class TransitExplorer {
                 <p class="text-sm mt-1">Enable location to see real-time departures</p>
             </div>
         `;
+    }
+
+    // Add auto-refresh functionality for live data
+    startAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        // Refresh every 30 seconds if we have a current stop
+        this.refreshInterval = setInterval(() => {
+            if (this.currentStop && this.currentStop.properties.id) {
+                console.log('🔄 Auto-refreshing live data...');
+                this.loadDepartures(this.currentStop);
+            }
+        }, 30000); // 30 seconds
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+    }
+
+    // Cleanup method for proper resource management
+    destroy() {
+        this.stopAutoRefresh();
+        if (this.map) {
+            this.map.remove();
+        }
     }
 }
 
