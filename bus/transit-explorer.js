@@ -103,6 +103,9 @@ class TransitExplorer {
             
             // Add route interaction handlers
             // this.setupRouteInteractions();
+            
+            // Add moveend listener to query visible transit data
+            this.setupMoveEndListener();
         });
 
         // Add navigation controls
@@ -159,7 +162,7 @@ class TransitExplorer {
                     10, 2,
                     16, 6
                 ],
-                'line-opacity': 0.8
+                'line-opacity': 0.5
             }
         });
 
@@ -1047,11 +1050,16 @@ class TransitExplorer {
         const stopInfoEl = document.getElementById('stop-info');
         const displayInfo = busStop.getDisplayInfo(this.userLocation);
         
-        // Use DataUtils for route badges
-        const routeBadgesHtml = displayInfo.routes.map(routeName => {
-            const routeInfo = busStop.getRoutesFromTimetable().find(r => r.name === routeName);
-            return DataUtils.getStyledRouteBadge(routeName, routeInfo, 'small');
+        // Get routes from timetable data which includes agency/fare info
+        const routesWithInfo = busStop.getRoutesFromTimetable();
+        
+        // Generate route badges using the timetable data which has proper styling info
+        const routeBadgesHtml = routesWithInfo.slice(0, 5).map(routeInfo => {
+            return DataUtils.getStyledRouteBadge(routeInfo.name, routeInfo, 'small');
         }).join(' ');
+        
+        // Calculate remaining routes
+        const moreRoutes = Math.max(0, routesWithInfo.length - 5);
         
         stopInfoEl.innerHTML = `
             <div class="bg-gray-800 rounded-lg p-4 border border-green-500/30">
@@ -1077,7 +1085,7 @@ class TransitExplorer {
                     
                     <div>
                         <span class="text-gray-400">Routes:</span>
-                        <span class="text-white font-medium">${displayInfo.routeCount}</span>
+                        <span class="text-white font-medium">${routesWithInfo.length}</span>
                     </div>
                     
                     ${displayInfo.tripCount ? `
@@ -1098,8 +1106,8 @@ class TransitExplorer {
                         <span class="text-gray-400">Service Routes:</span>
                         <div class="flex flex-wrap gap-1 mt-1">
                             ${routeBadgesHtml}
-                            ${displayInfo.moreRoutes > 0 ? 
-                                `<span class="text-gray-400 text-xs">+${displayInfo.moreRoutes}</span>` : ''}
+                            ${moreRoutes > 0 ? 
+                                `<span class="text-gray-400 text-xs">+${moreRoutes}</span>` : ''}
                         </div>
                     </div>
                     
@@ -1142,6 +1150,20 @@ class TransitExplorer {
                 this.hideNearbyStopsPanel();
             });
         }
+    }
+
+    // Add missing method for generating styled route badges
+    getStyledRouteBadges(routeNames, busStop) {
+        if (!routeNames || !Array.isArray(routeNames)) return '';
+        
+        // Get routes with full info from timetable
+        const routesWithInfo = busStop.getRoutesFromTimetable();
+        
+        return routeNames.map(routeName => {
+            // Find matching route info
+            const routeInfo = routesWithInfo.find(r => r.name === routeName);
+            return DataUtils.getStyledRouteBadge(routeName, routeInfo, 'small');
+        }).join(' ');
     }
 
     async loadNearbyStops(currentStop) {
@@ -2578,6 +2600,135 @@ class TransitExplorer {
         });
 
         console.log('✅ Unified map interactions set up successfully');
+    }
+
+    setupMoveEndListener() {
+        console.log('🎯 Setting up moveend listener for transit data querying...');
+        
+        this.map.on('moveend', () => {
+            // Small delay to ensure rendering is complete
+            setTimeout(() => {
+                this.queryVisibleTransitData();
+            }, 100);
+        });
+        
+    }
+
+    queryVisibleTransitData() {
+        try {
+            // Get current map bounds and zoom level for context
+            const bounds = this.map.getBounds();
+            const zoom = this.map.getZoom();
+            const center = this.map.getCenter();
+            
+            // Query all source features and then filter by viewport bounds
+            const allRoutes = this.map.querySourceFeatures('mumbai-routes', {
+                sourceLayer: 'mumbai-routes'
+            });
+            
+            const allStops = this.map.querySourceFeatures('mumbai-stops', {
+                sourceLayer: 'mumbai-stops'
+            });
+            
+            // Filter routes by viewport bounds
+            const visibleRoutes = allRoutes.filter(feature => {
+                if (!feature.geometry || !feature.geometry.coordinates) return false;
+                
+                // Handle different geometry types
+                let coords = feature.geometry.coordinates;
+                if (feature.geometry.type === 'LineString') {
+                    // For routes, check if any part of the line is within bounds
+                    return coords.some(coord => {
+                        const [lng, lat] = coord;
+                        return lng >= bounds.getWest() && lng <= bounds.getEast() &&
+                               lat >= bounds.getSouth() && lat <= bounds.getNorth();
+                    });
+                } else if (feature.geometry.type === 'Point') {
+                    const [lng, lat] = coords;
+                    return lng >= bounds.getWest() && lng <= bounds.getEast() &&
+                           lat >= bounds.getSouth() && lat <= bounds.getNorth();
+                }
+                return false;
+            });
+            
+            // Filter stops by viewport bounds
+            const visibleStops = allStops.filter(feature => {
+                if (!feature.geometry || !feature.geometry.coordinates) return false;
+                
+                const [lng, lat] = feature.geometry.coordinates;
+                return lng >= bounds.getWest() && lng <= bounds.getEast() &&
+                       lat >= bounds.getSouth() && lat <= bounds.getNorth();
+            });
+            
+            // Process route data
+            const routeData = visibleRoutes.map(feature => ({
+                id: feature.properties.route_id,
+                name: feature.properties.route_short_name || feature.properties.route_name,
+                longName: feature.properties.route_long_name,
+                description: feature.properties.route_desc,
+                agency: feature.properties.agency_name,
+                isLive: feature.properties.is_live === 'true' || feature.properties.is_live === true,
+                fareType: feature.properties.fare_type,
+                cityName: feature.properties.city_name,
+                coordinates: feature.geometry?.coordinates || null
+            }));
+            
+            // Process stop data
+            const stopData = visibleStops.map(feature => ({
+                id: feature.properties.id || feature.properties.stop_id,
+                name: feature.properties.name || feature.properties.stop_name,
+                description: feature.properties.description,
+                routes: feature.properties.route_name_list ? 
+                       feature.properties.route_name_list.split(/[;,]/).map(r => r.trim()) : [],
+                coordinates: feature.geometry?.coordinates || null,
+                timetableData: feature.properties.stop_timetable ? true : false
+            }));
+            
+            // Remove duplicates (same feature might be queried multiple times)
+            const uniqueRoutes = routeData.filter((route, index, self) => 
+                index === self.findIndex(r => r.id === route.id)
+            );
+            
+            const uniqueStops = stopData.filter((stop, index, self) => 
+                index === self.findIndex(s => s.id === stop.id)
+            );
+            
+            // Create summary object
+            const transitDataSummary = {
+                timestamp: new Date().toISOString(),
+                mapContext: {
+                    zoom: Math.round(zoom * 100) / 100, // Round to 2 decimal places
+                    center: {
+                        lng: Math.round(center.lng * 1000000) / 1000000, // Round to 6 decimal places
+                        lat: Math.round(center.lat * 1000000) / 1000000
+                    },
+                    bounds: {
+                        north: Math.round(bounds.getNorth() * 1000000) / 1000000,
+                        south: Math.round(bounds.getSouth() * 1000000) / 1000000,
+                        east: Math.round(bounds.getEast() * 1000000) / 1000000,
+                        west: Math.round(bounds.getWest() * 1000000) / 1000000
+                    }
+                },
+                summary: {
+                    totalRoutes: uniqueRoutes.length,
+                    totalStops: uniqueStops.length,
+                    liveRoutes: uniqueRoutes.filter(r => r.isLive).length,
+                    agencies: [...new Set(uniqueRoutes.map(r => r.agency).filter(a => a))],
+                    stopsWithTimetables: uniqueStops.filter(s => s.timetableData).length
+                },
+                routes: uniqueRoutes,
+                stops: uniqueStops
+            };
+            
+            // Log to console as formatted JSON
+            console.log('🗺️ VISIBLE TRANSIT DATA:', transitDataSummary);
+            
+            // Also store in instance for potential use
+            this.lastVisibleTransitData = transitDataSummary;
+            
+        } catch (error) {
+            console.error('❌ Error querying visible transit data:', error);
+        }
     }
 
     handleStopClick(primaryStopFeature, allStopFeatures) {
