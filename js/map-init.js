@@ -8,10 +8,92 @@ function getUrlParameter(name) {
     return urlParams.get(name);
 }
 
+// Function to parse layers from URL parameter
+function parseLayersFromUrl(layersParam) {
+    if (!layersParam) return [];
+    
+    const layers = [];
+    let currentItem = '';
+    let braceCount = 0;
+    let inQuotes = false;
+    let escapeNext = false;
+    
+    // Parse the comma-separated string, being careful about JSON objects
+    for (let i = 0; i < layersParam.length; i++) {
+        const char = layersParam[i];
+        
+        if (escapeNext) {
+            currentItem += char;
+            escapeNext = false;
+            continue;
+        }
+        
+        if (char === '\\') {
+            currentItem += char;
+            escapeNext = true;
+            continue;
+        }
+        
+        if (char === '"' && !escapeNext) {
+            inQuotes = !inQuotes;
+        }
+        
+        if (!inQuotes) {
+            if (char === '{') {
+                braceCount++;
+            } else if (char === '}') {
+                braceCount--;
+            }
+        }
+        
+        if (char === ',' && braceCount === 0 && !inQuotes) {
+            // Found a separator, process current item
+            const trimmedItem = currentItem.trim();
+            if (trimmedItem) {
+                if (trimmedItem.startsWith('{') && trimmedItem.endsWith('}')) {
+                    try {
+                        layers.push(JSON.parse(trimmedItem));
+                    } catch (error) {
+                        console.warn('Failed to parse layer JSON:', trimmedItem, error);
+                        // Treat as layer ID if JSON parsing fails
+                        layers.push({ id: trimmedItem });
+                    }
+                } else {
+                    // Simple layer ID
+                    layers.push({ id: trimmedItem });
+                }
+            }
+            currentItem = '';
+        } else {
+            currentItem += char;
+        }
+    }
+    
+    // Process the last item
+    const trimmedItem = currentItem.trim();
+    if (trimmedItem) {
+        if (trimmedItem.startsWith('{') && trimmedItem.endsWith('}')) {
+            try {
+                layers.push(JSON.parse(trimmedItem));
+            } catch (error) {
+                console.warn('Failed to parse layer JSON:', trimmedItem, error);
+                // Treat as layer ID if JSON parsing fails
+                layers.push({ id: trimmedItem });
+            }
+        } else {
+            // Simple layer ID
+            layers.push({ id: trimmedItem });
+        }
+    }
+    
+    return layers;
+}
+
 // Function to load configuration
 async function loadConfiguration() {
     // Check if a specific config is requested via URL parameter
     const configParam = getUrlParameter('config');
+    const layersParam = getUrlParameter('layers');
     let configPath = 'config/index.json';
     let config;
     
@@ -63,6 +145,35 @@ async function loadConfiguration() {
     if (!config) {
         const configResponse = await fetch(configPath);
         config = await configResponse.json();
+    }
+    
+    // Parse layers from URL parameter if provided
+    if (layersParam) {
+        console.log('Parsing layers from URL parameter:', layersParam);
+        const urlLayers = parseLayersFromUrl(layersParam);
+        console.log('Parsed URL layers:', urlLayers);
+        
+        // Set URL layers to be visible by default and maintain order
+        if (urlLayers.length > 0) {
+            // Set initiallyChecked to true for all URL layers
+            const processedUrlLayers = urlLayers.map(layer => ({
+                ...layer,
+                initiallyChecked: true
+            }));
+            
+            // For URL layers, we want to respect the order specified in the URL
+            // This means URL layers should take precedence and appear in URL order
+            const existingLayers = config.layers || [];
+            const urlLayerIds = new Set(processedUrlLayers.map(l => l.id));
+            
+            // Keep existing layers that aren't overridden by URL layers
+            const nonUrlLayers = existingLayers.filter(layer => !urlLayerIds.has(layer.id));
+            
+            // The final layers array should be: URL layers (in URL order) + remaining existing layers
+            config.layers = [...processedUrlLayers, ...nonUrlLayers];
+            
+            console.log('Final merged layers with URL order preserved:', config.layers);
+        }
     }
 
     // Load defaults
