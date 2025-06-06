@@ -52,7 +52,10 @@ function parseLayersFromUrl(layersParam) {
             if (trimmedItem) {
                 if (trimmedItem.startsWith('{') && trimmedItem.endsWith('}')) {
                     try {
-                        layers.push(JSON.parse(trimmedItem));
+                        const parsedLayer = JSON.parse(trimmedItem);
+                        // Minify the JSON by removing extra whitespace
+                        const minifiedItem = JSON.stringify(parsedLayer);
+                        layers.push({ ...parsedLayer, _originalJson: minifiedItem });
                     } catch (error) {
                         console.warn('Failed to parse layer JSON:', trimmedItem, error);
                         // Treat as layer ID if JSON parsing fails
@@ -74,7 +77,10 @@ function parseLayersFromUrl(layersParam) {
     if (trimmedItem) {
         if (trimmedItem.startsWith('{') && trimmedItem.endsWith('}')) {
             try {
-                layers.push(JSON.parse(trimmedItem));
+                const parsedLayer = JSON.parse(trimmedItem);
+                // Minify the JSON by removing extra whitespace
+                const minifiedItem = JSON.stringify(parsedLayer);
+                layers.push({ ...parsedLayer, _originalJson: minifiedItem });
             } catch (error) {
                 console.warn('Failed to parse layer JSON:', trimmedItem, error);
                 // Treat as layer ID if JSON parsing fails
@@ -158,19 +164,90 @@ async function loadConfiguration() {
             // Set initiallyChecked to true for all URL layers
             const processedUrlLayers = urlLayers.map(layer => ({
                 ...layer,
-                initiallyChecked: true
+                initiallyChecked: true,
+                // Preserve the original JSON for custom layers
+                ...(layer._originalJson && { _originalJson: layer._originalJson })
             }));
             
-            // For URL layers, we want to respect the order specified in the URL
-            // This means URL layers should take precedence and appear in URL order
+            // Create minified layers parameter for URL rewriting
+            const minifiedLayersParam = processedUrlLayers.map(layer => {
+                return layer._originalJson || layer.id;
+            }).join(',');
+            
+            // Rewrite URL with minified layers parameter if it's different
+            if (minifiedLayersParam !== layersParam) {
+                const url = new URL(window.location);
+                const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
+                const otherParams = new URLSearchParams(url.search);
+                otherParams.delete('layers'); // Remove existing layers param
+                
+                // Build the new URL manually to avoid URL encoding the JSON
+                let newUrl = baseUrl;
+                if (otherParams.toString()) {
+                    newUrl += '?' + otherParams.toString() + '&layers=' + minifiedLayersParam;
+                } else {
+                    newUrl += '?layers=' + minifiedLayersParam;
+                }
+                
+                // Add hash if it exists
+                if (url.hash) {
+                    newUrl += url.hash;
+                }
+                
+                console.log('Rewriting URL from:', window.location.href);
+                console.log('Rewriting URL to:', newUrl);
+                window.history.replaceState({}, '', newUrl);
+            }
+            
+            // Merge URL layers while preserving the original config order and respecting URL ordering
             const existingLayers = config.layers || [];
             const urlLayerIds = new Set(processedUrlLayers.map(l => l.id));
+            const urlLayersMap = new Map(processedUrlLayers.map(l => [l.id, l]));
             
-            // Keep existing layers that aren't overridden by URL layers
-            const nonUrlLayers = existingLayers.filter(layer => !urlLayerIds.has(layer.id));
+            // Build final layers array
+            const finalLayers = [...existingLayers];
             
-            // The final layers array should be: URL layers (in URL order) + remaining existing layers
-            config.layers = [...processedUrlLayers, ...nonUrlLayers];
+            // Process URL layers in the order they appear in the URL
+            let lastInsertedIndex = -1;
+            
+            processedUrlLayers.forEach((urlLayer, urlIndex) => {
+                const existingIndex = finalLayers.findIndex(layer => layer.id === urlLayer.id);
+                
+                if (existingIndex !== -1) {
+                    // Replace existing layer with URL layer (which has initiallyChecked: true)
+                    finalLayers[existingIndex] = urlLayer;
+                    lastInsertedIndex = existingIndex;
+                } else {
+                    // This is a new layer - insert it in the right position based on URL order
+                    let insertPosition;
+                    
+                    if (lastInsertedIndex !== -1) {
+                        // Insert after the last processed URL layer
+                        insertPosition = lastInsertedIndex + 1;
+                    } else {
+                        // First new layer - find where to insert based on previous URL layers
+                        let insertAfterIndex = -1;
+                        
+                        // Look for the previous URL layer in the URL list
+                        for (let i = urlIndex - 1; i >= 0; i--) {
+                            const prevUrlLayer = processedUrlLayers[i];
+                            const prevLayerIndex = finalLayers.findIndex(layer => layer.id === prevUrlLayer.id);
+                            if (prevLayerIndex !== -1) {
+                                insertAfterIndex = prevLayerIndex;
+                                break;
+                            }
+                        }
+                        
+                        insertPosition = insertAfterIndex !== -1 ? insertAfterIndex + 1 : 0;
+                    }
+                    
+                    // Insert the new layer
+                    finalLayers.splice(insertPosition, 0, urlLayer);
+                    lastInsertedIndex = insertPosition;
+                }
+            });
+            
+            config.layers = finalLayers;
             
             console.log('Final merged layers with URL order preserved:', config.layers);
         }
@@ -204,7 +281,14 @@ async function loadConfiguration() {
                     
                     if (libraryLayer) {
                         // Merge the library layer with any custom overrides from config
-                        return { ...libraryLayer, ...layerConfig };
+                        // Preserve important URL-specific properties like _originalJson and initiallyChecked
+                        return { 
+                            ...libraryLayer, 
+                            ...layerConfig,
+                            // Ensure these critical properties are preserved
+                            ...(layerConfig._originalJson && { _originalJson: layerConfig._originalJson }),
+                            ...(layerConfig.initiallyChecked !== undefined && { initiallyChecked: layerConfig.initiallyChecked })
+                        };
                     }
                 }
                 // If no match found or it's a fully defined layer, return as is

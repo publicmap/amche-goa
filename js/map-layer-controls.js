@@ -1,31 +1,9 @@
-import { getQueryParameters, convertToWebMercator, convertStyleToLegend } from './map-utils.js';
+import { getQueryParameters, convertToWebMercator, convertStyleToLegend, deepMerge, isObject } from './map-utils.js';
 import { convertToKML, gstableToArray } from './map-utils.js';
 import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
 import { fixLayerOrdering } from './layer-order-manager.js';
 import { localization } from './localization.js';
-
-// Move deepMerge and isObject outside the class
-function deepMerge(target, source) {
-    const output = Object.assign({}, target);
-    if (isObject(target) && isObject(source)) {
-        Object.keys(source).forEach(key => {
-            if (isObject(source[key])) {
-                if (!(key in target))
-                    Object.assign(output, { [key]: source[key] });
-                else
-                    output[key] = deepMerge(target[key], source[key]);
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        });
-    }
-    return output;
-}
-
-function isObject(item) {
-    return (item && typeof item === 'object' && !Array.isArray(item));
-}
 
 export class MapLayerControl {
     constructor(options) {
@@ -33,6 +11,7 @@ export class MapLayerControl {
         this._state = {
             groups: Array.isArray(options) ? options : [options]
         };
+        console.log('MapLayerControl constructor - initial state groups:', this._state.groups.map(g => ({ id: g.id, _originalJson: g._originalJson, initiallyChecked: g.initiallyChecked })));
         
         // Default styles will be loaded from config/index.json styles object
         this._defaultStyles = {}; 
@@ -743,11 +722,21 @@ export class MapLayerControl {
                         visibleLayers.push(selectedRadio.value);
                     }
                 } else {
-                    visibleLayers.push(group.id);
+                    // If this is a custom layer with original JSON, use that
+                    if (group._originalJson) {
+                        console.log('Adding custom layer to visible layers:', group.id, group._originalJson);
+                        visibleLayers.push(group._originalJson);
+                    } else {
+                        console.log('Adding regular layer to visible layers:', group.id);
+                        visibleLayers.push(group.id);
+                    }
                 }
+            } else {
+                console.log('Layer not checked:', group.id, 'checked:', toggleInput?.checked);
             }
         });
 
+        console.log('All visible layers:', visibleLayers);
         return visibleLayers;
     }
 
@@ -755,24 +744,84 @@ export class MapLayerControl {
 
         const urlParams = new URLSearchParams(window.location.search);
         
+        // Parse layers parameter to handle both simple IDs and JSON objects
+        const parseUrlLayers = (layersParam) => {
+            if (!layersParam) return [];
+            
+            const layers = [];
+            let currentItem = '';
+            let braceCount = 0;
+            let inQuotes = false;
+            let escapeNext = false;
+            
+            for (let i = 0; i < layersParam.length; i++) {
+                const char = layersParam[i];
+                
+                if (escapeNext) {
+                    currentItem += char;
+                    escapeNext = false;
+                    continue;
+                }
+                
+                if (char === '\\') {
+                    currentItem += char;
+                    escapeNext = true;
+                    continue;
+                }
+                
+                if (char === '"' && !escapeNext) {
+                    inQuotes = !inQuotes;
+                }
+                
+                if (!inQuotes) {
+                    if (char === '{') {
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                    }
+                }
+                
+                if (char === ',' && braceCount === 0 && !inQuotes) {
+                    const trimmedItem = currentItem.trim();
+                    if (trimmedItem) {
+                        layers.push(trimmedItem);
+                    }
+                    currentItem = '';
+                } else {
+                    currentItem += char;
+                }
+            }
+            
+            const trimmedItem = currentItem.trim();
+            if (trimmedItem) {
+                layers.push(trimmedItem);
+            }
+            
+            return layers;
+        };
+
         // If no layers parameter is specified, treat all initiallyChecked layers as active
         const activeLayers = urlParams.get('layers') ? 
-            urlParams.get('layers').split(',').map(s => s.trim()) : 
+            parseUrlLayers(urlParams.get('layers')) : 
             this._state.groups
                 .filter(group => group.initiallyChecked)
-                .map(group => group.type === group.id);
+                .map(group => group.id);
 
         this._state.groups.forEach((group, groupIndex) => {
             // Update initiallyChecked based on URL parameter or original setting
             if (urlParams.get('layers')) {
                 if (group.type === 'layer-group') {
                     // For layer groups, check if any of its subgroups are active
-                    const hasActiveSubgroup = group.groups.some(subgroup => 
+                    const hasActiveSubgroup = group.groups && group.groups.some(subgroup => 
                         activeLayers.includes(subgroup.id)
                     );
                     group.initiallyChecked = hasActiveSubgroup;
                 } else {
-                    group.initiallyChecked = activeLayers.includes(group.id);
+                    // Check if this layer is in the active layers list
+                    // For custom JSON layers, check both ID and original JSON
+                    const isActiveByID = activeLayers.includes(group.id);
+                    const isActiveByJSON = group._originalJson && activeLayers.includes(group._originalJson);
+                    group.initiallyChecked = isActiveByID || isActiveByJSON;
                 }
             }
             const $groupHeader = $('<sl-details>', {

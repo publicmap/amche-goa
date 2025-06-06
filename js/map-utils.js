@@ -1,4 +1,36 @@
 /**
+ * Checks if an item is a plain object (not null, not array, not function)
+ * @param {*} item - The item to check
+ * @returns {boolean} True if the item is a plain object
+ */
+export function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+/**
+ * Performs a deep merge of two objects, recursively merging nested objects
+ * @param {Object} target - The target object to merge into
+ * @param {Object} source - The source object to merge from
+ * @returns {Object} A new object with merged properties
+ */
+export function deepMerge(target, source) {
+    const output = Object.assign({}, target);
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target))
+                    Object.assign(output, { [key]: source[key] });
+                else
+                    output[key] = deepMerge(target[key], source[key]);
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    return output;
+}
+
+/**
  * Converts a GeoJSON feature to KML format
  * @param {Object} feature - GeoJSON feature object
  * @param {Object} options - Options for KML generation
