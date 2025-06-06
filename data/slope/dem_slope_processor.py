@@ -83,6 +83,13 @@ DEM_CONFIGS = {
         "dem_nodata_value": -32768,
         "input_folder": "./src/nasadem_30m",
         "contour_interval": 1
+    },
+    "soi_10m": {
+        "dem_offset": 0,
+        "dem_water_value": 0,
+        "dem_nodata_value": 3.4e+38,
+        "input_folder": "./src/soi_10m",
+        "contour_interval": 10
     }
 }
 
