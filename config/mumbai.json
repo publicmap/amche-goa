@@ -175,6 +175,15 @@
       "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
     },
     {
+      "title": "Mumbai Land Surface Temperature 2023",
+      "description": "Median LST for 2023.",
+      "headerImage": "",
+      "type": "tms",
+      "id": "mumbai-lst-2023",
+      "url": "mapbox://planemad.811byiyq",
+      "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
+    },
+    {
       "title": "Mumbai Rapid Transit Map",
       "description": "Sanctioned and proposed network or rapid transit lines in Mumbai.",
       "headerImage": "assets/map-layers/map-layer-mumbai-transit.png",

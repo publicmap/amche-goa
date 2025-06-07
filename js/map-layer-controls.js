@@ -1658,12 +1658,22 @@ export class MapLayerControl {
                 const layerId = `tms-layer-${group.id}`;
 
                 if (!this._map.getSource(sourceId)) {
-                    this._map.addSource(sourceId, {
-                        type: 'raster',
-                        tiles: [group.url],
-                        tileSize: 256,
-                        maxzoom: group.maxzoom || 22,
-                    });
+                    // Check if it's a Mapbox hosted raster tileset
+                    if (group.url.startsWith('mapbox://')) {
+                        this._map.addSource(sourceId, {
+                            type: 'raster',
+                            url: group.url,  // Keep the mapbox:// URL as is
+                            tileSize: 256,
+                            maxzoom: group.maxzoom || 22,
+                        });
+                    } else {
+                        this._map.addSource(sourceId, {
+                            type: 'raster',
+                            tiles: [group.url],
+                            tileSize: 256,
+                            maxzoom: group.maxzoom || 22,
+                        });
+                    }
 
                     // Create layer config using the new flexible style system
                     const layerConfig = this._createLayerConfig({
@@ -2341,12 +2351,22 @@ export class MapLayerControl {
 
             // Only add source and layer if they don't exist yet and should be visible
             if (visible && !this._map.getSource(sourceId)) {
-                this._map.addSource(sourceId, {
-                    type: 'raster',
-                    tiles: [group.url],
-                    tileSize: 256,
-                    maxzoom: group.maxzoom || 22,
-                });
+                // Check if it's a Mapbox hosted raster tileset
+                if (group.url.startsWith('mapbox://')) {
+                    this._map.addSource(sourceId, {
+                        type: 'raster',
+                        url: group.url,  // Keep the mapbox:// URL as is
+                        tileSize: 256,
+                        maxzoom: group.maxzoom || 22,
+                    });
+                } else {
+                    this._map.addSource(sourceId, {
+                        type: 'raster',
+                        tiles: [group.url],
+                        tileSize: 256,
+                        maxzoom: group.maxzoom || 22,
+                    });
+                }
 
                 // Create layer config using the new flexible style system
                 const layerConfig = this._createLayerConfig({
@@ -4255,12 +4275,22 @@ export class MapLayerControl {
                 const layerId = `tms-layer-${newConfig.id}`;
                 
                 // Add source
-                this._map.addSource(sourceId, {
-                    type: 'raster',
-                    tiles: [newConfig.url],
-                    tileSize: 256,
-                    maxzoom: newConfig.maxzoom || 22
-                });
+                // Check if it's a Mapbox hosted raster tileset
+                if (newConfig.url.startsWith('mapbox://')) {
+                    this._map.addSource(sourceId, {
+                        type: 'raster',
+                        url: newConfig.url,  // Keep the mapbox:// URL as is
+                        tileSize: 256,
+                        maxzoom: newConfig.maxzoom || 22
+                    });
+                } else {
+                    this._map.addSource(sourceId, {
+                        type: 'raster',
+                        tiles: [newConfig.url],
+                        tileSize: 256,
+                        maxzoom: newConfig.maxzoom || 22
+                    });
+                }
                 
                 // Create layer config using the new flexible style system
                 const layerConfig = this._createLayerConfig({
