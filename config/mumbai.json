@@ -181,7 +181,16 @@
       "type": "tms",
       "id": "mumbai-lst-2023",
       "url": "mapbox://planemad.811byiyq",
-      "attribution": "<a href='https://dpremarks.mcgm.gov.in/srdp1991/'>BMC SRDP 1991</a> via <a href='https://mapwarper.net/maps/67753'>Map Warper</a>"
+      "attribution": "<a href=''>landsat 8</a> via <a href='https://drive.google.com/drive/folders/1aX1YMS_G_l8F0ptI1isHUYzKMVOD01Rg'>OpenCity</a>"
+    },
+    {
+      "title": "Mumbai Land Surface Temperature 2015",
+      "description": "Median LST for 2015.",
+      "headerImage": "",
+      "type": "tms",
+      "id": "mumbai-lst-2015",
+      "url": "mapbox://planemad.36kaf0bf",
+      "attribution": "<a href=''>landsat 8</a> via <a href='https://drive.google.com/drive/folders/1aX1YMS_G_l8F0ptI1isHUYzKMVOD01Rg'>OpenCity</a>"
     },
     {
       "title": "Mumbai Rapid Transit Map",

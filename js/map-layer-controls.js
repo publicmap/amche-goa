@@ -741,94 +741,42 @@ export class MapLayerControl {
     }
 
     _initializeControl($container) {
-
-        const urlParams = new URLSearchParams(window.location.search);
+        // URL layer processing has already been handled in map-init.js
+        // The layers passed to the constructor already have the correct initiallyChecked values
+        console.log('_initializeControl - groups with initiallyChecked:', this._state.groups.map(g => ({ id: g.id, initiallyChecked: g.initiallyChecked, type: g.type })));
         
-        // Parse layers parameter to handle both simple IDs and JSON objects
-        const parseUrlLayers = (layersParam) => {
-            if (!layersParam) return [];
-            
-            const layers = [];
-            let currentItem = '';
-            let braceCount = 0;
-            let inQuotes = false;
-            let escapeNext = false;
-            
-            for (let i = 0; i < layersParam.length; i++) {
-                const char = layersParam[i];
-                
-                if (escapeNext) {
-                    currentItem += char;
-                    escapeNext = false;
-                    continue;
-                }
-                
-                if (char === '\\') {
-                    currentItem += char;
-                    escapeNext = true;
-                    continue;
-                }
-                
-                if (char === '"' && !escapeNext) {
-                    inQuotes = !inQuotes;
-                }
-                
-                if (!inQuotes) {
-                    if (char === '{') {
-                        braceCount++;
-                    } else if (char === '}') {
-                        braceCount--;
-                    }
-                }
-                
-                if (char === ',' && braceCount === 0 && !inQuotes) {
-                    const trimmedItem = currentItem.trim();
-                    if (trimmedItem) {
-                        layers.push(trimmedItem);
-                    }
-                    currentItem = '';
-                } else {
-                    currentItem += char;
-                }
-            }
-            
-            const trimmedItem = currentItem.trim();
-            if (trimmedItem) {
-                layers.push(trimmedItem);
-            }
-            
-            return layers;
-        };
-
-        // If no layers parameter is specified, treat all initiallyChecked layers as active
-        const activeLayers = urlParams.get('layers') ? 
-            parseUrlLayers(urlParams.get('layers')) : 
-            this._state.groups
-                .filter(group => group.initiallyChecked)
-                .map(group => group.id);
+        // Debug all DOM elements being created
+        console.log('Debug: About to create DOM elements for', this._state.groups.length, 'groups');
 
         this._state.groups.forEach((group, groupIndex) => {
-            // Update initiallyChecked based on URL parameter or original setting
-            if (urlParams.get('layers')) {
-                if (group.type === 'layer-group') {
-                    // For layer groups, check if any of its subgroups are active
-                    const hasActiveSubgroup = group.groups && group.groups.some(subgroup => 
-                        activeLayers.includes(subgroup.id)
-                    );
-                    group.initiallyChecked = hasActiveSubgroup;
-                } else {
-                    // Check if this layer is in the active layers list
-                    // For custom JSON layers, check both ID and original JSON
-                    const isActiveByID = activeLayers.includes(group.id);
-                    const isActiveByJSON = group._originalJson && activeLayers.includes(group._originalJson);
-                    group.initiallyChecked = isActiveByID || isActiveByJSON;
-                }
-            }
+            console.log(`Debug: Creating DOM element for group ${groupIndex}: ${group.id} (type: ${group.type})`);
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
             });
             this._sourceControls[groupIndex] = $groupHeader[0];
+
+            // Create buttons first so they can be referenced in event handlers
+            const $settingsButton = $('<sl-icon-button>', {
+                name: 'gear-fill',
+                class: 'settings-button ml-auto hidden', // Add hidden class by default
+                label: 'Layer Settings'
+            });
+
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type) 
+                ? $('<sl-icon-button>', {
+                    class: 'opacity-toggle hidden',
+                    'data-opacity': '0.95',
+                    title: 'Toggle opacity',
+                    name: 'layers-fill',
+                    'font-size': '2.5rem'
+                }).css({
+                    '--sl-color-neutral-600': '#ffffff',
+                    '--sl-color-primary-600': 'currentColor',
+                    '--sl-color-primary-500': 'currentColor',
+                    'color': '#ffffff'
+                })
+                : $('<span>');
 
             // Update the sl-show/hide event handlers to handle both opacity and settings buttons
             $groupHeader[0].addEventListener('sl-show', (event) => {
@@ -866,7 +814,7 @@ export class MapLayerControl {
                 // Show both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', false);
                 $settingsButton.toggleClass('hidden', false);
-                $(event.target).closest('.layer-group').addClass('active');
+                $(event.target).closest('.group-header').addClass('active');
             });
 
             $groupHeader[0].addEventListener('sl-hide', (event) => {
@@ -904,13 +852,13 @@ export class MapLayerControl {
                 // Hide both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', true);
                 $settingsButton.toggleClass('hidden', true);
-                $(event.target).closest('.layer-group').removeClass('active');
+                $(event.target).closest('.group-header').removeClass('active');
             });
 
             // Initialize visibility based on initial state
             if (group.initiallyChecked) {
                 // Set active class based on initial state
-                $groupHeader.closest('.layer-group').addClass('active');
+                $groupHeader.addClass('active');
                 
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
@@ -978,7 +926,7 @@ export class MapLayerControl {
                     }
                     
                     // Update active class
-                    $groupHeader.closest('.layer-group').toggleClass('active', newState);
+                    $groupHeader.toggleClass('active', newState);
                 } else {
                     // For non-style layers, trigger the change event
                     $toggle.trigger('change');
@@ -1038,14 +986,14 @@ export class MapLayerControl {
                                     $toggleInput.on('change', handler);
                                 }, 0);
                             }
-                            $groupHeader.closest('.layer-group').toggleClass('active', checked);
+                            $groupHeader.toggleClass('active', checked);
                         };
                         handler.call(this, e);
                     }
                 }
                 
                 // Update active class
-                $groupHeader.closest('.layer-group').toggleClass('active', isChecked);
+                $groupHeader.toggleClass('active', isChecked);
             });
 
             const $toggleSlider = $('<span>', {
@@ -1054,6 +1002,7 @@ export class MapLayerControl {
 
             $toggleLabel.append($toggleInput, $toggleSlider);
 
+            console.log(`Debug: Creating title span for group ${groupIndex}:`, { id: group.id, title: group.title, type: group.type });
             const $titleSpan = $('<span>', {
                 text: group.title,
                 class: 'control-title text-sm font-medium font-bold text-white'
@@ -1065,37 +1014,14 @@ export class MapLayerControl {
             });
             $toggleTitleContainer.append($toggleLabel, $titleSpan);
 
-            // Add settings button before the opacity button
-            const $settingsButton = $('<sl-icon-button>', {
-                name: 'gear-fill',
-                class: 'settings-button ml-auto hidden', // Add hidden class by default
-                label: 'Layer Settings'
-            });
-
-            // Add click handler directly to the button
+            // Add click handler directly to the settings button
             $settingsButton[0].addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this._showLayerSettings(group);
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type) 
-                ? $('<sl-icon-button>', {
-                    class: 'opacity-toggle hidden',
-                    'data-opacity': '0.95',
-                    title: 'Toggle opacity',
-                    name: 'layers-fill',
-                    'font-size': '2.5rem'
-                }).css({
-                    '--sl-color-neutral-600': '#ffffff',
-                    '--sl-color-primary-600': 'currentColor',
-                    '--sl-color-primary-500': 'currentColor',
-                    'color': '#ffffff'
-                })
-                : $('<span>');
-
             // Update the order of buttons in the content wrapper
-            $toggleTitleContainer.append($toggleLabel, $titleSpan);
             $contentWrapper.append($toggleTitleContainer, $settingsButton, $opacityButton);
 
             $opacityButton[0]?.addEventListener('click', (e) => {
@@ -2865,11 +2791,22 @@ export class MapLayerControl {
     }
 
     _initializeWithAnimation() {
-        const groupHeaders = this._container.querySelectorAll('.layer-group > .group-header .toggle-switch input[type="checkbox"]');
+        // Get all toggle switches in group headers, but exclude sublayer ones
+        const allToggles = this._container.querySelectorAll('.group-header .toggle-switch input[type="checkbox"]');
+        const groupHeaders = Array.from(allToggles).filter(toggle => {
+            // Exclude toggles that are inside .layer-controls (sublayers)
+            return !toggle.closest('.layer-controls');
+        });
+        
+        console.log('_initializeWithAnimation - found', groupHeaders.length, 'main toggle inputs');
+        console.log('_initializeWithAnimation - total toggles found:', allToggles.length);
+        console.log('_initializeWithAnimation - state groups count:', this._state.groups.length);
 
         groupHeaders.forEach((toggleInput, index) => {
             const group = this._state.groups[index];
-            toggleInput.checked = group?.initiallyChecked ?? false;
+            const shouldBeChecked = group?.initiallyChecked ?? false;
+            console.log(`Setting toggle ${index} for group ${group?.id} to ${shouldBeChecked}`);
+            toggleInput.checked = shouldBeChecked;
             toggleInput.dispatchEvent(new Event('change'));
         });
 

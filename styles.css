@@ -333,6 +333,7 @@ header h1 {
 /* Popup styles */
 .mapboxgl-popup-content {
     padding: 0;
+    border: 1px solid #ccc;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     background: white;
@@ -370,6 +371,7 @@ header h1 {
 
 /* Hover popup styles */
 .hover-popup .mapboxgl-popup-content {
+    border: 1px solid #ccc;
     background: white;
     color: black;
     padding: 4px 8px;
@@ -1865,8 +1867,7 @@ sl-menu {
 
 /* Mapbox popup styles for bus info */
 .mapboxgl-popup-content {
-    padding: 12px;
-    border-radius: 8px;
+    padding: 1px;
     background: rgba(17, 24, 39, 0.95);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(34, 197, 94, 0.3);

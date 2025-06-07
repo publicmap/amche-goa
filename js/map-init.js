@@ -214,8 +214,14 @@ async function loadConfiguration() {
                 const existingIndex = finalLayers.findIndex(layer => layer.id === urlLayer.id);
                 
                 if (existingIndex !== -1) {
-                    // Replace existing layer with URL layer (which has initiallyChecked: true)
-                    finalLayers[existingIndex] = urlLayer;
+                    // Merge existing layer with URL layer properties (preserving all config properties while adding URL-specific ones)
+                    finalLayers[existingIndex] = { 
+                        ...finalLayers[existingIndex], 
+                        ...urlLayer,
+                        // Ensure critical URL properties are preserved
+                        ...(urlLayer._originalJson && { _originalJson: urlLayer._originalJson }),
+                        ...(urlLayer.initiallyChecked !== undefined && { initiallyChecked: urlLayer.initiallyChecked })
+                    };
                     lastInsertedIndex = existingIndex;
                 } else {
                     // This is a new layer - insert it in the right position based on URL order
