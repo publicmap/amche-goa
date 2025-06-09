@@ -153,21 +153,33 @@ async function loadConfiguration() {
         config = await configResponse.json();
     }
     
-    // Parse layers from URL parameter if provided
-    if (layersParam) {
-        console.log('Parsing layers from URL parameter:', layersParam);
-        const urlLayers = parseLayersFromUrl(layersParam);
-        console.log('Parsed URL layers:', urlLayers);
-        
-        // Set URL layers to be visible by default and maintain order
-        if (urlLayers.length > 0) {
-            // Set initiallyChecked to true for all URL layers
-            const processedUrlLayers = urlLayers.map(layer => ({
-                ...layer,
-                initiallyChecked: true,
-                // Preserve the original JSON for custom layers
-                ...(layer._originalJson && { _originalJson: layer._originalJson })
-            }));
+            // Parse layers from URL parameter if provided
+        if (layersParam) {
+            console.log('Parsing layers from URL parameter:', layersParam);
+            const urlLayers = parseLayersFromUrl(layersParam);
+            console.log('Parsed URL layers:', urlLayers);
+            
+            // Set URL layers to be visible by default and maintain order
+            if (urlLayers.length > 0) {
+                // Set initiallyChecked to true for all URL layers
+                const processedUrlLayers = urlLayers.map(layer => ({
+                    ...layer,
+                    initiallyChecked: true,
+                    // Preserve the original JSON for custom layers
+                    ...(layer._originalJson && { _originalJson: layer._originalJson })
+                }));
+                
+                // When URL layers are specified, set ALL existing layers to initiallyChecked: false
+                // This ensures only URL-specified layers are visible
+                const existingLayers = config.layers || [];
+                const urlLayerIds = new Set(processedUrlLayers.map(l => l.id));
+                
+                // Reset all existing layers to not be initially checked
+                existingLayers.forEach(layer => {
+                    if (!urlLayerIds.has(layer.id)) {
+                        layer.initiallyChecked = false;
+                    }
+                });
             
             // Create minified layers parameter for URL rewriting
             const minifiedLayersParam = processedUrlLayers.map(layer => {
@@ -200,8 +212,6 @@ async function loadConfiguration() {
             }
             
             // Merge URL layers while preserving the original config order and respecting URL ordering
-            const existingLayers = config.layers || [];
-            const urlLayerIds = new Set(processedUrlLayers.map(l => l.id));
             const urlLayersMap = new Map(processedUrlLayers.map(l => [l.id, l]));
             
             // Build final layers array

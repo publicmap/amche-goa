@@ -89,6 +89,9 @@
       }
     },
     {
+      "id": "school-udise"
+    },
+    {
       "title": "Schools",
       "description": "Schools locations by capacity",
       "headerImage": "assets/map-layers/map-layer-schools.png",
