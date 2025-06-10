@@ -43,23 +43,50 @@ export class ConfigControl {
         await customElements.whenDefined('sl-menu-item');
         console.log('ConfigControl: Shoelace components ready');
         
-        const configMenuItems = [
-            { name: 'Goa (Default)', config: 'index' },
-            { name: 'Goa (Community)', config: 'goa-community' },
-            { name: 'Goa (Historic)', config: 'goa-historic' },
-            { name: 'Mumbai', config: 'mumbai' },
-            { name: 'Bombay Historical', config: 'bombay' },
-            { name: 'Gurugram', config: 'gurugram' },
-            { name: 'Bengaluru Flood', config: 'bengaluru-flood' },
-            { name: 'Example Template', config: 'examples/index' },
-            { name: 'World Soil Map', config: 'examples/maphub' }
-        ];
+        // Extract config menu items directly from the HTML
+        const configMenuItems = this.extractConfigMenuItems();
 
         console.log('ConfigControl: Expanding menu items for configs:', configMenuItems.map(i => i.config));
         for (const item of configMenuItems) {
             await this.expandConfigMenuItem(item.name, item.config);
         }
         console.log('ConfigControl: Menu expansion complete');
+    }
+
+    /**
+     * Extract config menu items from the HTML navigation menu
+     * @returns {Array} Array of config items with name and config properties
+     */
+    extractConfigMenuItems() {
+        const configMenuItems = [];
+        
+        // Find all menu items with href attributes
+        const menuItems = document.querySelectorAll('sl-menu-item[href]');
+        
+        for (const menuItem of menuItems) {
+            const href = menuItem.getAttribute('href');
+            const displayName = menuItem.textContent.trim();
+            
+            let configName = null;
+            
+            // Parse the href to extract config name
+            if (href === './') {
+                configName = 'index';
+            } else if (href.startsWith('./?atlas=')) {
+                configName = href.replace('./?atlas=', '');
+            }
+            
+            // Only include items that have atlas configs (skip other navigation items)
+            if (configName) {
+                configMenuItems.push({
+                    name: displayName,
+                    config: configName
+                });
+            }
+        }
+        
+        console.log('ConfigControl: Extracted config items from HTML:', configMenuItems);
+        return configMenuItems;
     }
 
     /**
@@ -75,15 +102,20 @@ export class ConfigControl {
             
             for (const item of menuItems) {
                 const href = item.getAttribute('href');
-                if ((configFile === 'index' && href === './') || 
-                    href === `./?config=${configFile}`) {
+                const itemName = item.textContent.trim();
+                
+                // Match by both href and name to ensure we get the right item
+                if (itemName === configName && 
+                    ((configFile === 'index' && href === './') || 
+                     href === `./?atlas=${configFile}`)) {
                     targetMenuItem = item;
+                    console.log(`Found matching menu item for ${configName}: ${href}`);
                     break;
                 }
             }
 
             if (!targetMenuItem) {
-                console.warn(`Could not find menu item for config: ${configName}`);
+                console.warn(`Could not find menu item for config: ${configName} (looking for href="./?atlas=${configFile}" or "./" for index)`);
                 return;
             }
 
@@ -164,7 +196,14 @@ export class ConfigControl {
         }
 
         try {
-            const configPath = configFile === 'index' ? 'config/index.atlas.json' : `config/${configFile}.atlas.json`;
+            let configPath;
+            if (configFile === 'index') {
+                configPath = 'config/index.atlas.json';
+            } else if (configFile.startsWith('examples/')) {
+                configPath = `config/${configFile}.atlas.json`;
+            } else {
+                configPath = `config/${configFile}.atlas.json`;
+            }
             const response = await fetch(configPath);
             
             if (!response.ok) {
