@@ -177,8 +177,9 @@
       "attribution": "<a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=0#gid=0'>Communidade de Goltim</a>",
       "style": {
         "fill-color": "red",
+        "line-color": "red",
         "line-width": 2,
-        "fill-opacity": 0.5
+        "fill-opacity": 0.2
       }
     },
     {
