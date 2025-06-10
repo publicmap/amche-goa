@@ -6,7 +6,7 @@ const { glob } = require('glob');
 
 /**
  * JSON Linter for config files
- * Validates JSON syntax and structure for all config/*.json files
+ * Validates JSON syntax and structure for all config/*.atlas.json files
  */
 
 let hasErrors = false;
@@ -93,15 +93,15 @@ async function lintJsonFiles() {
   logInfo('Starting JSON linting for config files...');
   
   try {
-    // Find all JSON files in config directory
-    const jsonFiles = await glob('config/*.json', { cwd: process.cwd() });
+    // Find all atlas JSON files in config directory
+    const jsonFiles = await glob('config/*.atlas.json', { cwd: process.cwd() });
     
     if (jsonFiles.length === 0) {
-      logError('No JSON files found in config directory');
+      logError('No atlas JSON files found in config directory');
       return;
     }
     
-    logInfo(`Found ${jsonFiles.length} JSON files to validate`);
+          logInfo(`Found ${jsonFiles.length} atlas JSON files to validate`);
     
     for (const filePath of jsonFiles) {
       const fullPath = path.resolve(filePath);
@@ -124,7 +124,7 @@ async function lintJsonFiles() {
       logError('JSON linting completed with errors');
       process.exit(1);
     } else {
-      logSuccess('All JSON files passed validation');
+      logSuccess('All atlas JSON files passed validation');
     }
     
   } catch (error) {

@@ -15,7 +15,7 @@ This project uses **Vitest** for testing, which provides:
 
 ### `config-validation.test.js`
 Main test suite that validates:
-- **JSON Syntax**: Ensures all config/*.json files have valid JSON syntax
+- **JSON Syntax**: Ensures all config/*.atlas.json files have valid JSON syntax
 - **JSON Structure**: Validates that config files have required fields and proper structure
 - **Layer References**: Checks that all layer IDs referenced in config files exist in `_map-layer-presets.json`
 - **Map Layer Presets**: Validates the structure and content of the layer presets file
@@ -61,7 +61,7 @@ npx vitest run --coverage
 The tests cover:
 
 1. **JSON Validation**
-   - Syntax validation for all config/*.json files
+   - Syntax validation for all config/*.atlas.json files
    - Structure validation ensuring required fields exist
 
 2. **Layer Reference Validation**

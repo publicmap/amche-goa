@@ -35,7 +35,7 @@
       "**/js/tests/**/*.test.js"
     ],
     "collectCoverageFrom": [
-      "config/**/*.json",
+      "config/**/*.atlas.json",
       "!**/node_modules/**"
     ]
   },

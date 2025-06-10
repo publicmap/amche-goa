@@ -12,7 +12,7 @@ export class MapLayerControl {
             groups: Array.isArray(options) ? options : [options]
         };
         
-        // Default styles will be loaded from config/index.json styles object
+        // Default styles will be loaded from config/index.atlas.json styles object
         this._defaultStyles = {}; 
         
         this._domCache = {};

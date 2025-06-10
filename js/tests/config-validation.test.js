@@ -8,8 +8,8 @@ describe('Config File Validation', () => {
   let mapLayerPresets = null;
 
   beforeAll(async () => {
-    // Load all config JSON files
-    configFiles = await glob('config/*.json', { cwd: process.cwd() });
+    // Load all config atlas JSON files
+    configFiles = await glob('config/*.atlas.json', { cwd: process.cwd() });
     
     // Load map layer presets
     const presetsPath = path.resolve('config/_map-layer-presets.json');
