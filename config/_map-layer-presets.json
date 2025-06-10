@@ -179,13 +179,13 @@
     },
     {
       "id": "school-udise",
-      "title": "Schools",
+      "title": "Schools (Udise)",
       "description": "Place locations from Karmashape",
       "type": "vector",
       "url": "https://indianopenmaps.fly.dev/not-so-open/education/schools/udise/ncog/{z}/{x}/{y}.pbf",
       "sourceLayer": "NCOG_UDISE_Schools",
       "attribution": "<a href='https://www.data.gov.in/resource/delivery-post-office-pincode-boundary'>Ministry of Communications Department of Posts</a> - Collected by <a href='https://github.com/ramSeraph/indian_admin_boundaries/releases/tag/postal'>Datameet Community</a>",
-      "maxzoom": 10,
+      "maxzoom": 14,
       "style": {
         "circle-radius": 10,
         "circle-color": "#4c7fff",

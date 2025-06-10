@@ -11,7 +11,6 @@ class URLManager {
         // Set up browser history handling
         this.setupHistoryHandling();
         
-        console.log('🔗 Map URL Manager initialized');
     }
 
     /**
@@ -288,7 +287,6 @@ class URLManager {
             }
             
             window.history.replaceState(null, '', newUrl);
-            console.log('🔗 Updated URL (prettified):', newUrl);
             
             // Trigger custom event for other components (like ShareLink)
             window.dispatchEvent(new CustomEvent('urlUpdated', { 
@@ -314,7 +312,6 @@ class URLManager {
      * Update URL when layers change
      */
     onLayersChanged() {
-        console.log('🔗 Layers changed, updating URL');
         this.updateURL({ updateLayers: true });
     }
 
@@ -326,7 +323,6 @@ class URLManager {
         const layersParam = urlParams.get('layers');
         
         if (!layersParam) {
-            console.log('🔗 No layers parameter to apply');
             return false;
         }
 
@@ -334,14 +330,12 @@ class URLManager {
         let applied = false;
 
         try {
-            console.log('🔗 Applying layers from URL:', layersParam);
             
             // Wait for map and layer control to be ready
             await this.waitForMapReady();
             
             // Parse layers from URL
             const urlLayers = this.parseLayersFromUrl(layersParam);
-            console.log('🔗 Parsed URL layers:', urlLayers);
             
             // Apply the layer state
             applied = await this.applyLayerState(urlLayers);
@@ -377,7 +371,6 @@ class URLManager {
     async applyLayerState(urlLayers) {
         // This would need to be implemented based on the specific layer control logic
         // For now, return true to indicate success
-        console.log('🔗 Would apply layer state:', urlLayers);
         return true;
     }
 
@@ -386,7 +379,6 @@ class URLManager {
      */
     setupHistoryHandling() {
         window.addEventListener('popstate', (event) => {
-            console.log('🔗 Browser navigation detected, applying URL parameters');
             this.applyURLParameters();
         });
     }
@@ -442,7 +434,6 @@ class URLManager {
             return result;
         };
 
-        console.log('🔗 Patched layer control methods for URL sync');
     }
 
     /**
@@ -463,7 +454,6 @@ class URLManager {
             }
         });
 
-        console.log('🔗 Set up layer control event listeners');
     }
 
     /**

@@ -11,7 +11,6 @@ export class MapLayerControl {
         this._state = {
             groups: Array.isArray(options) ? options : [options]
         };
-        console.log('MapLayerControl constructor - initial state groups:', this._state.groups.map(g => ({ id: g.id, _originalJson: g._originalJson, initiallyChecked: g.initiallyChecked })));
         
         // Default styles will be loaded from config/index.json styles object
         this._defaultStyles = {}; 
@@ -724,10 +723,8 @@ export class MapLayerControl {
                 } else {
                     // If this is a custom layer with original JSON, use that
                     if (group._originalJson) {
-                        console.log('Adding custom layer to visible layers:', group.id, group._originalJson);
                         visibleLayers.push(group._originalJson);
                     } else {
-                        console.log('Adding regular layer to visible layers:', group.id);
                         visibleLayers.push(group.id);
                     }
                 }
@@ -736,20 +733,12 @@ export class MapLayerControl {
             }
         });
 
-        console.log('All visible layers:', visibleLayers);
         return visibleLayers;
     }
 
     _initializeControl($container) {
-        // URL layer processing has already been handled in map-init.js
-        // The layers passed to the constructor already have the correct initiallyChecked values
-        console.log('_initializeControl - groups with initiallyChecked:', this._state.groups.map(g => ({ id: g.id, initiallyChecked: g.initiallyChecked, type: g.type })));
-        
-        // Debug all DOM elements being created
-        console.log('Debug: About to create DOM elements for', this._state.groups.length, 'groups');
 
         this._state.groups.forEach((group, groupIndex) => {
-            console.log(`Debug: Creating DOM element for group ${groupIndex}: ${group.id} (type: ${group.type})`);
             const $groupHeader = $('<sl-details>', {
                 class: 'group-header w-full map-controls-group',
                 open: group.initiallyChecked || false
@@ -1002,7 +991,6 @@ export class MapLayerControl {
 
             $toggleLabel.append($toggleInput, $toggleSlider);
 
-            console.log(`Debug: Creating title span for group ${groupIndex}:`, { id: group.id, title: group.title, type: group.type });
             const $titleSpan = $('<span>', {
                 text: group.title,
                 class: 'control-title text-sm font-medium font-bold text-white'
@@ -2797,15 +2785,10 @@ export class MapLayerControl {
             // Exclude toggles that are inside .layer-controls (sublayers)
             return !toggle.closest('.layer-controls');
         });
-        
-        console.log('_initializeWithAnimation - found', groupHeaders.length, 'main toggle inputs');
-        console.log('_initializeWithAnimation - total toggles found:', allToggles.length);
-        console.log('_initializeWithAnimation - state groups count:', this._state.groups.length);
 
         groupHeaders.forEach((toggleInput, index) => {
             const group = this._state.groups[index];
             const shouldBeChecked = group?.initiallyChecked ?? false;
-            console.log(`Setting toggle ${index} for group ${group?.id} to ${shouldBeChecked}`);
             toggleInput.checked = shouldBeChecked;
             
             // Force visual update by triggering a reflow
