@@ -17,7 +17,7 @@ class PermalinkHandler {
             const response = await fetch('config/permalinks.json');
             const data = await response.json();
             this.permalinks = data.permalinks || {};
-            console.log('📚 Loaded permalinks:', Object.keys(this.permalinks).length);
+            console.log('📚 Loaded permalinks:', this.permalinks);
         } catch (error) {
             console.warn('⚠️ Failed to load permalinks:', error);
             this.permalinks = {};

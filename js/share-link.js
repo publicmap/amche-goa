@@ -79,7 +79,6 @@ export class ShareLink {
         // Check if URL manager is available when we render
         const checkURLManager = () => {
             if (window.urlManager) {
-                console.log('🔗 ShareLink integrated with URL Manager');
                 return true;
             }
             return false;

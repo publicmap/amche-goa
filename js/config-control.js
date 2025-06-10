@@ -16,19 +16,15 @@ export class ConfigControl {
      * @param {MapLayerControl} layerControl - The current layer control instance
      */
     async initialize(layerControl) {
-        console.log('ConfigControl: Initializing with layer control:', layerControl);
         this.currentLayerControl = layerControl;
         
         if (this.initialized) {
-            console.log('ConfigControl: Already initialized, skipping');
             return;
         }
         
         try {
-            console.log('ConfigControl: Expanding navigation menu...');
             await this.expandNavigationMenu();
             this.initialized = true;
-            console.log('ConfigControl: Initialization complete');
         } catch (error) {
             console.error('Failed to initialize config control:', error);
         }
@@ -38,19 +34,15 @@ export class ConfigControl {
      * Expand the navigation menu with layers from each config
      */
     async expandNavigationMenu() {
-        console.log('ConfigControl: Waiting for Shoelace components...');
         // Wait for Shoelace components to be ready
         await customElements.whenDefined('sl-menu-item');
-        console.log('ConfigControl: Shoelace components ready');
         
         // Extract config menu items directly from the HTML
         const configMenuItems = this.extractConfigMenuItems();
 
-        console.log('ConfigControl: Expanding menu items for configs:', configMenuItems.map(i => i.config));
         for (const item of configMenuItems) {
             await this.expandConfigMenuItem(item.name, item.config);
         }
-        console.log('ConfigControl: Menu expansion complete');
     }
 
     /**
@@ -85,7 +77,6 @@ export class ConfigControl {
             }
         }
         
-        console.log('ConfigControl: Extracted config items from HTML:', configMenuItems);
         return configMenuItems;
     }
 
@@ -109,7 +100,6 @@ export class ConfigControl {
                     ((configFile === 'index' && href === './') || 
                      href === `./?atlas=${configFile}`)) {
                     targetMenuItem = item;
-                    console.log(`Found matching menu item for ${configName}: ${href}`);
                     break;
                 }
             }
@@ -391,7 +381,6 @@ export class ConfigControl {
                 initiallyChecked: true // Auto-enable imported layers
             };
 
-            console.log('Adding layer:', newLayer);
             
             // Find the position to insert the new layer
             const insertPosition = this.findInsertPosition(currentState.groups, newLayer);
@@ -400,7 +389,6 @@ export class ConfigControl {
             const newGroups = [...currentState.groups];
             newGroups.splice(insertPosition, 0, newLayer);
             
-            console.log('New groups array:', newGroups.map(g => ({ id: g.id, title: g.title, type: g.type })));
             
             // Update the layer control state
             this.currentLayerControl._updateState({
