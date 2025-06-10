@@ -2220,7 +2220,9 @@ export class MapLayerControl {
                         'line-color': this._combineWithDefaultStyle(group.style?.['line-color'], this._defaultStyles.geojson.line['line-color']),
                         'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': group.style?.['line-opacity'] !== undefined ? group.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
-                        'line-dasharray': group.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
+                        // Only set line-dasharray if it's defined to avoid undefined errors
+                        ...(group.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ? 
+                            { 'line-dasharray': group.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray'] } : {})
                     },
                     layout: {
                         'visibility': 'visible',
@@ -2273,7 +2275,8 @@ export class MapLayerControl {
                             'text-allow-overlap': this._defaultStyles.geojson.text['text-allow-overlap'],
                             'text-offset': this._defaultStyles.geojson.text['text-offset'],
                             'text-transform': this._defaultStyles.geojson.text['text-transform'],
-                            'text-padding': group.style?.['text-padding'],
+                            // Only set text-padding if it's defined to avoid undefined errors
+                            ...(group.style?.['text-padding'] !== undefined ? { 'text-padding': group.style['text-padding'] } : {}),
                             visibility: 'visible',
                             // Apply categorized layout properties (including text-padding)
                             ...textLayout
@@ -4116,12 +4119,11 @@ export class MapLayerControl {
                 }
                 
                 // Add text layer if configured
-                if (newConfig.style['text-field']) {
+                if (newConfig.style?.['text-field']) {
                     this._map.addLayer({
-                        id: `vector-layer-${newConfig.id}-text`,
+                        id: `${sourceId}-label`,
                         type: 'symbol',
                         source: sourceId,
-                        'source-layer': newConfig.sourceLayer,
                         layout: {
                             'text-font': newConfig.style?.['text-font'] || ['Open Sans Bold'],
                             'text-field': newConfig.style['text-field'],
@@ -4131,7 +4133,8 @@ export class MapLayerControl {
                             'text-allow-overlap': newConfig.style?.['text-allow-overlap'] || false,
                             'text-offset': newConfig.style?.['text-offset'] || [0, 0],
                             'text-transform': newConfig.style?.['text-transform'] || 'none',
-                            'text-padding': newConfig.style?.['text-padding'],
+                            // Only set text-padding if it's defined to avoid undefined errors
+                            ...(newConfig.style?.['text-padding'] !== undefined ? { 'text-padding': newConfig.style['text-padding'] } : {}),
                             visibility: 'visible'
                         },
                         paint: {
@@ -4182,7 +4185,9 @@ export class MapLayerControl {
                         'line-color': this._combineWithDefaultStyle(newConfig.style?.['line-color'], this._defaultStyles.geojson.line['line-color']),
                         'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': newConfig.style?.['line-opacity'] !== undefined ? newConfig.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
-                        'line-dasharray': newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray']
+                        // Only set line-dasharray if it's defined to avoid undefined errors
+                        ...(newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ? 
+                            { 'line-dasharray': newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray'] } : {})
                     },
                     layout: {
                         'visibility': 'visible',
@@ -4231,7 +4236,8 @@ export class MapLayerControl {
                             'text-allow-overlap': newConfig.style?.['text-allow-overlap'] || false,
                             'text-offset': newConfig.style?.['text-offset'] || [0, 0],
                             'text-transform': newConfig.style?.['text-transform'] || 'none',
-                            'text-padding': newConfig.style?.['text-padding'],
+                            // Only set text-padding if it's defined to avoid undefined errors
+                            ...(newConfig.style?.['text-padding'] !== undefined ? { 'text-padding': newConfig.style['text-padding'] } : {}),
                             visibility: 'visible'
                         },
                         paint: {

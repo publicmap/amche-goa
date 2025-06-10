@@ -304,7 +304,10 @@ async function loadConfiguration() {
         
         // Process each layer in the config and merge with library definitions
         if (config.layers && Array.isArray(config.layers)) {
-            config.layers = config.layers.map(layerConfig => {
+            const validLayers = [];
+            const invalidLayers = [];
+            
+            config.layers.forEach(layerConfig => {
                 // If the layer only has an id (or minimal properties), look it up in the library
                 if (layerConfig.id && !layerConfig.type) {
                     // Find the matching layer in the library
@@ -313,18 +316,72 @@ async function loadConfiguration() {
                     if (libraryLayer) {
                         // Merge the library layer with any custom overrides from config
                         // Preserve important URL-specific properties like _originalJson and initiallyChecked
-                        return { 
+                        validLayers.push({ 
                             ...libraryLayer, 
                             ...layerConfig,
                             // Ensure these critical properties are preserved
                             ...(layerConfig._originalJson && { _originalJson: layerConfig._originalJson }),
                             ...(layerConfig.initiallyChecked !== undefined && { initiallyChecked: layerConfig.initiallyChecked })
-                        };
+                        });
+                    } else {
+                        // Layer not found in library - check if it came from URL
+                        if (layerConfig.initiallyChecked === true) {
+                            console.warn(`Unknown layer ID from URL: "${layerConfig.id}" - ignoring`);
+                            invalidLayers.push(layerConfig.id);
+                        } else {
+                            // For non-URL layers, keep them as-is (they might be fully defined custom layers)
+                            validLayers.push(layerConfig);
+                        }
+                    }
+                } else {
+                    // If it's a fully defined layer, return as is
+                    validLayers.push(layerConfig);
+                }
+            });
+            
+            config.layers = validLayers;
+            
+            // If we found invalid layers from URL, update the URL to remove them
+            if (invalidLayers.length > 0 && layersParam) {
+                console.log(`Removing invalid layer IDs from URL: ${invalidLayers.join(', ')}`);
+                
+                // Get the remaining valid layers that were originally from URL
+                const validUrlLayers = validLayers.filter(layer => layer.initiallyChecked === true);
+                
+                // Reconstruct the layers parameter with only valid layers
+                const newLayersParam = validUrlLayers.map(layer => {
+                    return layer._originalJson || layer.id;
+                }).join(',');
+                
+                // Update the URL
+                const url = new URL(window.location);
+                const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
+                const otherParams = new URLSearchParams(url.search);
+                otherParams.delete('layers');
+                
+                let newUrl = baseUrl;
+                if (newLayersParam) {
+                    // Only add layers parameter if there are valid layers
+                    if (otherParams.toString()) {
+                        newUrl += '?' + otherParams.toString() + '&layers=' + newLayersParam;
+                    } else {
+                        newUrl += '?layers=' + newLayersParam;
+                    }
+                } else {
+                    // No valid layers left, just add other parameters if any
+                    if (otherParams.toString()) {
+                        newUrl += '?' + otherParams.toString();
                     }
                 }
-                // If no match found or it's a fully defined layer, return as is
-                return layerConfig;
-            });
+                
+                // Add hash if it exists
+                if (url.hash) {
+                    newUrl += url.hash;
+                }
+                
+                console.log('Updated URL to remove invalid layers:', newUrl);
+                window.history.replaceState({}, '', newUrl);
+            }
         }
     } catch (error) {
         console.warn('Map layer library not found or invalid, using only config file:', error);
