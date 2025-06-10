@@ -51,8 +51,8 @@ export class ConfigControl {
             { name: 'Bombay Historical', config: 'bombay' },
             { name: 'Gurugram', config: 'gurugram' },
             { name: 'Bengaluru Flood', config: 'bengaluru-flood' },
-            { name: 'Example Template', config: 'example' },
-            { name: 'World Soil Map', config: 'maphub' }
+            { name: 'Example Template', config: 'examples/index' },
+            { name: 'World Soil Map', config: 'examples/maphub' }
         ];
 
         console.log('ConfigControl: Expanding menu items for configs:', configMenuItems.map(i => i.config));
@@ -164,7 +164,7 @@ export class ConfigControl {
         }
 
         try {
-            const configPath = configFile === 'index' ? 'config/index.json' : `config/${configFile}.json`;
+            const configPath = configFile === 'index' ? 'config/index.atlas.json' : `config/${configFile}.atlas.json`;
             const response = await fetch(configPath);
             
             if (!response.ok) {

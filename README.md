@@ -1,9 +1,19 @@
 # amche-goa
 
+**amche-atlas** is designed to be a flexible and interactive web based GIS software to quickly visualize spatial data layers from a vareity of sources.
+
+amche-atlas is currently deployed at the following urls:
 - Homepage: https://amche.in/
 - Development preview: https://amche.in/dev
 
-**amche-goa** is an open source citizen maintained map portal for the state of Goa, India that realizes the vision of [The National Geospatial Policy, 2022](https://dst.gov.in/sites/default/files/National%20Geospatial%20Policy.pdf).
+**Forks**
+- [Goa Department of Fire and Rescue services](https://github.com/alansaviolobo/dfes-dmp)
+
+`amche` translates to 'ours' in the Indian language of [Konkani](https://en.wikipedia.org/wiki/Konkani_language), the native language in Goa.
+
+**admche.in**
+
+This is a citizen maintained map portal for the state of Goa, India that realizes the vision of [The National Geospatial Policy, 2022](https://dst.gov.in/sites/default/files/National%20Geospatial%20Policy.pdf).
 
 > - 2.1.1. To make India a World Leader in Global Geospatial space with the best in the class ecosystem for
 innovation.
@@ -40,7 +50,7 @@ In pursuant to this goal, the Government of India has supported the creation of 
 - [National Data Sharing and Accessibility Policy (NDSAP)](https://dst.gov.in/national-data-sharing-and-accessibility-policy-0)
 - [The National Geospatial Policy, 2022](https://dst.gov.in/sites/default/files/National%20Geospatial%20Policy.pdf)
 
-However at the grassroots level, citizens continue to face difficulties in reliable access to these portals and datasets for effective use. The birth of amche-goa has its roots in leveraging the best in class technology tools to simplify access to these public datasets in the Indian state of Goa and empower grasroots level decentralized planning as envisaged by the Constitution.
+At the grassroots level, citizens continue to face difficulties in reliable access to these portals and datasets for effective use. The birth of amche-atlas has its roots in leveraging the best in class technology tools to simplify access to these public datasets in the state of Goa and empower grasroots level decentralized planning as envisaged by the Constitution.
 
 ## Data 
 
@@ -73,11 +83,13 @@ The various map layers are sourced from available open data published by governm
 
 Data is directly mirrored from external sources and is not hosted or controlled by amche.in
 
-- [IndianOpenMaps](https://indianopenmaps.fly.dev) for serving various large open datasets via vector tiles
+- [IndianOpenMaps](https://indianopenmaps.fly.dev) vector tile data mirror for government open datasets
 - [mapwarper.net](https://mapwarper.net/layers/2054) for georeferencing and serving scanned or PDF maps via TMS
 - [Github](https://gist.github.com) for GeoJSON hosting
+- [Maphub](https://www.maphub.co/) for community spatial data hosting
+- [Wikimedia Commons](https://commons.wikimedia.org/) for out of copyright scanned maps and data
 
-See [/data](./data) for more information for any custom data processing code
+See [/data](./data) for more information for any custom data processing code.
 
 ## Software
 

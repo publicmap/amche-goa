@@ -100,7 +100,7 @@ async function loadConfiguration() {
     // Check if a specific config is requested via URL parameter
     const configParam = getUrlParameter('config');
     const layersParam = getUrlParameter('layers');
-    let configPath = 'config/index.json';
+    let configPath = 'config/index.atlas.json';
     let config;
     
     // If a config parameter is provided, determine how to handle it
@@ -122,9 +122,9 @@ async function loadConfiguration() {
                     // Build the new URL manually to avoid URL encoding the JSON
                     let newUrl = baseUrl;
                     if (otherParams.toString()) {
-                        newUrl += '?' + otherParams.toString() + '&config=' + minifiedJson;
+                        newUrl += '?' + otherParams.toString() + '&atlas=' + minifiedJson;
                     } else {
-                        newUrl += '?config=' + minifiedJson;
+                        newUrl += '?atlas=' + minifiedJson;
                     }
                     
                     // Add hash if it exists
@@ -143,7 +143,7 @@ async function loadConfiguration() {
         else if (configParam.startsWith('http://') || configParam.startsWith('https://')) {
             configPath = configParam; // Use the URL directly
         } else {
-            configPath = `config/${configParam}.json`; // Treat as local file
+            configPath = `config/${configParam}.atlas.json`; // Treat as local file
         }
     }
     

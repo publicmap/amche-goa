@@ -93,16 +93,26 @@ export class ShareLink {
             // Store original button content
             const originalContent = shareButton.innerHTML;
             
+            // Remove existing event listeners to prevent duplicates
+            const newButton = shareButton.cloneNode(false);
+            shareButton.parentNode.replaceChild(newButton, shareButton);
+            
             // Replace button content with QR code
-            shareButton.innerHTML = '';
-            shareButton.appendChild(qrCode);
+            newButton.innerHTML = '';
+            newButton.appendChild(qrCode);
+            
+            // Function to reset button to original state
+            const resetButton = () => {
+                newButton.innerHTML = originalContent;
+                newButton.addEventListener('click', this._handleShareClick);
+            };
             
             // Add click handler to QR code to show full screen overlay
             qrCode.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                // Reset button content immediately when QR code is viewed
-                shareButton.innerHTML = originalContent;
+                // Reset button content immediately
+                resetButton();
                 
                 // Show full-screen QR code overlay
                 this._showQROverlay(qrCodeUrl);
@@ -110,8 +120,8 @@ export class ShareLink {
             
             // Auto-revert after 30 seconds (if user hasn't clicked the QR code)
             setTimeout(() => {
-                if (shareButton.contains(qrCode)) {
-                    shareButton.innerHTML = originalContent;
+                if (newButton.contains(qrCode)) {
+                    resetButton();
                 }
             }, 30000);
         }).catch(err => {

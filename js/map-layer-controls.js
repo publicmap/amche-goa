@@ -286,7 +286,7 @@ export class MapLayerControl {
         try {
             // Load and merge both config files
             const defaultsResponse = await fetch('/config/_defaults.json');
-            const configResponse = await fetch('/config/index.json');
+            const configResponse = await fetch('/config/index.atlas.json');
             
             if (!defaultsResponse.ok || !configResponse.ok) {
                 throw new Error('Failed to load configuration files');
@@ -2807,6 +2807,16 @@ export class MapLayerControl {
             const shouldBeChecked = group?.initiallyChecked ?? false;
             console.log(`Setting toggle ${index} for group ${group?.id} to ${shouldBeChecked}`);
             toggleInput.checked = shouldBeChecked;
+            
+            // Force visual update by triggering a reflow
+            void toggleInput.offsetHeight;
+            
+            // Also force update on the toggle slider element
+            const toggleSlider = toggleInput.nextElementSibling;
+            if (toggleSlider && toggleSlider.classList.contains('toggle-slider')) {
+                void toggleSlider.offsetHeight;
+            }
+            
             toggleInput.dispatchEvent(new Event('change'));
         });
 
