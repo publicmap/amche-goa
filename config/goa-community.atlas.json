@@ -168,6 +168,55 @@
       "id": "pincode"
     },
     {
+      "id": "communidade-plots",
+      "title": "Communidade Owned Plots",
+      "description": "Communidade Owned Plots",
+      "headerImage": "assets/map-layers/map-layer-survey.png",
+      "type": "geojson",
+      "url": "https://gist.githubusercontent.com/planemad/6fda9bc0c90e2ede5c53ee03c33dec3a/raw/9cb340151b9e05f750020c9c9fd26b4cc968998d/goltim-communidade-plots.geojson",
+      "attribution": "<a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=0#gid=0'>Communidade de Goltim</a>",
+      "style": {
+        "text-font": [
+          "Open Sans Bold"
+        ],
+        "text-field": [
+          "step",
+          [
+            "zoom"
+          ],
+          "",
+          12,
+          [
+            "to-string",
+            [
+              "get",
+              "plot"
+            ]
+          ]
+        ],
+        "text-color": "red",
+        "text-halo-color": "white",
+        "text-halo-width": 0.5,
+        "text-halo-blur": 1,
+        "text-size": 13
+      },
+      "initiallyChecked": false,
+      "inspect": {
+        "id": "id",
+        "title": "Survey Number",
+        "label": "plot",
+        "fields": [
+          "villagenam",
+          "talname"
+        ],
+        "fieldTitles": [
+          "Village",
+          "Taluk"
+        ],
+        "customHtml": "<a href='https://bhunaksha.goa.gov.in/bhunaksha/' target='_blank'>View in Bhunaksha Goa</a> | <a href='https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31' target='_blank'>View RoR</a>"
+      }
+    },
+    {
       "id": "plot"
     },
     {
