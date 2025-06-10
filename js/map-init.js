@@ -1,6 +1,7 @@
 import { MapLayerControl } from './map-layer-controls.js';
 import { configControl } from './config-control.js';
 import { localization } from './localization.js';
+import { URLManager } from './url-api.js';
 
 // Function to get URL parameters
 function getUrlParameter(name) {
@@ -417,6 +418,13 @@ async function initializeMap() {
         
         // Initialize layer control
         layerControl.renderToContainer(container, map);
+        
+        // Initialize URL manager after layer control is ready
+        const urlManager = new URLManager(layerControl, map);
+        urlManager.setupLayerControlEventListeners();
+        
+        // Make URL manager globally accessible for ShareLink
+        window.urlManager = urlManager;
         
         // Force update localization after DOM elements are ready
         setTimeout(() => {

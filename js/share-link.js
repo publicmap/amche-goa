@@ -19,10 +19,17 @@ export class ShareLink {
         this.buttonId = options.buttonId || 'share-link';
         this.showToast = options.showToast !== false; // Default to true
         this.qrCodeSize = options.qrCodeSize || 500;
+        this.useURLManager = options.useURLManager !== false; // Default to true
         
         // Bind methods to preserve context
         this._handleShareClick = this._handleShareClick.bind(this);
         this._showToast = this._showToast.bind(this);
+        this._onURLUpdated = this._onURLUpdated.bind(this);
+        
+        // Set up URL manager integration if enabled
+        if (this.useURLManager) {
+            this.setupURLManagerIntegration();
+        }
     }
 
     /**
@@ -63,14 +70,72 @@ export class ShareLink {
     }
 
     /**
+     * Set up URL manager integration
+     */
+    setupURLManagerIntegration() {
+        // Listen for URL updates from the URL manager
+        window.addEventListener('urlUpdated', this._onURLUpdated);
+        
+        // Check if URL manager is available when we render
+        const checkURLManager = () => {
+            if (window.urlManager) {
+                console.log('🔗 ShareLink integrated with URL Manager');
+                return true;
+            }
+            return false;
+        };
+        
+        // Try to connect immediately, or set up a listener
+        if (!checkURLManager()) {
+            const interval = setInterval(() => {
+                if (checkURLManager()) {
+                    clearInterval(interval);
+                }
+            }, 100);
+            
+            // Stop trying after 5 seconds
+            setTimeout(() => clearInterval(interval), 5000);
+        }
+    }
+
+    /**
+     * Handle URL updated event from URL manager
+     */
+    _onURLUpdated(event) {
+        // Update our internal URL reference
+        if (event.detail && event.detail.url) {
+            this.cachedURL = event.detail.url;
+            console.log('🔗 ShareLink URL updated:', this.cachedURL);
+        }
+    }
+
+    /**
+     * Get the current shareable URL
+     */
+    getCurrentURL() {
+        // If URL manager is available, use it for the most current URL
+        if (this.useURLManager && window.urlManager) {
+            return window.urlManager.getShareableURL();
+        }
+        
+        // Fall back to cached URL or original URL
+        if (this.cachedURL) {
+            return this.cachedURL;
+        }
+        
+        // Original behavior
+        return typeof this.url === 'function' ? this.url() : this.url;
+    }
+
+    /**
      * Handle share button click
      */
     _handleShareClick() {
         const shareButton = document.getElementById(this.buttonId);
         if (!shareButton) return;
 
-        // Get the URL to share (allow for dynamic URL generation)
-        const urlToShare = typeof this.url === 'function' ? this.url() : this.url;
+        // Get the URL to share using the new method
+        const urlToShare = this.getCurrentURL();
 
         // Copy to clipboard
         navigator.clipboard.writeText(urlToShare).then(() => {
@@ -211,6 +276,11 @@ export class ShareLink {
         const container = document.getElementById(this.containerId);
         if (container) {
             container.innerHTML = '';
+        }
+        
+        // Clean up URL manager integration
+        if (this.useURLManager) {
+            window.removeEventListener('urlUpdated', this._onURLUpdated);
         }
         
         // Remove any existing toast notifications
