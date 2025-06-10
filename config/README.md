@@ -1,14 +1,14 @@
 # Map Configuration Guide
 
-**🎯 Quick Start**: Want to create your own custom map? Just edit `config/index.json` - it's now super easy!
+**🎯 Quick Start**: Want to create your own custom map? Just edit `config/index.atlas.json` - it's now super easy!
 
 ## What is this?
 
 The Amche Goa map can be customized to show different layers and focus on different areas. You can create your own version by simply editing a configuration file.
 
-## 📋 Easy Configuration with `index.json`
+## 📋 Easy Configuration with `index.atlas.json`
 
-The main configuration file is `config/index.json`. Here's what it looks like:
+The main configuration file is `config/index.atlas.json`. Here's what it looks like:
 
 ```json
 {
@@ -79,7 +79,7 @@ Pick from these popular layer IDs:
 
 ### 2. Edit Your Configuration
 
-Copy `config/index.json` and modify it:
+Copy `config/index.atlas.json` and modify it:
 
 ```json
 {
@@ -143,23 +143,23 @@ Want to change how a layer looks? Override specific properties:
 
 ## 🚀 Testing Your Configuration
 
-### Using the `?config=` URL Parameter
+### Using the `?atlas=` URL Parameter
 
 The map supports three different ways to load configurations via the URL parameter:
 
-#### 1. **Local filename**: `?config=maphub`
-- Loads `config/maphub.json` from the local server
-- Example: `https://amche.goa.in/?config=maphub`
+#### 1. **Local filename**: `?atlas=maphub`
+- Loads `config/maphub.atlas.json` from the local server
+- Example: `https://amche.goa.in/?atlas=maphub`
 - Best for: Development and predefined configs
 
-#### 2. **Remote URL**: `?config=https://...`
+#### 2. **Remote URL**: `?atlas=https://...`
 - Fetches configuration directly from any URL
-- Example: `https://amche.goa.in/?config=https://gist.githubusercontent.com/user/abc123/raw/config.json`
+- Example: `https://amche.goa.in/?atlas=https://gist.githubusercontent.com/user/abc123/raw/config.json`
 - Best for: Sharing configs via GitHub Gists, external servers
 
-#### 3. **Serialized JSON**: `?config={"name":"..."}`
+#### 3. **Serialized JSON**: `?atlas={"name":"..."}`
 - Parses the JSON configuration directly from the URL
-- Example: `https://amche.goa.in/?config={"name":"My Map","layers":[{"id":"mapbox-streets"}]}`
+- Example: `https://amche.goa.in/?atlas={"name":"My Map","layers":[{"id":"mapbox-streets"}]}`
 - Best for: Quick testing, embedding full configs in URLs
 
 **Example** [CRZ Line layer with additional datasets](http://localhost:4035/?config={%22version%22:%220.1.0%22,%22name%22:%22Example%20map%20configuration%20template%20curated%20by%20the%20amche-goa%20community%22,%22areaOfInterest%22:%22India%22,%22startDate%22:%222010%22,%22endDate%22:%222025%22,%22map%22:{%22center%22:[72.8,18.93],%22zoom%22:12.4},%22layers%22:[{%22id%22:%22mapbox-streets%22},{%22id%22:%22open-buildings%22},{%22initiallyChecked%22:true,%22title%22:%22Coastal%20Regulation%20Zone%20Lines%22,%22description%22:%22Regulatory%20lines%20for%20Coastal%20Regulation%20Zones%22,%22headerImage%22:%22assets/map-layers/map-layer-crz-line.png%22,%22type%22:%22vector%22,%22id%22:%22crz-line%22,%22url%22:%22https://indianopenmaps.fly.dev/not-so-open/coastal/regulation-lines/parivesh/{z}/{x}/{y}.pbf%22,%22sourceLayer%22:%22Bharatmaps_Parivesh_CRZ_Regulatory_Lines%22,%22maxzoom%22:14,%22attribution%22:%22%3Ca%20href=%27https://bharatmaps.gov.in/BharatMaps/Home/Map%27%3EBharatmaps/Parivesh%3C/a%3E%20-%20Collected%20by%20%3Ca%20href=%27https://datameet.org%27%3EDatameet%20Community%3C/a%3E%22,%22style%22:{%22line-color%22:[%22match%22,[%22get%22,%22class%22],%22CRZ%20Boundary%22,%22blue%22,%22High%20Tide%20Line%22,%22blue%22,%22Low%20Tide%20Line%22,%22blue%22,%22orange%22],%22line-width%22:[%22match%22,[%22get%22,%22class%22],%22CRZ%20Boundary%22,3,%22High%20Tide%20Line%22,3,1]},%22inspect%22:{%22id%22:%22class%22,%22title%22:%22CRZ%20Class%22,%22label%22:%22class%22,%22fields%22:[%22state%22]}},{%22id%22:%22osm%22},{%22initiallyChecked%22:false,%22id%22:%223d-terrain%22}]}&layers=crz-line#12.4/18.93/72.8)
@@ -169,20 +169,20 @@ The map supports three different ways to load configurations via the URL paramet
 ### Method 1: GitHub Gist (Recommended for Sharing)
 1. Save your config as a GitHub Gist
 2. Get the "Raw" URL 
-3. Test: `https://amche.goa.in/?config=YOUR_RAW_URL`
+3. Test: `https://amche.goa.in/?atlas=YOUR_RAW_URL`
 
 ### Method 2: Replace the Main Config
-1. Replace `config/index.json` with your version
+1. Replace `config/index.atlas.json` with your version
 2. Visit the map normally
 
 ### Method 3: Create Named Config
-1. Save as `config/my-map.json`
-2. Test: `https://amche.goa.in/?config=my-map`
+1. Save as `config/my-map.atlas.json`
+2. Test: `https://amche.goa.in/?atlas=my-map`
 
 ## 💡 Pro Tips
 
 ### For Beginners:
-- Start by copying `index.json` and just changing the layer list
+- Start by copying `index.atlas.json` and just changing the layer list
 - Remove layers you don't want, add layers you do want
 - Only specify `id` for most layers - the system handles the rest!
 
@@ -198,9 +198,9 @@ The map supports three different ways to load configurations via the URL paramet
 
 ### Multiple Areas:
 Create different configs for different regions:
-- `config/north-goa.json` - Focus on North Goa
-- `config/panaji.json` - Focus on Panaji city  
-- `config/mining.json` - Mining-focused map
+- `config/north-goa.atlas.json` - Focus on North Goa
+- `config/panaji.atlas.json` - Focus on Panaji city  
+- `config/mining.atlas.json` - Mining-focused map
 
 ## 🔍 Example Configurations
 
@@ -295,7 +295,7 @@ If you need to define completely custom layers (not in the preset library), you 
 
 ## 📚 Resources
 
-- [Live Example](https://amche.in/dev/?config=maphub) - See the config system in action
+- [Live Example](https://amche.in/dev/?atlas=maphub) - See the config system in action
 - [Layer Library](_map-layer-presets.json) - Browse all 80+ available layers
 - [Default Styling](_defaults.json) - See the default style settings
 - [JSON Validator](https://jsonlint.com) - Check your JSON syntax

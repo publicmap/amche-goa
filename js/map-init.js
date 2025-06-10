@@ -98,7 +98,7 @@ function parseLayersFromUrl(layersParam) {
 // Function to load configuration
 async function loadConfiguration() {
     // Check if a specific config is requested via URL parameter
-    const configParam = getUrlParameter('config');
+    const configParam = getUrlParameter('atlas');
     const layersParam = getUrlParameter('layers');
     let configPath = 'config/index.atlas.json';
     let config;
@@ -117,7 +117,7 @@ async function loadConfiguration() {
                     const url = new URL(window.location);
                     const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
                     const otherParams = new URLSearchParams(url.search);
-                    otherParams.delete('config'); // Remove existing config param
+                    otherParams.delete('atlas'); // Remove existing atlas param
                     
                     // Build the new URL manually to avoid URL encoding the JSON
                     let newUrl = baseUrl;
@@ -134,9 +134,9 @@ async function loadConfiguration() {
                     
                     window.history.replaceState({}, '', newUrl);
                 }
-            } catch (error) {
-                console.error('Failed to parse config JSON from URL parameter:', error);
-                throw new Error('Invalid JSON in config parameter');
+                            } catch (error) {
+                console.error('Failed to parse atlas JSON from URL parameter:', error);
+                throw new Error('Invalid JSON in atlas parameter');
             }
         }
         // Check if the config parameter is a URL
