@@ -2,6 +2,7 @@ import { MapLayerControl } from './map-layer-controls.js';
 import { configControl } from './config-control.js';
 import { localization } from './localization.js';
 import { URLManager } from './url-api.js';
+import { permalinkHandler } from './permalink-handler.js';
 
 // Function to get URL parameters
 function getUrlParameter(name) {
@@ -98,9 +99,22 @@ function parseLayersFromUrl(layersParam) {
 
 // Function to load configuration
 async function loadConfiguration() {
-    // Check if a specific config is requested via URL parameter
-    const configParam = getUrlParameter('atlas');
-    const layersParam = getUrlParameter('layers');
+    // Check for permalink first - this takes precedence over direct URL parameters
+    const permalinkParams = await permalinkHandler.checkForPermalink();
+    
+    if (permalinkParams) {
+        // Apply the resolved permalink URL and let the normal parameter parsing handle it
+        permalinkHandler.applyPermalinkToURL(permalinkParams);
+        
+        // Use the resolved parameters directly
+        var configParam = permalinkParams.atlas;
+        var layersParam = permalinkParams.layers;
+    } else {
+        // Check if a specific config is requested via URL parameter
+        var configParam = getUrlParameter('atlas');
+        var layersParam = getUrlParameter('layers');
+    }
+    
     let configPath = 'config/index.atlas.json';
     let config;
     
