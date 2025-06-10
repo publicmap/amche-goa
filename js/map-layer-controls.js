@@ -194,12 +194,62 @@ export class MapLayerControl {
                     property.includes('-cap') || property.includes('-join')) {
                     layout[property] = style[property];
                 } else {
-                    paint[property] = style[property];
+                    // Only add to paint if it's not clearly invalid for this layer type
+                    // Skip invalid properties like fill-* and line-* for symbol layers
+                    const isValidForLayerType = this._isPropertyValidForLayerType(property, layerType);
+                    if (isValidForLayerType) {
+                        paint[property] = style[property];
+                    }
+                    // Otherwise, silently ignore invalid properties
                 }
             }
         });
 
         return { paint, layout };
+    }
+
+    /**
+     * Check if a property is valid for a given layer type
+     * @param {string} property - The property name
+     * @param {string} layerType - The layer type (fill, line, symbol, circle, etc.)
+     * @returns {boolean} - True if property is valid for this layer type
+     */
+    _isPropertyValidForLayerType(property, layerType) {
+        // Define invalid property patterns for each layer type
+        const invalidPatterns = {
+            symbol: [
+                /^fill-/,        // fill-color, fill-opacity, etc.
+                /^line-/,        // line-color, line-width, etc.
+                /^circle-/       // circle-radius, circle-color, etc.
+            ],
+            fill: [
+                /^line-/,        // line-color, line-width, etc.
+                /^text-/,        // text-color, text-field, etc.
+                /^icon-/,        // icon-image, icon-color, etc.
+                /^circle-/       // circle-radius, circle-color, etc.
+            ],
+            line: [
+                /^fill-/,        // fill-color, fill-opacity, etc.
+                /^text-/,        // text-color, text-field, etc.
+                /^icon-/,        // icon-image, icon-color, etc.
+                /^circle-/       // circle-radius, circle-color, etc.
+            ],
+            circle: [
+                /^fill-/,        // fill-color, fill-opacity, etc.
+                /^line-/,        // line-color, line-width, etc.
+                /^text-/,        // text-color, text-field, etc.
+                /^icon-/         // icon-image, icon-color, etc.
+            ]
+        };
+
+        const patterns = invalidPatterns[layerType];
+        if (!patterns) {
+            // For unknown layer types, be permissive
+            return true;
+        }
+
+        // Check if property matches any invalid pattern
+        return !patterns.some(pattern => pattern.test(property));
     }
 
     /**
