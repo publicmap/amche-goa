@@ -805,9 +805,9 @@ export class MapLayerControl {
             const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type) 
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
-                    'data-opacity': '0.95',
+                    'data-opacity': '0.4',
                     title: 'Toggle opacity',
-                    name: 'layers-fill',
+                    name: 'lightbulb-fill',
                     'font-size': '2.5rem'
                 }).css({
                     '--sl-color-neutral-600': '#ffffff',
@@ -1066,11 +1066,11 @@ export class MapLayerControl {
                 e.preventDefault();
                 e.stopPropagation();
                 const currentOpacity = parseFloat($opacityButton.attr('data-opacity'));
-                // Toggle between 1 (100%) and 0.6 (60%)
-                const newOpacityFactor = currentOpacity === 0.9 ? 0.4 : 0.9;
+                // Toggle between 0.4 (40%) and 0.9 (90%)
+                const newOpacityFactor = currentOpacity === 0.4 ? 0.9 : 0.4;
                 $opacityButton.attr('data-opacity', newOpacityFactor);
                 $opacityButton.title = `Toggle opacity`;
-                $opacityButton.attr('name', newOpacityFactor === 1 ? 'layers-fill' : 'layers');
+                $opacityButton.attr('name', newOpacityFactor === 0.9 ? 'lightbulb-fill' : 'lightbulb');
                 
                 if (group.type === 'vector') {
                     const layerConfig = group._layerConfig;

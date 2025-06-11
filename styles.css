@@ -632,6 +632,27 @@ button.opacity-toggle.hidden {
     display: none !important;
 }
 
+/* Style the opacity toggle sl-icon-button */
+sl-icon-button.opacity-toggle {
+    --sl-color-primary-600: hsl(0, 0%, 61%) !important;
+    --sl-color-primary-500: #fff !important;
+    --sl-color-primary-400: #fff !important;
+}
+
+sl-icon-button.opacity-toggle::part(base) {
+    color: #ffffff !important;
+}
+
+sl-icon-button.opacity-toggle::part(base):hover {
+    background-color: rgba(255, 235, 59, 0.1) !important;
+}
+
+sl-icon-button.opacity-toggle::part(base):active,
+sl-icon-button.opacity-toggle::part(base):focus {
+    background-color: #a8a8a833 !important;
+    color: hsl(0, 0%, 86%) !important;
+}
+
 /* Remove old opacity control styles */
 .opacity-control {
     display: none;
