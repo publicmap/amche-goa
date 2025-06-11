@@ -884,6 +884,21 @@
       }
     },
     {
+      "id": "notified-wetlands",
+      "title": "Notified Wetlands",
+      "description": "Notified Wetlands as per the <a href='https://gswa.goa.gov.in/gazette-notification/'>Goa State Wetland Authority Notifications</a>",
+      "headerImage": "assets/map-layers/map-layer-notified-wetlands.png",
+      "type": "geojson",
+      "url": "https://gist.githubusercontent.com/planemad/7556655a787c4fb2143ce4f71d8645da/raw/2b2d8bbb775cce9eff236ceb0107274ddf93c81d/goa-notified-wetlands.geojson",
+      "attribution": "<a href='https://gswa.goa.gov.in/gazette-notification/'>Goa State Wetland Authority</a> collected by <a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=1037394520#gid=1037394520'>Amche.in Community</a>",
+      "style": {
+        "fill-color": "cyan",
+        "line-color": "cyan",
+        "line-width": 2,
+        "fill-opacity": 0.5
+      }
+    },
+    {
       "title": "Cadastral Plot Boundaries",
       "description": "Cadastral Boundaries from the <a href='Directorate of Settlement & Land Records'>Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href='https://goaonline.gov.in' target='_blank' rel='noopener noreferrer'>Goa Online</a>",
       "headerImage": "assets/map-layers/map-layer-survey.png",
@@ -2877,10 +2892,10 @@
           "interpolate",
           ["linear"],
           ["raster-value"],
-          0, "white",
-          0.1, "hsla(0, 100%, 70%, 1)",
-          0.5, "hsla(0, 100%, 60%, 0.95)",
-          1, "hsla(0, 100%, 20%, 0.8)"
+          0, "black",
+          0.1, "hsla(0, 0%, 10%, 1)",
+          0.5, "hsla(0, 0%, 30%, 0.95)",
+          1, "hsla(0, 0%, 60%, 0.8)"
         ]
       }
     },
