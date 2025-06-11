@@ -95,6 +95,9 @@ class PermalinkHandler {
         const url = new URL(window.location);
         const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
         
+        // Preserve original hash if it exists, otherwise use permalink hash
+        const originalHash = url.hash;
+        
         // Build new URL with resolved parameters
         const params = new URLSearchParams();
         
@@ -111,12 +114,16 @@ class PermalinkHandler {
             newUrl += '?' + params.toString();
         }
         
-        // Add hash if present
-        if (resolvedParams.hash) {
-            newUrl += resolvedParams.hash;
+        // Add hash - prefer original hash over permalink hash
+        const hashToUse = originalHash || resolvedParams.hash;
+        if (hashToUse) {
+            newUrl += hashToUse;
         }
         
         console.log('🔄 Applying permalink URL:', newUrl);
+        if (originalHash) {
+            console.log('✅ Preserved original hash:', originalHash);
+        }
         window.history.replaceState({}, '', newUrl);
     }
 
