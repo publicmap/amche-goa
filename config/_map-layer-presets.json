@@ -874,13 +874,13 @@
       "description": "Land parcels governed by the <a href='https://cdn.s3waas.gov.in/s3d840cc5d906c3e9c84374c8919d2074e/uploads/2018/07/2018070597.pdf'>Code of Communidades</a>",
       "headerImage": "assets/map-layers/map-layer-communidade-land.png",
       "type": "geojson",
-      "url": "https://gist.githubusercontent.com/planemad/6fda9bc0c90e2ede5c53ee03c33dec3a/raw/9cb340151b9e05f750020c9c9fd26b4cc968998d/goltim-communidade-plots.geojson",
-      "attribution": "<a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=0#gid=0'>Communidade de Goltim</a>",
+      "url": "https://gist.githubusercontent.com/planemad/6fda9bc0c90e2ede5c53ee03c33dec3a/raw/5716157141c52286de3a3ef24cb98393623668a4/goltim-communidade-plots.geojson",
+      "attribution": "<a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=0#gid=0'>Communidades of Goltim and Saligao</a>",
       "style": {
-        "fill-color": "brown",
-        "line-color": "brown",
+        "fill-color": "Magenta",
+        "line-color": "Magenta",
         "line-width": 2,
-        "fill-opacity": 0.2
+        "fill-opacity": 0.5
       }
     },
     {
