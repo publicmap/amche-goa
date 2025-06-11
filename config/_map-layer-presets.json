@@ -869,6 +869,21 @@
       }
     },
     {
+      "id": "communidade-land",
+      "title": "Communidade Land",
+      "description": "Land parcels governed by the <a href='https://cdn.s3waas.gov.in/s3d840cc5d906c3e9c84374c8919d2074e/uploads/2018/07/2018070597.pdf'>Code of Communidades</a>",
+      "headerImage": "assets/map-layers/map-layer-communidade-land.png",
+      "type": "geojson",
+      "url": "https://gist.githubusercontent.com/planemad/6fda9bc0c90e2ede5c53ee03c33dec3a/raw/9cb340151b9e05f750020c9c9fd26b4cc968998d/goltim-communidade-plots.geojson",
+      "attribution": "<a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=0#gid=0'>Communidade de Goltim</a>",
+      "style": {
+        "fill-color": "brown",
+        "line-color": "brown",
+        "line-width": 2,
+        "fill-opacity": 0.2
+      }
+    },
+    {
       "title": "Cadastral Plot Boundaries",
       "description": "Cadastral Boundaries from the <a href='Directorate of Settlement & Land Records'>Department of Land Records</a>. The map is provided for information purpose only. An official copy can be obtained from <a href='https://goaonline.gov.in' target='_blank' rel='noopener noreferrer'>Goa Online</a>",
       "headerImage": "assets/map-layers/map-layer-survey.png",
@@ -2842,7 +2857,7 @@
     },
     {
       "id": "open-buildings-2023",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-c082b7b8187b0ff0ea386766cf8aa066/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4dc5b1da84251d38c2f9c328df2dd244-d66a3c69977648ac4d11d87f65110925/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Open Buildings 2023",
       "description": "Building presence in 2023 generated using ML from 10m satellite imagery. See <a href='https://research.google/blog/open-buildings-25d-temporal-dataset-tracks-building-changes-across-the-global-south'>methodology</a> for details.",
