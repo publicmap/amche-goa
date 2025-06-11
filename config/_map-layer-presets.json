@@ -1788,61 +1788,6 @@
       "attribution": "<a href='https://vedas.sac.gov.in/wetlands/index.html'>1:10k Wetland Polygons (2019), Space Applications Centre, ISRO</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
       "style": {
         "line-color": "blue",
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          14,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            4,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            3,
-            1
-          ],
-          18,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            8,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            2
-          ]
-        ],
         "fill-color": [
           "match",
           [
@@ -1884,8 +1829,7 @@
           "Others (non-wetland area)",
           "grey",
           "red"
-        ],
-        "fill-opacity": 0.5
+        ]
       },
       "filter": [
         "!=",
@@ -2754,9 +2698,18 @@
       "attribution": "CC-BY <a href='https://sites.research.google/open-buildings/'>Google Open Buildings</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
       "style": {
         "line-color": "black",
-        "fill-color": "black",
-        "fill-opacity": 1,
-        "line-width": [
+        "line-width": 0.5,
+        "fill-color": [
+          "case",
+          [">", ["get", "confidence"], 0.8],
+          "black",
+          [">", ["get", "confidence"], 0.6],
+          "#222",
+          [">", ["get", "confidence"], 0.2],
+          "#444",
+          "#777"
+        ],
+        "fill-opacity": [
           "interpolate",
           [
             "linear"
@@ -2765,51 +2718,9 @@
             "zoom"
           ],
           14,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            4,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            3,
-            0
-          ],
-          18,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            8,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            0.1
-          ]
+          0.9,
+          19,
+          0.2
         ]
       }
     },
