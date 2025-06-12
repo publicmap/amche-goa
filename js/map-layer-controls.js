@@ -7,10 +7,67 @@ import { localization } from './localization.js';
 
 export class MapLayerControl {
     constructor(options) {
-        // Add state management properties
-        this._state = {
-            groups: Array.isArray(options) ? options : [options]
-        };
+        // Handle options structure for groups and configuration
+        if (Array.isArray(options)) {
+            // Legacy array of groups format
+            this._state = { groups: options };
+            this._config = {};
+        } else if (options && options.groups) {
+            // New object format with groups and other config
+            this._state = { groups: options.groups };
+            this._config = options;
+        } else {
+            // Single group format
+            this._state = { groups: [options] };
+            this._config = {};
+        }
+        
+        // Store sourceLayerLinks from config or set default
+        /**
+         * sourceLayerLinks: Array of link objects that appear in popups for specific source layers
+         * Each link object can have:
+         * - name: Display name for the link
+         * - sourceLayer: String or Array of strings specifying which source layers this link applies to
+         * - url: String template or function that generates the URL
+         *   - Template strings support: ${lat}, ${lng}, ${zoom}, ${mercatorCoords.x}, ${mercatorCoords.y}, ${feature.properties.FIELD_NAME}
+         *   - Functions receive: { feature, group, lat, lng, zoom, mercatorCoords }
+         * - icon: Optional icon URL for the link
+         * - text: Optional text label for the link (used if no icon)
+         * 
+         * Examples:
+         * - Simple template: url: `https://example.com/data?lat=${lat}&lng=${lng}`
+         * - Feature property: url: `https://example.com/lookup?id=${feature.properties.plot_id}`
+         * - Function: url: ({ feature, lat, lng }) => `https://example.com/custom?coords=${lat},${lng}&type=${feature.properties.type}`
+         * - Multiple layers: sourceLayer: ['layer1', 'layer2', 'layer3']
+         */
+        this._sourceLayerLinks = this._config.sourceLayerLinks || [{
+            name: 'Bhunaksha',
+            sourceLayer: 'Onemapgoa_GA_Cadastrals',
+            url: ({ feature }) => {
+                const plot = feature.properties.plot || '';
+                const giscode = feature.properties.giscode || '';
+                
+                // Format giscode: insert commas after 2, 10, 18 characters
+                // Example: "01300100024010700000VILLAGE" -> "01,30010002,40107000,00VILLAGE"
+                let levels = '';
+                if (giscode.length >= 18) {
+                    const district = giscode.substring(0, 2);
+                    const taluka = giscode.substring(2, 10);
+                    const village = giscode.substring(10, 18);
+                    const sheet = giscode.substring(18);
+                    levels = `${district}%2C${taluka}%2C${village}%2C${sheet}`;
+                } else {
+                    // Fallback to original if giscode format is unexpected
+                    levels = '01%2C30010002%2C40107000%2C000VILLAGE';
+                }
+                
+                // URL encode the plot number (replace / with %2F)
+                const plotEncoded = plot.replace(/\//g, '%2F');
+                
+                return `https://bhunaksha.goa.gov.in/bhunaksha/ScalarDatahandler?OP=5&state=30&levels=${levels}%2C&plotno=${plotEncoded}`;
+            },
+            text: 'BH'
+        }];
         
         // Default styles will be loaded from config/index.atlas.json styles object
         this._defaultStyles = {}; 
@@ -3100,6 +3157,50 @@ export class MapLayerControl {
                 text: 'FW'
             }
         ];
+
+        // Add sourceLayer-specific links if they exist for this feature's sourceLayer
+        const currentSourceLayer = group.sourceLayer;
+        const relevantSourceLayerLinks = this._sourceLayerLinks.filter(link => {
+            if (!currentSourceLayer) return false;
+            
+            // Support both string and array of strings for sourceLayer
+            if (Array.isArray(link.sourceLayer)) {
+                return link.sourceLayer.includes(currentSourceLayer);
+            } else {
+                return link.sourceLayer === currentSourceLayer;
+            }
+        });
+
+        if (relevantSourceLayerLinks.length > 0) {
+            const sourceLayerLinksHTML = relevantSourceLayerLinks.map(link => {
+                // Generate URL with dynamic values - support template literals in URL
+                let finalUrl = link.url;
+                if (typeof link.url === 'function') {
+                    // If URL is a function, call it with feature context
+                    finalUrl = link.url({ feature, group, lat, lng, zoom, mercatorCoords });
+                } else if (typeof link.url === 'string') {
+                    // If URL is a template string, replace placeholders
+                    finalUrl = link.url
+                        .replace(/\${lat}/g, lat)
+                        .replace(/\${lng}/g, lng)
+                        .replace(/\${zoom}/g, zoom)
+                        .replace(/\${mercatorCoords\.x}/g, mercatorCoords.x)
+                        .replace(/\${mercatorCoords\.y}/g, mercatorCoords.y);
+                    
+                    // Replace feature property placeholders like ${feature.properties.FIELD_NAME}
+                    finalUrl = finalUrl.replace(/\${feature\.properties\.([^}]+)}/g, (match, propName) => {
+                        return feature.properties[propName] || '';
+                    });
+                }
+                
+                return `<a href="${finalUrl}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
+                    ${link.icon ? `<img src="${link.icon}" class="w-5 h-5 !max-w-none" alt="${link.name}">` : ''}
+                    ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
+                </a>`;
+            }).join('');
+            const sourceLayerLinksSection = `<div class="text-xs text-gray-600 pt-3 mt-3 border-t border-gray-200 flex flex-wrap gap-3">${sourceLayerLinksHTML}</div>`;
+            content.innerHTML += sourceLayerLinksSection;
+        }
 
         let linksHTML = navigationLinks.map(link =>
             `<a href="${link.url}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
