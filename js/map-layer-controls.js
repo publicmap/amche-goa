@@ -43,30 +43,84 @@ export class MapLayerControl {
         this._sourceLayerLinks = this._config.sourceLayerLinks || [{
             name: 'Bhunaksha',
             sourceLayer: 'Onemapgoa_GA_Cadastrals',
-            url: ({ feature }) => {
+        
+            renderHTML: ({ feature }) => {
                 const plot = feature.properties.plot || '';
                 const giscode = feature.properties.giscode || '';
                 
-                // Format giscode: insert commas after 2, 10, 18 characters
-                // Example: "01300100024010700000VILLAGE" -> "01,30010002,40107000,00VILLAGE"
-                let levels = '';
-                if (giscode.length >= 18) {
-                    const district = giscode.substring(0, 2);
-                    const taluka = giscode.substring(2, 10);
-                    const village = giscode.substring(10, 18);
-                    const sheet = giscode.substring(18);
-                    levels = `${district}%2C${taluka}%2C${village}%2C${sheet}`;
-                } else {
-                    // Fallback to original if giscode format is unexpected
-                    levels = '01%2C30010002%2C40107000%2C000VILLAGE';
-                }
+                // Create a unique container ID for this specific render
+                const containerId = `bhunaksha-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 
-                // URL encode the plot number (replace / with %2F)
-                const plotEncoded = plot.replace(/\//g, '%2F');
+                // Create initial container with loading text
+                const containerHTML = `
+                    <div id="${containerId}" class="flex items-center gap-1 hover:text-gray-900" title="Bhunaksha">
+                        <span class="text-xs text-gray-600">Requesting Occupant Details...</span>
+                    </div>
+                `;
                 
-                return `https://bhunaksha.goa.gov.in/bhunaksha/ScalarDatahandler?OP=5&state=30&levels=${levels}%2C&plotno=${plotEncoded}`;
-            },
-            text: 'Bhunaksha Occupant Details'
+                // Set up async request after 1 second
+                setTimeout(async () => {
+                    try {
+                        
+                        // Format giscode: insert commas after 2, 10, 18 characters
+                        let levels = '';
+                        if (giscode.length >= 18) {
+                            const district = giscode.substring(0, 2);
+                            const taluka = giscode.substring(2, 10);
+                            const village = giscode.substring(10, 18);
+                            const sheet = giscode.substring(18);
+                            levels = `${district}%2C${taluka}%2C${village}%2C${sheet}`;
+                        } else {
+                            // Fallback to original if giscode format is unexpected
+                            levels = '01%2C30010002%2C40107000%2C000VILLAGE';
+                        }
+                        
+                        // URL encode the plot number (replace / with %2F)
+                        const plotEncoded = plot.replace(/\//g, '%2F');
+                        const apiUrl = `https://bhunaksha.goa.gov.in/bhunaksha/ScalarDatahandler?OP=5&state=30&levels=${levels}%2C&plotno=${plotEncoded}`;
+                    
+                        
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+                                                
+                        // Update the DOM with the response
+                        const $container = $(`#${containerId}`);
+                        if ($container.length > 0) {
+                            if (data.info && data.has_data === 'Y') {
+                                // Parse and format the info text, filtering out first 3 lines
+                                const infoText = data.info.split('\n').slice(3).join('\n').replace(/\n/g, '<br>').replace(/-{10,}/g, '');
+                                $container.html(`
+                                    <div class="text-xs text-gray-600">
+                                        <div class="font-semibold mb-1">Bhunaksha Details <a href="https://bhunaksha.goa.gov.in/bhunaksha/index.html?plot=${plotEncoded}&levels=${levels}" target="_blank" class="text-xs text-gray-600">(Source)</a></div>
+                                        <div>${infoText}</div>
+                                    </div>
+                                `);
+                                console.log('[Bhunaksha] DOM successfully updated with occupant details');
+                            } else {
+                                $container.html(`
+                                    <img src="https://bhunaksha.goa.gov.in/bhunaksha/images/favicon.ico" class="w-5 h-5 !max-w-none" alt="Bhunaksha">
+                                    <span class="text-xs text-gray-600">No occupant data available</span>
+                                `);
+                                console.log('[Bhunaksha] No data available in API response');
+                            }
+                        } else {
+                            console.warn('[Bhunaksha] Container not found for ID:', containerId);
+                        }
+                    } catch (error) {
+                        console.error('[Bhunaksha] Error fetching occupant details:', error);
+                        const $container = $(`#${containerId}`);
+                        if ($container.length > 0) {
+                            $container.html(`
+                                <img src="https://bhunaksha.goa.gov.in/bhunaksha/images/favicon.ico" class="w-5 h-5 !max-w-none" alt="Bhunaksha">
+                                <span class="text-xs text-gray-600">Error loading details</span>
+                            `);
+                            console.log('[Bhunaksha] DOM updated with error message');
+                        }
+                    }
+                }, 1000);
+                
+                return containerHTML;
+            }
         }];
         
         // Default styles will be loaded from config/index.atlas.json styles object
@@ -3173,7 +3227,13 @@ export class MapLayerControl {
 
         if (relevantSourceLayerLinks.length > 0) {
             const sourceLayerLinksHTML = relevantSourceLayerLinks.map(link => {
-                // Generate URL with dynamic values - support template literals in URL
+                // Check if link has renderHTML function - if so, use it instead of URL generation
+                if (typeof link.renderHTML === 'function') {
+                    console.log('[MapLayerControl] Using renderHTML function for link:', link.name);
+                    return link.renderHTML({ feature, group, lat, lng, zoom, mercatorCoords });
+                }
+                
+                // Original URL-based link generation
                 let finalUrl = link.url;
                 if (typeof link.url === 'function') {
                     // If URL is a function, call it with feature context
