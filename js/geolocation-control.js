@@ -91,6 +91,14 @@ class GeolocationManager {
             this.lastPosition = event;
             this.locationErrorCount = 0;
             
+            // Always update bearing if heading is available and tracking is active
+            if (this.isTracking && typeof event.coords.heading === 'number' && !isNaN(event.coords.heading)) {
+                this.map.easeTo({
+                    bearing: event.coords.heading,
+                    duration: 300
+                });
+            }
+            
             if (!this.locationLabelSet) {
                 try {
                     const response = await fetch(
@@ -157,7 +165,8 @@ class GeolocationManager {
 
     handleOrientation = (event) => {
         if (event.alpha != null && this.isTracking) {
-            const bearing = event.alpha;
+            // Mapbox expects bearing in [0, 360)
+            let bearing = (360 - event.alpha) % 360;
             this.map.easeTo({
                 bearing: bearing,
                 duration: 100
