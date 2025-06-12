@@ -654,8 +654,23 @@ export async function fetchTileJSON(url) {
     try {
         // Handle different URL formats
         let tileJSONUrl = url;
+        let isApiMain = false;
+        
+        // Handle maphub.co API URLs
+        if (url.includes('api-main')) {
+            isApiMain = true;
+            // Extract map_id from URL if present
+            const urlObj = new URL(url);
+            const mapId = urlObj.searchParams.get('map_id');
+            
+            if (mapId) {
+                // Construct the layer_info endpoint
+                const baseUrl = url.split('/tiler/')[0];
+                tileJSONUrl = `${baseUrl}/maps/${mapId}/layer_info`;
+            }
+        }
         // If it's a tile template URL, try to convert to TileJSON URL
-        if (url.includes('{z}')) {
+        else if (url.includes('{z}')) {
             // Remove the template parameters and try common TileJSON paths
             tileJSONUrl = url.split('/{z}')[0];
             if (!tileJSONUrl.endsWith('.json')) {
@@ -663,13 +678,25 @@ export async function fetchTileJSON(url) {
             }
         }
         // For Mapbox hosted tilesets
-        if (url.startsWith('mapbox://')) {
+        else if (url.startsWith('mapbox://')) {
             const tilesetId = url.replace('mapbox://', '');
             tileJSONUrl = `https://api.mapbox.com/v4/${tilesetId}.json?access_token=${mapboxgl.accessToken}`;
         }
+
         const response = await fetch(tileJSONUrl);
         if (!response.ok) throw new Error('Failed to fetch TileJSON');
-        return await response.json();
+        const tileJSON = await response.json();
+
+        // Transform TileJSON for api-main URLs
+        if (isApiMain && tileJSON) {
+            // Rename max_zoom to maxzoom if it exists
+            if ('max_zoom' in tileJSON) {
+                tileJSON.maxzoom = tileJSON.max_zoom;
+                delete tileJSON.max_zoom;
+            }
+        }
+
+        return tileJSON;
     } catch (error) {
         console.warn('Failed to fetch TileJSON:', error);
         return null;

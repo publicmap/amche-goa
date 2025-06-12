@@ -30,8 +30,7 @@ function createLayerCreatorDialog() {
 
 function guessLayerType(url) {
     if (/\.geojson($|\?)/i.test(url)) return 'geojson';
-    if (url.includes('{z}') && url.includes('.pbf')) return 'vector';
-    if (url.includes('{z}') && (url.includes('.mvt') || url.includes('vector.openstreetmap.org'))) return 'vector';
+    if (url.includes('{z}') && (url.includes('.pbf') || url.includes('.mvt') || url.includes('vector.openstreetmap.org') || url.includes('/vector/'))) return 'vector';
     if (url.includes('{z}') && (url.includes('.png') || url.includes('.jpg'))) return 'raster';
     if (/\.json($|\?)/i.test(url)) return 'atlas';
     return 'unknown';
@@ -40,18 +39,54 @@ function guessLayerType(url) {
 function makeLayerConfig(url, tilejson) {
     const type = guessLayerType(url);
     let config = {};
-    if (type === 'vector' && tilejson) {
+    if (type === 'vector') {
+        // Generate a random color in hex format
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        
+        // Extract map_id from URL if it's an api-main URL
+        let attribution = tilejson?.attribution || '© OpenStreetMap contributors';
+        let mapId = null;
+        if (url.includes('api-main')) {
+            const urlObj = new URL(url);
+            mapId = urlObj.searchParams.get('map_id');
+            if (mapId) {
+                attribution = `© Original Creator - via <a href='https://www.maphub.co/map/${mapId}'>Maphub</a>`;
+            }
+        }
+        
         config = {
-            title: tilejson.name || tilejson.description || 'Untitled Vector Layer',
-            description: tilejson.description || '',
+            title: tilejson?.name || 'Vector Tile Layer',
+            description: tilejson?.description || 'Vector tile layer from custom source',
             type: 'vector',
-            id: (tilejson.name || 'vector-layer').toLowerCase().replace(/\s+/g, '-'),
-            url: (tilejson.tiles && tilejson.tiles[0]) || url,
-            minzoom: tilejson.minzoom,
-            maxzoom: tilejson.maxzoom,
-            attribution: tilejson.attribution || '',
-            initiallyChecked: false
+            id: (tilejson?.name || 'vector-layer').toLowerCase().replace(/\s+/g, '-'),
+            url: (tilejson?.tiles && tilejson.tiles[0]) || url,
+            minzoom: tilejson?.minzoom || 0,
+            maxzoom: tilejson?.maxzoom || 14,
+            attribution: attribution,
+            initiallyChecked: false,
+            inspect: {
+                id: "id",
+                title: "Name",
+                label: "name",
+                fields: ["id", "description", "class", "type"],
+                fieldTitles: ["ID", "Description", "Class", "Type"]
+            },
+            style: {
+                'fill-color': randomColor,
+                'fill-opacity': 0.4,
+                'line-color': randomColor,
+                'line-width': 1,
+                'circle-color': randomColor,
+                'circle-radius': 4
+            }
         };
+        // Add sourceLayer and headerImage for api-main URLs
+        if (url.includes('api-main')) {
+            config.sourceLayer = 'vector';
+            if (mapId) {
+                config.headerImage = `https://api-main-432878571563.europe-west4.run.app/maps/${mapId}/thumbnail`;
+            }
+        }
     } else if (type === 'raster') {
         config = {
             title: 'Raster Layer',
@@ -71,12 +106,26 @@ function makeLayerConfig(url, tilejson) {
             type: 'geojson',
             id: 'geojson-' + Math.random().toString(36).slice(2, 8),
             url,
-            initiallyChecked: false
+            initiallyChecked: false,
+            inspect: {
+                id: "id",
+                title: "Name",
+                label: "name",
+                fields: ["id", "description", "class", "type"],
+                fieldTitles: ["ID", "Description", "Class", "Type"]
+            }
         };
     } else if (type === 'atlas') {
         config = {
             type: 'atlas',
-            url
+            url,
+            inspect: {
+                id: "id",
+                title: "Name",
+                label: "name",
+                fields: ["id", "description", "class", "type"],
+                fieldTitles: ["ID", "Description", "Class", "Type"]
+            }
         };
     } else {
         config = { url };
