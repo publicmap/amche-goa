@@ -66,7 +66,7 @@ export class MapLayerControl {
                 
                 return `https://bhunaksha.goa.gov.in/bhunaksha/ScalarDatahandler?OP=5&state=30&levels=${levels}%2C&plotno=${plotEncoded}`;
             },
-            text: 'BH'
+            text: 'Bhunaksha Occupant Details'
         }];
         
         // Default styles will be loaded from config/index.atlas.json styles object
