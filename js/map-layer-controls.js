@@ -121,7 +121,7 @@ export class MapLayerControl {
                     const urlParams = new URLSearchParams(window.location.search);
                     const layersParam = urlParams.get('layers');
                     const hasEsz = layersParam && layersParam.includes('esz');
-                    return hasEsz ? 0 : 3000;
+                    return hasEsz ? 0 : 5000;
                 })());
 
                 return containerHTML;
