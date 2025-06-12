@@ -88,16 +88,19 @@ export class MapLayerControl {
                         if ($container.length > 0) {
                             if (data.info && data.has_data === 'Y') {
                                 // Parse and format the info text, filtering out first 3 lines
-                                const infoText = data.info.split('\n').slice(3).join('\n').replace(/\n/g, '<br>').replace(/-{10,}/g, '');
+                                const rawText = data.info.split('\n').slice(3).join('\n').replace(/-{10,}/g, '');
+                                // Format headers (text from start of line to colon) as bold with line breaks
+                                const formattedText = rawText.replace(/^([^:\n]+:)/gm, '<strong>$1</strong><br>');
+                                const infoText = formattedText.replace(/\n/g, '<br>');
                                 $container.html(`
                                     <div class="text-xs text-gray-600">
-                                        <div class="font-semibold mb-1">Bhunaksha Details <a href="https://bhunaksha.goa.gov.in/bhunaksha/index.html?plot=${plotEncoded}&levels=${levels}" target="_blank" class="text-xs text-gray-600">(Source)</a></div>
                                         <div>${infoText}</div>
+                                        <div class="italic mb-1 text-xs text-gray-600"><sl-icon name="info-circle"></sl-icon> Retreived from <a href="https://bhunaksha.goa.gov.in/bhunaksha/index.html?plot=${plotEncoded}&levels=${levels}" target="_blank" class="text-xs text-gray-600">Bhunaksha/Dharani</a>. For information purposes only.</div>
+
                                     </div>
                                 `);
                             } else {
                                 $container.html(`
-                                    <img src="https://bhunaksha.goa.gov.in/bhunaksha/images/favicon.ico" class="w-5 h-5 !max-w-none" alt="Bhunaksha">
                                     <span class="text-xs text-gray-600">No occupant data available</span>
                                 `);
                             }
