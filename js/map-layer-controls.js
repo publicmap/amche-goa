@@ -21,7 +21,7 @@ export class MapLayerControl {
             this._state = { groups: [options] };
             this._config = {};
         }
-        
+
         // Store sourceLayerLinks from config or set default
         /**
          * sourceLayerLinks: Array of link objects that appear in popups for specific source layers
@@ -43,25 +43,25 @@ export class MapLayerControl {
         this._sourceLayerLinks = this._config.sourceLayerLinks || [{
             name: 'Bhunaksha',
             sourceLayer: 'Onemapgoa_GA_Cadastrals',
-        
+
             renderHTML: ({ feature }) => {
                 const plot = feature.properties.plot || '';
                 const giscode = feature.properties.giscode || '';
-                
+
                 // Create a unique container ID for this specific render
                 const containerId = `bhunaksha-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                
+
                 // Create initial container with loading text
                 const containerHTML = `
                     <div id="${containerId}" class="flex items-center gap-1 hover:text-gray-900" title="Bhunaksha">
                         <span class="text-xs text-gray-600">Requesting Occupant Details...</span>
                     </div>
                 `;
-                
+
                 // Set up async request after 1 second
                 setTimeout(async () => {
                     try {
-                        
+
                         // Format giscode: insert commas after 2, 10, 18 characters
                         let levels = '';
                         if (giscode.length >= 18) {
@@ -74,15 +74,15 @@ export class MapLayerControl {
                             // Fallback to original if giscode format is unexpected
                             levels = '01%2C30010002%2C40107000%2C000VILLAGE';
                         }
-                        
+
                         // URL encode the plot number (replace / with %2F)
                         const plotEncoded = plot.replace(/\//g, '%2F');
                         const apiUrl = `https://bhunaksha.goa.gov.in/bhunaksha/ScalarDatahandler?OP=5&state=30&levels=${levels}%2C&plotno=${plotEncoded}`;
-                    
-                        
+
+
                         const response = await fetch(apiUrl);
                         const data = await response.json();
-                                                
+
                         // Update the DOM with the response
                         const $container = $(`#${containerId}`);
                         if ($container.length > 0) {
@@ -95,13 +95,11 @@ export class MapLayerControl {
                                         <div>${infoText}</div>
                                     </div>
                                 `);
-                                console.log('[Bhunaksha] DOM successfully updated with occupant details');
                             } else {
                                 $container.html(`
                                     <img src="https://bhunaksha.goa.gov.in/bhunaksha/images/favicon.ico" class="w-5 h-5 !max-w-none" alt="Bhunaksha">
                                     <span class="text-xs text-gray-600">No occupant data available</span>
                                 `);
-                                console.log('[Bhunaksha] No data available in API response');
                             }
                         } else {
                             console.warn('[Bhunaksha] Container not found for ID:', containerId);
@@ -111,47 +109,51 @@ export class MapLayerControl {
                         const $container = $(`#${containerId}`);
                         if ($container.length > 0) {
                             $container.html(`
-                                <img src="https://bhunaksha.goa.gov.in/bhunaksha/images/favicon.ico" class="w-5 h-5 !max-w-none" alt="Bhunaksha">
                                 <span class="text-xs text-gray-600">Error loading details</span>
                             `);
-                            console.log('[Bhunaksha] DOM updated with error message');
                         }
                     }
-                }, 1000);
-                
+                }, (() => {
+                    // Check if 'esz' is in the layers URL parameter
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const layersParam = urlParams.get('layers');
+                    const hasEsz = layersParam && layersParam.includes('esz');
+                    return hasEsz ? 0 : 3000;
+                })());
+
                 return containerHTML;
             }
         }];
-        
+
         // Default styles will be loaded from config/index.atlas.json styles object
-        this._defaultStyles = {}; 
-        
+        this._defaultStyles = {};
+
         this._domCache = {};
         this._instanceId = (MapLayerControl.instances || 0) + 1;
         MapLayerControl.instances = this._instanceId;
         this._initialized = false;
         this._sourceControls = [];
         this._editMode = false;
-        
+
         // Add global selected feature tracking
         this._selectedFeatures = new Map(); // Store selected features across all layers
         this._globalClickHandlerAdded = false; // Track if global handler is added
-        
+
         // Initialize edit mode toggle
         this._initializeEditMode();
-        
+
         // Add share link handler
         this._initializeShareLink();
-        
+
         // Add modal container
         this._initializeSettingsModal();
 
         this._activeHoverFeatures = new Map(); // Store currently hovered features across layers
         this._consolidatedHoverPopup = null;
-        
+
         // Load default styles
         this._loadDefaultStyles();
-        
+
         // Comprehensive Mapbox GL Style Spec property mapping
         this._stylePropertyMapping = this._initializeStylePropertyMapping();
     }
@@ -189,7 +191,7 @@ export class MapLayerControl {
                 sky: [],
                 model: ['model-id']
             },
-            
+
             // Paint properties by layer type
             paint: {
                 fill: [
@@ -281,7 +283,7 @@ export class MapLayerControl {
 
         const paint = {};
         const layout = {};
-        
+
         // Get property lists for this layer type
         const layoutProps = [
             ...(this._stylePropertyMapping.layout.common || []),
@@ -298,7 +300,7 @@ export class MapLayerControl {
             } else {
                 // If property is not in our mapping, make an educated guess
                 // Most properties are paint properties, layout properties are fewer
-                if (property === 'visibility' || property.includes('-sort-key') || 
+                if (property === 'visibility' || property.includes('-sort-key') ||
                     property.includes('-placement') || property.includes('-anchor') ||
                     property.includes('-field') || property.includes('-font') ||
                     property.includes('-size') || property.includes('-image') ||
@@ -378,7 +380,7 @@ export class MapLayerControl {
 
         // Merge with defaults
         const mergedStyle = { ...defaultStyle, ...style };
-        
+
         // Categorize properties
         const { paint, layout } = this._categorizeStyleProperties(mergedStyle, layerType);
 
@@ -409,7 +411,7 @@ export class MapLayerControl {
      */
     _createLayerConfig(config, layerType) {
         const { paint, layout } = this._categorizeStyleProperties(config.style || {}, layerType);
-        
+
         const layerConfig = {
             id: config.id,
             type: layerType,
@@ -447,7 +449,7 @@ export class MapLayerControl {
             // Load and merge both config files
             const defaultsResponse = await fetch('/config/_defaults.json');
             const configResponse = await fetch('/config/index.atlas.json');
-            
+
             if (!defaultsResponse.ok || !configResponse.ok) {
                 throw new Error('Failed to load configuration files');
             }
@@ -470,14 +472,14 @@ export class MapLayerControl {
                 console.warn('Could not find styles in defaults structure:', Object.keys(defaults));
                 this._defaultStyles = {};
             }
-            
+
             // If config has style overrides, merge them (but don't let them override defaults)
             if (config.styles) {
-                this._defaultStyles = deepMerge(config.styles, this._defaultStyles); 
+                this._defaultStyles = deepMerge(config.styles, this._defaultStyles);
             }
 
             console.debug('Final styles configuration:', this._defaultStyles);
-            
+
         } catch (error) {
             console.error('Error loading default styles:', error);
             // Set minimal fallback default styles for critical properties
@@ -505,19 +507,19 @@ export class MapLayerControl {
                 return existingGroup ? { ...existingGroup, ...newGroup } : newGroup;
             })
         };
-        
+
         // Clean up existing layers
         this._cleanupLayers();
-        
+
         // Rebuild the UI
         this._rebuildUI();
     }
-    
+
     _cleanupLayers() {
         // Remove all existing custom layers and sources
         const style = this._map.getStyle();
         if (!style) return;
-        
+
         // First disable terrain if it exists
         if (this._map.getTerrain()) {
             this._map.setTerrain(null);
@@ -595,54 +597,54 @@ export class MapLayerControl {
             }
         }
     }
-    
+
     _rebuildUI() {
         // Clear existing controls
         if (this._container) {
             this._container.innerHTML = '';
             this._sourceControls = [];
-            
+
             // Re-render with current state
             this._initializeControl($(this._container));
         }
     }
-    
+
     // Update _saveLayerSettings to use state management
     _saveLayerSettings() {
         const modal = document.getElementById('layer-settings-modal');
         const configTextarea = modal.querySelector('.config-json');
-        
+
         try {
             // Parse the edited configuration
             const newConfig = JSON.parse(configTextarea.value);
-            
+
             // Find and update the group in state
             const groupIndex = this._state.groups.findIndex(g => g.id === newConfig.id);
             if (groupIndex === -1) {
                 throw new Error('Could not find layer configuration to update');
             }
-            
+
             // Create new state with the updated group
             const newGroups = [...this._state.groups];
             newGroups[groupIndex] = newConfig;
-            
+
             // Update state which will trigger rebuild
             this._updateState({ groups: newGroups });
-            
+
             modal.hide();
-            
+
         } catch (error) {
             console.error('Error saving layer settings:', error);
             alert('Failed to save layer settings. Please check the console for details.');
         }
     }
-    
+
     // Add method to load external config
     async loadExternalConfig(url) {
         try {
             const response = await fetch(url);
             const configText = await response.text();
-            
+
             // Handle JS format (assuming it starts with 'let' or 'const')
             let config;
             let fullConfig;
@@ -653,10 +655,10 @@ export class MapLayerControl {
                         ${configText}
                         return layers;
                     `);
-                    
+
                     // Execute the function to get the config
                     config = extractConfig();
-                    
+
                 } catch (evalError) {
                     console.error('Error evaluating JS config:', evalError);
                     // Fallback to regex extraction if evaluation fails
@@ -670,7 +672,7 @@ export class MapLayerControl {
             } else {
                 // Assume JSON format
                 fullConfig = JSON.parse(configText);
-                
+
                 // Check if the config has a layers property
                 if (fullConfig.layers && Array.isArray(fullConfig.layers)) {
                     config = fullConfig.layers;
@@ -678,7 +680,7 @@ export class MapLayerControl {
                     config = fullConfig; // Use the full object if no layers property
                 }
             }
-            
+
             // Apply localization if full config is available
             if (fullConfig) {
                 localization.loadStrings(fullConfig);
@@ -687,10 +689,10 @@ export class MapLayerControl {
                     localization.forceUpdateUIElements();
                 }, 100);
             }
-            
+
             // Update state with new config
             this._updateState({ groups: config });
-            
+
         } catch (error) {
             console.error('Error loading external config:', error);
             alert('Failed to load external configuration. Please check the console for details.');
@@ -703,13 +705,13 @@ export class MapLayerControl {
     async renderToContainer(container, map) {
         this._container = container;
         this._map = map;
-        
+
         // Make sure default styles are loaded before proceeding
         await this._ensureDefaultStylesLoaded();
-        
+
         // Add global click handler early
         this._addGlobalClickHandler();
-        
+
         // Proceed with normal initialization since layers are already loaded from map-init.js
         if (this._map.isStyleLoaded()) {
             this._initializeControl($(container));
@@ -718,17 +720,17 @@ export class MapLayerControl {
                 this._initializeControl($(container));
             });
         }
-        
+
         $(container).append($('<div>', { class: 'layer-control' }));
     }
-    
+
     // Ensure default styles are loaded before proceeding with initialization
     async _ensureDefaultStylesLoaded() {
         // If styles are already loaded, return
         if (Object.keys(this._defaultStyles).length > 0) {
             return;
         }
-        
+
         // Wait for styles to load
         await this._loadDefaultStyles();
     }
@@ -740,32 +742,32 @@ export class MapLayerControl {
         shareButton.addEventListener('click', () => {
             // Get all visible layers
             const visibleLayers = this._getVisibleLayers();
-            
+
             // Create new URL with layers parameter
             const url = new URL(window.location.href);
-            
+
             // Set layers parameter with all visible layers including streetmap
             if (visibleLayers.length > 0) {
                 url.searchParams.set('layers', visibleLayers.join(','));
             } else {
                 url.searchParams.delete('layers');
             }
-            
+
             // Create pretty URL by manually replacing encoded characters
             const prettyUrl = decodeURIComponent(url.toString())
                 .replace(/\+/g, ' '); // Replace plus signs with spaces if needed
-            
+
             // Update browser URL without reloading the page
             window.history.replaceState({}, '', prettyUrl);
-            
+
             // Copy to clipboard
             navigator.clipboard.writeText(prettyUrl).then(() => {
                 // Show toast notification
                 this._showToast('Link copied to clipboard!');
-                
+
                 // Generate QR code using the pretty URL
                 const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(prettyUrl)}`;
-                
+
                 // Create QR code image for button
                 const qrCode = document.createElement('img');
                 qrCode.src = qrCodeUrl;
@@ -773,21 +775,21 @@ export class MapLayerControl {
                 qrCode.style.width = '30px';
                 qrCode.style.height = '30px';
                 qrCode.style.cursor = 'pointer';
-                
+
                 // Store original button content
                 const originalContent = shareButton.innerHTML;
-                
+
                 // Replace button content with QR code
                 shareButton.innerHTML = '';
                 shareButton.appendChild(qrCode);
-                
+
                 // Add click handler to QR code to show full screen overlay
                 qrCode.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    
+
                     // Reset button content immediately when QR code is viewed
                     shareButton.innerHTML = originalContent;
-                    
+
                     // Create full screen overlay
                     const overlay = document.createElement('div');
                     overlay.style.position = 'fixed';
@@ -802,7 +804,7 @@ export class MapLayerControl {
                     overlay.style.zIndex = '9999';
                     overlay.style.cursor = 'pointer';
                     overlay.style.padding = '10px'; // Add padding to ensure some space from edges
-                    
+
                     // Create large QR code
                     const largeQRCode = document.createElement('img');
                     largeQRCode.src = qrCodeUrl; // Use the same high-res QR code
@@ -812,16 +814,16 @@ export class MapLayerControl {
                     largeQRCode.style.maxWidth = 'min(500px, 90vw)'; // Use the smaller of 500px or 90% viewport width
                     largeQRCode.style.maxHeight = '90vh'; // Maximum 90% of viewport height
                     largeQRCode.style.objectFit = 'contain'; // Maintain aspect ratio
-                    
+
                     // Close overlay when clicked
                     overlay.addEventListener('click', () => {
                         document.body.removeChild(overlay);
                     });
-                    
+
                     overlay.appendChild(largeQRCode);
                     document.body.appendChild(overlay);
                 });
-                
+
                 // Auto-revert after 30 seconds (if user hasn't clicked the QR code)
                 setTimeout(() => {
                     if (shareButton.contains(qrCode)) {
@@ -846,18 +848,18 @@ export class MapLayerControl {
 
         // Set message and style based on type
         toast.textContent = message;
-        toast.style.backgroundColor = type === 'success' ? '#4CAF50' : 
-                                      type === 'error' ? '#f44336' : 
-                                      type === 'info' ? '#2196F3' : '#4CAF50';
+        toast.style.backgroundColor = type === 'success' ? '#4CAF50' :
+            type === 'error' ? '#f44336' :
+                type === 'info' ? '#2196F3' : '#4CAF50';
 
         // Show toast
         requestAnimationFrame(() => {
             toast.classList.add('show');
-            
+
             // Hide toast after specified duration
             setTimeout(() => {
                 toast.classList.remove('show');
-                
+
                 // Remove element after animation
                 setTimeout(() => {
                     toast.remove();
@@ -868,11 +870,11 @@ export class MapLayerControl {
 
     _getVisibleLayers() {
         const visibleLayers = [];
-        
+
         this._sourceControls.forEach((groupHeader, index) => {
             const group = this._state.groups[index];
             const toggleInput = groupHeader?.querySelector('.toggle-switch input[type="checkbox"]');
-            
+
             if (toggleInput && toggleInput.checked) {
                 if (group.type === 'layer-group') {
                     // Find which radio button is selected in this group
@@ -913,7 +915,7 @@ export class MapLayerControl {
                 label: 'Layer Settings'
             });
 
-            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type) 
+            const $opacityButton = ['tms', 'vector', 'geojson', 'layer-group', 'img', 'raster-style-layer'].includes(group.type)
                 ? $('<sl-icon-button>', {
                     class: 'opacity-toggle hidden',
                     'data-opacity': '0.4',
@@ -932,16 +934,16 @@ export class MapLayerControl {
             $groupHeader[0].addEventListener('sl-show', (event) => {
                 const group = this._state.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
-                
+
                 if (toggleInput && !toggleInput.checked) {
                     toggleInput.checked = true;
                 }
-                
+
                 if (group.type === 'style') {
                     // Update sublayer toggles
                     const $sublayerToggles = $(event.target).find('.layer-controls .toggle-switch input[type="checkbox"]');
                     $sublayerToggles.prop('checked', true);
-                    
+
                     // Update layer visibility
                     if (group.layers) {
                         const styleLayers = this._map.getStyle().layers;
@@ -949,7 +951,7 @@ export class MapLayerControl {
                             const layerIds = styleLayers
                                 .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                                 .map(styleLayer => styleLayer.id);
-                            
+
                             layerIds.forEach(layerId => {
                                 if (this._map.getLayer(layerId)) {
                                     this._map.setLayoutProperty(layerId, 'visibility', 'visible');
@@ -960,7 +962,7 @@ export class MapLayerControl {
                 } else {
                     this._toggleSourceControl(groupIndex, true);
                 }
-                
+
                 // Show both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', false);
                 $settingsButton.toggleClass('hidden', false);
@@ -970,16 +972,16 @@ export class MapLayerControl {
             $groupHeader[0].addEventListener('sl-hide', (event) => {
                 const group = this._state.groups[groupIndex];
                 const toggleInput = event.target.querySelector('.toggle-switch input[type="checkbox"]');
-                
+
                 if (toggleInput && toggleInput.checked) {
                     toggleInput.checked = false;
                 }
-                
+
                 if (group.type === 'style') {
                     // Update sublayer toggles
                     const $sublayerToggles = $(event.target).find('.layer-controls .toggle-switch input[type="checkbox"]');
                     $sublayerToggles.prop('checked', false);
-                    
+
                     // Update layer visibility
                     if (group.layers) {
                         const styleLayers = this._map.getStyle().layers;
@@ -987,7 +989,7 @@ export class MapLayerControl {
                             const layerIds = styleLayers
                                 .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                                 .map(styleLayer => styleLayer.id);
-                            
+
                             layerIds.forEach(layerId => {
                                 if (this._map.getLayer(layerId)) {
                                     this._map.setLayoutProperty(layerId, 'visibility', 'none');
@@ -998,7 +1000,7 @@ export class MapLayerControl {
                 } else {
                     this._toggleSourceControl(groupIndex, false);
                 }
-                
+
                 // Hide both opacity and settings buttons
                 $opacityButton.toggleClass('hidden', true);
                 $settingsButton.toggleClass('hidden', true);
@@ -1009,7 +1011,7 @@ export class MapLayerControl {
             if (group.initiallyChecked) {
                 // Set active class based on initial state
                 $groupHeader.addClass('active');
-                
+
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     this._toggleSourceControl(groupIndex, true);
@@ -1042,23 +1044,23 @@ export class MapLayerControl {
             $summary.on('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 // Always handle the click through our custom logic
                 const $toggle = $summary.find('.toggle-switch input');
                 const newState = !$toggle.prop('checked');
-                
+
                 // Update the toggle state
                 $toggle.prop('checked', newState);
-                
+
                 // For style layers, handle visibility directly
                 if (group.type === 'style') {
                     // Update sl-details state
                     $groupHeader[0].open = newState;
-                    
+
                     // Update sublayer toggles
                     const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
                     $sublayerToggles.prop('checked', newState);
-                    
+
                     // Update layer visibility
                     if (group.layers) {
                         const styleLayers = this._map.getStyle().layers;
@@ -1066,7 +1068,7 @@ export class MapLayerControl {
                             const layerIds = styleLayers
                                 .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                                 .map(styleLayer => styleLayer.id);
-                            
+
                             layerIds.forEach(layerId => {
                                 if (this._map.getLayer(layerId)) {
                                     this._map.setLayoutProperty(layerId, 'visibility', newState ? 'visible' : 'none');
@@ -1074,7 +1076,7 @@ export class MapLayerControl {
                             });
                         });
                     }
-                    
+
                     // Update active class
                     $groupHeader.toggleClass('active', newState);
                 } else {
@@ -1098,16 +1100,16 @@ export class MapLayerControl {
             }).on('change', (e) => {
                 const isChecked = e.target.checked;
                 const group = this._state.groups[groupIndex];
-                
+
                 // Special handling for style type layers
                 if (group.type === 'style') {
                     // Update sl-details state
                     $groupHeader[0].open = isChecked;
-                    
+
                     // Update sublayer toggles to match parent visibility
                     const $sublayerToggles = $groupHeader.find('.layer-controls .toggle-switch input[type="checkbox"]');
                     $sublayerToggles.prop('checked', isChecked);
-                    
+
                     // Update layer visibility
                     if (group.layers) {
                         const styleLayers = this._map.getStyle().layers;
@@ -1115,7 +1117,7 @@ export class MapLayerControl {
                             const layerIds = styleLayers
                                 .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                                 .map(styleLayer => styleLayer.id);
-                            
+
                             layerIds.forEach(layerId => {
                                 if (this._map.getLayer(layerId)) {
                                     this._map.setLayoutProperty(layerId, 'visibility', isChecked ? 'visible' : 'none');
@@ -1127,7 +1129,7 @@ export class MapLayerControl {
                     // Existing handling for non-style layers
                     if (isChecked !== $groupHeader[0].open) {
                         const self = this;
-                        const handler = function(event) {
+                        const handler = function (event) {
                             const checked = event.target.checked;
                             if (checked !== $groupHeader[0].open) {
                                 $toggleInput.off('change', handler);
@@ -1141,7 +1143,7 @@ export class MapLayerControl {
                         handler.call(this, e);
                     }
                 }
-                
+
                 // Update active class
                 $groupHeader.toggleClass('active', isChecked);
             });
@@ -1182,7 +1184,7 @@ export class MapLayerControl {
                 $opacityButton.attr('data-opacity', newOpacityFactor);
                 $opacityButton.title = `Toggle opacity`;
                 $opacityButton.attr('name', newOpacityFactor === 0.9 ? 'lightbulb-fill' : 'lightbulb');
-                
+
                 if (group.type === 'vector') {
                     const layerConfig = group._layerConfig;
                     if (!layerConfig) return;
@@ -1247,11 +1249,11 @@ export class MapLayerControl {
                     class: 'absolute top-0 left-0 right-0 w-full h-full bg-cover bg-center bg-no-repeat',
                     style: `background-image: url('${group.headerImage}')`
                 });
-                
+
                 const $headerOverlay = $('<div>', {
                     class: 'absolute top-0 left-0 right-0 w-full h-full bg-black bg-opacity-40'
                 });
-                
+
                 $summary.append($headerBg, $headerOverlay, $contentWrapper);
             } else {
                 $summary.append($contentWrapper);
@@ -1281,7 +1283,7 @@ export class MapLayerControl {
                     class: 'layer-attribution',
                     html: `Source: ${group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')}`
                 });
-                
+
                 // Add attribution to description area
                 const $descriptionArea = $groupHeader.find('.description-area');
                 if ($descriptionArea.length) {
@@ -1339,33 +1341,33 @@ export class MapLayerControl {
 
                 // Add radio group to content area
                 $contentArea.append($radioGroup);
-                
+
                 // Add content area to sl-details
                 $groupHeader.append($contentArea);
             } else if (group.type === 'geojson') {
                 // Don't add GeoJSON source and layers here - will be loaded when toggled on
             } else if (group.type === 'terrain') {
-                const $sliderContainer = $('<div>', { 
+                const $sliderContainer = $('<div>', {
                     class: 'terrain-settings-section' // Add terrain-settings-section class
                 });
 
                 const $contoursContainer = $('<div>', { class: 'mb-4' });
                 const $contoursLabel = $('<label>', { class: 'flex items-center' });
-                
+
                 // Replace checkbox with toggle switch
                 const $contoursToggleLabel = $('<label>', {
                     class: 'toggle-switch mr-2'
                 });
-                
+
                 const $contoursToggleInput = $('<input>', {
                     type: 'checkbox',
                     checked: false
                 });
-                
+
                 const $contoursToggleSlider = $('<span>', {
                     class: 'toggle-slider'
                 });
-                
+
                 $contoursToggleLabel.append($contoursToggleInput, $contoursToggleSlider);
 
                 $contoursToggleInput.on('change', (e) => {
@@ -1611,11 +1613,11 @@ export class MapLayerControl {
                 );
 
                 // Update the fog settings container and controls
-                const $fogSettingsContainer = $('<div>', { 
+                const $fogSettingsContainer = $('<div>', {
                     class: 'mt-4 mb-4' // Add bottom margin
                 });
 
-                const $fogSettingsLabel = $('<label>', { 
+                const $fogSettingsLabel = $('<label>', {
                     class: 'flex items-center mb-2' // Add margin bottom
                 });
 
@@ -1698,7 +1700,7 @@ export class MapLayerControl {
                 const sourceId = `vector-${group.id}`;
                 const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
                 const hasLineStyles = group.style && (group.style['line-color'] || group.style['line-width']);
-                
+
                 // Determine the main layer ID based on the primary style type
                 const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
@@ -1744,12 +1746,12 @@ export class MapLayerControl {
                                 layerType: 'fill'
                             }
                         };
-                        
+
                         // Only add filter if it's defined
                         if (group.filter) {
                             fillLayerConfig.filter = group.filter;
                         }
-                        
+
                         this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector', 'fill'));
                     }
 
@@ -1769,12 +1771,12 @@ export class MapLayerControl {
                                 'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                             }
                         };
-                        
+
                         // Only add filter if it's defined
                         if (group.filter) {
                             lineLayerConfig.filter = group.filter;
                         }
-                        
+
                         this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
                     }
 
@@ -1782,7 +1784,7 @@ export class MapLayerControl {
                     if (group.style?.['text-field']) {
                         // Use the proper style categorization to handle all properties correctly
                         const { paint: textPaint, layout: textLayout } = this._categorizeStyleProperties(group.style, 'symbol');
-                        
+
                         const textLayerConfig = {
                             id: `vector-layer-${group.id}-text`,
                             type: 'symbol',
@@ -1868,7 +1870,7 @@ export class MapLayerControl {
             } else if (group.type === 'img') {
                 // Don't create image source and layer here
                 // Will be loaded on-demand when toggled on in _toggleSourceControl
-                
+
                 // If configured to be initially checked/visible, toggle it on
                 if (group.initiallyChecked) {
                     // Use requestAnimationFrame to ensure DOM is fully initialized
@@ -1876,7 +1878,7 @@ export class MapLayerControl {
                         this._toggleSourceControl(groupIndex, true);
                     });
                 }
-                
+
                 // Check for "layers" URL parameter
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('layers')) {
@@ -1894,22 +1896,22 @@ export class MapLayerControl {
                     class: 'layer-toggle',
                     'data-layer-id': group.id
                 });
-                
+
                 const $checkbox = $('<input>', {
                     type: 'checkbox',
                     id: `layer-${this._instanceId}-${group.id}`,
                     checked: group.initiallyChecked
                 });
-                
+
                 $checkbox.on('change', (e) => {
                     this._toggleSourceControl(groupIndex, e.target.checked);
                 });
-                
+
                 const $label = $('<label>', {
                     for: `layer-${this._instanceId}-${group.id}`,
                     text: group.title
                 });
-                
+
                 $layerToggle.append($checkbox, $label);
                 $sourceControl.append($layerToggle);
             } else {
@@ -1917,21 +1919,21 @@ export class MapLayerControl {
 
                 if (group.layers) {
                     group.layers.forEach((layer, index) => {
-                    const $radioLabel = $('<label>', { class: 'radio-label' });
-                    const $radio = $('<input>', {
-                        type: 'radio',
-                        name: `layer-group-${this._instanceId}-${groupIndex}`,
-                        value: layer.id,
-                        checked: index === 0
-                    });
+                        const $radioLabel = $('<label>', { class: 'radio-label' });
+                        const $radio = $('<input>', {
+                            type: 'radio',
+                            name: `layer-group-${this._instanceId}-${groupIndex}`,
+                            value: layer.id,
+                            checked: index === 0
+                        });
 
-                    $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
+                        $radio.on('change', () => this._handleLayerChange(layer.id, group.layers));
 
-                    $radioLabel.append(
-                        $radio,
-                        $('<span>', { text: layer.label })
-                    );
-                    $radioGroup.append($radioLabel);
+                        $radioLabel.append(
+                            $radio,
+                            $('<span>', { text: layer.label })
+                        );
+                        $radioGroup.append($radioLabel);
                     });
 
                     $sourceControl.append($radioGroup);
@@ -2001,7 +2003,7 @@ export class MapLayerControl {
                     }).text(layer.title).on('click', (e) => {
                         // Prevent default behavior to avoid double-toggling
                         e.preventDefault();
-                        
+
                         // Toggle the input and trigger change event
                         $sublayerToggleInput.prop('checked', !$sublayerToggleInput.prop('checked'));
                         $sublayerToggleInput.trigger('change');
@@ -2017,7 +2019,7 @@ export class MapLayerControl {
             // Add this after creating the radio group for layer-group types
             if (group.type === 'layer-group' && group.initiallyChecked) {
                 // Find which subgroup should be selected based on URL parameters
-                const activeSubgroupId = group.groups.find(subgroup => 
+                const activeSubgroupId = group.groups.find(subgroup =>
                     activeLayers.includes(subgroup.id)
                 )?.id || group.groups[0].id;
 
@@ -2041,7 +2043,7 @@ export class MapLayerControl {
         if (!this._initialized) {
             this._initializeWithAnimation();
         }
-        
+
         // Fix layer ordering after all layers have been initialized
         // We need to wait until the map is fully loaded and idle
         this._map.once('idle', () => {
@@ -2062,7 +2064,7 @@ export class MapLayerControl {
                         'visibility',
                         'none'
                     );
-                    
+
                     // Apply filter if defined in group config
                     if (group.filter) {
                         this._map.setFilter(layer.id, group.filter);
@@ -2080,7 +2082,7 @@ export class MapLayerControl {
             const hasLineStyle = group.style && ('line-color' in group.style || 'line-width' in group.style);
             const hasFillStyle = group.style && ('fill-color' in group.style || 'fill-opacity' in group.style);
             const hasCircleStyle = group.style && ('circle-color' in group.style || 'circle-radius' in group.style);
-            
+
             // For layers with circle styles, add a circle layer
             if (hasCircleStyle) {
                 // Add circle layer
@@ -2107,7 +2109,7 @@ export class MapLayerControl {
                     },
                     'filter': group.filter || null
                 }, this._getInsertPosition(group.type, 'circle'));
-                
+
                 // Add this layer to the list of layers that we setup interactivity for
                 layerIds.push(`${layerId}-circle`);
             }
@@ -2132,7 +2134,7 @@ export class MapLayerControl {
                     },
                     'filter': group.filter || null
                 }, this._getInsertPosition(group.type));
-                
+
                 this._setupLayerInteractivity(group, [layerId], sourceId);
             } else {
                 // Add both fill and line layers as before for features with both types
@@ -2144,11 +2146,11 @@ export class MapLayerControl {
     _toggleSourceControl(groupIndex, visible) {
         const group = this._state.groups[groupIndex];
         this._currentGroup = group;
-        
+
         if (group.type === 'style') {
             // Get all style layers
             const styleLayers = this._map.getStyle().layers;
-            
+
             // If group has specific layers defined, use those
             if (group.layers) {
                 // Update sublayer toggles to match parent visibility
@@ -2160,14 +2162,14 @@ export class MapLayerControl {
                     const layerIds = styleLayers
                         .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                         .map(styleLayer => styleLayer.id);
-                    
+
                     layerIds.forEach(layerId => {
                         if (this._map.getLayer(layerId)) {
                             this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
                         }
                     });
                 });
-            } 
+            }
             // If sourceLayers are defined, use those
             else if (group.sourceLayers) {
                 styleLayers.forEach(layer => {
@@ -2178,25 +2180,25 @@ export class MapLayerControl {
             }
             return; // Exit after handling style layers
         }
-        
+
         if (group.type === 'style') {
             // Get all style layers
             const styleLayers = this._map.getStyle().layers;
-            
+
             // If group has specific layers defined, use those
             if (group.layers) {
                 group.layers.forEach(layer => {
                     const layerIds = styleLayers
                         .filter(styleLayer => styleLayer['source-layer'] === layer.sourceLayer)
                         .map(styleLayer => styleLayer.id);
-                    
+
                     layerIds.forEach(layerId => {
                         if (this._map.getLayer(layerId)) {
                             this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
                         }
                     });
                 });
-            } 
+            }
             // If sourceLayers are defined, use those
             else if (group.sourceLayers) {
                 styleLayers.forEach(layer => {
@@ -2207,13 +2209,13 @@ export class MapLayerControl {
             }
             return; // Exit after handling style layers
         }
-        
+
         if (group.type === 'layer-group') {
             group.groups.forEach(subGroup => {
                 const allLayers = this._map.getStyle().layers
                     .map(layer => layer.id)
-                    .filter(id => 
-                        id === subGroup.id || 
+                    .filter(id =>
+                        id === subGroup.id ||
                         id.startsWith(`${subGroup.id}-`) ||
                         id.startsWith(`${subGroup.id} `)
                     );
@@ -2221,7 +2223,7 @@ export class MapLayerControl {
             });
         } else if (group.type === 'geojson') {
             const sourceId = `geojson-${group.id}`;
-            
+
             // Only add source and layers if they don't exist yet and should be visible
             if (visible && !this._map.getSource(sourceId)) {
                 // Add source
@@ -2260,7 +2262,7 @@ export class MapLayerControl {
                         'line-width': group.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': group.style?.['line-opacity'] !== undefined ? group.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
                         // Only set line-dasharray if it's defined to avoid undefined errors
-                        ...(group.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ? 
+                        ...(group.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ?
                             { 'line-dasharray': group.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray'] } : {})
                     },
                     layout: {
@@ -2299,7 +2301,7 @@ export class MapLayerControl {
                 if (group.style?.['text-field'] || group.style?.['text-size']) {
                     // Use proper style categorization to handle all properties correctly
                     const { paint: textPaint, layout: textLayout } = this._categorizeStyleProperties(group.style, 'symbol');
-                    
+
                     this._map.addLayer({
                         id: `${sourceId}-label`,
                         type: 'symbol',
@@ -2344,12 +2346,12 @@ export class MapLayerControl {
                 this._setupLayerInteractivity(group, layerIds, sourceId);
             } else {
                 // Just update visibility for existing layers
-            ['fill', 'line', 'label', 'circle'].forEach(type => {
-                const layerId = `${sourceId}-${type}`;
-                if (this._map.getLayer(layerId)) {
-                    this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-                }
-            });
+                ['fill', 'line', 'label', 'circle'].forEach(type => {
+                    const layerId = `${sourceId}-${type}`;
+                    if (this._map.getLayer(layerId)) {
+                        this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
             }
         } else if (group.type === 'tms') {
             const sourceId = `tms-${group.id}`;
@@ -2396,7 +2398,7 @@ export class MapLayerControl {
         } else if (group.type === 'csv') {
             const sourceId = `csv-${group.id}`;
             const layerId = `${sourceId}-circle`;
-            
+
             // Only set up CSV layer when visible and not already created
             if (visible && !this._map.getSource(sourceId)) {
                 // Lazy load CSV data when layer is made visible
@@ -2404,7 +2406,7 @@ export class MapLayerControl {
             } else if (this._map.getLayer(layerId)) {
                 // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-                
+
                 // Reset refresh timer when toggling visibility
                 if (visible && group.refresh && !group._refreshTimer) {
                     this._setupCsvRefresh(group);
@@ -2417,7 +2419,7 @@ export class MapLayerControl {
             const sourceId = `vector-${group.id}`;
             const hasFillStyles = group.style && (group.style['fill-color'] || group.style['fill-opacity']);
             const hasLineStyles = group.style && (group.style['line-color'] || group.style['line-width']);
-            
+
             // Determine the main layer ID based on the primary style type
             const mainLayerId = hasFillStyles ? `vector-layer-${group.id}` : `vector-layer-${group.id}-outline`;
 
@@ -2464,12 +2466,12 @@ export class MapLayerControl {
                             layerType: 'fill'
                         }
                     };
-                    
+
                     // Only add filter if it's defined
                     if (group.filter) {
                         fillLayerConfig.filter = group.filter;
                     }
-                    
+
                     this._map.addLayer(fillLayerConfig, this._getInsertPosition('vector', 'fill'));
                 }
 
@@ -2489,12 +2491,12 @@ export class MapLayerControl {
                             'line-opacity': group.style?.['line-opacity'] || this._defaultStyles.vector.line['line-opacity']
                         }
                     };
-                    
+
                     // Only add filter if it's defined
                     if (group.filter) {
                         lineLayerConfig.filter = group.filter;
                     }
-                    
+
                     this._map.addLayer(lineLayerConfig, this._getInsertPosition('vector', 'line'));
                 }
 
@@ -2561,34 +2563,34 @@ export class MapLayerControl {
                 };
             } else {
                 // Just update visibility for existing layers
-            const layerConfig = group._layerConfig;
-            if (!layerConfig) return;
+                const layerConfig = group._layerConfig;
+                if (!layerConfig) return;
 
-            if (layerConfig.hasFillStyles) {
-                const fillLayerId = `vector-layer-${group.id}`;
+                if (layerConfig.hasFillStyles) {
+                    const fillLayerId = `vector-layer-${group.id}`;
                     if (this._map.getLayer(fillLayerId)) {
-                this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
+                        this._map.setLayoutProperty(fillLayerId, 'visibility', visible ? 'visible' : 'none');
                     }
-            }
-            
-            if (layerConfig.hasLineStyles) {
-                const lineLayerId = `vector-layer-${group.id}-outline`;
-                    if (this._map.getLayer(lineLayerId)) {
-                this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
-                    }
-            }
+                }
 
-            if (group.style?.['text-field']) {
-                const textLayerId = `vector-layer-${group.id}-text`;
+                if (layerConfig.hasLineStyles) {
+                    const lineLayerId = `vector-layer-${group.id}-outline`;
+                    if (this._map.getLayer(lineLayerId)) {
+                        this._map.setLayoutProperty(lineLayerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                }
+
+                if (group.style?.['text-field']) {
+                    const textLayerId = `vector-layer-${group.id}-text`;
                     if (this._map.getLayer(textLayerId)) {
-                this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
+                        this._map.setLayoutProperty(textLayerId, 'visibility', visible ? 'visible' : 'none');
                     }
                 }
             }
         } else if (group.type === 'markers' && group.dataUrl) {
             const sourceId = `markers-${group.id}`;
             const layerId = `${sourceId}-circles`;
-            
+
             if (visible && !this._map.getSource(sourceId)) {
                 // Fetch data only when layer is made visible
                 fetch(group.dataUrl)
@@ -2597,7 +2599,7 @@ export class MapLayerControl {
                         // Special handling for Google Sheets data
                         if (group.dataUrl.includes('spreadsheets.google.com')) {
                             data = gstableToArray(JSON.parse(data.slice(47, -2)).table);
-                            
+
                             const geojson = {
                                 type: 'FeatureCollection',
                                 features: data.map(row => {
@@ -2612,7 +2614,7 @@ export class MapLayerControl {
                                     };
                                 })
                             };
-                            
+
                             // Only add source and layer if they should be visible
                             if (visible) {
                                 this._map.addSource(sourceId, {
@@ -2620,7 +2622,7 @@ export class MapLayerControl {
                                     data: geojson,
                                     promoteId: group.inspect?.id
                                 });
-                                
+
                                 this._map.addLayer({
                                     id: layerId,
                                     type: 'circle',
@@ -2672,29 +2674,29 @@ export class MapLayerControl {
                     console.error(`Image layer ${group.id} is missing URL. Properties available:`, Object.keys(group));
                     return;
                 }
-                
+
                 // Check for either bounds or bbox property
                 const bounds = group.bounds || group.bbox;
                 if (!bounds || bounds.length !== 4) {
                     console.error(`Image layer ${group.id} has invalid bounds/bbox.`);
                     return;
                 }
-                
+
                 // Store bounds for later use
                 group.bounds = bounds;
-                
+
 
                 // Add cache-busting parameter for dynamic images
-                const url = group.refresh ? 
-                    (group.url.includes('?') ? `${group.url}&_t=${Date.now()}` : `${group.url}?_t=${Date.now()}`) : 
+                const url = group.refresh ?
+                    (group.url.includes('?') ? `${group.url}&_t=${Date.now()}` : `${group.url}?_t=${Date.now()}`) :
                     group.url;
-                
+
                 // First load the image to ensure it exists
                 const img = new Image();
                 img.crossOrigin = "Anonymous"; // Enable CORS if needed
-                
+
                 img.onload = () => {
-           
+
                     // Create image source and layer for satellite imagery
                     // Use the normalized bounds
                     const bounds = group.bounds;
@@ -2709,7 +2711,7 @@ export class MapLayerControl {
                             [bounds[0], bounds[1]]  // bottom-left
                         ]
                     });
-    
+
                     // Create layer config using the new flexible style system
                     const layerConfig = this._createLayerConfig({
                         id: group.id,
@@ -2726,23 +2728,23 @@ export class MapLayerControl {
                     }, 'raster');
 
                     this._map.addLayer(layerConfig, this._getInsertPosition('img'));
-                    
+
                     // Setup refresh timer if configured
                     if (visible && group.refresh && !group._refreshTimer) {
                         this._setupImgRefresh(group);
                     }
                 };
-                
+
                 img.onerror = (e) => {
                     console.error(`Failed to load image for layer ${group.id}: ${url}`, e);
                 };
-                
+
                 // Start loading the image
                 img.src = url;
             } else if (this._map.getLayer(group.id)) {
-            // For image layers, simply change the visibility
+                // For image layers, simply change the visibility
                 this._map.setLayoutProperty(group.id, 'visibility', visible ? 'visible' : 'none');
-                
+
                 // Reset refresh timer when toggling visibility
                 if (visible && group.refresh && !group._refreshTimer) {
                     this._setupImgRefresh(group);
@@ -2754,20 +2756,20 @@ export class MapLayerControl {
         } else if (group.type === 'raster-style-layer') {
             // Handle raster-style-layer type - applies styles to existing style layer
             const styleLayerId = group.styleLayer || group.id;
-            
+
             if (this._map.getLayer(styleLayerId)) {
                 // Set visibility
                 this._map.setLayoutProperty(styleLayerId, 'visibility', visible ? 'visible' : 'none');
-                
+
                 // Apply custom style properties if provided and layer is visible
                 if (visible && group.style) {
                     // Get the existing layer to determine its type
                     const existingLayer = this._map.getLayer(styleLayerId);
                     const layerType = existingLayer.type;
-                    
+
                     // Categorize the style properties based on layer type
                     const { paint, layout } = this._categorizeStyleProperties(group.style, layerType);
-                    
+
                     // Apply paint properties
                     Object.entries(paint).forEach(([property, value]) => {
                         try {
@@ -2776,7 +2778,7 @@ export class MapLayerControl {
                             console.warn(`Failed to set paint property ${property} on layer ${styleLayerId}:`, error);
                         }
                     });
-                    
+
                     // Apply layout properties (excluding visibility which we already set)
                     Object.entries(layout).forEach(([property, value]) => {
                         if (property !== 'visibility') {
@@ -2806,12 +2808,12 @@ export class MapLayerControl {
 
     _handleLayerChange(selectedLayerId, layers) {
         const allLayers = this._map.getStyle().layers.map(layer => layer.id);
-        
+
         layers.forEach(layer => {
-            const matchingLayers = allLayers.filter(layerId => 
+            const matchingLayers = allLayers.filter(layerId =>
                 layerId === layer.id || layerId.startsWith(`${layer.id} `)
             );
-            
+
             matchingLayers.forEach(layerId => {
                 if (this._map.getLayer(layerId)) {
                     const isVisible = layer.id === selectedLayerId;
@@ -2882,16 +2884,16 @@ export class MapLayerControl {
             const group = this._state.groups[index];
             const shouldBeChecked = group?.initiallyChecked ?? false;
             toggleInput.checked = shouldBeChecked;
-            
+
             // Force visual update by triggering a reflow
             void toggleInput.offsetHeight;
-            
+
             // Also force update on the toggle slider element
             const toggleSlider = toggleInput.nextElementSibling;
             if (toggleSlider && toggleSlider.classList.contains('toggle-slider')) {
                 void toggleSlider.offsetHeight;
             }
-            
+
             toggleInput.dispatchEvent(new Event('change'));
         });
 
@@ -2902,10 +2904,10 @@ export class MapLayerControl {
             void this._container.offsetWidth;
             // Remove no-transition class
             this._container.classList.remove('no-transition');
-            
+
             this._initialized = true;
         }
-        
+
         // Add collapsed class after a brief delay to ensure initial render is complete
         requestAnimationFrame(() => {
             this._container.classList.add('collapsed');
@@ -2925,11 +2927,11 @@ export class MapLayerControl {
         if (isHover && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
             return null;
         }
-        
+
         if (isHover) {
             return this._createHoverPopupContent(feature, group);
         }
-        
+
         return this._createDetailedPopupContent(feature, group, lngLat);
     }
 
@@ -3048,23 +3050,23 @@ export class MapLayerControl {
         if (group.attribution) {
             const attributionContainer = document.createElement('div');
             attributionContainer.className = 'text-xs text-gray-600 pt-3 border-t border-gray-200 attribution-container';
-            
+
             const attributionContent = document.createElement('div');
             attributionContent.className = 'attribution-content line-clamp-2'; // Initially show 2 lines
             attributionContent.innerHTML = `Source: ${group.attribution.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')}`;
-            
+
             const expandButton = document.createElement('button');
             expandButton.className = 'text-blue-600 hover:text-blue-800 text-xs mt-1 hidden expand-attribution';
             expandButton.textContent = 'Show more';
-            
+
             attributionContainer.appendChild(attributionContent);
             attributionContainer.appendChild(expandButton);
-            
+
             // Check if content needs expand button
             setTimeout(() => {
                 if (attributionContent.scrollHeight > attributionContent.clientHeight) {
                     expandButton.classList.remove('hidden');
-                    
+
                     expandButton.addEventListener('click', () => {
                         if (attributionContent.classList.contains('line-clamp-2')) {
                             attributionContent.classList.remove('line-clamp-2');
@@ -3076,7 +3078,7 @@ export class MapLayerControl {
                     });
                 }
             }, 0);
-            
+
             content.appendChild(attributionContainer);
         }
 
@@ -3086,7 +3088,7 @@ export class MapLayerControl {
 
         const mercatorCoords = convertToWebMercator(lng, lat);
         const oneMapGoaLayerList = '&l=gp_police_station_a9c73118_2035_466c_9f5d_8888580816a0%21%2Cdma_garbage_treatment_plant_fc46bf4b_245c_4856_be7b_568b46a117c4%21%2Cdma_mrf_faciltiy_polygon_93c1ae1a_ea42_46c5_bbec_ed589e08d8c0%21%2Cdma_bio_methanation_plant_polygon_bdeb7c4d_17ec_4d9f_9e4a_3bf702905e1a%21%2Cdma_weighing_bridge_54e8be7c_e105_4098_a5fa_fb939eeba75e%21%2Cdma_mrf_faciltiy_95b4b5a3_a2ce_481b_9711_7f049ca1e244%21%2Cdma_incinerator_2d57ae07_9b3e_4168_ac8b_7f2187d5681a%21%2Cdma_ccp_biodigester_84960e2a_0ddf_465a_9bca_9bb35c4abcb4%21%2Cdma_bio_methanation_plant__f0edd163_cf6b_4084_9122_893ebc83d4fe%21%2Cdma_waste_management_sities_fa8b2c94_d4cd_4533_9c7e_8cf0d3b30b87%21%2Cdma_windrows_composting_shed_30ef18af_c8a7_45a9_befb_0b6c555bd263%21%2Cdgm_leases_f7677297_2e19_4d40_850f_0835388ecf18%21%2Cdgm_lease_names_fdb18573_adc9_4a60_9f1e_6c22c04d7871%21%2Cgdms_landslide_vulnerable_ced97822_2753_4958_9edc_7f221a6b52c9%21%2Cgdm_flooding_areas_1be469a8_af9d_46cf_953e_49256db7fe1d%21%2Cgsidc_sewerage_line_bddff132_f998_4be1_be43_b0fb71520499%21%2Cgsidc_sewerage_manhole_0654846e_5144_4d1f_977e_58d9c2c9a724%21%2Cged_division_boundary_04fe437b_405f_45fa_8357_02f0d564bdd4%21%2Cged_substation_4c686ea3_95a6_43e8_b136_e338a3a47e79%21%2Cged_rmu_2f2632f4_6ced_4eae_8ff8_6c2254697f13%21%2Cged_lv_wire_ca1f9541_7be0_4230_a760_a3b66507fc06%21%2Cged_lv_cable_9b8d0330_64e5_4bbf_bdb5_4927b39b2ef2%21%2Cged_hv_wire_a60bb861_6972_4f27_86a4_21492b59ede2%21%2Cged_hv_cable_54dae74c_08af_44f0_af49_ec3b5fcab581%21%2Cged_ehv_wire_68331f46_1c8f_4f85_99b0_151656c3b0c8%21%2Cged_ehv_cable_04580bfe_0d1c_4422_bec6_4093984ffa6d%21%2Cged_transformer_a967dbae_dbc2_487f_9fff_14865a65d8d6%21%2Cged_solar_generation_bbeed839_8737_421d_b5bc_277357dcd727%21%2Cged_towers_3c2b9c53_8aa0_4538_b969_731b66b98189%21%2Cged_protective_equipment_fa242976_c97c_4006_aeb1_8c32669f3477%21%2Cged_pole_240bac2f_8d3b_4989_bc0b_b34d9d78e018%21%2Cged_govt_connection__b89e0eff_2812_425e_aa29_4039e1489126%21%2Cged_cabinet_e3e83e28_cff8_4acc_855e_5572b21a8302%21%2Cgbbn_24F_150a4ba3_5e6e_4490_87cd_9a67a51f9a95%21%2Cgbbn_6F_7d67c332_14a0_433b_9036_d3edb7acfe1f%21%2Cgbbn_48F_87fa8495_0a7b_4a37_9154_5d749eb826e6%21%2Cgbbn_vgp_ce657914_2bc0_437a_b558_d614529d0d70%21%2Cgbbn_vgp1_da280706_4a39_4581_98f6_76a4a8258ee2%21%2Cgbbn_olt_afb08f2e_83de_4493_a04a_4eeee53cdabb%21%2Cgwrd_reservoirs_806646ae_e1d3_4b00_9afb_0659fea342cf%21%2Cgwrd_jackwell_casarwali_ad327886_70e4_4b98_bf5e_41da1e9240d0%21%2Cgwrd_pump_house_49ad2817_feb7_4bd4_beaa_2b8908823881%21%2Cgwrd_pumping_sub_station_219578a4_9fba_4c21_bfdf_6793c0e2ec9e%21%2Cgwrd_floodplains_0178162a_bedc_4875_bc74_c2eeba2a040b%21%2Cgwrd_floodembankments_6de30dc4_675b_4ef9_b204_cf2352c1fe9b%21%2Cgpwd_waterline_ffe24b0d_7e83_43e7_8d7f_e5bd2a0d49da%21%2Cgwrd_pipeline_82478411_6595_487b_b524_abb8931946a6%21%2Cgwrd_canal_c36fddaf_564b_43c5_ba74_86e46ca22995%21%2Cgwrd_end_of_pipeline_5518b446_8ff1_4d17_a28f_344dfa3e7901%21%2Cgwrd_tapping_point_401aac7c_77a1_47e2_8470_71a4880294a7%21%2Cgwrd_rain_guages___flood_monitors_ae6547a5_6eca_4932_a1c8_f80c8e04551b%21%2Cgsa_goa_sports_complex_3e450e4c_9a69_4cf7_94ac_2c9082e5388a%21%2Cgie_verna_industrial_estate_81926f17_e182_42a7_9614_0160bf19fa34%21%2Cgie_quittol_industrial_estate_5d5aadba_071c_432d_b424_6c3644c29338%21%2Cgie_latambarcem_industrail_estate_919dd4d4_d8ae_44cc_aff0_bd27fbe1e0a3%21%2Cgcsca_fps_godowns_a3b498e8_fda8_4249_b17b_8c0acbb444d7%21%2Cgcsca_fps_shops_debfb1ee_0fb9_4cfe_95a7_8d9880d22deb%21%2Cgargi_seed_farm_519a1d9c_7a62_4906_a44c_7f7a6d8744b4%21%2Cdfg_ramps_8fb28e3c_4344_409b_9e47_b19c1b8c5fe0%21%2Cdfg_jetty_6a70f09c_fc73_4c48_be61_c35b9f2a7094%21%2Cdfg_fish_landing_centers_b5f571c3_5a64_4ae9_8413_289a912e2f37%21%2Cdfg_aqua_culture_005788c0_d630_42c1_a61f_178234cc61f4%21%2Cdah_cattle_feed_factory_d4f517d5_db91_493c_8b8c_d3cb1062d369%21%2Cdah_egg_production_ff7dac52_5c84_4f17_96eb_2621f7ed01c4%21%2Cdah_veterinary_centres_b9b0b3ac_35e7_4973_a175_f515fbc0efd5%21%2Cdah_sumul_dairy_a0d775d5_8048_4858_869b_3083b34c0bcf%21%2Cdah_production_cattle_244945b5_f092_4644_a585_1601ce097c6c%21%2Cdah_milk_production_70534439_ebaa_4c88_bbb9_f44cae179078%21%2Cdah_milk_processing_unit_8d3ff9f8_387c_4d52_b5a5_ad0ab020fc10%21%2Cdah_farms_e208fb45_f1d4_4489_ae7b_753fc32d4b07%21%2Cgagri_landform_1b36389a_a5c2_4307_8515_beb0e49ceef6%2Cdslr_goa_villages_c9939cd5_f3c8_4e94_8125_38adb10e6f45%2Cdaa_asi_sites_9b100a72_f84f_4114_b81f_42f5e46334b1%2Ctdc_gurudwara_e1ff2fde_1fbd_41aa_b1af_0f844ebdbee8%2Ctdc_mosque_05493477_4f6f_4973_8edc_ae8d6e1dc2ef%2Ctdc_church_ca9f3144_cca2_402a_bb7c_85126a42a69b%2Ctdc_temple_33d6e141_2ae9_4a43_909a_f252ef6f27d6%2Cgfd_range_ac0c898d_b912_43e5_8641_cc8d558b96c2%21%2Cgfd_wls_29b8d326_2d60_4bde_b743_6a239516c86c%21%2Cgfd_eco_sensitive_zone_451208a2_46f8_45aa_ba54_a5e5278aa824%21%2Cdhs_institute_63eb16bc_7d5c_4804_b7c3_99b9481eae1d%21%2Cdhs_hospital_c90b25e4_f64d_49f5_8696_410dfe8b18bd%21%2Cdhs_uhc_882ec1f1_633e_4411_b223_c0fe874575b2%21%2Cdhs_phc_771cb209_c40a_4786_ab15_122f5b8caf7f%21%2Cdhs_chc_43f53098_e034_404f_a7c4_bbc949038e5a%21%2Cdhs_ayurvedic___homeopathic_dispensaries_339b4c62_c1a7_4b6b_b8c6_272ec8a7e46a%21%2Cdhs_hsc_0e3ffe3f_21f5_4201_8596_d6b37a1d8f10%21%2Cdot_bus_stop_9a5e21ba_b562_45bc_a372_dfe71301af16%21%2Cgkr_railway_line_943f6fe0_5c1d_461e_bf1f_e914b2991191%21%2Cdot_rto_checkpost__af7f50e9_7412_4658_a40a_5d88d303d3ab%21%2Cdot_traffic_signal_b29280ac_53eb_4207_b713_5d965dd36f5c%21%2Cdot_depot_c46b1f5c_d838_4bab_bac3_6f9eb54bd7e5%21%2Cgkr_railway_station_eeffd0d6_ac46_4f69_a6b3_952cf2687ea2%21%2Cktc_bus_stops_1272f729_fbe6_49fb_9873_5d2d6fb2f99d%21%2Cgdte_schools_a53455c4_c969_4bc6_af70_e0403df19623%2Cdtw_ashram_school_8e3e826e_8cc5_4ebb_b7b6_e159a591143d%2Cgdte_iti_college_5c51844a_d03d_4745_9a27_dfc44351d160%2Cgdte_government_institute_976db146_84af_4c70_80cf_625726d858bf%2Cgdte_college_26d0511b_5a9d_4c94_983a_4d99d24ee293%2Cgoa_villages_f7a04d50_013c_4d33_b3f0_45e1cd5ed8fc%2Cgoa_taluka_boundary_9e52e7ed_a0ef_4390_b5dc_64ab281214f5%2Cgoa_district_boundary_81d4650d_4cdd_42c3_bd42_03a4a958b5dd%21%2Cgoa_boundary_ae71ccc6_6c5c_423a_b4fb_42f925d7ddc0';
-        
+
 
         const navigationLinks = [
             {
@@ -3124,7 +3126,8 @@ export class MapLayerControl {
                 url: `https://earthengine.google.com/timelapse#v=${lat},${lng},15,latLng&t=0.41&ps=50&bt=19840101&et=20221231`,
                 text: 'TL'
             },
-            { name: 'FIRMS Fire Information for Resource Management System',
+            {
+                name: 'FIRMS Fire Information for Resource Management System',
                 url: `https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@${lng},${lat},14.00z`,
                 text: 'FR'
             },
@@ -3133,15 +3136,18 @@ export class MapLayerControl {
                 url: `https://browser.dataspace.copernicus.eu/?zoom=${zoom}&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=U2FsdGVkX18d3QCo8ly51mKnde%2FbnPTNY3M%2Bvkw2HJS5PZYTtLYG6ZjWVDYuz%2Bszj9bzKcR5Th1mcWjsfJneWz3DM1gd75vRaH%2BioFw2j3mQa79Yj8F7TkWwvb2ow0kh&datasetId=3c662330-108b-4378-8899-525fd5a225cb&fromTime=2024-12-01T00%3A00%3A00.000Z&toTime=2024-12-01T23%3A59%3A59.999Z&layerId=0-RGB-RATIO&demSource3D=%22MAPZEN%22&cloudCoverage=30&dateMode=SINGLE`,
                 text: 'CO'
             },
-            { name: 'ESRI Landsat Explorer',
+            {
+                name: 'ESRI Landsat Explorer',
                 url: `https://livingatlas.arcgis.com/landsatexplorer/#mapCenter=${lng}%2C${lat}%2C${zoom}&mode=dynamic&mainScene=%7CColor+Infrared+for+Visualization%7C`,
                 text: 'LS'
             },
-            { name: 'Zoom Earth Live Weather',
+            {
+                name: 'Zoom Earth Live Weather',
                 url: `https://zoom.earth/maps/temperature/#view=${lat},${lng},11z`,
                 text: 'ZE'
             },
-            { name: 'NASA Worldview Explorer',
+            {
+                name: 'NASA Worldview Explorer',
                 url: (() => {
                     const bbox = this._calculateBbox(lng, lat, zoom);
                     return `https://worldview.earthdata.nasa.gov/?v=${bbox.west},${bbox.south},${bbox.east},${bbox.north}&l=Reference_Labels_15m(hidden),Reference_Features_15m(hidden),Coastlines_15m(hidden),VIIRS_SNPP_DayNightBand_At_Sensor_Radiance,VIIRS_Black_Marble,VIIRS_SNPP_CorrectedReflectance_TrueColor(hidden),MODIS_Aqua_CorrectedReflectance_TrueColor(hidden),MODIS_Terra_CorrectedReflectance_TrueColor(hidden)&lg=false&t=2021-01-10-T19%3A18%3A03Z`;
@@ -3216,7 +3222,7 @@ export class MapLayerControl {
         const currentSourceLayer = group.sourceLayer;
         const relevantSourceLayerLinks = this._sourceLayerLinks.filter(link => {
             if (!currentSourceLayer) return false;
-            
+
             // Support both string and array of strings for sourceLayer
             if (Array.isArray(link.sourceLayer)) {
                 return link.sourceLayer.includes(currentSourceLayer);
@@ -3232,7 +3238,7 @@ export class MapLayerControl {
                     console.log('[MapLayerControl] Using renderHTML function for link:', link.name);
                     return link.renderHTML({ feature, group, lat, lng, zoom, mercatorCoords });
                 }
-                
+
                 // Original URL-based link generation
                 let finalUrl = link.url;
                 if (typeof link.url === 'function') {
@@ -3246,13 +3252,13 @@ export class MapLayerControl {
                         .replace(/\${zoom}/g, zoom)
                         .replace(/\${mercatorCoords\.x}/g, mercatorCoords.x)
                         .replace(/\${mercatorCoords\.y}/g, mercatorCoords.y);
-                    
+
                     // Replace feature property placeholders like ${feature.properties.FIELD_NAME}
                     finalUrl = finalUrl.replace(/\${feature\.properties\.([^}]+)}/g, (match, propName) => {
                         return feature.properties[propName] || '';
                     });
                 }
-                
+
                 return `<a href="${finalUrl}" target="_blank" class="flex items-center gap-1 hover:text-gray-900" title="${link.name}">
                     ${link.icon ? `<img src="${link.icon}" class="w-5 h-5 !max-w-none" alt="${link.name}">` : ''}
                     ${link.text ? `<span class="text-xs text-gray-600">${link.text}</span>` : ''}
@@ -3310,7 +3316,7 @@ export class MapLayerControl {
                     <span>Export KML</span>
                 `
             });
-            
+
             $exportButton.on('click', () => {
                 try {
                     const fieldValues = group.inspect?.fields
@@ -3320,36 +3326,36 @@ export class MapLayerControl {
                             .join('_')
                         : '';
                     const groupTitle = feature.properties[group.inspect?.label] || 'Exported';
-                    const title = fieldValues 
-                        ? `${fieldValues}_${groupTitle}` 
+                    const title = fieldValues
+                        ? `${fieldValues}_${groupTitle}`
                         : feature.properties[group.inspect?.label] || 'Exported_Feature';
                     const description = group.inspect?.title || 'Exported from Amche Goa';
-                    
-                    const kmlContent = convertToKML(feature, {title, description});
-                    
-                    const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
+
+                    const kmlContent = convertToKML(feature, { title, description });
+
+                    const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
                     const url = URL.createObjectURL(blob);
-                    
+
                     // Try direct download first
                     const $downloadLink = $('<a>', {
                         href: url,
                         download: `${title}.kml`
                     });
-                    
+
                     // Check if we're on iOS/iPadOS
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                    
+
                     if (isIOS) {
                         // iOS fallback method - open in new tab
                         window.open(url, '_blank');
-                        
+
                         // Show instructions
                         this._showToast('On iPad: Tap and hold the page, then select "Download Linked File" to save the KML', 'info', 10000);
-                        
+
                         // Clean up after delay
                         setTimeout(() => {
                             URL.revokeObjectURL(url);
-                        }, 60000); // Keep available for 1 minute
+                        }, 10000); // Keep available for 1 minute
                     } else {
                         // Regular download for other platforms
                         $('body').append($downloadLink);
@@ -3357,13 +3363,13 @@ export class MapLayerControl {
                         $downloadLink.remove();
                         URL.revokeObjectURL(url);
                     }
-                    
+
                 } catch (error) {
                     console.error('Error exporting KML:', error);
                     alert('Error exporting KML. Please check the console for details.');
                 }
             });
-            
+
             $actionContainer.append($exportButton);
         }
 
@@ -3374,10 +3380,10 @@ export class MapLayerControl {
 
     _getInsertPosition(type, layerType = null) {
         return getInsertPosition(
-            this._map, 
-            type, 
-            layerType, 
-            this._currentGroup, 
+            this._map,
+            type,
+            layerType,
+            this._currentGroup,
             this._state.groups
         );
     }
@@ -3385,16 +3391,16 @@ export class MapLayerControl {
     _handleLayerGroupChange(selectedId, groups) {
         const allLayers = this._map.getStyle().layers
             .map(layer => layer.id)
-            .filter(id => groups.some(group => 
-                id === group.id || 
+            .filter(id => groups.some(group =>
+                id === group.id ||
                 id.startsWith(`${group.id}-`) ||
                 id.startsWith(`${group.id} `)
             ));
 
         this._updateLayerVisibility(allLayers, false);
-        
-        const selectedLayers = allLayers.filter(id => 
-            id === selectedId || 
+
+        const selectedLayers = allLayers.filter(id =>
+            id === selectedId ||
             id.startsWith(`${selectedId}-`) ||
             id.startsWith(`${selectedId} `)
         );
@@ -3435,7 +3441,7 @@ export class MapLayerControl {
             this._consolidatedHoverPopup = null;
         }
         this._activeHoverFeatures.clear();
-        
+
         // Clear all selected features
         this._clearAllSelectedFeatures();
     }
@@ -3489,7 +3495,7 @@ export class MapLayerControl {
             this._map.on('mousemove', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
-                    
+
                     // Clear hover state for previous feature
                     if (hoveredFeatureId !== null) {
                         this._map.setFeatureState(
@@ -3510,11 +3516,11 @@ export class MapLayerControl {
                     // Handle hover popup content
                     if (group.inspect?.label) {
                         // First remove any existing features for this layer
-                        const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key => 
+                        const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key =>
                             key.includes(`${sourceId}:${layerId}:`));
-                        
+
                         layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
-                        
+
                         // Now add the current feature
                         const featureKey = `${sourceId}:${layerId}:${feature.id}`;
                         this._activeHoverFeatures.set(featureKey, {
@@ -3522,7 +3528,7 @@ export class MapLayerControl {
                             group,
                             lngLat: e.lngLat
                         });
-                        
+
                         // Update the consolidated hover popup
                         updateConsolidatedHoverPopup(e);
                     }
@@ -3538,13 +3544,13 @@ export class MapLayerControl {
                     );
                     hoveredFeatureId = null;
                 }
-                
+
                 // Remove this layer's features from active features
-                const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key => 
+                const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key =>
                     key.includes(`${sourceId}:${layerId}:`));
-                
+
                 layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
-                
+
                 // Update consolidated popup (will be removed if no features remain)
                 updateConsolidatedHoverPopup();
             });
@@ -3553,7 +3559,7 @@ export class MapLayerControl {
             this._map.on('click', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
-                    
+
                     // Remove hover popup
                     this._consolidatedHoverPopup.remove();
                     this._activeHoverFeatures.clear();
@@ -3566,7 +3572,7 @@ export class MapLayerControl {
                         selectedFeatureId = feature.id;
                         const featureStateParams = getFeatureStateParams(selectedFeatureId);
                         this._map.setFeatureState(featureStateParams, { selected: true });
-                        
+
                         // Store in global selected features map
                         this._selectedFeatures.set(`${sourceId}:${layerId}:${selectedFeatureId}`, {
                             sourceId,
@@ -3600,7 +3606,7 @@ export class MapLayerControl {
     // When rendering legend images, we need to check if it's a PDF and handle it differently
     _renderLegendImage(legendImageUrl) {
         if (!legendImageUrl) return '';
-        
+
         // Check if the file is a PDF
         if (legendImageUrl.toLowerCase().endsWith('.pdf')) {
             return `
@@ -3674,7 +3680,7 @@ export class MapLayerControl {
         try {
             // Handle different URL formats
             let tileJSONUrl = url;
-            
+
             // If it's a tile template URL, try to convert to TileJSON URL
             if (url.includes('{z}')) {
                 // Remove the template parameters and try common TileJSON paths
@@ -3683,7 +3689,7 @@ export class MapLayerControl {
                     tileJSONUrl += '/tiles.json';
                 }
             }
-            
+
             // For Mapbox hosted tilesets
             if (url.startsWith('mapbox://')) {
                 const tilesetId = url.replace('mapbox://', '');
@@ -3703,19 +3709,19 @@ export class MapLayerControl {
         const modal = document.getElementById('layer-settings-modal');
         const content = modal.querySelector('.layer-settings-content');
         const saveButton = modal.querySelector('.save-button');
-        
+
         // Reset save button visibility
         saveButton.style.display = 'none';
-        
+
         // Store original config for comparison
         this._originalConfig = JSON.stringify(group);
-        
+
         // Update header with background image
         const headerBg = modal.querySelector('.header-bg');
         const headerTitle = modal.querySelector('.header-title');
-        
+
         headerTitle.textContent = group.title;
-        
+
         if (group.headerImage) {
             headerBg.style.backgroundImage = `url('${group.headerImage}')`;
             headerBg.style.opacity = '1';
@@ -3751,7 +3757,7 @@ export class MapLayerControl {
         const sourceDetails = content.querySelector('.source-details');
         const tileJSONSection = content.querySelector('.tilejson-section');
         sourceDetails.innerHTML = '';
-        
+
         if (group.type === 'tms' || group.type === 'vector' || group.type === 'geojson' || group.type === 'raster-style-layer') {
             sourceDetails.innerHTML = `
                 <div class="source-details-content bg-gray-100 rounded">
@@ -3824,7 +3830,7 @@ export class MapLayerControl {
                     <h3 class="text-base font-bold mb-3">Legend</h3>
                     <div class="legend-container p-3 bg-gray-100 rounded-lg">
                         <div class="legend-items space-y-2">`;
-            
+
             // Helper function to extract simple value from expression
             const getSimpleValue = (value) => {
                 if (typeof value === 'string') return value;
@@ -3846,19 +3852,19 @@ export class MapLayerControl {
             // Helper function to parse match expression
             const parseMatchExpression = (expr) => {
                 if (!Array.isArray(expr) || expr[0] !== 'match') return null;
-                
+
                 const field = expr[1];
                 const cases = [];
-                
+
                 // Extract field name from ['get', 'fieldname']
                 const fieldName = Array.isArray(field) && field[0] === 'get' ? field[1] : null;
                 if (!fieldName) return null;
-                
+
                 // Parse cases - they come in pairs except for the default value at the end
                 for (let i = 2; i < expr.length - 1; i += 2) {
                     const condition = expr[i];
                     const value = expr[i + 1];
-                    
+
                     // Handle both single values and arrays of values
                     const conditions = Array.isArray(condition) ? condition : [condition];
                     conditions.forEach(cond => {
@@ -3869,7 +3875,7 @@ export class MapLayerControl {
                         });
                     });
                 }
-                
+
                 // Add default case
                 if (expr.length % 2 === 1) {
                     cases.push({
@@ -3879,7 +3885,7 @@ export class MapLayerControl {
                         isDefault: true
                     });
                 }
-                
+
                 return cases;
             };
 
@@ -3901,7 +3907,7 @@ export class MapLayerControl {
 
             // Combine all unique match conditions
             const allMatches = new Map();
-            
+
             const addMatches = (matches, type) => {
                 if (!matches) return;
                 matches.forEach(match => {
@@ -3925,7 +3931,7 @@ export class MapLayerControl {
                     const currentLineColor = match.styles.line || (lineColor && getSimpleValue(lineColor)) || '#000000';
                     const currentTextColor = match.styles.text || (textColor && getSimpleValue(textColor)) || '#000000';
                     const currentHaloColor = match.styles.halo || (textHaloColor && getSimpleValue(textHaloColor)) || '#ffffff';
-                    
+
                     styleHtml += `
                         <div class="legend-item flex items-center gap-3">
                             <div class="legend-symbol flex items-center">
@@ -3955,7 +3961,7 @@ export class MapLayerControl {
                 const simpleLineColor = getSimpleValue(lineColor) || '#000000';
                 const simpleTextColor = getSimpleValue(textColor) || '#000000';
                 const simpleHaloColor = getSimpleValue(textHaloColor) || '#ffffff';
-                
+
                 styleHtml += `
                     <div class="legend-item flex items-center gap-3">
                         <div class="legend-symbol flex items-center">
@@ -3988,11 +3994,11 @@ export class MapLayerControl {
                 const circleOpacity = getSimpleValue(group.style['circle-opacity']) || 0.9;
                 const circleStrokeOpacity = getSimpleValue(group.style['circle-stroke-opacity']) || 1;
                 const circleBlur = getSimpleValue(group.style['circle-blur']) || 0;
-                
+
                 const blurStyle = circleBlur > 0 ? `filter: blur(${circleBlur}px);` : '';
                 const opacityStyle = `opacity: ${circleOpacity};`;
                 const strokeOpacityStyle = `opacity: ${circleStrokeOpacity};`;
-                
+
                 styleHtml += `
                     <div class="legend-item flex items-center gap-3">
                         <div class="legend-symbol flex items-center justify-center" style="width: 24px;">
@@ -4011,12 +4017,12 @@ export class MapLayerControl {
                         </div>
                     </div>`;
             }
-            
+
             styleHtml += `
                         </div>
                     </div>
                 </div>`;
-            
+
             styleEditor.innerHTML = styleHtml;
             styleEditor.parentElement.style.display = '';
         } else {
@@ -4045,7 +4051,7 @@ export class MapLayerControl {
         configTextarea.setAttribute('rows', '15');
         configTextarea.setAttribute('class', 'config-json');
         configTextarea.value = JSON.stringify(group, null, 2);
-        
+
         // Add change listener to track modifications
         configTextarea.addEventListener('input', () => {
             try {
@@ -4057,7 +4063,7 @@ export class MapLayerControl {
                 saveButton.style.display = 'none';
             }
         });
-        
+
         configEditor.innerHTML = '';
         configEditor.appendChild(configTextarea);
 
@@ -4067,22 +4073,22 @@ export class MapLayerControl {
     _saveLayerSettings() {
         const modal = document.getElementById('layer-settings-modal');
         const configTextarea = modal.querySelector('.config-json');
-        
+
         try {
             // Parse the edited configuration
             const newConfig = JSON.parse(configTextarea.value);
-            
+
             // Find the group that was being edited
             const groupIndex = this._state.groups.findIndex(g => g.id === newConfig.id);
             if (groupIndex === -1) {
                 throw new Error('Could not find layer configuration to update');
             }
-            
+
             const oldConfig = this._state.groups[groupIndex];
-            
+
             // Update the configuration
             this._state.groups[groupIndex] = newConfig;
-            
+
             // Remove old layers based on type
             if (oldConfig.type === 'vector') {
                 const layerIds = [
@@ -4123,14 +4129,14 @@ export class MapLayerControl {
                     this._map.removeSource(`tms-${oldConfig.id}`);
                 }
             }
-            
+
             // Add new layers with updated configuration
             if (newConfig.type === 'vector') {
                 const sourceId = `vector-${newConfig.id}`;
                 const hasFillStyles = newConfig.style && (newConfig.style['fill-color'] || newConfig.style['fill-opacity']);
                 const hasLineStyles = newConfig.style && (newConfig.style['line-color'] || newConfig.style['line-width']);
                 const hasCircleStyles = newConfig.style && (newConfig.style['circle-color'] || newConfig.style['circle-radius']);
-                
+
                 // Add source with proper handling of Mapbox hosted tilesets
                 const sourceConfig = {
                     type: 'vector',
@@ -4146,7 +4152,7 @@ export class MapLayerControl {
                 }
 
                 this._map.addSource(sourceId, sourceConfig);
-                
+
                 // Add fill layer if styles exist
                 if (hasFillStyles) {
                     this._map.addLayer({
@@ -4163,7 +4169,7 @@ export class MapLayerControl {
                         }
                     });
                 }
-                
+
                 // Add line layer if styles exist
                 if (hasLineStyles) {
                     this._map.addLayer({
@@ -4180,7 +4186,7 @@ export class MapLayerControl {
                         }
                     });
                 }
-                
+
                 // Add circle layer if styles exist
                 if (hasCircleStyles) {
                     this._map.addLayer({
@@ -4206,7 +4212,7 @@ export class MapLayerControl {
                         }
                     });
                 }
-                
+
                 // Add text layer if configured
                 if (newConfig.style?.['text-field']) {
                     this._map.addLayer({
@@ -4244,13 +4250,13 @@ export class MapLayerControl {
                 }
             } else if (newConfig.type === 'geojson') {
                 const sourceId = `geojson-${newConfig.id}`;
-                
+
                 // Add source
                 this._map.addSource(sourceId, {
                     type: 'geojson',
                     data: newConfig.url
                 });
-                
+
                 // Add fill layer
                 this._map.addLayer({
                     id: `${sourceId}-fill`,
@@ -4264,7 +4270,7 @@ export class MapLayerControl {
                         visibility: 'none'
                     }
                 });
-                
+
                 // Add line layer
                 this._map.addLayer({
                     id: `${sourceId}-line`,
@@ -4275,7 +4281,7 @@ export class MapLayerControl {
                         'line-width': newConfig.style?.['line-width'] || this._defaultStyles.geojson.line['line-width'],
                         'line-opacity': newConfig.style?.['line-opacity'] !== undefined ? newConfig.style['line-opacity'] : (this._defaultStyles.geojson.line['line-opacity'] || 1),
                         // Only set line-dasharray if it's defined to avoid undefined errors
-                        ...(newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ? 
+                        ...(newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line?.['line-dasharray'] ?
                             { 'line-dasharray': newConfig.style?.['line-dasharray'] || this._defaultStyles.geojson.line['line-dasharray'] } : {})
                     },
                     layout: {
@@ -4284,7 +4290,7 @@ export class MapLayerControl {
                         'line-cap': 'round'
                     }
                 }, this._getInsertPosition('geojson', 'line'));
-                
+
                 // Add circle layer if circle properties are defined
                 if (newConfig.style?.['circle-radius'] || newConfig.style?.['circle-color']) {
                     this._map.addLayer({
@@ -4309,7 +4315,7 @@ export class MapLayerControl {
                         }
                     });
                 }
-                
+
                 // Add text layer if configured
                 if (newConfig.style?.['text-field']) {
                     this._map.addLayer({
@@ -4348,7 +4354,7 @@ export class MapLayerControl {
             } else if (newConfig.type === 'tms') {
                 const sourceId = `tms-${newConfig.id}`;
                 const layerId = `tms-layer-${newConfig.id}`;
-                
+
                 // Add source
                 // Check if it's a Mapbox hosted raster tileset
                 if (newConfig.url.startsWith('mapbox://')) {
@@ -4366,7 +4372,7 @@ export class MapLayerControl {
                         maxzoom: newConfig.maxzoom || 22
                     });
                 }
-                
+
                 // Create layer config using the new flexible style system
                 const layerConfig = this._createLayerConfig({
                     id: layerId,
@@ -4383,19 +4389,19 @@ export class MapLayerControl {
 
                 this._map.addLayer(layerConfig, this._getInsertPosition('tms'));
             }
-            
+
             // Update UI
             const $groupHeader = $(this._sourceControls[groupIndex]);
             const $title = $groupHeader.find('.control-title');
             $title.text(newConfig.title);
-            
+
             // If the layer was visible, make it visible again
             if ($groupHeader.find('.toggle-switch input').prop('checked')) {
                 this._toggleSourceControl(groupIndex, true);
             }
-            
+
             modal.hide();
-            
+
         } catch (error) {
             console.error('Error saving layer settings:', error);
             alert('Failed to save layer settings. Please check the console for details.');
@@ -4437,22 +4443,22 @@ export class MapLayerControl {
 
     _createConsolidatedHoverContent() {
         if (this._activeHoverFeatures.size === 0) return null;
-        
+
         const container = document.createElement('div');
         container.className = 'map-popup consolidated-popup p-1 font-sans';
-        
+
         // Group features by layer and keep track of the most recent feature for each layer
         const groupedFeatures = new Map();
-        
+
         // Process each hovered feature
         this._activeHoverFeatures.forEach(({ feature, group }) => {
             const groupTitle = group.title || 'Unknown Layer';
-            
+
             if (group.inspect?.label) {
                 const labelValue = feature.properties[group.inspect.label];
                 if (labelValue) {
                     // Store feature information for this layer
-                    groupedFeatures.set(groupTitle, { 
+                    groupedFeatures.set(groupTitle, {
                         labelValue,
                         groupId: group.id,
                         // Find the index of this group in the original config
@@ -4461,12 +4467,12 @@ export class MapLayerControl {
                 }
             }
         });
-        
+
         // Sort the entries based on their index in the original config
         // Lower index (appearing earlier in config) should come first
         const sortedEntries = Array.from(groupedFeatures.entries())
             .sort((a, b) => a[1].index - b[1].index);
-            
+
         // Create content from grouped features in the correct order
         sortedEntries.forEach(([groupTitle, { labelValue }]) => {
             // Add layer name
@@ -4474,14 +4480,14 @@ export class MapLayerControl {
             layerDiv.className = 'text-xs uppercase tracking-wider text-gray-500 mt-1';
             layerDiv.textContent = groupTitle;
             container.appendChild(layerDiv);
-            
+
             // Add feature label
             const labelDiv = document.createElement('div');
             labelDiv.className = 'text-sm font-medium ml-1';
             labelDiv.textContent = labelValue;
             container.appendChild(labelDiv);
         });
-        
+
         return container;
     }
 
@@ -4493,12 +4499,12 @@ export class MapLayerControl {
 
         const sourceId = `csv-${group.id}`;
         const layerId = `${sourceId}-circle`;
-        
+
         try {
             // Fetch CSV data
             const response = await fetch(group.url);
             let csvText = await response.text();
-            
+
             // Parse CSV data
             let rows;
             if (group.csvParser) {
@@ -4506,27 +4512,27 @@ export class MapLayerControl {
             } else {
                 rows = parseCSV(csvText);
             }
-            
+
             // Convert to GeoJSON
             const geojson = rowsToGeoJSON(rows);
-            
+
             // Add source if it doesn't exist
             if (!this._map.getSource(sourceId)) {
                 this._map.addSource(sourceId, {
                     type: 'geojson',
                     data: geojson
                 });
-                
+
                 // Check if layer should be visible based on URL parameters or initiallyChecked
                 const urlParams = new URLSearchParams(window.location.search);
-                const activeLayers = urlParams.get('layers') ? 
-                    urlParams.get('layers').split(',').map(s => s.trim()) : 
+                const activeLayers = urlParams.get('layers') ?
+                    urlParams.get('layers').split(',').map(s => s.trim()) :
                     this._state.groups
                         .filter(g => g.initiallyChecked)
                         .map(g => g.id);
-                
+
                 const isVisible = activeLayers.includes(group.id);
-                
+
                 // Add circle layer with correct initial visibility
                 this._map.addLayer({
                     id: layerId,
@@ -4549,7 +4555,7 @@ export class MapLayerControl {
                         'visibility': isVisible ? 'visible' : 'none'
                     }
                 }, this._getInsertPosition('csv'));
-                
+
                 // Set up interactivity
                 this._setupLayerInteractivity(group, [layerId], sourceId);
 
@@ -4563,12 +4569,12 @@ export class MapLayerControl {
                 // Update existing source with new data
                 this._map.getSource(sourceId).setData(geojson);
             }
-            
+
             // Set up refresh interval if specified
             if (group.refresh) {
                 this._setupCsvRefresh(group);
             }
-            
+
         } catch (error) {
             console.error(`Error loading CSV layer '${group.id}':`, error);
         }
@@ -4579,9 +4585,9 @@ export class MapLayerControl {
         if (group._refreshTimer) {
             clearInterval(group._refreshTimer);
         }
-        
+
         const sourceId = `csv-${group.id}`;
-        
+
         // Set up new refresh timer
         group._refreshTimer = setInterval(async () => {
             if (!this._map.getSource(sourceId)) {
@@ -4589,12 +4595,12 @@ export class MapLayerControl {
                 group._refreshTimer = null;
                 return;
             }
-            
+
             try {
                 // Fetch updated CSV data
                 const response = await fetch(group.url);
                 let csvText = await response.text();
-                
+
                 // Parse CSV data
                 let rows;
                 if (group.csvParser) {
@@ -4602,10 +4608,10 @@ export class MapLayerControl {
                 } else {
                     rows = parseCSV(csvText);
                 }
-                
+
                 // Convert to GeoJSON
                 const geojson = rowsToGeoJSON(rows);
-                
+
                 // Update source data
                 this._map.getSource(sourceId).setData(geojson);
             } catch (error) {
@@ -4620,7 +4626,7 @@ export class MapLayerControl {
         if (group._refreshTimer) {
             clearInterval(group._refreshTimer);
         }
-        
+
         // Set up interval to refresh the image source
         group._refreshTimer = setInterval(() => {
             if (!this._map.getSource(group.id)) {
@@ -4628,26 +4634,26 @@ export class MapLayerControl {
                 group._refreshTimer = null;
                 return;
             }
-            
+
             // Update the image URL with a cache-busting parameter
             const timestamp = Date.now();
-            const url = group.url.includes('?') 
-                ? `${group.url}&_t=${timestamp}` 
+            const url = group.url.includes('?')
+                ? `${group.url}&_t=${timestamp}`
                 : `${group.url}?_t=${timestamp}`;
-                
+
             // First preload the new image to ensure it exists
             const img = new Image();
             img.crossOrigin = "Anonymous"; // Enable CORS if needed
-            
+
             img.onload = () => {
                 // Once image is loaded, update the map source
-                            try {
+                try {
                     const source = this._map.getSource(group.id);
                     if (!source) {
                         console.error(`Source not found for image layer ${group.id} during refresh`);
                         return;
                     }
-                    
+
                     source.updateImage({
                         url: url,
                         coordinates: source.coordinates
@@ -4656,32 +4662,32 @@ export class MapLayerControl {
                     console.error(`Error updating image layer ${group.id}:`, err);
                 }
             };
-            
+
             img.onerror = (err) => {
                 console.error(`Failed to refresh image for layer ${group.id}:`, err);
             };
-            
+
             // Start loading the new image
             img.src = url;
-            
+
         }, group.refresh);
     }
 
     _combineWithDefaultStyle(userColor, defaultStyleExpression) {
         // If no user color is provided, return the default style unchanged
         if (!userColor) return defaultStyleExpression;
-        
+
         // If default style is not an expression (just a simple color), return user color
         if (!Array.isArray(defaultStyleExpression)) return userColor;
-        
+
         // If user color contains a zoom expression (interpolate/step with zoom), use it directly
         if (Array.isArray(userColor) && this._hasZoomExpression(userColor)) {
             return userColor;
         }
-        
+
         // Clone the default style expression to avoid modifying the original
         const result = JSON.parse(JSON.stringify(defaultStyleExpression));
-        
+
         // Handle different types of expressions
         if (result[0] === 'case') {
             // Simple case expression - replace the fallback color (last value)
@@ -4693,31 +4699,31 @@ export class MapLayerControl {
             // For other expression types, return user color directly
             return userColor;
         }
-        
+
         return result;
     }
-    
+
     _hasZoomExpression(expression) {
         if (!Array.isArray(expression)) return false;
-        
+
         // Check if this is an interpolate or step expression with zoom
-        if ((expression[0] === 'interpolate' || expression[0] === 'step') && 
-            expression.length > 2 && 
-            Array.isArray(expression[2]) && 
+        if ((expression[0] === 'interpolate' || expression[0] === 'step') &&
+            expression.length > 2 &&
+            Array.isArray(expression[2]) &&
             expression[2][0] === 'zoom') {
             return true;
         }
-        
+
         // Recursively check nested expressions
         for (let i = 1; i < expression.length; i++) {
             if (Array.isArray(expression[i]) && this._hasZoomExpression(expression[i])) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     _replaceColorsInInterpolateExpression(interpolateExpr, newColor) {
         // For interpolate expressions like: ["interpolate", ["linear"], ["zoom"], 6, caseExpr1, 16, caseExpr2]
         // We need to replace the fallback color in each case expression
@@ -4756,13 +4762,13 @@ export class MapLayerControl {
 
     _addGlobalClickHandler() {
         if (this._globalClickHandlerAdded) return;
-        
+
         this._map.on('click', (e) => {
             // Use setTimeout to ensure this runs after layer-specific click handlers
             setTimeout(() => {
                 // Check if the click was on any feature by querying all rendered features at the point
                 const features = this._map.queryRenderedFeatures(e.point);
-                
+
                 // Filter out base map features - only check for our custom layers
                 const customFeatures = features.filter(feature => {
                     const layerId = feature.layer?.id;
@@ -4774,11 +4780,11 @@ export class MapLayerControl {
                         layerId.includes('markers-')
                     );
                 });
-                
+
                 // If no custom features were clicked (empty area), clear all selections
                 if (customFeatures.length === 0) {
                     this._clearAllSelectedFeatures();
-                    
+
                     // Also close any open popups
                     this._map.getCanvas().style.cursor = '';
                     const popups = document.querySelectorAll('.mapboxgl-popup');
@@ -4791,7 +4797,7 @@ export class MapLayerControl {
                 }
             }, 0);
         });
-        
+
         this._globalClickHandlerAdded = true;
     }
 }
