@@ -648,4 +648,30 @@ function parseCSVLine(line) {
     result.push(current);
     
     return result;
+}
+
+export async function fetchTileJSON(url) {
+    try {
+        // Handle different URL formats
+        let tileJSONUrl = url;
+        // If it's a tile template URL, try to convert to TileJSON URL
+        if (url.includes('{z}')) {
+            // Remove the template parameters and try common TileJSON paths
+            tileJSONUrl = url.split('/{z}')[0];
+            if (!tileJSONUrl.endsWith('.json')) {
+                tileJSONUrl += '/tiles.json';
+            }
+        }
+        // For Mapbox hosted tilesets
+        if (url.startsWith('mapbox://')) {
+            const tilesetId = url.replace('mapbox://', '');
+            tileJSONUrl = `https://api.mapbox.com/v4/${tilesetId}.json?access_token=${mapboxgl.accessToken}`;
+        }
+        const response = await fetch(tileJSONUrl);
+        if (!response.ok) throw new Error('Failed to fetch TileJSON');
+        return await response.json();
+    } catch (error) {
+        console.warn('Failed to fetch TileJSON:', error);
+        return null;
+    }
 } 

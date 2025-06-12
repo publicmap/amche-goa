@@ -205,29 +205,13 @@
             <!-- Gear button for Custom Config -->
             <sl-icon-button name="gear" id="load-config-btn" class="config-gear-button"
                 title="Custom Config"></sl-icon-button>
-
+            <!-- Add Layer button for new data source/atlas -->
+            <sl-icon-button name="plus-square" id="add-layer-btn" class="add-layer-button"
+                title="Add new data source or atlas"></sl-icon-button>
             <!-- Share button container for ShareLink plugin -->
             <div id="share-button-container"></div>
         </div>
     </header>
-
-    <!-- Add config dialog -->
-    <sl-dialog id="config-dialog" label="Load Custom Configuration">
-        <form id="config-form" class="flex flex-col gap-4">
-            <sl-input id="config-url" placeholder="Enter configuration URL" required>
-                <sl-icon slot="prefix" name="link"></sl-icon>
-            </sl-input>
-            <p class="text-sm text-gray-600">
-                Enter the URL of a JSON configuration file to customize map layers.
-                <a href="/config/_defaults.json" target="_blank" class="text-blue-500 hover:underline">View default
-                    config</a>
-            </p>
-            <div class="flex justify-end gap-2">
-                <sl-button type="button" variant="default" id="cancel-config">Cancel</sl-button>
-                <sl-button type="submit" variant="primary" id="submit-config">Load Configuration</sl-button>
-            </div>
-        </form>
-    </sl-dialog>
 
     <!-- Add the floating drawer toggle button -->
     <sl-icon-button name="list" id="open-drawer" class="fixed top-20 left-4 z-10 rounded-full shadow-lg"
@@ -325,33 +309,6 @@
             });
         });
 
-        // Initialize custom configuration dialog
-        customElements.whenDefined('sl-dialog').then(() => {
-            const configDialog = document.getElementById('config-dialog');
-            const loadConfigBtn = document.getElementById('load-config-btn');
-            const cancelConfigBtn = document.getElementById('cancel-config');
-            const configForm = document.getElementById('config-form');
-
-            loadConfigBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                configDialog.show();
-            });
-
-            cancelConfigBtn.addEventListener('click', () => {
-                configDialog.hide();
-            });
-
-            configForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                const configUrl = document.getElementById('config-url').value;
-                if (configUrl) {
-                    const currentUrl = new URL(window.location.href);
-                    currentUrl.searchParams.set('config', configUrl);
-                    window.location.href = currentUrl.toString();
-                }
-            });
-        });
-
         // Handle navigation dropdown menu clicks
         customElements.whenDefined('sl-menu-item').then(() => {
             document.querySelectorAll('sl-menu-item[href]').forEach(item => {
@@ -405,6 +362,9 @@
             shareLink.render();
         });
     </script>
+
+    <!-- Add layer-creator-ui.js module loader -->
+    <script type="module" src="js/layer-creator-ui.js"></script>
 </body>
 
 </html>

@@ -4,6 +4,7 @@ import { parseCSV, rowsToGeoJSON } from './map-utils.js';
 import { getInsertPosition } from './layer-order-manager.js';
 import { fixLayerOrdering } from './layer-order-manager.js';
 import { localization } from './localization.js';
+import { fetchTileJSON } from './map-utils.js';
 
 export class MapLayerControl {
     constructor(options) {
@@ -3679,35 +3680,6 @@ export class MapLayerControl {
         }
     }
 
-    async _fetchTileJSON(url) {
-        try {
-            // Handle different URL formats
-            let tileJSONUrl = url;
-
-            // If it's a tile template URL, try to convert to TileJSON URL
-            if (url.includes('{z}')) {
-                // Remove the template parameters and try common TileJSON paths
-                tileJSONUrl = url.split('/{z}')[0];
-                if (!tileJSONUrl.endsWith('.json')) {
-                    tileJSONUrl += '/tiles.json';
-                }
-            }
-
-            // For Mapbox hosted tilesets
-            if (url.startsWith('mapbox://')) {
-                const tilesetId = url.replace('mapbox://', '');
-                tileJSONUrl = `https://api.mapbox.com/v4/${tilesetId}.json?access_token=${mapboxgl.accessToken}`;
-            }
-
-            const response = await fetch(tileJSONUrl);
-            if (!response.ok) throw new Error('Failed to fetch TileJSON');
-            return await response.json();
-        } catch (error) {
-            console.warn('Failed to fetch TileJSON:', error);
-            return null;
-        }
-    }
-
     async _showLayerSettings(group) {
         const modal = document.getElementById('layer-settings-modal');
         const content = modal.querySelector('.layer-settings-content');
@@ -3794,7 +3766,7 @@ export class MapLayerControl {
 
             // Fetch and display TileJSON if available
             if ((group.type === 'vector' || group.type === 'tms') && group.url) {
-                const tileJSON = await this._fetchTileJSON(group.url);
+                const tileJSON = await fetchTileJSON(group.url);
                 if (tileJSON) {
                     content.querySelector('.tilejson-content').innerHTML = `
                         <div class="p-3 bg-gray-100 rounded">
