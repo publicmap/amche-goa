@@ -10,7 +10,7 @@
       }
     },
     "goa-cadastral-atlas": {
-      "url": "https://amche.in/?layers=communidade-land,plot,open-buildings-2023,open-buildings,regional-plan,mapbox-satellite,3d-terrain#11.87/15.51624/73.8246",
+      "url": "https://amche.in/?layers=communidade-land,notified-wetlands,plot,open-buildings-2023,open-buildings,regional-plan,mapbox-satellite,3d-terrain#11.87/15.51624/73.8246",
       "title": "Communidade owned lands of Goa",
       "description": "Plots owned by the Communidade of Goa",
       "published": {
