@@ -32,6 +32,12 @@ class GeolocationManager {
         this.geolocate.on('trackuserlocationend', () => {
             this.isTracking = false;
             $(window).off('deviceorientationabsolute', this.handleOrientation);
+            // Reset map orientation
+            this.map.easeTo({
+                bearing: 0,
+                pitch: 0,
+                duration: 1000
+            });
         });
 
         // Handle geolocation errors
@@ -84,15 +90,6 @@ class GeolocationManager {
         this.geolocate.on('geolocate', async (event) => {
             this.lastPosition = event;
             this.locationErrorCount = 0;
-            
-            // Set initial map position
-            this.map.easeTo({
-                center: [event.coords.longitude, event.coords.latitude],
-                zoom: 18,
-                pitch: 0,
-                bearing: 0, // North
-                duration: 1000 // 1 second animation
-            });
             
             if (!this.locationLabelSet) {
                 try {
@@ -155,19 +152,12 @@ class GeolocationManager {
                     console.error('Error reverse geocoding:', error);
                 }
             }
-
-            if (this.isTracking && event.coords?.heading) {
-                this.map.easeTo({
-                    bearing: event.coords.heading,
-                    duration: 300
-                });
-            }
         });
     }
 
     handleOrientation = (event) => {
-        if (event.alpha && this.isTracking) {
-            const bearing = 360 - event.alpha;
+        if (event.alpha != null && this.isTracking) {
+            const bearing = event.alpha;
             this.map.easeTo({
                 bearing: bearing,
                 duration: 100
