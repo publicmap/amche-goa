@@ -112,7 +112,7 @@ class GeolocationManager {
                         }
                         
                         if (feature.context) {
-                            const relevantTypes = ['neighborhood', 'locality', 'place', 'district'];
+                            const relevantTypes = ['neighborhood', 'locality', 'place'];
                             feature.context
                                 .filter(ctx => relevantTypes.includes(ctx.id.split('.')[0]))
                                 .forEach(ctx => parts.push(ctx.text));

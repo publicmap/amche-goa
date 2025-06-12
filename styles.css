@@ -200,8 +200,8 @@ main {
 
 .mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon {
     margin-right: 0;
-    width: 20px;
-    height: 20px;
+    width: 30px!important;
+    height: 30px!important;
 }
 
 .mapboxgl-ctrl-group {
