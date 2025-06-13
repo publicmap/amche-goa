@@ -88,11 +88,27 @@ export class MapLayerControl {
                         const $container = $(`#${containerId}`);
                         if ($container.length > 0) {
                             if (data.info && data.has_data === 'Y') {
-                                // Parse and format the info text, filtering out first 3 lines
-                                const rawText = data.info.split('\n').slice(3).join('\n').replace(/-{10,}/g, '');
-                                // Format headers (text from start of line to colon) as bold with line breaks
-                                const formattedText = rawText.replace(/^([^:\n]+:)/gm, '<strong>$1</strong><br>');
-                                const infoText = formattedText.replace(/\n/g, '<br>');
+                                let infoText;
+                                
+                                // Check if info contains HTML tags
+                                const isHTML = /<[^>]*>/g.test(data.info);
+                                
+                                if (isHTML) {
+                                    // If it's HTML, extract content from HTML tags and use directly
+                                    // Remove outer <html> tags if present and clean up
+                                    infoText = data.info
+                                        .replace(/<\/?html>/gi, '')
+                                        .replace(/<font[^>]*>/gi, '<span>')
+                                        .replace(/<\/font>/gi, '</span>')
+                                        .trim();
+                                } else {
+                                    // Parse and format the info text as plain text, filtering out first 3 lines
+                                    const rawText = data.info.split('\n').slice(3).join('\n').replace(/-{10,}/g, '');
+                                    // Format headers (text from start of line to colon) as bold with line breaks
+                                    const formattedText = rawText.replace(/^([^:\n]+:)/gm, '<strong>$1</strong><br>');
+                                    infoText = formattedText.replace(/\n/g, '<br>');
+                                }
+                                
                                 $container.html(`
                                     <div class="text-xs text-gray-600">
                                         <div>${infoText}</div>
