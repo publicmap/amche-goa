@@ -91,12 +91,19 @@ class GeolocationManager {
             this.lastPosition = event;
             this.locationErrorCount = 0;
             
-            // Always update bearing if heading is available and tracking is active
-            if (this.isTracking && typeof event.coords.heading === 'number' && !isNaN(event.coords.heading)) {
-                this.map.easeTo({
-                    bearing: event.coords.heading,
+            // Update both center and bearing if tracking is active
+            if (this.isTracking) {
+                const easeToOptions = {
+                    center: [event.coords.longitude, event.coords.latitude],
                     duration: 300
-                });
+                };
+                
+                // Include bearing if heading is available
+                if (typeof event.coords.heading === 'number' && !isNaN(event.coords.heading)) {
+                    easeToOptions.bearing = event.coords.heading;
+                }
+                
+                this.map.easeTo(easeToOptions);
             }
             
             if (!this.locationLabelSet) {
