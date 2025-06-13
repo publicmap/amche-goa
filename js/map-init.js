@@ -540,31 +540,28 @@ window.addEventListener('load', () => {
     });
 });
 
-// Initialize search box
+// Initialize search box with enhanced functionality
 function initializeSearch() {
     // Note: We now need to use the global map variable
     const searchSetup = () => {
-        const searchBox = document.querySelector('mapbox-search-box');
-        if (!searchBox) return;
-
-        // Set up mapbox integration
-        searchBox.mapboxgl = mapboxgl;
-        searchBox.marker = true;
-        searchBox.bindMap(window.map);
-
-        // Handle result selection
-        searchBox.addEventListener('retrieve', function(e) {
-            if (e.detail && e.detail.features && e.detail.features.length > 0) {
-                const feature = e.detail.features[0];
-                const coordinates = feature.geometry.coordinates;
-                
-                window.map.flyTo({
-                    center: coordinates,
-                    zoom: 16,
-                    essential: true
-                });
-            }
+        // Check if MapSearchControl is available
+        if (typeof MapSearchControl === 'undefined') {
+            console.error('MapSearchControl class not found. Make sure map-search-control.js is loaded.');
+            return;
+        }
+        
+        // Initialize the enhanced search control
+        const searchControl = new MapSearchControl(window.map, {
+            // You can add custom options here if needed
+            proximity: '73.87916,15.26032', // Goa center
+            country: 'IN',
+            language: 'en'
         });
+        
+        // Make search control globally accessible for debugging
+        window.searchControl = searchControl;
+        
+        console.log('Enhanced search control initialized with cadastral layer support');
     };
 
     // Wait for style to load before setting up search
