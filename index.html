@@ -209,6 +209,9 @@
             <!-- Add Layer button for new data source/atlas -->
             <sl-icon-button name="plus-square" id="add-layer-btn" class="add-layer-button"
                 title="Add new data source or atlas"></sl-icon-button>
+            <!-- Map Navigation Links button -->
+            <sl-icon-button name="box-arrow-in-up-right" id="map-links-btn" class="map-links-button"
+                title="Open map in external services"></sl-icon-button>
             <!-- Share button container for ShareLink plugin -->
             <div id="share-button-container"></div>
         </div>
@@ -361,6 +364,19 @@
             });
 
             shareLink.render();
+        });
+    </script>
+
+    <!-- MapLinks plugin initialization -->
+    <script type="module">
+        import { MapLinks } from './js/map-links.js';
+
+        // Initialize MapLinks plugin when map is ready
+        window.addEventListener('mapReady', (event) => {
+            const mapLinks = new MapLinks({
+                buttonId: 'map-links-btn',
+                map: event.detail.map
+            });
         });
     </script>
 

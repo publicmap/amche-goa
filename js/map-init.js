@@ -528,6 +528,12 @@ async function initializeMap() {
                 map.flyTo(flyToOptions);
             }, 2000);
         }
+        
+        // Emit mapReady event for plugins
+        const mapReadyEvent = new CustomEvent('mapReady', {
+            detail: { map: map }
+        });
+        window.dispatchEvent(mapReadyEvent);
     });
 }
 
