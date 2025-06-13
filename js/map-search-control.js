@@ -30,6 +30,10 @@ class MapSearchControl {
         // Add marker for search results
         this.searchMarker = null;
         
+        // Suggestion markers management
+        this.suggestionMarkers = []; // Array to track markers for each local suggestion
+        this.hoveredMarkerIndex = -1; // Track which marker is currently being hovered
+        
         // Feature state manager reference (will be set externally)
         this.featureStateManager = null;
         
@@ -105,16 +109,29 @@ class MapSearchControl {
      * Reset the search state to allow for new searches
      */
     resetSearchState() {
+        console.log('=== RESETTING SEARCH STATE ===');
+        console.log('Previous state:', {
+            query: this.currentQuery,
+            localSuggestionsCount: this.localSuggestions.length,
+            suggestionMarkersCount: this.suggestionMarkers.length,
+            isCoordinateInput: this.isCoordinateInput,
+            hoveredMarkerIndex: this.hoveredMarkerIndex
+        });
+        
         this.lastInjectedQuery = '';
         this.localSuggestions = [];
         this.currentQuery = '';
         this.isCoordinateInput = false;
         this.coordinateSuggestion = null;
         
+        // Clear suggestion markers
+        this.clearSuggestionMarkers();
+        
         // Clear any pending injection timeout
         if (this.injectionTimeout) {
             clearTimeout(this.injectionTimeout);
             this.injectionTimeout = null;
+            console.log('Cleared injection timeout');
         }
         
         // Clear any injected suggestions from the DOM
@@ -124,13 +141,16 @@ class MapSearchControl {
                 $('[role="listbox"]').first();
                 
             if ($resultsList.length > 0) {
+                const removedCount = $resultsList.find('.local-suggestion').length;
                 $resultsList.find('.local-suggestion').remove();
+                console.log(`Cleared ${removedCount} injected suggestions from DOM`);
             }
         } catch (error) {
             console.error('Error clearing injected suggestions:', error);
         }
         
-        console.log('Search state reset for new search');
+        console.log('Search state reset complete - ready for new search');
+        console.log('=== SEARCH STATE RESET COMPLETE ===');
     }
     
     /**
@@ -257,9 +277,15 @@ class MapSearchControl {
      * Handle empty input state
      */
     handleEmptyInput() {
-        console.log('Handling empty input - clearing marker and feature state');
+        console.log('=== HANDLING EMPTY INPUT ===');
+        console.log('Current state before clear:', {
+            searchMarkerExists: !!this.searchMarker,
+            suggestionMarkersCount: this.suggestionMarkers.length,
+            currentQuery: this.currentQuery,
+            localSuggestionsCount: this.localSuggestions.length
+        });
         
-        // Reset all search state
+        // Reset all search state (including suggestion markers)
         this.resetSearchState();
         
         // Clear search marker when input is cleared
@@ -268,8 +294,11 @@ class MapSearchControl {
         // Clear feature state when input is cleared
         if (this.featureStateManager) {
             this.featureStateManager._resetSelectionState();
-            console.log('Cleared feature state and marker due to empty search input');
+            console.log('Cleared feature state due to empty search input');
         }
+        
+        console.log('Empty input handling complete - all markers and state cleared');
+        console.log('=== EMPTY INPUT HANDLING COMPLETE ===');
     }
     
     /**
@@ -349,18 +378,46 @@ class MapSearchControl {
             this.localSuggestions = this.queryLocalCadastralSuggestions(query);
             console.log(`Found ${this.localSuggestions.length} local suggestions for query: "${query}"`);
             
-            // If we have local suggestions, inject them into the UI after a delay
-            // This allows the Mapbox component to process first, then we add our suggestions
+            // If we have local suggestions, create markers and inject them into UI
             if (this.localSuggestions.length > 0) {
+                console.log('=== PROCESSING LOCAL SUGGESTIONS ===');
+                
+                // Create suggestion markers for visual context
+                this.createSuggestionMarkers();
+                
                 // Clear any existing injection timeout
                 if (this.injectionTimeout) {
                     clearTimeout(this.injectionTimeout);
+                    console.log('Cleared existing injection timeout');
                 }
                 
-                // Set a new timeout to inject suggestions
+                // Set a new timeout to inject suggestions into UI and show markers
                 this.injectionTimeout = setTimeout(() => {
+                    console.log('Injecting suggestions into UI after delay');
                     this.injectLocalSuggestionsIntoUI();
-                }, 500); // Increased delay to let Mapbox finish
+                    
+                    // Ensure markers are shown on the map (critical step)
+                    console.log('Showing suggestion markers on map');
+                    this.showSuggestionMarkers();
+                    
+                    console.log('=== LOCAL SUGGESTIONS PROCESSING COMPLETE ===');
+                }, 300); // Reduced delay for faster response
+                
+                // Also show markers immediately if no Mapbox suggestions expected
+                // This handles cases where Mapbox doesn't trigger suggestions
+                setTimeout(() => {
+                    if (this.suggestionMarkers.length > 0) {
+                        const visibleCount = this.suggestionMarkers.filter(m => m.visible).length;
+                        if (visibleCount === 0) {
+                            console.log('Fallback: Showing markers immediately as they were not shown yet');
+                            this.showSuggestionMarkers();
+                        }
+                    }
+                }, 100); // Quick fallback check
+                
+            } else {
+                console.log('No local suggestions found - clearing any existing suggestion markers');
+                this.clearSuggestionMarkers();
             }
         }
     }
@@ -832,18 +889,33 @@ class MapSearchControl {
      * Clean up the search control
      */
     cleanup() {
+        console.log('=== CLEANING UP MAP SEARCH CONTROL ===');
+        console.log('Cleanup state:', {
+            searchMarkerExists: !!this.searchMarker,
+            suggestionMarkersCount: this.suggestionMarkers.length,
+            injectionTimeoutActive: !!this.injectionTimeout,
+            inputMonitorActive: !!this.inputMonitorInterval
+        });
+        
         // Remove search marker
         this.removeSearchMarker();
+        console.log('Removed search marker');
+        
+        // Clear all suggestion markers
+        this.clearSuggestionMarkers();
+        console.log('Cleared all suggestion markers');
         
         // Clear timeouts and intervals
         if (this.injectionTimeout) {
             clearTimeout(this.injectionTimeout);
             this.injectionTimeout = null;
+            console.log('Cleared injection timeout');
         }
         
         if (this.inputMonitorInterval) {
             clearInterval(this.inputMonitorInterval);
             this.inputMonitorInterval = null;
+            console.log('Cleared input monitor interval');
         }
         
         // Remove event listeners if search box exists
@@ -853,9 +925,11 @@ class MapSearchControl {
             this.searchBox.removeEventListener('input', this.handleInput.bind(this));
             this.searchBox.removeEventListener('keydown', this.handleKeyDown.bind(this));
             this.searchBox.removeEventListener('clear', this.handleClear.bind(this));
+            console.log('Removed event listeners from search box');
         }
         
-        console.log('MapSearchControl cleaned up');
+        console.log('MapSearchControl cleanup complete');
+        console.log('=== MAP SEARCH CONTROL CLEANUP COMPLETE ===');
     }
 
     /**
@@ -1030,6 +1104,9 @@ class MapSearchControl {
                         const selectedSuggestion = this.localSuggestions[localIndex];
                         console.log('Local suggestion clicked:', selectedSuggestion.properties.name);
                         
+                        // Clear suggestion markers before navigation
+                        this.clearSuggestionMarkers();
+                        
                         // Clear the results list immediately to prevent UI issues
                         $resultsList.empty();
                         $resultsList.parent().hide();
@@ -1046,19 +1123,247 @@ class MapSearchControl {
                     }
                 })
                 .on('mouseenter', (event) => {
+                    const localIndex = parseInt($(event.currentTarget).data('local-index'));
+                    
+                    // Change suggestion item background
                     $(event.currentTarget).css('background-color', '#f0f0f0');
+                    
+                    // Handle marker hover effect
+                    this.handleSuggestionHover(localIndex, true);
                 })
                 .on('mouseleave', (event) => {
+                    const localIndex = parseInt($(event.currentTarget).data('local-index'));
+                    
+                    // Reset suggestion item background
                     $(event.currentTarget).css('background-color', 'white');
+                    
+                    // Handle marker hover effect
+                    this.handleSuggestionHover(localIndex, false);
                 });
             
-            console.log(`Successfully injected ${this.localSuggestions.length} local suggestions into UI`);
+            console.log(`Successfully injected ${this.localSuggestions.length} local suggestions into UI with hover handlers`);
+            console.log('Suggestion markers status:', {
+                markersCreated: this.suggestionMarkers.length,
+                markersVisible: this.suggestionMarkers.filter(m => m.visible).length,
+                hoveredIndex: this.hoveredMarkerIndex
+            });
             
             // Mark this query as injected
             this.lastInjectedQuery = this.currentQuery;
             
         } catch (error) {
             console.error('Error injecting local suggestions into UI:', error);
+        }
+    }
+
+    /**
+     * Create suggestion markers for all local suggestions
+     */
+    createSuggestionMarkers() {
+        console.log(`Creating suggestion markers for ${this.localSuggestions.length} local suggestions`);
+        
+        // Clear any existing suggestion markers first
+        this.clearSuggestionMarkers();
+        
+        this.localSuggestions.forEach((suggestion, index) => {
+            try {
+                const coordinates = suggestion.geometry.coordinates;
+                const title = suggestion.properties.name;
+                
+                console.log(`Creating suggestion marker ${index + 1}/${this.localSuggestions.length}:`, {
+                    coordinates: coordinates,
+                    title: title,
+                    plotId: suggestion.properties._featureId
+                });
+                
+                // Create marker with blue color and smaller scale
+                const marker = new mapboxgl.Marker({
+                    color: '#3b82f6', // Blue color for suggestion markers
+                    scale: 0.8 // Smaller than search result markers
+                })
+                .setLngLat(coordinates)
+                .setPopup(new mapboxgl.Popup({ 
+                    offset: 25,
+                    closeButton: false,
+                    closeOnClick: false
+                }).setHTML(`<div><strong>${title}</strong><br/><small>${suggestion.properties._locationString}</small></div>`));
+                
+                // Store the marker with metadata
+                this.suggestionMarkers.push({
+                    marker: marker,
+                    index: index,
+                    suggestion: suggestion,
+                    coordinates: coordinates,
+                    title: title,
+                    visible: false
+                });
+                
+                console.log(`Successfully created suggestion marker ${index} for plot:`, title);
+                
+            } catch (error) {
+                console.error(`Error creating suggestion marker ${index}:`, error);
+            }
+        });
+        
+        console.log(`Finished creating ${this.suggestionMarkers.length} suggestion markers`);
+    }
+
+    /**
+     * Show all suggestion markers on the map
+     */
+    showSuggestionMarkers() {
+        console.log('Showing suggestion markers on map');
+        
+        let visibleCount = 0;
+        
+        this.suggestionMarkers.forEach((markerData, index) => {
+            try {
+                if (!markerData.visible) {
+                    markerData.marker.addTo(this.map);
+                    markerData.visible = true;
+                    visibleCount++;
+                    
+                    // Set initial opacity to 0.7 for all markers
+                    const markerElement = markerData.marker.getElement();
+                    if (markerElement) {
+                        markerElement.style.opacity = '0.7';
+                        markerElement.style.transition = 'opacity 0.2s ease-in-out';
+                    }
+                    
+                    console.log(`Showed suggestion marker ${index} for plot:`, markerData.title);
+                }
+            } catch (error) {
+                console.error(`Error showing suggestion marker ${index}:`, error);
+            }
+        });
+        
+        console.log(`Successfully showed ${visibleCount} suggestion markers on map with initial opacity 0.7`);
+    }
+
+    /**
+     * Hide all suggestion markers without removing them
+     */
+    hideSuggestionMarkers() {
+        console.log('Hiding suggestion markers from map');
+        
+        let hiddenCount = 0;
+        
+        this.suggestionMarkers.forEach((markerData, index) => {
+            try {
+                if (markerData.visible) {
+                    markerData.marker.remove();
+                    markerData.visible = false;
+                    hiddenCount++;
+                    
+                    console.log(`Hidden suggestion marker ${index} for plot:`, markerData.title);
+                }
+            } catch (error) {
+                console.error(`Error hiding suggestion marker ${index}:`, error);
+            }
+        });
+        
+        console.log(`Successfully hidden ${hiddenCount} suggestion markers from map`);
+    }
+
+    /**
+     * Clear all suggestion markers completely
+     */
+    clearSuggestionMarkers() {
+        console.log(`Clearing ${this.suggestionMarkers.length} suggestion markers`);
+        
+        let clearedCount = 0;
+        
+        this.suggestionMarkers.forEach((markerData, index) => {
+            try {
+                if (markerData.marker) {
+                    markerData.marker.remove();
+                    clearedCount++;
+                    
+                    console.log(`Cleared suggestion marker ${index} for plot:`, markerData.title);
+                }
+            } catch (error) {
+                console.error(`Error clearing suggestion marker ${index}:`, error);
+            }
+        });
+        
+        // Reset arrays and hover state
+        this.suggestionMarkers = [];
+        this.hoveredMarkerIndex = -1;
+        
+        console.log(`Successfully cleared ${clearedCount} suggestion markers and reset hover state`);
+    }
+
+    /**
+     * Handle hover effects on suggestion markers
+     * @param {number} suggestionIndex - Index of the suggestion being hovered
+     * @param {boolean} isHovering - Whether currently hovering (true) or leaving (false)
+     */
+    handleSuggestionHover(suggestionIndex, isHovering) {
+        // Only log on hover enter, not on every hover event to reduce noise
+        if (isHovering) {
+            console.log(`Hovering over suggestion ${suggestionIndex}`);
+        }
+        
+        try {
+            // Reset previously hovered marker if different
+            if (this.hoveredMarkerIndex !== -1 && this.hoveredMarkerIndex !== suggestionIndex) {
+                const prevMarkerData = this.suggestionMarkers[this.hoveredMarkerIndex];
+                if (prevMarkerData && prevMarkerData.marker) {
+                    const prevMarkerElement = prevMarkerData.marker.getElement();
+                    if (prevMarkerElement) {
+                        prevMarkerElement.style.opacity = '0.7';
+                        prevMarkerElement.style.transition = 'opacity 0.2s ease-in-out';
+                    }
+                }
+            }
+            
+            // Handle current marker
+            if (suggestionIndex >= 0 && suggestionIndex < this.suggestionMarkers.length) {
+                const markerData = this.suggestionMarkers[suggestionIndex];
+                if (markerData && markerData.marker && markerData.visible) {
+                    const markerElement = markerData.marker.getElement();
+                    if (markerElement) {
+                        if (isHovering) {
+                            // Increase opacity and show popup on hover
+                            markerElement.style.opacity = '1.0';
+                            markerElement.style.transition = 'opacity 0.2s ease-in-out';
+                            this.hoveredMarkerIndex = suggestionIndex;
+                            
+                            // Show popup on hover
+                            if (markerData.marker.getPopup()) {
+                                markerData.marker.togglePopup();
+                            }
+                            
+                        } else {
+                            // Reset marker opacity on hover out
+                            markerElement.style.opacity = '0.7';
+                            markerElement.style.transition = 'opacity 0.2s ease-in-out';
+                            
+                            // Close popup on hover out
+                            if (markerData.marker.getPopup() && markerData.marker.getPopup().isOpen()) {
+                                markerData.marker.togglePopup();
+                            }
+                        }
+                    } else {
+                        console.warn(`Marker element not found for suggestion ${suggestionIndex}`);
+                    }
+                } else {
+                    console.warn(`Invalid marker data for suggestion ${suggestionIndex}:`, {
+                        markerExists: !!markerData?.marker,
+                        isVisible: markerData?.visible
+                    });
+                }
+            } else {
+                console.warn(`Invalid suggestion index for hover: ${suggestionIndex} (valid range: 0-${this.suggestionMarkers.length - 1})`);
+            }
+            
+            // Update hover index
+            if (!isHovering && this.hoveredMarkerIndex === suggestionIndex) {
+                this.hoveredMarkerIndex = -1;
+            }
+            
+        } catch (error) {
+            console.error('Error handling suggestion hover:', error);
         }
     }
 }
