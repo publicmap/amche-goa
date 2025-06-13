@@ -408,6 +408,14 @@ class MapSearchControl {
                 const plotValues = allFeatures.slice(0, 20).map(f => f.properties?.plot).filter(Boolean);
                 console.log('Sample plot values from first 20 features:', plotValues);
                 
+                // Log location fields for debugging
+                const locationSamples = allFeatures.slice(0, 10).map(f => ({
+                    plot: f.properties?.plot,
+                    lname: f.properties?.lname,
+                    villagenam: f.properties?.villagenam
+                }));
+                console.log('Sample location data:', locationSamples);
+                
                 // Count features with plot property
                 const featuresWithPlot = allFeatures.filter(f => f.properties && 'plot' in f.properties);
                 console.log(`Features with 'plot' property: ${featuresWithPlot.length} out of ${allFeatures.length}`);
@@ -448,12 +456,47 @@ class MapSearchControl {
                 console.log(`Matching plot values:`, matchingPlots);
             }
 
+            // Group features by unique location to avoid duplicates
+            const uniqueFeatures = [];
+            const seenLocations = new Set();
+            
+            for (const feature of matchingFeatures) {
+                const plotValue = feature.properties.plot;
+                const lname = feature.properties.lname || '';
+                const villagenam = feature.properties.villagenam || '';
+                
+                // Create a unique key for this location
+                const locationKey = `${plotValue}|${villagenam}|${lname}`;
+                
+                if (!seenLocations.has(locationKey)) {
+                    seenLocations.add(locationKey);
+                    uniqueFeatures.push(feature);
+                    
+                    // Stop when we have enough unique suggestions
+                    if (uniqueFeatures.length >= 5) break;
+                }
+            }
+            
+            console.log(`Reduced ${matchingFeatures.length} matching features to ${uniqueFeatures.length} unique locations`);
+            
             // Convert to suggestion format and limit results
-            const suggestions = matchingFeatures
-                .slice(0, 5) // Limit to 5 local suggestions
+            const suggestions = uniqueFeatures
                 .map(feature => {
                     const plotValue = feature.properties.plot;
+                    const lname = feature.properties.lname || ''; // Place name
+                    const villagenam = feature.properties.villagenam || ''; // Village/locality name
                     const center = this.getFeatureCenter(feature);
+                    
+                    // Build a descriptive location string
+                    let locationParts = [];
+                    if (villagenam) locationParts.push(villagenam);
+                    if (lname && lname !== villagenam) locationParts.push(lname);
+                    locationParts.push('Goa'); // Always add Goa
+                    
+                    const locationString = locationParts.join(', ');
+                    const fullDescription = locationParts.length > 1 ? 
+                        `Plot ${plotValue}, ${locationString}` : 
+                        `Plot ${plotValue}, Cadastral Survey, Goa`;
                     
                     return {
                         type: 'Feature',
@@ -463,20 +506,30 @@ class MapSearchControl {
                         },
                         properties: {
                             name: `Plot ${plotValue}`,
-                            place_name: `Plot ${plotValue}, Cadastral Survey, Goa`,
+                            place_name: fullDescription,
                             place_type: ['cadastral', 'plot'],
                             text: `Plot ${plotValue}`,
-                            full_address: `Plot ${plotValue}, Cadastral Survey, Goa`,
+                            full_address: fullDescription,
                             context: [
                                 {
                                     id: 'cadastral',
                                     text: 'Cadastral Survey'
                                 },
+                                ...(villagenam ? [{
+                                    id: 'locality',
+                                    text: villagenam
+                                }] : []),
+                                ...(lname && lname !== villagenam ? [{
+                                    id: 'place',
+                                    text: lname
+                                }] : []),
                                 {
                                     id: 'region',
                                     text: 'Goa'
                                 }
                             ],
+                            // Store location info for display
+                            _locationString: locationString,
                             // Store original feature properties for potential use
                             _originalProperties: feature.properties,
                             // Mark as local suggestion
@@ -615,16 +668,26 @@ class MapSearchControl {
             // Remove any previously injected local suggestions
             $resultsList.find('.local-suggestion').remove();
             
-            // Get current suggestions count for proper indexing
+            // Get current Mapbox suggestions and limit them to 5
             const existingSuggestions = $resultsList.find('[role="option"]');
             const existingCount = existingSuggestions.length;
-            const totalCount = existingCount + this.localSuggestions.length;
             
-            console.log(`Found ${existingCount} existing suggestions, adding ${this.localSuggestions.length} local suggestions`);
+            // If there are more than 5 Mapbox suggestions, remove the extras
+            if (existingCount > 5) {
+                existingSuggestions.slice(5).remove();
+                console.log(`Trimmed Mapbox suggestions from ${existingCount} to 5`);
+            }
+            
+            // Recalculate after trimming
+            const remainingMapboxSuggestions = $resultsList.find('[role="option"]').length;
+            const localSuggestionsToAdd = Math.min(5, this.localSuggestions.length);
+            const totalCount = remainingMapboxSuggestions + localSuggestionsToAdd;
+            
+            console.log(`Found ${remainingMapboxSuggestions} Mapbox suggestions, adding ${localSuggestionsToAdd} local suggestions for total of ${totalCount}`);
             
             // Create HTML for each local suggestion
-            this.localSuggestions.slice(0, 5).forEach((suggestion, index) => {
-                const suggestionIndex = existingCount + index;
+            this.localSuggestions.slice(0, localSuggestionsToAdd).forEach((suggestion, index) => {
+                const suggestionIndex = index; // Local suggestions will be at positions 0, 1, 2, etc.
                 const plotName = suggestion.properties.name;
                 const plotDesc = suggestion.properties.place_name;
                 
@@ -637,6 +700,7 @@ class MapSearchControl {
                          aria-posinset="${suggestionIndex + 1}" 
                          aria-setsize="${totalCount}"
                          data-suggestion-index="${suggestionIndex}"
+                         data-local-index="${index}"
                          data-local-suggestion="true">
                         <div class="mbx09bc48e7--SuggestionIcon" aria-hidden="true">📍</div>
                         <div class="mbx09bc48e7--SuggestionText">
@@ -658,10 +722,9 @@ class MapSearchControl {
             
             // Add click handlers for local suggestions
             $resultsList.find('.local-suggestion').on('click', (event) => {
-                const suggestionIndex = parseInt($(event.currentTarget).data('suggestion-index'));
-                const localIndex = suggestionIndex; // Since we prepended, local suggestions are at the beginning
+                const localIndex = parseInt($(event.currentTarget).data('local-index'));
                 
-                if (localIndex < this.localSuggestions.length) {
+                if (localIndex >= 0 && localIndex < this.localSuggestions.length) {
                     const selectedSuggestion = this.localSuggestions[localIndex];
                     console.log('Local suggestion clicked:', selectedSuggestion.properties.name);
                     
