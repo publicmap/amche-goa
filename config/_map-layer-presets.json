@@ -1139,8 +1139,20 @@
       "attribution": "<a href='https://sbm-g-esriindia1.hub.arcgis.com/'>Swachh Bharat Mission GIS</a> - Collected by <a href='https://datameet.org'>Datameet Community</a>",
       "style": {
         "text-field": [
-          "get",
-          "wardcode"
+          "match",
+          [
+            "get",
+            "ulbname"
+          ],
+          ["Municipal Corporation Of Greater Mumbai","Municipal Corporation Of Mumbai","Municipal Corporation Greater Mumbai","Municipal Corporation Of Grater Mumbai","Canacona"],
+          [
+            "get",
+            "wardname"
+          ],
+          [
+            "get",
+            "wardcode"
+          ]
         ],
         "text-color": "white",
         "text-halo-color": "purple",
