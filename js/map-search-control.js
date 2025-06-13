@@ -75,6 +75,63 @@ class MapSearchControl {
         
         console.log('Added search marker at:', coordinates, 'with title:', title);
     }
+
+    /**
+     * Update the search box input value
+     * @param {string} value - The value to set in the search box
+     */
+    updateSearchBoxInput(value) {
+        try {
+            // Try to find the input element in the search box
+            const searchBoxInput = this.searchBox.shadowRoot?.querySelector('input') || 
+                                   this.searchBox.querySelector('input');
+            
+            if (searchBoxInput) {
+                searchBoxInput.value = value;
+                console.log('Updated search box input to:', value);
+                
+                // Trigger an input event to update the component's internal state
+                const inputEvent = new Event('input', { bubbles: true });
+                searchBoxInput.dispatchEvent(inputEvent);
+            } else {
+                console.warn('Could not find search box input element to update');
+            }
+        } catch (error) {
+            console.error('Error updating search box input:', error);
+        }
+    }
+
+    /**
+     * Reset the search state to allow for new searches
+     */
+    resetSearchState() {
+        this.lastInjectedQuery = '';
+        this.localSuggestions = [];
+        this.currentQuery = '';
+        this.isCoordinateInput = false;
+        this.coordinateSuggestion = null;
+        
+        // Clear any pending injection timeout
+        if (this.injectionTimeout) {
+            clearTimeout(this.injectionTimeout);
+            this.injectionTimeout = null;
+        }
+        
+        // Clear any injected suggestions from the DOM
+        try {
+            const $resultsList = this.searchBox.shadowRoot ? 
+                $(this.searchBox.shadowRoot.querySelector('[role="listbox"]')) :
+                $('[role="listbox"]').first();
+                
+            if ($resultsList.length > 0) {
+                $resultsList.find('.local-suggestion').remove();
+            }
+        } catch (error) {
+            console.error('Error clearing injected suggestions:', error);
+        }
+        
+        console.log('Search state reset for new search');
+    }
     
     /**
      * Initialize the search box control
@@ -119,6 +176,12 @@ class MapSearchControl {
         // Add keydown event listener to handle Enter key for coordinates
         this.searchBox.addEventListener('keydown', this.handleKeyDown.bind(this));
         
+        // Add additional event listeners for better input detection
+        this.searchBox.addEventListener('clear', this.handleClear.bind(this));
+        
+        // Monitor input changes more aggressively
+        this.setupInputMonitoring();
+        
         console.log('MapSearchControl initialized');
     }
     
@@ -148,6 +211,66 @@ class MapSearchControl {
             this.searchBox.dispatchEvent(retrieveEvent);
         }
     }
+
+    /**
+     * Handle explicit clear events
+     * @param {Event} event - The clear event
+     */
+    handleClear(event) {
+        console.log('Search box clear event received');
+        this.handleEmptyInput();
+    }
+
+    /**
+     * Set up more aggressive input monitoring
+     */
+    setupInputMonitoring() {
+        // Poll the input value periodically to catch changes we might miss
+        this.inputMonitorInterval = setInterval(() => {
+            this.checkInputValue();
+        }, 200);
+    }
+
+    /**
+     * Check the current input value and handle changes
+     */
+    checkInputValue() {
+        try {
+            const searchBoxInput = this.searchBox.shadowRoot?.querySelector('input') || 
+                                   this.searchBox.querySelector('input');
+            
+            if (searchBoxInput) {
+                const currentValue = searchBoxInput.value || '';
+                
+                // If the value is empty and we haven't handled it yet
+                if (!currentValue && this.currentQuery) {
+                    console.log('Detected empty input, triggering clear');
+                    this.handleEmptyInput();
+                }
+            }
+        } catch (error) {
+            // Silently fail to avoid console spam
+        }
+    }
+
+    /**
+     * Handle empty input state
+     */
+    handleEmptyInput() {
+        console.log('Handling empty input - clearing marker and feature state');
+        
+        // Reset all search state
+        this.resetSearchState();
+        
+        // Clear search marker when input is cleared
+        this.removeSearchMarker();
+        
+        // Clear feature state when input is cleared
+        if (this.featureStateManager) {
+            this.featureStateManager._resetSelectionState();
+            console.log('Cleared feature state and marker due to empty search input');
+        }
+    }
     
     /**
      * Handle input events to detect coordinate patterns and query local suggestions
@@ -175,17 +298,7 @@ class MapSearchControl {
         }
         
         if (!query) {
-            this.isCoordinateInput = false;
-            this.coordinateSuggestion = null;
-            this.localSuggestions = [];
-            this.currentQuery = '';
-            this.lastInjectedQuery = '';
-            
-            // Clear any pending injection
-            if (this.injectionTimeout) {
-                clearTimeout(this.injectionTimeout);
-                this.injectionTimeout = null;
-            }
+            this.handleEmptyInput();
             return;
         }
         
@@ -374,6 +487,9 @@ class MapSearchControl {
             if (isLocalSuggestion) {
                 console.log('Selected local cadastral suggestion:', feature.properties.name);
                 
+                // Update the search box input to show the selected result
+                this.updateSearchBoxInput(feature.properties.name);
+                
                 // Add a marker at the location
                 this.addSearchMarker(coordinates, feature.properties.name);
                 
@@ -411,6 +527,9 @@ class MapSearchControl {
                         console.error('Error setting feature state:', error);
                     }
                 }
+                
+                // Clear the injection state to allow future searches
+                this.resetSearchState();
                 
                 // Optionally highlight the plot (if you want to add visual feedback)
                 this.highlightCadastralPlot(feature.properties._originalProperties);
@@ -716,10 +835,15 @@ class MapSearchControl {
         // Remove search marker
         this.removeSearchMarker();
         
-        // Clear timeouts
+        // Clear timeouts and intervals
         if (this.injectionTimeout) {
             clearTimeout(this.injectionTimeout);
             this.injectionTimeout = null;
+        }
+        
+        if (this.inputMonitorInterval) {
+            clearInterval(this.inputMonitorInterval);
+            this.inputMonitorInterval = null;
         }
         
         // Remove event listeners if search box exists
@@ -728,6 +852,7 @@ class MapSearchControl {
             this.searchBox.removeEventListener('retrieve', this.handleRetrieve.bind(this));
             this.searchBox.removeEventListener('input', this.handleInput.bind(this));
             this.searchBox.removeEventListener('keydown', this.handleKeyDown.bind(this));
+            this.searchBox.removeEventListener('clear', this.handleClear.bind(this));
         }
         
         console.log('MapSearchControl cleaned up');
@@ -748,27 +873,80 @@ class MapSearchControl {
             
             // Find the results list in the shadow DOM or regular DOM
             let $resultsList = null;
+            let $resultsContainer = null;
             
-            // Try to find the results list in various ways
-            if (this.searchBox.shadowRoot) {
-                // Look in shadow DOM first
-                const shadowResults = this.searchBox.shadowRoot.querySelector('[role="listbox"]');
-                if (shadowResults) {
-                    $resultsList = $(shadowResults);
-                    console.log('Found results list in shadow DOM');
+            // Try multiple methods to find the results container
+            const findResultsContainer = () => {
+                // Method 1: Look in shadow DOM
+                if (this.searchBox.shadowRoot) {
+                    const shadowResults = this.searchBox.shadowRoot.querySelector('[role="listbox"]');
+                    if (shadowResults) {
+                        $resultsList = $(shadowResults);
+                        $resultsContainer = $resultsList.parent();
+                        console.log('Found results list in shadow DOM');
+                        return true;
+                    }
                 }
-            }
-            
-            // If not found in shadow DOM, look in regular DOM
-            if (!$resultsList) {
+                
+                // Method 2: Look in regular DOM
                 $resultsList = $('[role="listbox"]').first();
                 if ($resultsList.length > 0) {
+                    $resultsContainer = $resultsList.parent();
                     console.log('Found results list in regular DOM');
+                    return true;
                 }
-            }
+                
+                // Method 3: Look for search results containers by class
+                const searchResultsContainers = $('.mapboxgl-ctrl-geocoder, [class*="search"], [class*="suggest"], [class*="result"]');
+                for (let i = 0; i < searchResultsContainers.length; i++) {
+                    const $container = $(searchResultsContainers[i]);
+                    const listbox = $container.find('[role="listbox"]');
+                    if (listbox.length > 0) {
+                        $resultsList = listbox.first();
+                        $resultsContainer = $container;
+                        console.log('Found results list via search container class');
+                        return true;
+                    }
+                }
+                
+                // Method 4: Create a results container if none exists
+                if (this.searchBox.shadowRoot) {
+                    const shadowRoot = this.searchBox.shadowRoot;
+                    let listbox = shadowRoot.querySelector('[role="listbox"]');
+                    if (!listbox) {
+                        // Create a new listbox
+                        listbox = document.createElement('div');
+                        listbox.setAttribute('role', 'listbox');
+                        listbox.style.cssText = `
+                            position: absolute;
+                            top: 100%;
+                            left: 0;
+                            right: 0;
+                            background: white;
+                            border: 1px solid #ccc;
+                            border-radius: 4px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            max-height: 200px;
+                            overflow-y: auto;
+                            z-index: 1000;
+                        `;
+                        
+                        // Find the input container and append the listbox
+                        const inputContainer = shadowRoot.querySelector('div') || shadowRoot;
+                        inputContainer.appendChild(listbox);
+                    }
+                    
+                    $resultsList = $(listbox);
+                    $resultsContainer = $resultsList.parent();
+                    console.log('Created new results list in shadow DOM');
+                    return true;
+                }
+                
+                return false;
+            };
             
-            if (!$resultsList || $resultsList.length === 0) {
-                console.log('Could not find results list to inject suggestions');
+            if (!findResultsContainer()) {
+                console.log('Could not find or create results list to inject suggestions');
                 return;
             }
             
@@ -792,13 +970,19 @@ class MapSearchControl {
             
             console.log(`Found ${remainingMapboxSuggestions} Mapbox suggestions, adding ${localSuggestionsToAdd} local suggestions for total of ${totalCount}`);
             
+            // Make sure the results container is visible
+            if ($resultsContainer) {
+                $resultsContainer.show();
+            }
+            $resultsList.show();
+            
             // Create HTML for each local suggestion
             this.localSuggestions.slice(0, localSuggestionsToAdd).forEach((suggestion, index) => {
                 const suggestionIndex = index; // Local suggestions will be at positions 0, 1, 2, etc.
                 const plotName = suggestion.properties.name;
                 const plotDesc = suggestion.properties.place_name;
                 
-                // Create the suggestion HTML matching Mapbox's structure
+                // Create the suggestion HTML with robust styling
                 const suggestionHtml = `
                     <div class="mbx09bc48e7--Suggestion local-suggestion" 
                          role="option" 
@@ -808,11 +992,21 @@ class MapSearchControl {
                          aria-setsize="${totalCount}"
                          data-suggestion-index="${suggestionIndex}"
                          data-local-index="${index}"
-                         data-local-suggestion="true">
-                        <div class="mbx09bc48e7--SuggestionIcon" aria-hidden="true">📍</div>
-                        <div class="mbx09bc48e7--SuggestionText">
-                            <div class="mbx09bc48e7--SuggestionName">${plotName}</div>
-                            <div class="mbx09bc48e7--SuggestionDesc">${plotDesc}</div>
+                         data-local-suggestion="true"
+                         style="
+                             display: flex !important;
+                             align-items: center;
+                             padding: 8px 12px;
+                             cursor: pointer;
+                             background: white;
+                             border-bottom: 1px solid #eee;
+                             min-height: 40px;
+                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                         ">
+                        <div class="mbx09bc48e7--SuggestionIcon" aria-hidden="true" style="margin-right: 8px; font-size: 16px;">📍</div>
+                        <div class="mbx09bc48e7--SuggestionText" style="flex: 1; overflow: hidden;">
+                            <div class="mbx09bc48e7--SuggestionName" style="font-weight: 500; color: #333; font-size: 14px; line-height: 1.2;">${plotName}</div>
+                            <div class="mbx09bc48e7--SuggestionDesc" style="color: #666; font-size: 12px; line-height: 1.2; margin-top: 2px;">${plotDesc}</div>
                         </div>
                     </div>
                 `;
@@ -827,28 +1021,36 @@ class MapSearchControl {
                 $(element).attr('aria-setsize', totalCount);
             });
             
-            // Add click handlers for local suggestions
-            $resultsList.find('.local-suggestion').on('click', (event) => {
-                const localIndex = parseInt($(event.currentTarget).data('local-index'));
-                
-                if (localIndex >= 0 && localIndex < this.localSuggestions.length) {
-                    const selectedSuggestion = this.localSuggestions[localIndex];
-                    console.log('Local suggestion clicked:', selectedSuggestion.properties.name);
+            // Add click and hover handlers for local suggestions
+            $resultsList.find('.local-suggestion')
+                .on('click', (event) => {
+                    const localIndex = parseInt($(event.currentTarget).data('local-index'));
                     
-                    // Create a retrieve event
-                    const retrieveEvent = new CustomEvent('retrieve', {
-                        detail: {
-                            features: [selectedSuggestion]
-                        }
-                    });
-                    
-                    // Dispatch the retrieve event
-                    this.searchBox.dispatchEvent(retrieveEvent);
-                    
-                    // Hide the results
-                    $resultsList.parent().hide();
-                }
-            });
+                    if (localIndex >= 0 && localIndex < this.localSuggestions.length) {
+                        const selectedSuggestion = this.localSuggestions[localIndex];
+                        console.log('Local suggestion clicked:', selectedSuggestion.properties.name);
+                        
+                        // Clear the results list immediately to prevent UI issues
+                        $resultsList.empty();
+                        $resultsList.parent().hide();
+                        
+                        // Create a retrieve event
+                        const retrieveEvent = new CustomEvent('retrieve', {
+                            detail: {
+                                features: [selectedSuggestion]
+                            }
+                        });
+                        
+                        // Dispatch the retrieve event
+                        this.searchBox.dispatchEvent(retrieveEvent);
+                    }
+                })
+                .on('mouseenter', (event) => {
+                    $(event.currentTarget).css('background-color', '#f0f0f0');
+                })
+                .on('mouseleave', (event) => {
+                    $(event.currentTarget).css('background-color', 'white');
+                });
             
             console.log(`Successfully injected ${this.localSuggestions.length} local suggestions into UI`);
             
