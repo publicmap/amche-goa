@@ -96,7 +96,7 @@ export class MapLayerControl {
                                 $container.html(`
                                     <div class="text-xs text-gray-600">
                                         <div>${infoText}</div>
-                                        <div class="italic mb-1 text-xs text-gray-600"><sl-icon name="info-circle"></sl-icon> Retreived from <a href="${apiUrl}}" target="_blank" class="text-xs text-gray-600">Bhunaksha/Dharani</a>. For information purposes only.</div>
+                                        <div class="italic mb-1 text-xs text-gray-600"><sl-icon name="info-circle"></sl-icon> Retreived from <a href="${apiUrl}" target="_blank" class="text-xs text-gray-600">Bhunaksha/Dharani</a>. For information purposes only.</div>
 
                                     </div>
                                 `);
