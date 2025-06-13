@@ -550,6 +550,41 @@ function initializeSearch() {
             return;
         }
         
+        // Check if MapFeatureStateManager is available
+        if (typeof MapFeatureStateManager === 'undefined') {
+            console.error('MapFeatureStateManager class not found. Make sure map-feature-state-manager.js is loaded.');
+            return;
+        }
+        
+        // Initialize the feature state manager
+        const featureStateManager = new MapFeatureStateManager(window.map);
+        
+        // Enable debug logging for development
+        featureStateManager.setDebug(true);
+        
+        // Register the cadastral layer for selection
+        featureStateManager.registerSelectableLayers([
+            {
+                id: 'cadastral-fill', // Adjust this to match your actual layer ID
+                source: 'vector-plot',
+                sourceLayer: 'Onemapgoa_GA_Cadastrals',
+                idProperty: 'id'
+            }
+        ]);
+        
+        // Register the cadastral layer for hover effects too
+        featureStateManager.registerHoverableLayers([
+            {
+                id: 'cadastral-fill', // Adjust this to match your actual layer ID
+                source: 'vector-plot',
+                sourceLayer: 'Onemapgoa_GA_Cadastrals',
+                idProperty: 'id'
+            }
+        ]);
+        
+        // Start watching for layer additions
+        featureStateManager.watchLayerAdditions();
+        
         // Initialize the enhanced search control
         const searchControl = new MapSearchControl(window.map, {
             // You can add custom options here if needed
@@ -558,10 +593,15 @@ function initializeSearch() {
             language: 'en'
         });
         
-        // Make search control globally accessible for debugging
+        // Connect the feature state manager to the search control
+        searchControl.setFeatureStateManager(featureStateManager);
+        
+        // Make both globally accessible for debugging
         window.searchControl = searchControl;
+        window.featureStateManager = featureStateManager;
         
         console.log('Enhanced search control initialized with cadastral layer support');
+        console.log('Feature state manager initialized and connected to search control');
     };
 
     // Wait for style to load before setting up search

@@ -27,7 +27,53 @@ class MapSearchControl {
         this.injectionTimeout = null;
         this.lastInjectedQuery = '';
         
+        // Add marker for search results
+        this.searchMarker = null;
+        
+        // Feature state manager reference (will be set externally)
+        this.featureStateManager = null;
+        
         this.initialize();
+    }
+    
+    /**
+     * Set the feature state manager instance
+     * @param {MapFeatureStateManager} featureStateManager - The feature state manager instance
+     */
+    setFeatureStateManager(featureStateManager) {
+        this.featureStateManager = featureStateManager;
+        console.log('Feature state manager set for search control');
+    }
+    
+    /**
+     * Remove the current search marker if it exists
+     */
+    removeSearchMarker() {
+        if (this.searchMarker) {
+            this.searchMarker.remove();
+            this.searchMarker = null;
+        }
+    }
+    
+    /**
+     * Add a search marker at the specified coordinates
+     * @param {Array} coordinates - [longitude, latitude]
+     * @param {string} title - Title for the marker popup
+     */
+    addSearchMarker(coordinates, title) {
+        // Remove existing marker first
+        this.removeSearchMarker();
+        
+        // Create a new marker with a popup
+        this.searchMarker = new mapboxgl.Marker({
+            color: '#ff6b6b', // Red color to distinguish from other markers
+            scale: 1.2
+        })
+        .setLngLat(coordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<div><strong>${title}</strong></div>`))
+        .addTo(this.map);
+        
+        console.log('Added search marker at:', coordinates, 'with title:', title);
     }
     
     /**
@@ -53,7 +99,7 @@ class MapSearchControl {
         
         // Set up mapbox integration
         this.searchBox.mapboxgl = mapboxgl;
-        this.searchBox.marker = true;
+        this.searchBox.marker = false; // Disable default marker, we'll handle it ourselves
         this.searchBox.bindMap(this.map);
         
         // Set the access token and other options
@@ -328,6 +374,9 @@ class MapSearchControl {
             if (isLocalSuggestion) {
                 console.log('Selected local cadastral suggestion:', feature.properties.name);
                 
+                // Add a marker at the location
+                this.addSearchMarker(coordinates, feature.properties.name);
+                
                 // For cadastral plots, zoom in closer to see the plot boundaries
                 this.map.flyTo({
                     center: coordinates,
@@ -336,10 +385,39 @@ class MapSearchControl {
                     duration: 2000
                 });
                 
+                // Set feature state to selected if we have the feature state manager and feature ID
+                if (this.featureStateManager && feature.properties._featureId) {
+                    console.log('Setting feature state for plot:', feature.properties._featureId);
+                    
+                    // Clear any existing selection first
+                    this.featureStateManager._resetSelectionState();
+                    
+                    // Set the new selection
+                    this.featureStateManager.selectedFeatureId = feature.properties._featureId;
+                    this.featureStateManager.selectedSourceId = 'vector-plot';
+                    this.featureStateManager.selectedSourceLayer = 'Onemapgoa_GA_Cadastrals';
+                    
+                    try {
+                        this.map.setFeatureState(
+                            {
+                                source: 'vector-plot',
+                                sourceLayer: 'Onemapgoa_GA_Cadastrals',
+                                id: feature.properties._featureId
+                            },
+                            { selected: true }
+                        );
+                        console.log('Successfully set feature state to selected');
+                    } catch (error) {
+                        console.error('Error setting feature state:', error);
+                    }
+                }
+                
                 // Optionally highlight the plot (if you want to add visual feedback)
                 this.highlightCadastralPlot(feature.properties._originalProperties);
             } else {
                 // Regular search result or coordinate
+                this.addSearchMarker(coordinates, feature.properties.name || feature.properties.place_name || 'Search Result');
+                
                 this.map.flyTo({
                     center: coordinates,
                     zoom: 16,
@@ -486,6 +564,7 @@ class MapSearchControl {
                     const lname = feature.properties.lname || ''; // Place name
                     const villagenam = feature.properties.villagenam || ''; // Village/locality name
                     const center = this.getFeatureCenter(feature);
+                    const featureId = feature.properties.id || feature.id; // Get the feature ID
                     
                     // Build a descriptive location string
                     let locationParts = [];
@@ -497,6 +576,8 @@ class MapSearchControl {
                     const fullDescription = locationParts.length > 1 ? 
                         `Plot ${plotValue}, ${locationString}` : 
                         `Plot ${plotValue}, Cadastral Survey, Goa`;
+                    
+                    console.log(`Creating suggestion for plot ${plotValue} with feature ID: ${featureId}`);
                     
                     return {
                         type: 'Feature',
@@ -532,6 +613,8 @@ class MapSearchControl {
                             _locationString: locationString,
                             // Store original feature properties for potential use
                             _originalProperties: feature.properties,
+                            // Store the feature ID for selection state management
+                            _featureId: featureId,
                             // Mark as local suggestion
                             _isLocalSuggestion: true
                         }
@@ -624,6 +707,30 @@ class MapSearchControl {
         // Return midpoint
         const midIndex = Math.floor(coordinates.length / 2);
         return coordinates[midIndex];
+    }
+
+    /**
+     * Clean up the search control
+     */
+    cleanup() {
+        // Remove search marker
+        this.removeSearchMarker();
+        
+        // Clear timeouts
+        if (this.injectionTimeout) {
+            clearTimeout(this.injectionTimeout);
+            this.injectionTimeout = null;
+        }
+        
+        // Remove event listeners if search box exists
+        if (this.searchBox) {
+            this.searchBox.removeEventListener('suggest', this.handleSuggest.bind(this));
+            this.searchBox.removeEventListener('retrieve', this.handleRetrieve.bind(this));
+            this.searchBox.removeEventListener('input', this.handleInput.bind(this));
+            this.searchBox.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        }
+        
+        console.log('MapSearchControl cleaned up');
     }
 
     /**
