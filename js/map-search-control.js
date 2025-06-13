@@ -37,6 +37,10 @@ class MapSearchControl {
         // Feature state manager reference (will be set externally)
         this.featureStateManager = null;
         
+        // Map view context management
+        this.referenceView = null; // Saved reference view when search starts
+        this.hasActiveSearch = false; // Track if we're in an active search state
+        
         this.initialize();
     }
     
@@ -115,7 +119,9 @@ class MapSearchControl {
             localSuggestionsCount: this.localSuggestions.length,
             suggestionMarkersCount: this.suggestionMarkers.length,
             isCoordinateInput: this.isCoordinateInput,
-            hoveredMarkerIndex: this.hoveredMarkerIndex
+            hoveredMarkerIndex: this.hoveredMarkerIndex,
+            hasActiveSearch: this.hasActiveSearch,
+            hasReferenceView: !!this.referenceView
         });
         
         this.lastInjectedQuery = '';
@@ -133,6 +139,16 @@ class MapSearchControl {
             this.injectionTimeout = null;
             console.log('Cleared injection timeout');
         }
+        
+        // Reset to reference view if we had an active search
+        if (this.hasActiveSearch && this.referenceView) {
+            console.log('Resetting map to reference view');
+            this.resetToReferenceView();
+        }
+        
+        // Reset search state flags
+        this.hasActiveSearch = false;
+        this.referenceView = null;
         
         // Clear any injected suggestions from the DOM
         try {
@@ -282,8 +298,16 @@ class MapSearchControl {
             searchMarkerExists: !!this.searchMarker,
             suggestionMarkersCount: this.suggestionMarkers.length,
             currentQuery: this.currentQuery,
-            localSuggestionsCount: this.localSuggestions.length
+            localSuggestionsCount: this.localSuggestions.length,
+            hasActiveSearch: this.hasActiveSearch,
+            hasReferenceView: !!this.referenceView
         });
+        
+        // Reset to reference view if we had an active search
+        if (this.hasActiveSearch && this.referenceView) {
+            console.log('Resetting map to reference view due to empty input');
+            this.resetToReferenceView();
+        }
         
         // Reset all search state (including suggestion markers)
         this.resetSearchState();
@@ -331,6 +355,13 @@ class MapSearchControl {
             return;
         }
         
+        // Save reference view when search starts (first time with non-empty query)
+        if (!this.hasActiveSearch && query.length > 0) {
+            console.log('Starting new search - saving reference view');
+            this.saveReferenceView();
+            this.hasActiveSearch = true;
+        }
+        
         this.currentQuery = query;
         console.log('Input value:', query);
         
@@ -365,6 +396,19 @@ class MapSearchControl {
                 
                 // Clear local suggestions for coordinate input
                 this.localSuggestions = [];
+                
+                // Fit bounds to show reference and coordinate location
+                if (this.referenceView) {
+                    const bounds = this.calculateContextBounds([[lng, lat]]);
+                    if (bounds) {
+                        console.log('Fitting map to show reference and coordinate location');
+                        this.map.fitBounds(bounds, {
+                            padding: { top: 50, bottom: 50, left: 50, right: 50 },
+                            maxZoom: 16,
+                            duration: 1000
+                        });
+                    }
+                }
             } else {
                 console.log('Invalid coordinates (out of bounds):', lat, lng);
                 this.isCoordinateInput = false;
@@ -400,6 +444,10 @@ class MapSearchControl {
                     console.log('Showing suggestion markers on map');
                     this.showSuggestionMarkers();
                     
+                    // Fit bounds to show reference and all suggestions
+                    console.log('Fitting map to show reference and all suggestions');
+                    this.fitToContextWithAllSuggestions();
+                    
                     console.log('=== LOCAL SUGGESTIONS PROCESSING COMPLETE ===');
                 }, 300); // Reduced delay for faster response
                 
@@ -411,6 +459,8 @@ class MapSearchControl {
                         if (visibleCount === 0) {
                             console.log('Fallback: Showing markers immediately as they were not shown yet');
                             this.showSuggestionMarkers();
+                            // Also trigger fitBounds as fallback
+                            this.fitToContextWithAllSuggestions();
                         }
                     }
                 }, 100); // Quick fallback check
@@ -894,8 +944,16 @@ class MapSearchControl {
             searchMarkerExists: !!this.searchMarker,
             suggestionMarkersCount: this.suggestionMarkers.length,
             injectionTimeoutActive: !!this.injectionTimeout,
-            inputMonitorActive: !!this.inputMonitorInterval
+            inputMonitorActive: !!this.inputMonitorInterval,
+            hasActiveSearch: this.hasActiveSearch,
+            hasReferenceView: !!this.referenceView
         });
+        
+        // Reset to reference view if we had an active search
+        if (this.hasActiveSearch && this.referenceView) {
+            console.log('Resetting map to reference view during cleanup');
+            this.resetToReferenceView();
+        }
         
         // Remove search marker
         this.removeSearchMarker();
@@ -917,6 +975,11 @@ class MapSearchControl {
             this.inputMonitorInterval = null;
             console.log('Cleared input monitor interval');
         }
+        
+        // Reset map context state
+        this.hasActiveSearch = false;
+        this.referenceView = null;
+        console.log('Reset map context state');
         
         // Remove event listeners if search box exists
         if (this.searchBox) {
@@ -1334,6 +1397,10 @@ class MapSearchControl {
                                 markerData.marker.togglePopup();
                             }
                             
+                            // Fit bounds to show reference and only the hovered suggestion
+                            console.log(`Fitting map context to hovered suggestion ${suggestionIndex}`);
+                            this.fitToContextWithHoveredSuggestion(suggestionIndex);
+                            
                         } else {
                             // Reset marker opacity on hover out
                             markerElement.style.opacity = '0.7';
@@ -1343,6 +1410,10 @@ class MapSearchControl {
                             if (markerData.marker.getPopup() && markerData.marker.getPopup().isOpen()) {
                                 markerData.marker.togglePopup();
                             }
+                            
+                            // Return to showing all suggestions when hover ends
+                            console.log('Returning to show all suggestions context');
+                            this.fitToContextWithAllSuggestions();
                         }
                     } else {
                         console.warn(`Marker element not found for suggestion ${suggestionIndex}`);
@@ -1364,6 +1435,163 @@ class MapSearchControl {
             
         } catch (error) {
             console.error('Error handling suggestion hover:', error);
+        }
+    }
+
+    /**
+     * Save the current map view as reference for search context
+     */
+    saveReferenceView() {
+        try {
+            this.referenceView = {
+                center: this.map.getCenter().toArray(),
+                zoom: this.map.getZoom(),
+                bearing: this.map.getBearing(),
+                pitch: this.map.getPitch(),
+                bounds: this.map.getBounds()
+            };
+            
+            console.log('Saved reference view:', {
+                center: this.referenceView.center,
+                zoom: this.referenceView.zoom,
+                bounds: [
+                    this.referenceView.bounds.getSouthWest().toArray(),
+                    this.referenceView.bounds.getNorthEast().toArray()
+                ]
+            });
+        } catch (error) {
+            console.error('Error saving reference view:', error);
+        }
+    }
+    
+    /**
+     * Calculate bounds that include the reference view and given coordinates
+     * @param {Array<Array<number>>} coordinates - Array of [lng, lat] coordinates to include
+     * @returns {mapboxgl.LngLatBounds|null} The calculated bounds or null if error
+     */
+    calculateContextBounds(coordinates) {
+        try {
+            if (!this.referenceView || !coordinates || coordinates.length === 0) {
+                return null;
+            }
+            
+            // Start with the reference view center
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend(this.referenceView.center);
+            
+            // Extend bounds to include all provided coordinates
+            coordinates.forEach(coord => {
+                if (Array.isArray(coord) && coord.length >= 2) {
+                    bounds.extend(coord);
+                }
+            });
+            
+            console.log('Calculated context bounds:', {
+                referenceCenter: this.referenceView.center,
+                coordinatesCount: coordinates.length,
+                boundsArray: [bounds.getSouthWest().toArray(), bounds.getNorthEast().toArray()]
+            });
+            
+            return bounds;
+        } catch (error) {
+            console.error('Error calculating context bounds:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * Fit map to show reference view and all current suggestions
+     */
+    fitToContextWithAllSuggestions() {
+        try {
+            if (!this.referenceView || this.localSuggestions.length === 0) {
+                console.log('Cannot fit to context: no reference view or suggestions');
+                return;
+            }
+            
+            // Get all suggestion coordinates
+            const suggestionCoordinates = this.localSuggestions.map(s => s.geometry.coordinates);
+            
+            // Calculate bounds including reference and all suggestions
+            const bounds = this.calculateContextBounds(suggestionCoordinates);
+            
+            if (bounds) {
+                console.log('Fitting map to context with all suggestions');
+                this.map.fitBounds(bounds, {
+                    padding: {
+                        top: 50,
+                        bottom: 50,
+                        left: 50,
+                        right: 50
+                    },
+                    maxZoom: 16, // Don't zoom in too close
+                    duration: 1000 // Smooth animation
+                });
+            }
+        } catch (error) {
+            console.error('Error fitting to context with all suggestions:', error);
+        }
+    }
+    
+    /**
+     * Fit map to show reference view and a specific hovered suggestion
+     * @param {number} suggestionIndex - Index of the suggestion to focus on
+     */
+    fitToContextWithHoveredSuggestion(suggestionIndex) {
+        try {
+            if (!this.referenceView || 
+                suggestionIndex < 0 || 
+                suggestionIndex >= this.localSuggestions.length) {
+                console.log('Cannot fit to hovered suggestion: invalid parameters');
+                return;
+            }
+            
+            const hoveredSuggestion = this.localSuggestions[suggestionIndex];
+            const hoveredCoordinates = [hoveredSuggestion.geometry.coordinates];
+            
+            // Calculate bounds including reference and hovered suggestion only
+            const bounds = this.calculateContextBounds(hoveredCoordinates);
+            
+            if (bounds) {
+                console.log(`Fitting map to context with hovered suggestion ${suggestionIndex}:`, 
+                           hoveredSuggestion.properties.name);
+                this.map.fitBounds(bounds, {
+                    padding: {
+                        top: 50,
+                        bottom: 50,
+                        left: 50,
+                        right: 50
+                    },
+                    maxZoom: 16, // Don't zoom in too close
+                    duration: 500 // Faster animation for hover
+                });
+            }
+        } catch (error) {
+            console.error('Error fitting to context with hovered suggestion:', error);
+        }
+    }
+    
+    /**
+     * Reset map view to the saved reference view
+     */
+    resetToReferenceView() {
+        try {
+            if (!this.referenceView) {
+                console.log('No reference view to reset to');
+                return;
+            }
+            
+            console.log('Resetting map to reference view');
+            this.map.flyTo({
+                center: this.referenceView.center,
+                zoom: this.referenceView.zoom,
+                bearing: this.referenceView.bearing,
+                pitch: this.referenceView.pitch,
+                duration: 1000,
+                essential: true
+            });
+        } catch (error) {
+            console.error('Error resetting to reference view:', error);
         }
     }
 }
