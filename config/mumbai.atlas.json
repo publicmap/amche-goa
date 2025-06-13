@@ -154,9 +154,9 @@
         ]
       },
       "style": {
-        "fill-color": "red",
-        "fill-opacity": 0.05,
-        "line-color": "red",
+        "fill-color": "darkred",
+        "fill-opacity": 0.1,
+        "line-color": "darkred",
         "line-width": 1
       },
       "sourceLayer": "vector",
