@@ -1,4 +1,5 @@
 import { MapLayerControl } from './map-layer-controls.js';
+import { MapFeatureControl } from './map-feature-control.js';
 import { configControl } from './config-control.js';
 import { localization } from './localization.js';
 import { URLManager } from './url-api.js';
@@ -489,6 +490,18 @@ async function initializeMap() {
         
         // Initialize layer control
         layerControl.renderToContainer(container, map);
+        
+        // Initialize the feature control
+        const featureControl = new MapFeatureControl({
+            position: 'bottom-right',
+            maxHeight: '300px',
+            maxWidth: '350px'
+        });
+        featureControl.addTo(map);
+        featureControl.initialize(layers, layerControl);
+        
+        // Make feature control globally accessible
+        window.featureControl = featureControl;
         
         // Initialize URL manager after layer control is ready
         const urlManager = new URLManager(layerControl, map);

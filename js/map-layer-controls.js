@@ -3314,6 +3314,13 @@ export class MapLayerControl {
                 );
             }
         });
+
+        // Notify feature control about layer visibility changes
+        if (window.featureControl) {
+            setTimeout(() => {
+                window.featureControl.refreshLayers();
+            }, 100); // Small delay to ensure layer visibility has been applied
+        }
     }
 
     _cleanup() {
@@ -3418,6 +3425,11 @@ export class MapLayerControl {
 
                         // Update the consolidated hover popup
                         updateConsolidatedHoverPopup(e);
+
+                        // Notify feature control about hover event
+                        if (window.featureControl) {
+                            window.featureControl.onFeatureHover(e.features[0], group, e.lngLat);
+                        }
                     }
                 }
             });
@@ -3440,6 +3452,16 @@ export class MapLayerControl {
 
                 // Update consolidated popup (will be removed if no features remain)
                 updateConsolidatedHoverPopup();
+
+                // Notify feature control about feature leave
+                if (window.featureControl && layerFeatureKeys.length > 0) {
+                    // Get the last feature that was removed
+                    const lastRemovedKey = layerFeatureKeys[layerFeatureKeys.length - 1];
+                    const lastRemovedFeature = this._activeHoverFeatures.get(lastRemovedKey);
+                    if (lastRemovedFeature) {
+                        window.featureControl.onFeatureLeave(lastRemovedFeature.feature, group);
+                    }
+                }
             });
 
             // Click handler
@@ -3475,6 +3497,11 @@ export class MapLayerControl {
                             .setLngLat(e.lngLat)
                             .setDOMContent(content)
                             .addTo(this._map);
+                    }
+
+                    // Notify feature control about click event
+                    if (window.featureControl) {
+                        window.featureControl.onFeatureClick(feature, group, e.lngLat);
                     }
                 }
             });
