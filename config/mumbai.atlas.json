@@ -235,6 +235,34 @@
       }
     },
     {
+      "title": "Slum Clusters 2015",
+      "description": "Informal settlements in Mumbai as per 2015.",
+      "type": "vector",
+      "id": "vector-layer",
+      "url": "https://api-main-432878571563.europe-west4.run.app/tiler/vector/{z}/{x}/{y}?map_id=03f1d864-8e66-490b-b770-4ef18865901b",
+      "minzoom": 0,
+      "maxzoom": 15,
+      "attribution": "<a href='https://sra.gov.in/details/sub-category/gismis-slum-data'>Slum Clusters 2015, Slum Rehabilitation Authority, Brihanmumbai,</a> via <a href='https://www.maphub.co/map/03f1d864-8e66-490b-b770-4ef18865901b'>Maphub</a> - Collected by <a href='https://data.opencity.in/dataset/mumbai-slum-cluster-map'>OpenCity.in</a>",
+      "initiallyChecked": true,
+      "inspect": {
+        "id": "id",
+        "fields": [
+          "area_km2"
+        ],
+        "fieldTitles": [
+          "Area (km2)"
+        ]
+      },
+      "style": {
+        "fill-color": "red",
+        "fill-opacity": 0.05,
+        "line-color": "red",
+        "line-width": 1
+      },
+      "sourceLayer": "vector",
+      "headerImage": "https://api-main-432878571563.europe-west4.run.app/maps/03f1d864-8e66-490b-b770-4ef18865901b/thumbnail"
+    },
+    {
       "title": "GMLR Project Plan",
       "description": "Detailed project plan of Goregaon-Mulund Link Road Project",
       "headerImage": "assets/map-layers/map-layer-gmlr.png",
