@@ -56,6 +56,8 @@
     <!-- Application Scripts -->
     <script src="js/geolocation-control.js"></script>
     <script src="js/mapbox-gl-view-control.js"></script>
+    <script src="js/map-feature-state-manager.js"></script>
+    <script src="js/map-search-control.js"></script>
     <script type="module" src="js/config-control.js"></script>
     <script type="module" src="js/map-init.js"></script>
     <!-- Service Worker Registration -->
@@ -207,6 +209,9 @@
             <!-- Add Layer button for new data source/atlas -->
             <sl-icon-button name="plus-square" id="add-layer-btn" class="add-layer-button"
                 title="Add new data source or atlas"></sl-icon-button>
+            <!-- Map Navigation Links button -->
+            <sl-icon-button name="box-arrow-in-up-right" id="map-links-btn" class="map-links-button"
+                title="Open map in external services"></sl-icon-button>
             <!-- Share button container for ShareLink plugin -->
             <div id="share-button-container"></div>
         </div>
@@ -359,6 +364,19 @@
             });
 
             shareLink.render();
+        });
+    </script>
+
+    <!-- MapLinks plugin initialization -->
+    <script type="module">
+        import { MapLinks } from './js/map-links.js';
+
+        // Initialize MapLinks plugin when map is ready
+        window.addEventListener('mapReady', (event) => {
+            const mapLinks = new MapLinks({
+                buttonId: 'map-links-btn',
+                map: event.detail.map
+            });
         });
     </script>
 

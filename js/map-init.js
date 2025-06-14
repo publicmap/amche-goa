@@ -528,6 +528,12 @@ async function initializeMap() {
                 map.flyTo(flyToOptions);
             }, 2000);
         }
+        
+        // Emit mapReady event for plugins
+        const mapReadyEvent = new CustomEvent('mapReady', {
+            detail: { map: map }
+        });
+        window.dispatchEvent(mapReadyEvent);
     });
 }
 
@@ -540,31 +546,68 @@ window.addEventListener('load', () => {
     });
 });
 
-// Initialize search box
+// Initialize search box with enhanced functionality
 function initializeSearch() {
     // Note: We now need to use the global map variable
     const searchSetup = () => {
-        const searchBox = document.querySelector('mapbox-search-box');
-        if (!searchBox) return;
-
-        // Set up mapbox integration
-        searchBox.mapboxgl = mapboxgl;
-        searchBox.marker = true;
-        searchBox.bindMap(window.map);
-
-        // Handle result selection
-        searchBox.addEventListener('retrieve', function(e) {
-            if (e.detail && e.detail.features && e.detail.features.length > 0) {
-                const feature = e.detail.features[0];
-                const coordinates = feature.geometry.coordinates;
-                
-                window.map.flyTo({
-                    center: coordinates,
-                    zoom: 16,
-                    essential: true
-                });
+        // Check if MapSearchControl is available
+        if (typeof MapSearchControl === 'undefined') {
+            console.error('MapSearchControl class not found. Make sure map-search-control.js is loaded.');
+            return;
+        }
+        
+        // Check if MapFeatureStateManager is available
+        if (typeof MapFeatureStateManager === 'undefined') {
+            console.error('MapFeatureStateManager class not found. Make sure map-feature-state-manager.js is loaded.');
+            return;
+        }
+        
+        // Initialize the feature state manager
+        const featureStateManager = new MapFeatureStateManager(window.map);
+        
+        // Enable debug logging for development
+        featureStateManager.setDebug(true);
+        
+        // Register the cadastral layer for selection
+        featureStateManager.registerSelectableLayers([
+            {
+                id: 'cadastral-fill', // Adjust this to match your actual layer ID
+                source: 'vector-plot',
+                sourceLayer: 'Onemapgoa_GA_Cadastrals',
+                idProperty: 'id'
             }
+        ]);
+        
+        // Register the cadastral layer for hover effects too
+        featureStateManager.registerHoverableLayers([
+            {
+                id: 'cadastral-fill', // Adjust this to match your actual layer ID
+                source: 'vector-plot',
+                sourceLayer: 'Onemapgoa_GA_Cadastrals',
+                idProperty: 'id'
+            }
+        ]);
+        
+        // Start watching for layer additions
+        featureStateManager.watchLayerAdditions();
+        
+        // Initialize the enhanced search control
+        const searchControl = new MapSearchControl(window.map, {
+            // You can add custom options here if needed
+            proximity: '73.87916,15.26032', // Goa center
+            country: 'IN',
+            language: 'en'
         });
+        
+        // Connect the feature state manager to the search control
+        searchControl.setFeatureStateManager(featureStateManager);
+        
+        // Make both globally accessible for debugging
+        window.searchControl = searchControl;
+        window.featureStateManager = featureStateManager;
+        
+        console.log('Enhanced search control initialized with cadastral layer support');
+        console.log('Feature state manager initialized and connected to search control');
     };
 
     // Wait for style to load before setting up search
