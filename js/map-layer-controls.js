@@ -170,6 +170,7 @@ export class MapLayerControl {
 
         this._activeHoverFeatures = new Map(); // Store currently hovered features across layers
         this._consolidatedHoverPopup = null;
+        this._featureControl = null; // Reference to the map feature control for synchronization
 
         // Load default styles
         this._loadDefaultStyles();
@@ -917,6 +918,30 @@ export class MapLayerControl {
         });
 
         return visibleLayers;
+    }
+
+    /**
+     * Set the feature control reference for synchronization
+     */
+    setFeatureControl(featureControl) {
+        this._featureControl = featureControl;
+        console.log('[LayerControl] Feature control reference set:', featureControl);
+    }
+
+    /**
+     * Notify the feature control about layer visibility changes
+     */
+    _notifyFeatureControl() {
+        // Try the direct reference first, then fall back to global
+        const featureControl = this._featureControl || window.featureControl;
+        if (featureControl && typeof featureControl.refreshLayers === 'function') {
+            console.log('[LayerControl] Notifying feature control of layer changes');
+            setTimeout(() => {
+                featureControl.refreshLayers();
+            }, 100); // Small delay to ensure layer visibility has been applied
+        } else {
+            console.log('[LayerControl] Feature control not available for notification');
+        }
     }
 
     _initializeControl($container) {
@@ -2014,6 +2039,9 @@ export class MapLayerControl {
                                 );
                             }
                         });
+
+                        // Notify feature control about layer visibility changes
+                        this._notifyFeatureControl();
                     });
 
                     // Create a clickable label that will toggle the switch
@@ -2824,6 +2852,9 @@ export class MapLayerControl {
                 'star-intensity': 0.1
             } : null);
         }
+
+        // Notify feature control about layer visibility changes
+        this._notifyFeatureControl();
     }
 
     _handleLayerChange(selectedLayerId, layers) {
@@ -2870,6 +2901,9 @@ export class MapLayerControl {
                 }
             }
         });
+
+        // Notify feature control about layer visibility changes
+        this._notifyFeatureControl();
     }
 
     async _flyToLocation(location) {
@@ -2916,6 +2950,11 @@ export class MapLayerControl {
 
             toggleInput.dispatchEvent(new Event('change'));
         });
+
+        // Notify feature control about initial state after all toggles are set
+        setTimeout(() => {
+            this._notifyFeatureControl();
+        }, 100);
 
         if (!this._initialized) {
             // Add no-transition class initially
@@ -3316,11 +3355,7 @@ export class MapLayerControl {
         });
 
         // Notify feature control about layer visibility changes
-        if (window.featureControl) {
-            setTimeout(() => {
-                window.featureControl.refreshLayers();
-            }, 100); // Small delay to ensure layer visibility has been applied
-        }
+        this._notifyFeatureControl();
     }
 
     _cleanup() {

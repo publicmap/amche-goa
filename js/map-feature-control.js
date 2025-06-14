@@ -76,7 +76,7 @@ export class MapFeatureControl {
         console.log('[FeatureControl] Initialized with config:', layerConfig);
         console.log('[FeatureControl] Layer control:', layerControl);
         
-        // Add a small delay to ensure layer control is fully initialized
+        // Initial sync after layer control is ready
         setTimeout(() => {
             this._updateActiveLayers();
             this._render();
@@ -178,77 +178,66 @@ export class MapFeatureControl {
 
         this._activeLayers.clear();
         
-        // Get visible layers from the layer control if available
-        if (this._layerControl && typeof this._layerControl._getVisibleLayers === 'function') {
-            const visibleLayers = this._layerControl._getVisibleLayers();
-            console.log('[FeatureControl] Visible layers from layer control:', visibleLayers);
-            console.log('[FeatureControl] Layer config IDs:', this._layerConfig.map(l => l.id));
+        // Get the current layer states directly from the layer control
+        const currentlyActiveLayers = this._getCurrentlyActiveLayers();
+        console.log('[FeatureControl] Currently active layers from layer control:', currentlyActiveLayers);
+        console.log('[FeatureControl] Layer config IDs:', this._layerConfig.map(l => l.id));
+        
+        // Only add layers that are explicitly in the active list
+        this._layerConfig.forEach(layer => {
+            const isActive = currentlyActiveLayers.includes(layer.id);
+            console.log(`[FeatureControl] Layer ${layer.id} is ${isActive ? 'active' : 'inactive'}`);
             
-            // Check for direct matches first
-            this._layerConfig.forEach(layer => {
-                let isVisible = false;
-                
-                // Check for direct ID match
-                if (visibleLayers.includes(layer.id)) {
-                    isVisible = true;
-                } else {
-                    // Check if any visible layer matches this config layer
-                    // Handle layer-group type layers that might have child layers
-                    for (const visibleLayerId of visibleLayers) {
-                        if (typeof visibleLayerId === 'string') {
-                            if (visibleLayerId === layer.id || 
-                                visibleLayerId.includes(layer.id) || 
-                                layer.id.includes(visibleLayerId)) {
-                                isVisible = true;
-                                break;
-                            }
-                        } else if (visibleLayerId && visibleLayerId.id === layer.id) {
-                            isVisible = true;
-                            break;
-                        }
-                    }
-                }
-                
-                console.log(`[FeatureControl] Layer ${layer.id} is ${isVisible ? 'visible' : 'hidden'}`);
-                
-                if (isVisible) {
-                    this._activeLayers.set(layer.id, {
-                        ...layer,
-                        features: new Map()
-                    });
-                }
-            });
-            
-            // Also check if layer control has state information
-            if (this._layerControl._state && this._layerControl._state.groups) {
-                console.log('[FeatureControl] Layer control state groups:', this._layerControl._state.groups);
-                this._layerControl._state.groups.forEach((group, index) => {
-                    if (group.initiallyChecked) {
-                        console.log(`[FeatureControl] Group ${index} (${group.id}) is initially checked`);
-                        const layerConfig = this._layerConfig.find(l => l.id === group.id);
-                        if (layerConfig && !this._activeLayers.has(layerConfig.id)) {
-                            this._activeLayers.set(layerConfig.id, {
-                                ...layerConfig,
-                                features: new Map()
-                            });
-                        }
-                    }
+            if (isActive) {
+                this._activeLayers.set(layer.id, {
+                    ...layer,
+                    features: new Map()
                 });
             }
-        } else {
-            // Fallback to checking map style if layer control method not available
-            console.log('[FeatureControl] Falling back to map style checking');
-            this._layerConfig.forEach(layer => {
-                if (this._isLayerVisible(layer)) {
-                    this._activeLayers.set(layer.id, {
-                        ...layer,
-                        features: new Map()
-                    });
-                }
-            });
-        }
+        });
 
         console.log('[FeatureControl] Active layers:', Array.from(this._activeLayers.keys()));
+    }
+
+    /**
+     * Get currently active layers from the layer control
+     * This is the single source of truth for which layers are currently toggled on
+     */
+    _getCurrentlyActiveLayers() {
+        const activeLayers = [];
+        
+        if (!this._layerControl || !this._layerControl._state || !this._layerControl._sourceControls) {
+            console.warn('[FeatureControl] Layer control not properly initialized');
+            return activeLayers;
+        }
+        
+        // Check each group's current toggle state from the DOM
+        this._layerControl._state.groups.forEach((group, index) => {
+            const groupElement = this._layerControl._sourceControls[index];
+            if (!groupElement) return;
+            
+            const toggleInput = groupElement.querySelector('.toggle-switch input[type="checkbox"]');
+            const isCurrentlyChecked = toggleInput && toggleInput.checked;
+            
+            if (isCurrentlyChecked) {
+                console.log(`[FeatureControl] Group ${index} (${group.id}) is currently toggled on`);
+                
+                if (group.type === 'layer-group') {
+                    // For layer groups, find which radio button is selected
+                    const radioGroup = groupElement.querySelector('.radio-group');
+                    const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
+                    if (selectedRadio) {
+                        activeLayers.push(selectedRadio.value);
+                        console.log(`[FeatureControl] Layer group ${group.id} has selected: ${selectedRadio.value}`);
+                    }
+                } else {
+                    // For regular layers, add the group ID
+                    activeLayers.push(group.id);
+                }
+            }
+        });
+        
+        return activeLayers;
     }
 
     /**
@@ -1030,8 +1019,26 @@ export class MapFeatureControl {
      */
     refreshLayers() {
         console.log('[FeatureControl] Refreshing layers...');
+        
+        // Store previous active layers for comparison
+        const previousActiveLayers = new Set(this._activeLayers.keys());
+        
+        // Update active layers
         this._updateActiveLayers();
-        this._render();
+        
+        // Check if active layers changed
+        const currentActiveLayers = new Set(this._activeLayers.keys());
+        const layersChanged = previousActiveLayers.size !== currentActiveLayers.size ||
+            !Array.from(previousActiveLayers).every(id => currentActiveLayers.has(id));
+        
+        if (layersChanged) {
+            console.log('[FeatureControl] Active layers changed, re-rendering');
+            console.log('[FeatureControl] Previous layers:', Array.from(previousActiveLayers));
+            console.log('[FeatureControl] Current layers:', Array.from(currentActiveLayers));
+            this._render();
+        } else {
+            console.log('[FeatureControl] No layer changes detected, skipping render');
+        }
     }
 }
 

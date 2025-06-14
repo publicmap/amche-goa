@@ -196,6 +196,9 @@ async function loadConfiguration() {
                         layer.initiallyChecked = false;
                     }
                 });
+                
+                console.log('[MapInit] Set initial layer states based on URL parameters:', 
+                    existingLayers.map(l => ({ id: l.id, initiallyChecked: l.initiallyChecked })));
             
             // Create minified layers parameter for URL rewriting
             const minifiedLayersParam = processedUrlLayers.map(layer => {
@@ -502,6 +505,9 @@ async function initializeMap() {
         
         // Make feature control globally accessible
         window.featureControl = featureControl;
+        
+        // Set up bidirectional reference for synchronization
+        layerControl.setFeatureControl(featureControl);
         
         // Initialize URL manager after layer control is ready
         const urlManager = new URLManager(layerControl, map);

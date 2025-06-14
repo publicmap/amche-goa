@@ -1907,63 +1907,7 @@
       "attribution": "<a href='https://docs.google.com/spreadsheets/d/1OHrd9c61IQ2rE_pKqPrtMgT5AY5Wepru/edit?gid=378361244#gid=378361244'>Goa Private Forest Plots</a> - Collected by <a href='https://github.com/publicmap/amche-goa/issues/75'>Amche.in Community</a>",
       "style": {
         "line-color": "#006400",
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          14,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            4,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            3,
-            1
-          ],
-          18,
-          [
-            "case",
-            [
-              "boolean",
-              [
-                "feature-state",
-                "selected"
-              ],
-              false
-            ],
-            8,
-            [
-              "boolean",
-              [
-                "feature-state",
-                "hover"
-              ],
-              false
-            ],
-            5,
-            2
-          ]
-        ],
-        "fill-color": "green",
-        "fill-opacity": 0.7
+        "fill-color": "green"
       },
       "inspect": {
         "id": "id",
