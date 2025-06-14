@@ -2274,10 +2274,44 @@ export class MapLayerControl {
 
             // Only add source and layers if they don't exist yet and should be visible
             if (visible && !this._map.getSource(sourceId)) {
+                // Determine data source - use inline data if available, otherwise use URL
+                let dataSource;
+                if (group.data) {
+                    // Use inline data - handle both FeatureCollection and individual features
+                    if (group.data.type === 'FeatureCollection') {
+                        dataSource = group.data;
+                    } else if (group.data.type === 'Feature') {
+                        // Wrap individual feature in FeatureCollection
+                        dataSource = {
+                            type: 'FeatureCollection',
+                            features: [group.data]
+                        };
+                    } else if (group.data.type && group.data.coordinates) {
+                        // Handle raw geometry - wrap in Feature and FeatureCollection
+                        dataSource = {
+                            type: 'FeatureCollection',
+                            features: [{
+                                type: 'Feature',
+                                geometry: group.data,
+                                properties: {}
+                            }]
+                        };
+                    } else {
+                        console.error('Invalid GeoJSON data format in group:', group.id);
+                        return;
+                    }
+                } else if (group.url) {
+                    // Use URL as before
+                    dataSource = group.url;
+                } else {
+                    console.error('GeoJSON layer missing both data and URL:', group.id);
+                    return;
+                }
+
                 // Add source
                 this._map.addSource(sourceId, {
                     type: 'geojson',
-                    data: group.url,
+                    data: dataSource,
                     promoteId: group.inspect?.id
                 });
 
@@ -2455,8 +2489,8 @@ export class MapLayerControl {
                 // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
 
-                // Reset refresh timer when toggling visibility
-                if (visible && group.refresh && !group._refreshTimer) {
+                // Reset refresh timer when toggling visibility (only for URL-based data)
+                if (visible && group.refresh && group.url && !group._refreshTimer) {
                     this._setupCsvRefresh(group);
                 } else if (!visible && group._refreshTimer) {
                     clearInterval(group._refreshTimer);
@@ -4412,8 +4446,8 @@ export class MapLayerControl {
     }
 
     async _setupCsvLayer(group) {
-        if (!group.url) {
-            console.error('CSV layer missing URL:', group);
+        if (!group.data && !group.url) {
+            console.error('CSV layer missing both data and URL:', group);
             return;
         }
 
@@ -4421,20 +4455,42 @@ export class MapLayerControl {
         const layerId = `${sourceId}-circle`;
 
         try {
-            // Fetch CSV data
-            const response = await fetch(group.url);
-            let csvText = await response.text();
-
-            // Parse CSV data
-            let rows;
-            if (group.csvParser) {
-                rows = group.csvParser(csvText);
+            let geojson;
+            
+            if (group.data) {
+                // Use inline data
+                if (Array.isArray(group.data)) {
+                    // Data is already parsed rows - convert directly to GeoJSON
+                    geojson = rowsToGeoJSON(group.data);
+                } else if (typeof group.data === 'string') {
+                    // Data is CSV text - parse it first
+                    let rows;
+                    if (group.csvParser) {
+                        rows = group.csvParser(group.data);
+                    } else {
+                        rows = parseCSV(group.data);
+                    }
+                    geojson = rowsToGeoJSON(rows);
+                } else {
+                    console.error('Invalid CSV data format in group:', group.id, 'Expected array of objects or CSV string');
+                    return;
+                }
             } else {
-                rows = parseCSV(csvText);
-            }
+                // Fetch CSV data from URL
+                const response = await fetch(group.url);
+                let csvText = await response.text();
 
-            // Convert to GeoJSON
-            const geojson = rowsToGeoJSON(rows);
+                // Parse CSV data
+                let rows;
+                if (group.csvParser) {
+                    rows = group.csvParser(csvText);
+                } else {
+                    rows = parseCSV(csvText);
+                }
+
+                // Convert to GeoJSON
+                geojson = rowsToGeoJSON(rows);
+            }
 
             // Add source if it doesn't exist
             if (!this._map.getSource(sourceId)) {
@@ -4490,8 +4546,8 @@ export class MapLayerControl {
                 this._map.getSource(sourceId).setData(geojson);
             }
 
-            // Set up refresh interval if specified
-            if (group.refresh) {
+            // Set up refresh interval if specified (only for URL-based data)
+            if (group.refresh && group.url) {
                 this._setupCsvRefresh(group);
             }
 
