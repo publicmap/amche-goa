@@ -1,4 +1,5 @@
 import { MapLayerControl } from './map-layer-controls.js';
+import { MapFeatureControl } from './map-feature-control.js';
 import { configControl } from './config-control.js';
 import { localization } from './localization.js';
 import { URLManager } from './url-api.js';
@@ -195,6 +196,9 @@ async function loadConfiguration() {
                         layer.initiallyChecked = false;
                     }
                 });
+                
+                console.log('[MapInit] Set initial layer states based on URL parameters:', 
+                    existingLayers.map(l => ({ id: l.id, initiallyChecked: l.initiallyChecked })));
             
             // Create minified layers parameter for URL rewriting
             const minifiedLayersParam = processedUrlLayers.map(layer => {
@@ -489,6 +493,21 @@ async function initializeMap() {
         
         // Initialize layer control
         layerControl.renderToContainer(container, map);
+        
+        // Initialize the feature control
+        const featureControl = new MapFeatureControl({
+            position: 'bottom-right',
+            maxHeight: '300px',
+            maxWidth: '350px'
+        });
+        featureControl.addTo(map);
+        featureControl.initialize(layers, layerControl);
+        
+        // Make feature control globally accessible
+        window.featureControl = featureControl;
+        
+        // Set up bidirectional reference for synchronization
+        layerControl.setFeatureControl(featureControl);
         
         // Initialize URL manager after layer control is ready
         const urlManager = new URLManager(layerControl, map);

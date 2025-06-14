@@ -191,7 +191,15 @@
             ],
             0.9,
             0.7
-          ]
+          ],
+          "text-offset": [
+            0,
+            0
+          ],
+          "text-anchor": "center",
+          "text-justify": "center",
+          "text-allow-overlap": false,
+          "text-transform": "none"
         },
         "circle": {
           "circle-radius": 5,
