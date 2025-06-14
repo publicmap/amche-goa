@@ -494,6 +494,9 @@ async function initializeMap() {
         // Initialize layer control
         layerControl.renderToContainer(container, map);
         
+        // Make layer control globally accessible
+        window.layerControl = layerControl;
+        
         // Initialize the feature control
         const featureControl = new MapFeatureControl({
             position: 'bottom-right',

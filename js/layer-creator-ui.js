@@ -1,12 +1,86 @@
 import { fetchTileJSON } from './map-utils.js';
 
+// Get all layers from the current atlas configuration
+function getCurrentAtlasLayers() {
+    if (!window.layerControl || !window.layerControl._state || !window.layerControl._state.groups) {
+        return [];
+    }
+    
+    const layers = [];
+    window.layerControl._state.groups.forEach(group => {
+        if (group.title && group.id) {
+            layers.push({
+                id: group.id,
+                title: group.title,
+                format: getLayerFormat(group),
+                config: group
+            });
+        }
+    });
+    
+    return layers;
+}
+
+// Determine the data format from layer configuration
+function getLayerFormat(layer) {
+    if (!layer.type && !layer.url) return 'unknown';
+    
+    // Check by layer type first
+    switch (layer.type) {
+        case 'vector':
+            return 'pbf/mvt';
+        case 'geojson':
+            return 'geojson';
+        case 'tms':
+        case 'raster':
+            return 'raster';
+        case 'csv':
+            return 'csv';
+        case 'style':
+            return 'style';
+        case 'layer-group':
+            return 'group';
+        case 'terrain':
+            return 'terrain';
+        case 'atlas':
+            return 'atlas';
+        case 'img':
+            return 'img';
+        case 'raster-style-layer':
+            return 'raster';
+        case 'markers':
+            return 'markers';
+    }
+    
+    // If no type, try to guess from URL
+    if (layer.url) {
+        const url = layer.url.toLowerCase();
+        if (url.includes('.geojson') || url.includes('geojson')) return 'geojson';
+        if (url.includes('.pbf') || url.includes('.mvt') || url.includes('vector')) return 'pbf/mvt';
+        if (url.includes('.png')) return 'png';
+        if (url.includes('.jpg') || url.includes('.jpeg')) return 'jpg';
+        if (url.includes('.tiff') || url.includes('.tif')) return 'tiff';
+        if (url.includes('.csv')) return 'csv';
+        if (url.includes('{z}') && (url.includes('.png') || url.includes('.jpg'))) return 'raster';
+        if (url.includes('mapbox://')) return 'mapbox';
+    }
+    
+    return 'unknown';
+}
+
 // Create and inject the dialog HTML only once
 function createLayerCreatorDialog() {
     if (document.getElementById('layer-creator-dialog')) return;
     const dialogHtml = `
     <sl-dialog id="layer-creator-dialog" label="Add new data source or atlas">
         <form id="layer-creator-form" class="flex flex-col gap-4">
-            <sl-input id="layer-url" placeholder="URL to map data or atlas configuration JSON" required>
+            <sl-select id="layer-preset-dropdown" placeholder="Select from current atlas layers">
+                <sl-icon slot="prefix" name="layers"></sl-icon>
+            </sl-select>
+            <div class="text-xs text-gray-500">
+                Or add a new data source:
+            </div>
+            <sl-input id="layer-url" placeholder="URL to map data or atlas configuration JSON">
                 <sl-icon slot="prefix" name="link"></sl-icon>
             </sl-input>
             <div id="layer-url-help" class="text-xs text-gray-500">
@@ -17,7 +91,7 @@ function createLayerCreatorDialog() {
                 <span class="block">GeoJSON: <code>https://gist.githubusercontent.com/planemad/e5ccc47bf2a1aa458a86d6839476f539/raw/6922fcc2d5ffd4d58b0fb069b9f57334f13cd953/goa-water-bodies.geojson</code></span>
                 <span class="block">Atlas: <code>https://jsonkeeper.com/b/RQ0Y</code></span>
             </div>
-            <sl-textarea id="layer-config-json" rows="10" resize="vertical" class="font-mono text-xs" label="Layer Config JSON"></sl-textarea>
+            <sl-textarea id="layer-config-json" rows="10" resize="vertical" class="font-mono text-xs" placeholder="Atlas Layer JSON"></sl-textarea>
             <div class="flex justify-end gap-2">
                 <sl-button type="button" variant="default" id="cancel-layer-creator">Cancel</sl-button>
                 <sl-button type="submit" variant="primary" id="submit-layer-creator">Add to map</sl-button>
@@ -163,28 +237,81 @@ function getShareableUrl() {
 function openLayerCreatorDialog() {
     createLayerCreatorDialog();
     const dialog = document.getElementById('layer-creator-dialog');
+    const presetDropdown = document.getElementById('layer-preset-dropdown');
     const urlInput = document.getElementById('layer-url');
     const configTextarea = document.getElementById('layer-config-json');
     const form = document.getElementById('layer-creator-form');
     const cancelBtn = document.getElementById('cancel-layer-creator');
+    
+    // Clear inputs
     configTextarea.value = '';
     urlInput.value = '';
+    
+    // Populate dropdown with current atlas layers
+    const currentLayers = getCurrentAtlasLayers();
+    presetDropdown.innerHTML = '';
+    
+    // Add empty option
+    const emptyOption = document.createElement('sl-option');
+    emptyOption.value = '';
+    emptyOption.textContent = 'Select a layer...';
+    presetDropdown.appendChild(emptyOption);
+    
+    // Add layers to dropdown
+    currentLayers.forEach(layer => {
+        const option = document.createElement('sl-option');
+        option.value = layer.id;
+        option.dataset.config = JSON.stringify(layer.config);
+        
+        // Create HTML content with title and format indicator
+        option.innerHTML = `
+            <div class="flex justify-between items-center w-full">
+                <span class="flex-1 truncate">${layer.title}</span>
+                <span class="text-xs text-gray-500 ml-2 flex-shrink-0">${layer.format}</span>
+            </div>
+        `;
+        
+        presetDropdown.appendChild(option);
+    });
+    
     dialog.show();
+    
     let lastUrl = '';
     let lastConfig = '';
+    
     // Remove previous listeners to avoid duplicates
+    presetDropdown.onchange = null;
     urlInput.oninput = null;
     form.onsubmit = null;
+    
+    // Handle preset dropdown selection
+    presetDropdown.addEventListener('sl-change', (e) => {
+        const selectedOption = presetDropdown.querySelector(`sl-option[value="${e.target.value}"]`);
+        if (selectedOption && selectedOption.dataset.config) {
+            const config = JSON.parse(selectedOption.dataset.config);
+            configTextarea.value = JSON.stringify(config, null, 2);
+            // Clear URL input when preset is selected
+            urlInput.value = '';
+        }
+    });
+    
+    // Handle URL input
     urlInput.addEventListener('input', async (e) => {
         const url = e.target.value.trim();
         if (!url || url === lastUrl) return;
         lastUrl = url;
+        
+        // Clear preset dropdown when URL is entered
+        presetDropdown.value = '';
+        
         configTextarea.value = 'Loading...';
         const config = await handleUrlInput(url);
         lastConfig = JSON.stringify(config, null, 2);
         configTextarea.value = lastConfig;
     });
+    
     cancelBtn.onclick = () => dialog.hide();
+    
     form.onsubmit = (e) => {
         e.preventDefault();
         let configJson = configTextarea.value.trim();
