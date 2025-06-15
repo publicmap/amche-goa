@@ -1015,7 +1015,7 @@
           "Village",
           "Taluk"
         ],
-        "customHtml": "<a href='https://bhunaksha.goa.gov.in/bhunaksha/' target='_blank'>View in Bhunaksha Goa</a> | <a href='https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31' target='_blank'>View RoR</a>"
+        "customHtml": "<a href='https://bhunaksha.goa.gov.in/bhunaksha/' target='_blank'>View in Bhunaksha Goa</a> | <a href='https://goaonline.gov.in/Appln/Uil/DeptServices?__DocId=REV&__ServiceId=REV31' target='_blank'>View RoR</a> | <a href='https://davepaiva.github.io/goa-cadastral-duckdb-demo/' target='_blank'>Search</a>"
       }
     },
     {

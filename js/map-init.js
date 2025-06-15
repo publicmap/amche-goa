@@ -500,7 +500,7 @@ async function initializeMap() {
         // Initialize the feature control
         const featureControl = new MapFeatureControl({
             position: 'bottom-right',
-            maxHeight: '300px',
+            maxHeight: '500px',
             maxWidth: '350px'
         });
         //featureControl.addTo(map);
