@@ -503,7 +503,7 @@ async function initializeMap() {
             maxHeight: '500px',
             maxWidth: '350px'
         });
-        //featureControl.addTo(map);
+        featureControl.addTo(map);
         featureControl.initialize(layers, layerControl);
         
         // Make feature control globally accessible
