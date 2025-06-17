@@ -736,7 +736,7 @@
     },
     {
       "id": "landslide-risk",
-      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/5bc0f5e3b498438cf56cc26f6b4386d6-1a646d0ca3e01bfd9a02855ccc3a3238/tiles/{z}/{x}/{y}",
+      "url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/5bc0f5e3b498438cf56cc26f6b4386d6-ff533c90daa9035e666bdd8441044c8c/tiles/{z}/{x}/{y}",
       "type": "tms",
       "title": "Landslide Risk",
       "description": "High resolution (100m) landslide susceptibility mapping using ensemble machine learning and geospatial big data. See <a href='https://github.com/hydrosenselab/ILSM'>source code</a> for technical details.",
