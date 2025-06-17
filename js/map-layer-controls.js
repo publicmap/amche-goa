@@ -3558,77 +3558,36 @@ export class MapLayerControl {
         };
 
         layerIds.forEach(layerId => {
-            // Mousemove handler
+            // Mousemove handler - state manager handles hover states
             this._map.on('mousemove', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
 
-                    // Clear hover state for previous feature
-                    if (hoveredFeatureId !== null) {
-                        this._map.setFeatureState(
-                            getFeatureStateParams(hoveredFeatureId),
-                            { hover: false }
-                        );
-                    }
-
-                    // Set hover state for new feature
-                    if (feature.id !== undefined) {
-                        hoveredFeatureId = feature.id;
-                        this._map.setFeatureState(
-                            getFeatureStateParams(hoveredFeatureId),
-                            { hover: true }
-                        );
-                    }
-
                     // Handle hover popup content
                     if (group.inspect?.label && this._config.showPopupsOnHover) {
-                        // Hover feature tracking now managed by state manager
-
                         // Update the consolidated hover popup
                         updateConsolidatedHoverPopup(e);
-
-                        // Feature interactions now handled by state manager
                     }
+                    
+                    // Feature hover state now fully managed by state manager
                 }
             });
 
-            // Mouseleave handler
+            // Mouseleave handler - state manager handles hover states
             this._map.on('mouseleave', layerId, () => {
-                if (hoveredFeatureId !== null) {
-                    this._map.setFeatureState(
-                        getFeatureStateParams(hoveredFeatureId),
-                        { hover: false }
-                    );
-                    hoveredFeatureId = null;
-                }
-
-                // Hover feature cleanup now managed by state manager
-
                 // Update consolidated popup (will be removed if no features remain)
                 updateConsolidatedHoverPopup();
 
-                // Feature leave interactions now handled by state manager
+                // Feature leave interactions now fully managed by state manager
             });
 
-            // Click handler
+            // Click handler - state manager handles selection states
             this._map.on('click', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
 
                     // Remove hover popup
                     this._consolidatedHoverPopup.remove();
-
-                    // Clear all previous selections
-                    this._clearAllSelectedFeatures();
-
-                    // Set new selection
-                    if (feature.id !== undefined) {
-                        selectedFeatureId = feature.id;
-                        const featureStateParams = getFeatureStateParams(selectedFeatureId);
-                        this._map.setFeatureState(featureStateParams, { selected: true });
-
-                        // Selected features now managed by state manager
-                    }
 
                     // Only show click popup if enabled
                     if (this._config.showPopupsOnClick) {
@@ -3641,7 +3600,7 @@ export class MapLayerControl {
                         }
                     }
 
-                    // Feature click interactions now handled by state manager
+                    // Feature click interactions and selection state now fully managed by state manager
                 }
             });
 
@@ -4780,7 +4739,10 @@ export class MapLayerControl {
 
                 // If no custom features were clicked (empty area), clear all selections
                 if (customFeatures.length === 0) {
-                    this._clearAllSelectedFeatures();
+                    // Use state manager to clear selections if available
+                    if (this._stateManager) {
+                        this._stateManager.clearAllSelections();
+                    }
 
                     // Also close any open popups
                     this._map.getCanvas().style.cursor = '';

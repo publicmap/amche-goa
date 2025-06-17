@@ -27,6 +27,13 @@ export class MapFeatureStateManager extends EventTarget {
         this._clickDebounceTimeout = null;
         this._pendingClicks = [];
         
+        // Hover debouncing to prevent rapid state changes
+        this._hoverDebounceTimeout = null;
+        this._currentHoverTarget = null;
+        
+        // Cache layer ID mappings to avoid expensive lookups
+        this._layerIdCache = new Map(); // layerId -> actualLayerIds[]
+        
         this._setupCleanup();
     }
 
@@ -56,6 +63,9 @@ export class MapFeatureStateManager extends EventTarget {
         // Remove layer events
         this._removeLayerEvents(layerId);
         
+        // Clear cache for this layer
+        this._layerIdCache.delete(layerId);
+        
         this._activeInteractiveLayers.delete(layerId);
         this._emitStateChange('layer-unregistered', { layerId });
     }
@@ -65,29 +75,44 @@ export class MapFeatureStateManager extends EventTarget {
      */
     onFeatureHover(feature, layerId, lngLat) {
         const featureId = this._getFeatureId(feature);
+        const hoverTarget = `${layerId}:${featureId}`;
         
-        // Clear previous hover for this layer
-        this._clearLayerHover(layerId);
-        
-        // Set new hover
-        if (!this._activeHoverFeatures.has(layerId)) {
-            this._activeHoverFeatures.set(layerId, new Set());
+        // Skip if we're already hovering the same feature
+        if (this._currentHoverTarget === hoverTarget) {
+            return;
         }
-        this._activeHoverFeatures.get(layerId).add(featureId);
         
-        // Set Mapbox feature state for hover
-        this._setMapboxFeatureState(featureId, layerId, { hover: true });
+        // Clear previous hover timeout
+        if (this._hoverDebounceTimeout) {
+            clearTimeout(this._hoverDebounceTimeout);
+        }
         
-        // Update feature state
-        this._updateFeatureState(featureId, {
-            feature,
-            layerId,
-            lngLat,
-            isHovered: true,
-            timestamp: Date.now()
-        });
-        
-        this._scheduleRender('feature-hover', { featureId, layerId, lngLat, feature });
+        // Debounce hover to prevent rapid state changes
+        this._hoverDebounceTimeout = setTimeout(() => {
+            // Clear previous hover for this layer
+            this._clearLayerHover(layerId);
+            
+            // Set new hover
+            if (!this._activeHoverFeatures.has(layerId)) {
+                this._activeHoverFeatures.set(layerId, new Set());
+            }
+            this._activeHoverFeatures.get(layerId).add(featureId);
+            
+            // Set Mapbox feature state for hover
+            this._setMapboxFeatureState(featureId, layerId, { hover: true });
+            
+            // Update feature state
+            this._updateFeatureState(featureId, {
+                feature,
+                layerId,
+                lngLat,
+                isHovered: true,
+                timestamp: Date.now()
+            });
+            
+            this._currentHoverTarget = hoverTarget;
+            this._scheduleRender('feature-hover', { featureId, layerId, lngLat, feature });
+        }, 10); // 10ms debounce
     }
 
     /**
@@ -173,6 +198,13 @@ export class MapFeatureStateManager extends EventTarget {
      * Handle feature leave
      */
     onFeatureLeave(layerId) {
+        // Clear hover timeout if pending
+        if (this._hoverDebounceTimeout) {
+            clearTimeout(this._hoverDebounceTimeout);
+            this._hoverDebounceTimeout = null;
+        }
+        
+        this._currentHoverTarget = null;
         this._clearLayerHover(layerId);
         this._scheduleRender('feature-leave', { layerId });
     }
@@ -426,105 +458,60 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     _getMatchingLayerIds(layerConfig) {
-        const style = this._map.getStyle();
-        if (!style.layers) return [];
-        
         const layerId = layerConfig.id;
+        
+        // Check cache first
+        if (this._layerIdCache.has(layerId)) {
+            return this._layerIdCache.get(layerId);
+        }
+        
+        const style = this._map.getStyle();
+        if (!style.layers) {
+            this._layerIdCache.set(layerId, []);
+            return [];
+        }
+        
         const matchingIds = [];
         
-        console.log(`[StateManager] Finding matching layers for: ${layerId}`, layerConfig);
-        
+        // Use the same efficient approach as map-layer-controls.js
         // Strategy 1: Direct ID match
         if (style.layers.some(l => l.id === layerId)) {
             matchingIds.push(layerId);
-            console.log(`[StateManager] Direct match found: ${layerId}`);
         }
         
-        // Strategy 2: Layers that start with the layer ID (common pattern for geojson layers)
-        const prefixMatches = style.layers
-            .filter(l => l.id.startsWith(layerId + '-') || l.id.startsWith(layerId + ' '))
-            .map(l => l.id);
-        if (prefixMatches.length > 0) {
-            console.log(`[StateManager] Prefix matches found:`, prefixMatches);
-        }
-        matchingIds.push(...prefixMatches);
-        
-        // Strategy 3: For vector layers with sourceLayer property
+        // Strategy 2: For vector layers with sourceLayer property (most common case)
         if (layerConfig.sourceLayer) {
             const sourceLayerMatches = style.layers
                 .filter(l => l['source-layer'] === layerConfig.sourceLayer)
                 .map(l => l.id);
-            if (sourceLayerMatches.length > 0) {
-                console.log(`[StateManager] Source layer matches for '${layerConfig.sourceLayer}':`, sourceLayerMatches);
-            }
             matchingIds.push(...sourceLayerMatches);
         }
         
-        // Strategy 4: For style layers, check source-layer matching (legacy)
-        if (layerConfig.sourceLayers && Array.isArray(layerConfig.sourceLayers)) {
-            const sourceLayerMatches = style.layers
-                .filter(l => l['source-layer'] && layerConfig.sourceLayers.includes(l['source-layer']))
+        // Strategy 3: For layers with source matching
+        if (layerConfig.source) {
+            const sourceMatches = style.layers
+                .filter(l => l.source === layerConfig.source)
                 .map(l => l.id);
-            if (sourceLayerMatches.length > 0) {
-                console.log(`[StateManager] Source layers matches:`, sourceLayerMatches);
-            }
-            matchingIds.push(...sourceLayerMatches);
+            matchingIds.push(...sourceMatches);
         }
         
-        // Strategy 5: For grouped layers, check sub-layers
-        if (layerConfig.layers && Array.isArray(layerConfig.layers)) {
-            layerConfig.layers.forEach(subLayer => {
-                if (subLayer.sourceLayer) {
-                    const subMatches = style.layers
-                        .filter(l => l['source-layer'] === subLayer.sourceLayer)
-                        .map(l => l.id);
-                    if (subMatches.length > 0) {
-                        console.log(`[StateManager] Sub-layer matches for '${subLayer.sourceLayer}':`, subMatches);
-                    }
-                    matchingIds.push(...subMatches);
-                }
-            });
-        }
-        
-        // Strategy 6: GeoJSON source matching
+        // Strategy 4: GeoJSON source matching
         if (layerConfig.type === 'geojson') {
             const sourceId = `geojson-${layerId}`;
             const geojsonMatches = style.layers
                 .filter(l => l.source === sourceId)
                 .map(l => l.id);
-            if (geojsonMatches.length > 0) {
-                console.log(`[StateManager] GeoJSON matches for source '${sourceId}':`, geojsonMatches);
-            }
             matchingIds.push(...geojsonMatches);
         }
         
-        // Strategy 7: Vector tile source matching - check by source ID
-        if (layerConfig.source) {
-            const sourceMatches = style.layers
-                .filter(l => l.source === layerConfig.source)
-                .map(l => l.id);
-            if (sourceMatches.length > 0) {
-                console.log(`[StateManager] Source matches for '${layerConfig.source}':`, sourceMatches);
-            }
-            matchingIds.push(...sourceMatches);
-        }
-        
-        // Strategy 8: Fuzzy matching for common patterns
-        const fuzzyMatches = style.layers
-            .filter(l => {
-                // Match layers that contain the layer ID as a substring
-                return l.id.includes(layerId) || layerId.includes(l.id);
-            })
+        // Strategy 5: Prefix matching for common patterns
+        const prefixMatches = style.layers
+            .filter(l => l.id.startsWith(`vector-layer-${layerId}`) || l.id.startsWith(`${layerId}-`))
             .map(l => l.id);
-        if (fuzzyMatches.length > 0) {
-            console.log(`[StateManager] Fuzzy matches:`, fuzzyMatches);
-        }
-        matchingIds.push(...fuzzyMatches);
+        matchingIds.push(...prefixMatches);
         
-        // Remove duplicates and filter out layers that aren't interactive
+        // Remove duplicates and filter out non-interactive layers
         const uniqueIds = [...new Set(matchingIds)];
-        
-        // Only return layers that have sources with vector data or are interactive
         const filteredIds = uniqueIds.filter(id => {
             const layer = style.layers.find(l => l.id === id);
             if (!layer) return false;
@@ -537,12 +524,11 @@ export class MapFeatureStateManager extends EventTarget {
             return true;
         });
         
-        console.log(`[StateManager] Final matching layers for ${layerId}:`, filteredIds);
+        // Cache the result
+        this._layerIdCache.set(layerId, filteredIds);
         
-        // If no matches found, log available layers for debugging
         if (filteredIds.length === 0) {
-            console.warn(`[StateManager] No matches found for ${layerId}. Available layers:`, 
-                style.layers.map(l => ({ id: l.id, type: l.type, source: l.source, sourceLayer: l['source-layer'] })));
+            console.warn(`[StateManager] No interactive layers found for ${layerId}`);
         }
         
         return filteredIds;
@@ -687,6 +673,10 @@ export class MapFeatureStateManager extends EventTarget {
             clearTimeout(this._clickDebounceTimeout);
         }
         
+        if (this._hoverDebounceTimeout) {
+            clearTimeout(this._hoverDebounceTimeout);
+        }
+        
         this._activeInteractiveLayers.forEach(layerId => {
             this._removeLayerEvents(layerId);
         });
@@ -697,6 +687,7 @@ export class MapFeatureStateManager extends EventTarget {
         this._layerConfig.clear();
         this._activeInteractiveLayers.clear();
         this._pendingClicks = [];
+        this._layerIdCache.clear();
     }
 
     /**
