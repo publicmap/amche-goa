@@ -17,6 +17,7 @@ export class MapFeatureControl {
             maxWidth: '350px',
             minWidth: '250px',
             collapsed: false,
+            showHoverPopups: true, // New option to control hover popups
             ...options
         };
 
@@ -31,6 +32,10 @@ export class MapFeatureControl {
         this._lastRenderState = new Map();
         this._stateChangeListener = null;
         this._renderScheduled = false;
+        
+        // Hover popup management
+        this._hoverPopup = null;
+        this._currentHoveredFeature = null;
         
         // Initialized
     }
@@ -191,12 +196,25 @@ export class MapFeatureControl {
         // Optimize rendering based on event type
         switch (eventType) {
             case 'feature-hover':
+                this._handleFeatureHover(data);
+                this._renderLayer(data.layerId);
+                break;
             case 'feature-click':
+                // Handle cleared features first, then the new selection
+                if (data.clearedFeatures && data.clearedFeatures.length > 0) {
+                    this._handleSelectionsCleared(data.clearedFeatures);
+                }
+                this._renderLayer(data.layerId);
+                break;
+            case 'selections-cleared':
+                this._handleSelectionsCleared(data.clearedFeatures);
+                break;
             case 'feature-star-toggle':
             case 'feature-close':
                 this._renderLayer(data.layerId);
                 break;
             case 'feature-leave':
+                this._handleFeatureLeave(data);
                 this._renderLayer(data.layerId);
                 break;
             case 'layer-registered':
@@ -220,6 +238,26 @@ export class MapFeatureControl {
     }
 
     /**
+     * Handle cleared selections - update UI for all cleared features
+     */
+    _handleSelectionsCleared(clearedFeatures) {
+        console.log('[FeatureControl] Handling cleared selections:', clearedFeatures);
+        
+        // Get unique layer IDs that had selections cleared
+        const affectedLayerIds = [...new Set(clearedFeatures.map(item => item.layerId))];
+        
+        // Re-render all affected layers to reflect the cleared selections
+        affectedLayerIds.forEach(layerId => {
+            this._renderLayer(layerId);
+        });
+        
+        // If no layers had selections, do a full render to ensure clean state
+        if (affectedLayerIds.length === 0) {
+            this._scheduleRender();
+        }
+    }
+
+    /**
      * Get active layers from state manager - SINGLE SOURCE OF TRUTH
      */
     _getActiveLayersFromConfig() {
@@ -233,8 +271,6 @@ export class MapFeatureControl {
         console.log(`[FeatureControl] Active layers count: ${activeLayers.size}`, Array.from(activeLayers.keys()));
         return activeLayers;
     }
-
-
 
     /**
      * Schedule a render to avoid excessive re-rendering
@@ -256,8 +292,6 @@ export class MapFeatureControl {
     _getCurrentlyActiveLayers() {
         return this._getActiveLayersFromConfig();
     }
-
-
 
     /**
      * Render the control UI - uses state manager as single source of truth
@@ -812,7 +846,7 @@ export class MapFeatureControl {
         
         // Remove the feature from all layers unless it's currently being hovered
         let isCurrentlyHovered = false;
-        this._activeLayers.forEach(layerData => {
+        this._activeLayers.forEach((layerData) => {
             layerData.features.forEach((featureData, fId) => {
                 if (this._getFeatureId(featureData.feature) === featureId) {
                     if (featureData.isHover) {
@@ -826,7 +860,7 @@ export class MapFeatureControl {
         
         // If the feature is currently being hovered, keep it but mark as not selected
         if (isCurrentlyHovered) {
-            this._activeLayers.forEach(layerData => {
+            this._activeLayers.forEach((layerData) => {
                 layerData.features.forEach((featureData, fId) => {
                     if (this._getFeatureId(featureData.feature) === featureId && featureData.isHover) {
                         // Keep as hover-only feature with no selection state
@@ -968,10 +1002,160 @@ export class MapFeatureControl {
         if (this._stateManager && this._stateChangeListener) {
             this._stateManager.removeEventListener('state-change', this._stateChangeListener);
         }
+        
+        // Clean up hover popup
+        this._removeHoverPopup();
+        this._currentHoveredFeature = null;
+        
         this._lastRenderState.clear();
     }
 
     // These public methods are no longer needed - the state manager handles layer management
+
+    /**
+     * Handle feature hover - create popup at mouse location
+     */
+    _handleFeatureHover(data) {
+        const { featureId, layerId, lngLat, feature } = data;
+        
+        // Skip if hover popups are disabled
+        if (!this.options.showHoverPopups) return;
+        
+        // Skip on mobile devices to avoid conflicts with touch interactions
+        if ('ontouchstart' in window) return;
+        
+        // Get layer config for popup content
+        const layerConfig = this._stateManager.getLayerConfig(layerId);
+        if (!layerConfig || !layerConfig.inspect) return;
+        
+        // Remove existing popup
+        this._removeHoverPopup();
+        
+        // Create new hover popup
+        this._createHoverPopup(feature, layerConfig, lngLat);
+        this._currentHoveredFeature = featureId;
+    }
+
+    /**
+     * Handle feature leave - remove hover popup
+     */
+    _handleFeatureLeave(data) {
+        this._removeHoverPopup();
+        this._currentHoveredFeature = null;
+    }
+
+    /**
+     * Create hover popup at mouse location
+     */
+    _createHoverPopup(feature, layerConfig, lngLat) {
+        if (!this._map || !lngLat) return;
+        
+        const content = this._createHoverPopupContent(feature, layerConfig);
+        if (!content) return;
+        
+        this._hoverPopup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            className: 'hover-popup'
+        })
+        .setLngLat(lngLat)
+        .setDOMContent(content)
+        .addTo(this._map);
+    }
+
+    /**
+     * Remove hover popup
+     */
+    _removeHoverPopup() {
+        if (this._hoverPopup) {
+            this._hoverPopup.remove();
+            this._hoverPopup = null;
+        }
+    }
+
+    /**
+     * Create hover popup content based on layer configuration
+     */
+    _createHoverPopupContent(feature, layerConfig) {
+        const container = document.createElement('div');
+        container.className = 'map-popup p-2 font-sans text-sm';
+        container.style.cssText = `
+            max-width: 250px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        `;
+
+        const inspect = layerConfig.inspect;
+        
+        // Add label (main title)
+        if (inspect.label) {
+            const labelValue = feature.properties[inspect.label];
+            if (labelValue) {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'text-base font-medium text-gray-900 mb-1';
+                labelDiv.textContent = labelValue;
+                container.appendChild(labelDiv);
+            }
+        }
+
+        // Add layer title as context
+        if (layerConfig.title) {
+            const layerTitle = document.createElement('div');
+            layerTitle.className = 'text-xs uppercase tracking-wider text-gray-500 mb-2';
+            layerTitle.textContent = layerConfig.title;
+            container.appendChild(layerTitle);
+        }
+
+        // Add priority fields
+        if (inspect.fields && inspect.fields.length > 0) {
+            const fieldsContainer = document.createElement('div');
+            fieldsContainer.className = 'space-y-1';
+            
+            let fieldCount = 0;
+            const maxFields = 3; // Limit fields in hover popup to keep it compact
+            
+            inspect.fields.forEach((field, index) => {
+                if (fieldCount >= maxFields) return;
+                if (field === inspect.label) return; // Skip label field as it's already shown
+                
+                const value = feature.properties[field];
+                if (value !== undefined && value !== null && value !== '') {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'flex justify-between gap-2 text-xs';
+                    
+                    const fieldName = document.createElement('span');
+                    fieldName.className = 'text-gray-600 font-medium';
+                    fieldName.textContent = (inspect.fieldTitles && inspect.fieldTitles[index]) || field;
+                    
+                    const fieldValue = document.createElement('span');
+                    fieldValue.className = 'text-gray-900 text-right';
+                    fieldValue.textContent = String(value);
+                    
+                    fieldDiv.appendChild(fieldName);
+                    fieldDiv.appendChild(fieldValue);
+                    fieldsContainer.appendChild(fieldDiv);
+                    
+                    fieldCount++;
+                }
+            });
+            
+            if (fieldsContainer.children.length > 0) {
+                container.appendChild(fieldsContainer);
+            }
+        }
+
+        // Add "click for more" hint if there are more fields or if this is an inspectable layer
+        if ((inspect.fields && inspect.fields.length > 3) || 
+            Object.keys(feature.properties).length > 3) {
+            const hintDiv = document.createElement('div');
+            hintDiv.className = 'text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200 italic';
+            hintDiv.textContent = 'Click for more details';
+            container.appendChild(hintDiv);
+        }
+
+        return container.children.length > 0 ? container : null;
+    }
 }
 
 // Make available globally for backwards compatibility

@@ -888,14 +888,46 @@
       "title": "Notified Wetlands",
       "description": "Notified Wetlands as per the <a href='https://gswa.goa.gov.in/gazette-notification/'>Goa State Wetland Authority Notifications</a>",
       "headerImage": "assets/map-layers/map-layer-notified-wetlands.png",
-      "type": "geojson",
-      "url": "https://gist.githubusercontent.com/planemad/7556655a787c4fb2143ce4f71d8645da/raw/2b2d8bbb775cce9eff236ceb0107274ddf93c81d/goa-notified-wetlands.geojson",
-      "attribution": "<a href='https://gswa.goa.gov.in/gazette-notification/'>Goa State Wetland Authority</a> collected by <a href='https://docs.google.com/spreadsheets/d/18ws6fp8x5UxD7xq_LW-8qVq1qAPoEPR8qEF8jWyR0lI/edit?gid=1037394520#gid=1037394520'>Amche.in Community</a>",
+      "type": "vector",
+      "url": "https://api-main-432878571563.europe-west4.run.app/tiler/vector/{z}/{x}/{y}?map_id=37001657-13b7-4065-8b80-cdb5594f15b1",
+      "sourceLayer": "vector",
+      "maxzoom": 14,
+      "attribution": "<a href='https://docs.google.com/spreadsheets/d/19dREaWRkcxG00UmGGCQa_5tdoouuVi5EfCQZ_BmB064/edit?gid=0#gid=0'>Goa Gazettes collected by amche.in community</a> - via <a href='https://www.maphub.co/map/37001657-13b7-4065-8b80-cdb5594f15b1'>Maphub</a>",
       "style": {
-        "fill-color": "cyan",
-        "line-color": "cyan",
-        "line-width": 2,
-        "fill-opacity": 0.5
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "DOMSOI"
+          ],
+          [
+            "Je"
+          ],
+          "green",
+          [
+            "Rd"
+          ],
+          "brown",
+          [
+            "Be"
+          ],
+          "darkblue",
+          [
+            "Nd"
+          ],
+          "blue",
+          "cyan"
+        ], 
+        
+        "line-color":"cyan"
+      },
+      "inspect": {
+        "id": "id",
+        "title": "Soil Code",
+        "label": "FAOSOIL",
+        "fields" : ["DOMSOI","COUNTRY"],
+        "fieldTitles": ["Soil Unit", "Country"],
+        "customHtml": "<a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/' target='_blank'>Soil Code Lookup</a> | <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>Soil Unit Lookup</a> | <a href='https://www.fao.org/fileadmin/user_upload/soils/docs/Soil_map_FAOUNESCO/acrobat/South_Asia_VII_II.pdf' target='_blank'>South Asia Soil Unit Map</a>"
       }
     },
     {

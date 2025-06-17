@@ -950,7 +950,8 @@ export class MapLayerControl {
         
         this._state.groups.forEach(group => {
             if (group.inspect && group.initiallyChecked) {
-                this._stateManager.registerLayer(group);
+                // Use the same validation as individual layer registration
+                this._registerLayerWithStateManager(group);
             }
         });
     }
@@ -959,9 +960,80 @@ export class MapLayerControl {
      * Register a layer with the state manager when it becomes active
      */
     _registerLayerWithStateManager(layerConfig) {
-        if (this._stateManager && layerConfig.inspect) {
-            this._stateManager.registerLayer(layerConfig);
+        if (!this._stateManager || !layerConfig.inspect) {
+            return;
         }
+        
+        // Pre-validate that this layer has matching layers in the map style
+        // to avoid unnecessary registrations and console noise
+        if (!this._hasMatchingLayers(layerConfig)) {
+            console.log(`[LayerControl] Skipping registration for ${layerConfig.id} - no matching layers found`);
+            return;
+        }
+        
+        console.log(`[LayerControl] Registering ${layerConfig.id} with state manager`);
+        this._stateManager.registerLayer(layerConfig);
+    }
+
+    /**
+     * Check if a layer config has matching layers in the current map style
+     */
+    _hasMatchingLayers(layerConfig) {
+        const style = this._map.getStyle();
+        if (!style.layers) return false;
+        
+        const layerId = layerConfig.id;
+        
+        // Strategy 1: Direct ID match
+        if (style.layers.some(l => l.id === layerId)) {
+            return true;
+        }
+        
+        // Strategy 2: Prefix matches (for geojson layers)
+        if (style.layers.some(l => l.id.startsWith(layerId + '-') || l.id.startsWith(layerId + ' '))) {
+            return true;
+        }
+        
+        // Strategy 3: Source layer matches (for vector layers)
+        if (layerConfig.sourceLayer) {
+            if (style.layers.some(l => l['source-layer'] === layerConfig.sourceLayer)) {
+                return true;
+            }
+        }
+        
+        // Strategy 4: Source matches (for vector tile sources)
+        if (layerConfig.source) {
+            if (style.layers.some(l => l.source === layerConfig.source)) {
+                return true;
+            }
+        }
+        
+        // Strategy 5: Legacy source layers array
+        if (layerConfig.sourceLayers && Array.isArray(layerConfig.sourceLayers)) {
+            if (style.layers.some(l => l['source-layer'] && layerConfig.sourceLayers.includes(l['source-layer']))) {
+                return true;
+            }
+        }
+        
+        // Strategy 6: Grouped layers
+        if (layerConfig.layers && Array.isArray(layerConfig.layers)) {
+            return layerConfig.layers.some(subLayer => {
+                if (subLayer.sourceLayer) {
+                    return style.layers.some(l => l['source-layer'] === subLayer.sourceLayer);
+                }
+                return false;
+            });
+        }
+        
+        // Strategy 7: GeoJSON source matching
+        if (layerConfig.type === 'geojson') {
+            const sourceId = `geojson-${layerId}`;
+            if (style.layers.some(l => l.source === sourceId)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**
