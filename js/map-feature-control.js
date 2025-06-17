@@ -276,11 +276,9 @@ export class MapFeatureControl {
             const headerElement = layerElement.querySelector('.feature-control-layer-header');
             if (headerElement) {
                 if (isHovered) {
-                    headerElement.style.border = '2px solid #fbbf24'; // Yellow border for hover
-                    headerElement.style.borderRadius = '4px';
+                    headerElement.style.borderColor = '#fbbf24'; // Yellow border for hover
                 } else {
-                    headerElement.style.border = 'none';
-                    headerElement.style.borderRadius = '';
+                    headerElement.style.borderColor = 'transparent'; // Back to transparent
                 }
             }
         }
@@ -554,6 +552,8 @@ export class MapFeatureControl {
             font-weight: 600;
             color: #fff;
             border-bottom: 1px solid #eee;
+            border: 2px solid transparent;
+            border-radius: 4px;
             position: relative;
             background: #333;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
@@ -616,7 +616,7 @@ export class MapFeatureControl {
         featureElement.style.cssText = `
             border-bottom: 1px solid #f0f0f0;
             font-size: 11px;
-            background: #fff3cd;
+            background:#eee;
             cursor: pointer;
             padding: 0;
         `;
@@ -636,23 +636,7 @@ export class MapFeatureControl {
         content.style.cssText = 'padding: 0;';
         
         // Header with feature info
-        const header = document.createElement('div');
-        header.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: #f1f5f9;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        `;
-        
-        const headerTitle = document.createElement('span');
-        headerTitle.textContent = 'Feature Data';
-        headerTitle.style.cssText = 'font-weight: 600; font-size: 10px; color: #333;';
-        
 
-        header.appendChild(headerTitle);
         
         // Properties table content
         const tableContent = document.createElement('div');
@@ -737,21 +721,21 @@ export class MapFeatureControl {
             keyCell.style.cssText = `
                 padding: ${field.isLabel ? '6px 4px' : '4px 4px'};
                 font-weight: 600;
-                color: ${field.isLabel ? '#1e40af' : field.isPriority ? '#6b7280' : '#9ca3af'};
+                color: ${field.isLabel ? '#111' : field.isPriority ? '#444' : '#666'};
                 width: 40%;
                 vertical-align: top;
                 line-height: 1.2;
             `;
             
             // Create field name display with alias emphasis
-            if (field.displayName !== field.key && !field.isLabel) {
-                // Show alias prominently with raw field name below
+            if (field.displayName !== field.key) {
+                // Show alias prominently with raw field name below (for all fields including label)
                 const aliasDiv = document.createElement('div');
-                aliasDiv.style.cssText = 'font-weight: 600; margin-bottom: 1px;';
+                aliasDiv.style.cssText = `font-weight: 600; margin-bottom: 1px; ${field.isLabel ? 'font-size: 12px;' : ''}`;
                 aliasDiv.textContent = field.displayName;
                 
                 const rawDiv = document.createElement('div');
-                rawDiv.style.cssText = 'font-size: 8px; font-weight: 400; color: #9ca3af; font-style: italic;';
+                rawDiv.style.cssText = `font-size: 8px; font-weight: 400; color: #9ca3af; font-style: italic; ${field.isLabel ? 'color: #6366f1;' : ''}`;
                 rawDiv.textContent = field.key;
                 
                 keyCell.appendChild(aliasDiv);
@@ -764,10 +748,11 @@ export class MapFeatureControl {
             valueCell.style.cssText = `
                 padding: ${field.isLabel ? '6px 4px' : '4px 4px'};
                 word-break: break-word;
-                font-size: ${field.isLabel ? '11px' : '9px'};
-                font-weight: ${field.isLabel ? '600' : '400'};
-                color: ${field.isLabel ? '#1e40af' : '#374151'};
+                font-size: ${field.isLabel ? '13px' : '9px'};
+                font-weight: ${field.isLabel ? '700' : '400'};
+                color: ${field.isLabel ? '#111' : '#333'};
                 line-height: 1.2;
+                ${field.isLabel ? 'background: #fff;' : ''}
             `;
             valueCell.textContent = String(field.value);
             
@@ -806,7 +791,6 @@ export class MapFeatureControl {
         tableContent.appendChild(table);
         tableContent.appendChild(exportButton);
         
-        content.appendChild(header);
         content.appendChild(tableContent);
         
         return content;

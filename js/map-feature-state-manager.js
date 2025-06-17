@@ -136,69 +136,90 @@ export class MapFeatureStateManager extends EventTarget {
             }
         });
         
-        // If any features are already selected, toggle them off
-        if (alreadySelectedFeatures.length > 0) {
-            console.log(`[StateManager] Toggling off ${alreadySelectedFeatures.length} selected features`);
-            
-            // Deselect all features at once
-            const deselectedLayers = new Set();
-            alreadySelectedFeatures.forEach(({ featureId, layerId }) => {
-                this._deselectFeatureInternal(featureId, layerId);
-                deselectedLayers.add(layerId);
+        // Only toggle off if ALL clicked features are identical to ALL currently selected features
+        if (alreadySelectedFeatures.length > 0 && newFeatures.length === 0) {
+            // Get all currently selected features across all layers
+            const allCurrentlySelected = [];
+            this._selectedFeatures.forEach((featureIds, layerId) => {
+                featureIds.forEach(featureId => {
+                    allCurrentlySelected.push({ featureId, layerId });
+                });
             });
             
-            // Emit a single batch event for all deselections
-            this._scheduleRender('features-batch-deselected', { 
-                deselectedFeatures: alreadySelectedFeatures,
-                affectedLayers: Array.from(deselectedLayers)
-            });
+            // Check if the sets are identical (same features in same layers)
+            const clickedSet = new Set(alreadySelectedFeatures.map(f => `${f.layerId}:${f.featureId}`));
+            const selectedSet = new Set(allCurrentlySelected.map(f => `${f.layerId}:${f.featureId}`));
             
-            // Don't select new features if we're toggling off existing ones
-            return;
-        }
-        
-        // Otherwise, clear existing selections and select new features
-        if (newFeatures.length > 0) {
-            const clearedFeatures = this._clearAllSelections(true);
-            console.log(`[StateManager] Cleared previous selections, now selecting ${newFeatures.length} new features`);
+            const setsAreIdentical = clickedSet.size === selectedSet.size && 
+                [...clickedSet].every(item => selectedSet.has(item));
             
-            const selectedFeatures = [];
-            newFeatures.forEach(({ feature, layerId, lngLat, featureId }) => {
-                // Set selection for this feature
-                if (!this._selectedFeatures.has(layerId)) {
-                    this._selectedFeatures.set(layerId, new Set());
-                }
-                this._selectedFeatures.get(layerId).add(featureId);
+            if (setsAreIdentical) {
+                console.log(`[StateManager] Toggling off ${alreadySelectedFeatures.length} selected features (identical selection)`);
                 
-                // Set Mapbox feature state for selection
-                this._setMapboxFeatureState(featureId, layerId, { selected: true });
-                
-                // Update feature state
-                this._updateFeatureState(featureId, {
-                    feature,
-                    layerId,
-                    lngLat,
-                    isSelected: true,
-                    timestamp: Date.now()
+                // Deselect all features at once
+                const deselectedLayers = new Set();
+                alreadySelectedFeatures.forEach(({ featureId, layerId }) => {
+                    this._deselectFeatureInternal(featureId, layerId);
+                    deselectedLayers.add(layerId);
                 });
                 
-                selectedFeatures.push({ featureId, layerId, feature });
-                console.log(`[StateManager] Selected feature: ${featureId} in layer ${layerId}`);
-            });
-            
-            // Emit event for all selections
-            if (selectedFeatures.length === 1) {
-                this._scheduleRender('feature-click', { 
-                    ...selectedFeatures[0],
-                    clearedFeatures 
+                // Emit a single batch event for all deselections
+                this._scheduleRender('features-batch-deselected', { 
+                    deselectedFeatures: alreadySelectedFeatures,
+                    affectedLayers: Array.from(deselectedLayers)
                 });
-            } else {
-                this._scheduleRender('feature-click-multiple', { 
-                    selectedFeatures,
-                    clearedFeatures 
-                });
+                
+                // Don't select new features if we're toggling off existing ones
+                return;
             }
-        }
+                 }
+         
+         // If we reach here, either:
+         // 1. No features were already selected (newFeatures.length > 0, alreadySelectedFeatures.length = 0)
+         // 2. Some clicked features are selected but the selection sets are different (mixed case)
+         // In both cases, clear existing selections and select the new clicked features
+         
+         const clearedFeatures = this._clearAllSelections(true);
+         console.log(`[StateManager] Cleared previous selections, now selecting ${clickedFeatures.length} clicked features`);
+         
+         const selectedFeatures = [];
+         clickedFeatures.forEach(({ feature, layerId, lngLat }) => {
+             const featureId = this._getFeatureId(feature);
+             
+             // Set selection for this feature
+             if (!this._selectedFeatures.has(layerId)) {
+                 this._selectedFeatures.set(layerId, new Set());
+             }
+             this._selectedFeatures.get(layerId).add(featureId);
+             
+             // Set Mapbox feature state for selection
+             this._setMapboxFeatureState(featureId, layerId, { selected: true });
+             
+             // Update feature state
+             this._updateFeatureState(featureId, {
+                 feature,
+                 layerId,
+                 lngLat,
+                 isSelected: true,
+                 timestamp: Date.now()
+             });
+             
+             selectedFeatures.push({ featureId, layerId, feature });
+             console.log(`[StateManager] Selected feature: ${featureId} in layer ${layerId}`);
+         });
+         
+         // Emit event for all selections
+         if (selectedFeatures.length === 1) {
+             this._scheduleRender('feature-click', { 
+                 ...selectedFeatures[0],
+                 clearedFeatures 
+             });
+         } else {
+             this._scheduleRender('feature-click-multiple', { 
+                 selectedFeatures,
+                 clearedFeatures 
+             });
+         }
     }
 
 
