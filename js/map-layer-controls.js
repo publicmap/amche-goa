@@ -6,6 +6,15 @@ import { fixLayerOrdering } from './layer-order-manager.js';
 import { localization } from './localization.js';
 import { fetchTileJSON } from './map-utils.js';
 
+/**
+ * MapLayerControl - Controls layer visibility and interaction for a Mapbox GL JS map
+ * 
+ * Configuration options:
+ * - showPopupsOnHover: boolean (default: true) - Controls whether popups are shown on feature hover
+ * - showPopupsOnClick: boolean (default: false) - Controls whether popups are shown on feature click
+ * - groups: Array of layer group configurations
+ * - sourceLayerLinks: Array of link objects for specific source layers
+ */
 export class MapLayerControl {
     constructor(options) {
         // Handle options structure for groups and configuration
@@ -22,6 +31,10 @@ export class MapLayerControl {
             this._state = { groups: [options] };
             this._config = {};
         }
+
+        // Set popup configuration with default values
+        this._config.showPopupsOnHover = this._config.showPopupsOnHover !== undefined ? this._config.showPopupsOnHover : true;
+        this._config.showPopupsOnClick = this._config.showPopupsOnClick !== undefined ? this._config.showPopupsOnClick : false;
 
         // Store sourceLayerLinks from config or set default
         /**
@@ -2729,17 +2742,19 @@ export class MapLayerControl {
                                 });
 
                                 this._map.on('click', layerId, (e) => {
-                                    if (e.features.length > 0) {
+                                    if (e.features.length > 0 && this._config.showPopupsOnClick) {
                                         const feature = e.features[0];
                                         const coordinates = feature.geometry.coordinates.slice();
                                         const content = this._createPopupContent(feature, group, false, {
                                             lng: coordinates[0],
                                             lat: coordinates[1]
                                         });
-                                        new mapboxgl.Popup()
-                                            .setLngLat(coordinates)
-                                            .setDOMContent(content)
-                                            .addTo(this._map);
+                                        if (content) {
+                                            new mapboxgl.Popup()
+                                                .setLngLat(coordinates)
+                                                .setDOMContent(content)
+                                                .addTo(this._map);
+                                        }
                                     }
                                 });
                             }
@@ -3016,6 +3031,15 @@ export class MapLayerControl {
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
+        // Check configuration settings for popup display
+        if (isHover && !this._config.showPopupsOnHover) {
+            return null;
+        }
+        
+        if (!isHover && !this._config.showPopupsOnClick) {
+            return null;
+        }
+
         // Disable hover popups on mobile devices
         if (isHover && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
             return null;
@@ -3477,7 +3501,7 @@ export class MapLayerControl {
                     }
 
                     // Handle hover popup content
-                    if (group.inspect?.label) {
+                    if (group.inspect?.label && this._config.showPopupsOnHover) {
                         // First remove any existing features for this layer
                         const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key =>
                             key.includes(`${sourceId}:${layerId}:`));
@@ -3560,12 +3584,15 @@ export class MapLayerControl {
                         });
                     }
 
-                    const content = this._createPopupContent(feature, group, false, e.lngLat);
-                    if (content) {
-                        popup
-                            .setLngLat(e.lngLat)
-                            .setDOMContent(content)
-                            .addTo(this._map);
+                    // Only show click popup if enabled
+                    if (this._config.showPopupsOnClick) {
+                        const content = this._createPopupContent(feature, group, false, e.lngLat);
+                        if (content) {
+                            popup
+                                .setLngLat(e.lngLat)
+                                .setDOMContent(content)
+                                .addTo(this._map);
+                        }
                     }
 
                     // Notify feature control about click event

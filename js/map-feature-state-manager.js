@@ -162,10 +162,6 @@ class MapFeatureStateManager {
         // Get only layers that currently exist in the map
         const availableLayers = this._getAvailableLayers(this.hoverableLayerIds);
         
-        if (availableLayers.length === 0) {
-            this._debugLog('No hoverable layers currently available in the map');
-            return;
-        }
         
         try {
             // Query features from available layers
