@@ -14,7 +14,6 @@ export class MapFeatureStateManager extends EventTarget {
         this._featureStates = new Map(); // featureId -> FeatureState
         this._activeHoverFeatures = new Map(); // layerId -> Set<featureId>
         this._selectedFeatures = new Map(); // layerId -> Set<featureId>
-        this._starredFeatures = new Set(); // Set<featureId>
         
         // Layer configuration
         this._layerConfig = new Map(); // layerId -> LayerConfig
@@ -23,6 +22,10 @@ export class MapFeatureStateManager extends EventTarget {
         // Performance optimization
         this._renderScheduled = false;
         this._cleanupInterval = null;
+        
+        // Click debouncing to handle overlapping features
+        this._clickDebounceTimeout = null;
+        this._pendingClicks = [];
         
         this._setupCleanup();
     }
@@ -72,6 +75,9 @@ export class MapFeatureStateManager extends EventTarget {
         }
         this._activeHoverFeatures.get(layerId).add(featureId);
         
+        // Set Mapbox feature state for hover
+        this._setMapboxFeatureState(featureId, layerId, { hover: true });
+        
         // Update feature state
         this._updateFeatureState(featureId, {
             feature,
@@ -90,25 +96,77 @@ export class MapFeatureStateManager extends EventTarget {
     onFeatureClick(feature, layerId, lngLat) {
         const featureId = this._getFeatureId(feature);
         
-        // Clear all selections (single selection mode) and emit events
-        const clearedFeatures = this._clearAllSelections();
+        console.log(`[StateManager] Feature clicked: ${featureId} in layer ${layerId}`);
         
-        // Set new selection
-        if (!this._selectedFeatures.has(layerId)) {
-            this._selectedFeatures.set(layerId, new Set());
+        // Add this click to pending clicks
+        this._pendingClicks.push({ feature, layerId, lngLat, featureId, timestamp: Date.now() });
+        
+        // Clear any existing timeout
+        if (this._clickDebounceTimeout) {
+            clearTimeout(this._clickDebounceTimeout);
         }
-        this._selectedFeatures.get(layerId).add(featureId);
         
-        // Update feature state
-        this._updateFeatureState(featureId, {
-            feature,
-            layerId,
-            lngLat,
-            isSelected: true,
-            timestamp: Date.now()
+        // Set a new timeout to process clicks after a short delay
+        this._clickDebounceTimeout = setTimeout(() => {
+            this._processPendingClicks();
+        }, 50); // 50ms debounce - allows multiple overlapping clicks to be collected
+    }
+
+    /**
+     * Process all pending clicks and select ALL clicked features
+     */
+    _processPendingClicks() {
+        if (this._pendingClicks.length === 0) return;
+        
+        console.log(`[StateManager] Processing ${this._pendingClicks.length} pending clicks`);
+        
+        // Clear all selections FIRST (single action at the beginning)
+        const clearedFeatures = this._clearAllSelections(true);
+        console.log(`[StateManager] Cleared previous selections, now selecting all ${this._pendingClicks.length} clicked features`);
+        
+        // Select ALL clicked features, not just the latest one
+        const selectedFeatures = [];
+        this._pendingClicks.forEach(click => {
+            // Set selection for this feature
+            if (!this._selectedFeatures.has(click.layerId)) {
+                this._selectedFeatures.set(click.layerId, new Set());
+            }
+            this._selectedFeatures.get(click.layerId).add(click.featureId);
+            
+            // Set Mapbox feature state for selection
+            this._setMapboxFeatureState(click.featureId, click.layerId, { selected: true });
+            
+            // Update feature state
+            this._updateFeatureState(click.featureId, {
+                feature: click.feature,
+                layerId: click.layerId,
+                lngLat: click.lngLat,
+                isSelected: true,
+                timestamp: Date.now()
+            });
+            
+            selectedFeatures.push({
+                featureId: click.featureId,
+                layerId: click.layerId,
+                feature: click.feature
+            });
+            
+            console.log(`[StateManager] Selected feature: ${click.featureId} in layer ${click.layerId}`);
         });
         
-        this._scheduleRender('feature-click', { featureId, layerId, lngLat, feature, clearedFeatures });
+        console.log(`[StateManager] Current selections after processing all clicks:`, 
+            Array.from(this._selectedFeatures.entries()).map(([layerId, features]) => 
+                ({ layerId, featureIds: Array.from(features) })));
+        
+        // Emit a single event for all the selections
+        this._scheduleRender('feature-click-multiple', { 
+            selectedFeatures,
+            clearedFeatures 
+        });
+        
+        // Clear pending clicks
+        this._pendingClicks = [];
+        this._clickDebounceTimeout = null;
     }
 
     /**
@@ -117,25 +175,6 @@ export class MapFeatureStateManager extends EventTarget {
     onFeatureLeave(layerId) {
         this._clearLayerHover(layerId);
         this._scheduleRender('feature-leave', { layerId });
-    }
-
-    /**
-     * Toggle feature starred state
-     */
-    toggleFeatureStar(featureId) {
-        const featureState = this._featureStates.get(featureId);
-        if (!featureState) return;
-        
-        const isStarred = this._starredFeatures.has(featureId);
-        
-        if (isStarred) {
-            this._starredFeatures.delete(featureId);
-        } else {
-            this._starredFeatures.add(featureId);
-        }
-        
-        this._updateFeatureState(featureId, { isStarred: !isStarred });
-        this._scheduleRender('feature-star-toggle', { featureId, isStarred: !isStarred });
     }
 
     /**
@@ -155,8 +194,11 @@ export class MapFeatureStateManager extends EventTarget {
             }
         }
         
-        // Remove feature state if not hovered or starred
-        if (!featureState.isHovered && !this._starredFeatures.has(featureId)) {
+        // Remove Mapbox feature state for selection
+        this._removeMapboxFeatureState(featureId, layerId, 'selected');
+        
+        // Remove feature state if not hovered
+        if (!featureState.isHovered) {
             this._featureStates.delete(featureId);
         } else {
             this._updateFeatureState(featureId, { isSelected: false });
@@ -168,16 +210,63 @@ export class MapFeatureStateManager extends EventTarget {
     /**
      * Clear all selected features (public method)
      */
-    clearAllSelections() {
+    clearAllSelections(suppressEvent = false) {
         console.log('[StateManager] Manually clearing all selections');
-        const clearedFeatures = this._clearAllSelections();
+        const clearedFeatures = this._clearAllSelections(suppressEvent);
         
-        // Force immediate re-render for manual clears
-        if (clearedFeatures.length > 0) {
+        // Force immediate re-render for manual clears (only if not suppressed)
+        if (clearedFeatures.length > 0 && !suppressEvent) {
             this._emitStateChange('selections-cleared', { clearedFeatures, manual: true });
             // Also trigger a general re-render
             this._scheduleRender('selections-cleared', { clearedFeatures, manual: true });
         }
+        
+        return clearedFeatures;
+    }
+
+    _clearAllSelections(suppressEvent = false) {
+        const clearedFeatures = [];
+        
+        console.log('[StateManager] Clearing all selections');
+        console.log('[StateManager] Current selected features before clearing:', 
+            Array.from(this._selectedFeatures.entries()).map(([layerId, features]) => 
+                ({ layerId, featureIds: Array.from(features) })));
+        
+        this._selectedFeatures.forEach((features, layerId) => {
+            features.forEach(featureId => {
+                const state = this._featureStates.get(featureId);
+                if (state) {
+                    clearedFeatures.push({ featureId, layerId });
+                    
+                    // Remove Mapbox feature state for selection
+                    this._removeMapboxFeatureState(featureId, layerId, 'selected');
+                    
+                    if (!state.isHovered) {
+                        console.log(`[StateManager] Removing feature state completely: ${featureId}`);
+                        this._featureStates.delete(featureId);
+                    } else {
+                        console.log(`[StateManager] Clearing selection but keeping feature state: ${featureId} (hovered: ${state.isHovered})`);
+                        this._updateFeatureState(featureId, { isSelected: false });
+                    }
+                } else {
+                    console.warn(`[StateManager] Selected feature ${featureId} not found in feature states`);
+                }
+            });
+        });
+        
+        this._selectedFeatures.clear();
+        
+        // Emit event for cleared selections if any were cleared
+        if (clearedFeatures.length > 0) {
+            console.log('[StateManager] Cleared selections:', clearedFeatures);
+            if (!suppressEvent) {
+                this._emitStateChange('selections-cleared', { clearedFeatures });
+            }
+        }
+        
+        console.log('[StateManager] Selected features after clearing:', 
+            Array.from(this._selectedFeatures.entries()).map(([layerId, features]) => 
+                ({ layerId, featureIds: Array.from(features) })));
         
         return clearedFeatures;
     }
@@ -190,11 +279,13 @@ export class MapFeatureStateManager extends EventTarget {
         
         this._featureStates.forEach((state, featureId) => {
             if (state.layerId === layerId) {
+                // Check if this feature is selected
+                const isSelected = this._selectedFeatures.get(layerId)?.has(featureId) || false;
+                
                 // Enhance state with computed properties
                 const enhancedState = {
                     ...state,
-                    isStarred: this._starredFeatures.has(featureId),
-                    isSelected: this._selectedFeatures.get(layerId)?.has(featureId) || false
+                    isSelected: isSelected
                 };
                 features.set(featureId, enhancedState);
             }
@@ -492,8 +583,11 @@ export class MapFeatureStateManager extends EventTarget {
         const hoveredFeatures = this._activeHoverFeatures.get(layerId);
         if (hoveredFeatures) {
             hoveredFeatures.forEach(featureId => {
+                // Remove Mapbox feature state for hover
+                this._removeMapboxFeatureState(featureId, layerId, 'hover');
+                
                 const state = this._featureStates.get(featureId);
-                if (state && !state.isSelected && !this._starredFeatures.has(featureId)) {
+                if (state && !state.isSelected) {
                     this._featureStates.delete(featureId);
                 } else if (state) {
                     this._updateFeatureState(featureId, { isHovered: false });
@@ -501,37 +595,6 @@ export class MapFeatureStateManager extends EventTarget {
             });
             this._activeHoverFeatures.delete(layerId);
         }
-    }
-
-    _clearAllSelections() {
-        const clearedFeatures = [];
-        
-        console.log('[StateManager] Clearing all selections');
-        
-        this._selectedFeatures.forEach((features, layerId) => {
-            features.forEach(featureId => {
-                const state = this._featureStates.get(featureId);
-                if (state) {
-                    clearedFeatures.push({ featureId, layerId });
-                    
-                    if (!state.isHovered && !this._starredFeatures.has(featureId)) {
-                        this._featureStates.delete(featureId);
-                    } else {
-                        this._updateFeatureState(featureId, { isSelected: false });
-                    }
-                }
-            });
-        });
-        
-        this._selectedFeatures.clear();
-        
-        // Emit event for cleared selections if any were cleared
-        if (clearedFeatures.length > 0) {
-            console.log('[StateManager] Cleared selections:', clearedFeatures);
-            this._emitStateChange('selections-cleared', { clearedFeatures });
-        }
-        
-        return clearedFeatures;
     }
 
     _cleanupLayerFeatures(layerId) {
@@ -545,7 +608,6 @@ export class MapFeatureStateManager extends EventTarget {
         
         featuresToDelete.forEach(featureId => {
             this._featureStates.delete(featureId);
-            this._starredFeatures.delete(featureId);
         });
         
         this._activeHoverFeatures.delete(layerId);
@@ -602,8 +664,6 @@ export class MapFeatureStateManager extends EventTarget {
         
         this._featureStates.forEach((state, featureId) => {
             if (!state.isSelected && 
-                !this._starredFeatures.has(featureId) && 
-                !state.isHovered &&
                 (now - state.timestamp) > maxAge) {
                 featuresToDelete.push(featureId);
             }
@@ -623,6 +683,10 @@ export class MapFeatureStateManager extends EventTarget {
             clearInterval(this._cleanupInterval);
         }
         
+        if (this._clickDebounceTimeout) {
+            clearTimeout(this._clickDebounceTimeout);
+        }
+        
         this._activeInteractiveLayers.forEach(layerId => {
             this._removeLayerEvents(layerId);
         });
@@ -630,9 +694,93 @@ export class MapFeatureStateManager extends EventTarget {
         this._featureStates.clear();
         this._activeHoverFeatures.clear();
         this._selectedFeatures.clear();
-        this._starredFeatures.clear();
         this._layerConfig.clear();
         this._activeInteractiveLayers.clear();
+        this._pendingClicks = [];
+    }
+
+    /**
+     * Set Mapbox feature state on the map
+     */
+    _setMapboxFeatureState(featureId, layerId, state) {
+        try {
+            // Get the layer config to find the source information
+            const layerConfig = this._layerConfig.get(layerId);
+            if (!layerConfig) return;
+
+            const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
+            
+            matchingLayerIds.forEach(actualLayerId => {
+                try {
+                    // For vector tile layers, we need to specify the source and source-layer
+                    const layer = this._map.getLayer(actualLayerId);
+                    if (layer && layer.source) {
+                        const featureIdentifier = {
+                            source: layer.source,
+                            id: featureId
+                        };
+                        
+                        // Add source-layer if it exists (for vector tiles)
+                        if (layer['source-layer']) {
+                            featureIdentifier.sourceLayer = layer['source-layer'];
+                        }
+                        
+                        this._map.setFeatureState(featureIdentifier, state);
+                        console.log(`[StateManager] Set Mapbox feature state for ${featureId} in layer ${actualLayerId}:`, state);
+                    }
+                } catch (error) {
+                    // Ignore errors for layers that don't support feature state
+                    console.warn(`[StateManager] Could not set feature state for layer ${actualLayerId}:`, error.message);
+                }
+            });
+        } catch (error) {
+            console.warn(`[StateManager] Error setting Mapbox feature state:`, error);
+        }
+    }
+
+    /**
+     * Remove Mapbox feature state from the map
+     */
+    _removeMapboxFeatureState(featureId, layerId, stateKey = null) {
+        try {
+            // Get the layer config to find the source information
+            const layerConfig = this._layerConfig.get(layerId);
+            if (!layerConfig) return;
+
+            const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
+            
+            matchingLayerIds.forEach(actualLayerId => {
+                try {
+                    // For vector tile layers, we need to specify the source and source-layer
+                    const layer = this._map.getLayer(actualLayerId);
+                    if (layer && layer.source) {
+                        const featureIdentifier = {
+                            source: layer.source,
+                            id: featureId
+                        };
+                        
+                        // Add source-layer if it exists (for vector tiles)
+                        if (layer['source-layer']) {
+                            featureIdentifier.sourceLayer = layer['source-layer'];
+                        }
+                        
+                        // Remove specific state key or all states
+                        if (stateKey) {
+                            this._map.removeFeatureState(featureIdentifier, stateKey);
+                            console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for ${featureId} in layer ${actualLayerId}`);
+                        } else {
+                            this._map.removeFeatureState(featureIdentifier);
+                            console.log(`[StateManager] Removed all Mapbox feature states for ${featureId} in layer ${actualLayerId}`);
+                        }
+                    }
+                } catch (error) {
+                    // Ignore errors for layers that don't support feature state
+                    console.warn(`[StateManager] Could not remove feature state for layer ${actualLayerId}:`, error.message);
+                }
+            });
+        } catch (error) {
+            console.warn(`[StateManager] Error removing Mapbox feature state:`, error);
+        }
     }
 }
 

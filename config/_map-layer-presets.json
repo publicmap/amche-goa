@@ -898,24 +898,12 @@
           "match",
           [
             "get",
-            "DOMSOI"
+            "match_notes"
           ],
           [
-            "Je"
+            "Subdivision"
           ],
-          "green",
-          [
-            "Rd"
-          ],
-          "brown",
-          [
-            "Be"
-          ],
-          "darkblue",
-          [
-            "Nd"
-          ],
-          "blue",
+          "#67abab",
           "cyan"
         ], 
         
@@ -923,8 +911,8 @@
       },
       "inspect": {
         "id": "id",
-        "title": "Soil Code",
-        "label": "FAOSOIL",
+        "title": "Wetland Category",
+        "label": "Category",
         "fields" : ["DOMSOI","COUNTRY"],
         "fieldTitles": ["Soil Unit", "Country"],
         "customHtml": "<a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/' target='_blank'>Soil Code Lookup</a> | <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>Soil Unit Lookup</a> | <a href='https://www.fao.org/fileadmin/user_upload/soils/docs/Soil_map_FAOUNESCO/acrobat/South_Asia_VII_II.pdf' target='_blank'>South Asia Soil Unit Map</a>"
