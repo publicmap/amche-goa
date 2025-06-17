@@ -34,11 +34,12 @@ export class MapFeatureStateManager extends EventTarget {
      * Register a layer for feature interactions
      */
     registerLayer(layerConfig) {
+        console.log(`[StateManager] Registering layer: ${layerConfig.id}`, layerConfig);
         this._layerConfig.set(layerConfig.id, layerConfig);
         
         if (layerConfig.inspect) {
             this._activeInteractiveLayers.add(layerConfig.id);
-            this._setupLayerEvents(layerConfig);
+            this._setupLayerEventsWithRetry(layerConfig);
         }
         
         this._emitStateChange('layer-registered', { layerId: layerConfig.id });
@@ -48,6 +49,7 @@ export class MapFeatureStateManager extends EventTarget {
      * Unregister a layer (when toggled off)
      */
     unregisterLayer(layerId) {
+        console.log(`[StateManager] Unregistering layer: ${layerId}`);
         // Clean up all features for this layer
         this._cleanupLayerFeatures(layerId);
         
@@ -188,7 +190,7 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     /**
-     * Get all active layers with features
+     * Get all active layers (both with and without features)
      */
     getActiveLayers() {
         const activeLayers = new Map();
@@ -197,7 +199,7 @@ export class MapFeatureStateManager extends EventTarget {
             const layerConfig = this._layerConfig.get(layerId);
             const features = this.getLayerFeatures(layerId);
             
-            if (layerConfig && features.size > 0) {
+            if (layerConfig) {
                 activeLayers.set(layerId, {
                     config: layerConfig,
                     features
@@ -254,41 +256,151 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     // Private methods
+    _setupLayerEventsWithRetry(layerConfig, retryCount = 0) {
+        const maxRetries = 3;
+        const retryDelay = 300; // ms
+        
+        const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
+        
+        if (matchingLayerIds.length === 0 && retryCount < maxRetries) {
+            // Only log on first and last attempts to reduce noise
+            if (retryCount === 0 || retryCount === maxRetries - 1) {
+                console.log(`[StateManager] Setting up events for ${layerConfig.id}, attempt ${retryCount + 1}/${maxRetries}`);
+            }
+            setTimeout(() => {
+                this._setupLayerEventsWithRetry(layerConfig, retryCount + 1);
+            }, retryDelay);
+            return;
+        }
+        
+        if (matchingLayerIds.length === 0) {
+            // Only warn if this layer was expected to be interactive
+            if (layerConfig.inspect) {
+                console.warn(`[StateManager] No interactive layers found for ${layerConfig.id}`);
+            }
+            return;
+        }
+        
+        this._setupLayerEvents(layerConfig);
+    }
+
     _setupLayerEvents(layerConfig) {
         const layerId = layerConfig.id;
         
         // Remove existing listeners first
         this._removeLayerEvents(layerId);
         
-        // Check if layer actually exists on map
-        const style = this._map.getStyle();
-        const layerExists = style.layers && style.layers.some(l => 
-            l.id === layerId || l.id.startsWith(layerId)
-        );
+        // Get all possible layer IDs that might match this layer config
+        const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
         
-        if (!layerExists) {
+        if (matchingLayerIds.length === 0) {
+            console.warn(`[StateManager] No matching layers found for ${layerId}`);
             return;
         }
         
-        // Add new listeners
-        this._map.on('mousemove', layerId, (e) => {
-            if (e.features.length > 0) {
-                this.onFeatureHover(e.features[0], layerId, e.lngLat);
-            }
-        });
+        console.log(`[StateManager] Setting up events for ${layerId} on layers:`, matchingLayerIds);
         
-        this._map.on('mouseleave', layerId, () => {
-            this.onFeatureLeave(layerId);
+        // Add listeners to all matching layers
+        matchingLayerIds.forEach(actualLayerId => {
+            this._map.on('mousemove', actualLayerId, (e) => {
+                if (e.features.length > 0) {
+                    this.onFeatureHover(e.features[0], layerId, e.lngLat);
+                }
+            });
+            
+            this._map.on('mouseleave', actualLayerId, () => {
+                this.onFeatureLeave(layerId);
+            });
+            
+            this._map.on('click', actualLayerId, (e) => {
+                if (e.features.length > 0) {
+                    this.onFeatureClick(e.features[0], layerId, e.lngLat);
+                }
+            });
         });
+    }
+
+    _getMatchingLayerIds(layerConfig) {
+        const style = this._map.getStyle();
+        if (!style.layers) return [];
         
-        this._map.on('click', layerId, (e) => {
-            if (e.features.length > 0) {
-                this.onFeatureClick(e.features[0], layerId, e.lngLat);
+        const layerId = layerConfig.id;
+        const matchingIds = [];
+        
+        // Strategy 1: Direct ID match
+        if (style.layers.some(l => l.id === layerId)) {
+            matchingIds.push(layerId);
+        }
+        
+        // Strategy 2: Layers that start with the layer ID (common pattern for geojson layers)
+        const prefixMatches = style.layers
+            .filter(l => l.id.startsWith(layerId + '-') || l.id.startsWith(layerId + ' '))
+            .map(l => l.id);
+        matchingIds.push(...prefixMatches);
+        
+        // Strategy 3: For style layers, check source-layer matching
+        if (layerConfig.sourceLayers && Array.isArray(layerConfig.sourceLayers)) {
+            const sourceLayerMatches = style.layers
+                .filter(l => l['source-layer'] && layerConfig.sourceLayers.includes(l['source-layer']))
+                .map(l => l.id);
+            matchingIds.push(...sourceLayerMatches);
+        }
+        
+        // Strategy 4: For grouped layers, check sub-layers
+        if (layerConfig.layers && Array.isArray(layerConfig.layers)) {
+            layerConfig.layers.forEach(subLayer => {
+                if (subLayer.sourceLayer) {
+                    const subMatches = style.layers
+                        .filter(l => l['source-layer'] === subLayer.sourceLayer)
+                        .map(l => l.id);
+                    matchingIds.push(...subMatches);
+                }
+            });
+        }
+        
+        // Strategy 5: GeoJSON source matching
+        if (layerConfig.type === 'geojson') {
+            const sourceId = `geojson-${layerId}`;
+            const geojsonMatches = style.layers
+                .filter(l => l.source === sourceId)
+                .map(l => l.id);
+            matchingIds.push(...geojsonMatches);
+        }
+        
+        // Remove duplicates and filter out layers that aren't interactive
+        const uniqueIds = [...new Set(matchingIds)];
+        
+        // Only return layers that have sources with vector data or are interactive
+        return uniqueIds.filter(id => {
+            const layer = style.layers.find(l => l.id === id);
+            if (!layer) return false;
+            
+            // Skip non-interactive layer types
+            if (['background', 'raster', 'hillshade'].includes(layer.type)) {
+                return false;
             }
+            
+            return true;
         });
     }
 
     _removeLayerEvents(layerId) {
+        // Get all the actual layer IDs we might have set up events for
+        const layerConfig = this._layerConfig.get(layerId);
+        if (layerConfig) {
+            const matchingIds = this._getMatchingLayerIds(layerConfig);
+            matchingIds.forEach(actualLayerId => {
+                try {
+                    this._map.off('mousemove', actualLayerId);
+                    this._map.off('mouseleave', actualLayerId);
+                    this._map.off('click', actualLayerId);
+                } catch (error) {
+                    // Layer might not exist, ignore errors
+                }
+            });
+        }
+        
+        // Also try to remove events for the original layer ID (fallback)
         try {
             this._map.off('mousemove', layerId);
             this._map.off('mouseleave', layerId);

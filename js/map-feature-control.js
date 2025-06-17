@@ -200,7 +200,14 @@ export class MapFeatureControl {
                 this._renderLayer(data.layerId);
                 break;
             case 'layer-registered':
-                // Only re-render for registered layers, not unregistered
+                // Re-render when layers are registered (turned on)
+                console.log(`[FeatureControl] Layer registered: ${data.layerId}`);
+                this._scheduleRender();
+                break;
+            case 'layer-unregistered':
+                // Re-render when layers are unregistered (turned off)
+                // This ensures the feature control stays in sync with layer toggles
+                console.log(`[FeatureControl] Layer unregistered: ${data.layerId}`);
                 this._scheduleRender();
                 break;
             case 'cleanup':
@@ -209,91 +216,25 @@ export class MapFeatureControl {
                     this._scheduleRender();
                 }
                 break;
-            // Don't re-render on layer-unregistered to avoid timing issues
         }
     }
 
     /**
-     * Get active layers from config JSON and map visibility - NEW SOURCE OF TRUTH
+     * Get active layers from state manager - SINGLE SOURCE OF TRUTH
      */
     _getActiveLayersFromConfig() {
-        const activeLayers = new Map();
-        
-        // If no config, fall back to state manager
-        if (!this._config || !this._config.layers) {
-            return this._stateManager.getActiveLayers();
+        // Always use state manager as the single source of truth
+        // The state manager already knows which layers are registered and interactive
+        if (!this._stateManager) {
+            return new Map();
         }
         
-        // Iterate through config layers and check if they're visible on map
-        this._config.layers.forEach(layer => {
-            if (this._isLayerVisibleOnMap(layer)) {
-                // Get features from state manager for this layer
-                const features = this._stateManager.getLayerFeatures(layer.id);
-                
-                // Create layer data structure
-                const layerData = {
-                    config: layer,
-                    features: features
-                };
-                
-                activeLayers.set(layer.id, layerData);
-            }
-        });
-        
+        const activeLayers = this._stateManager.getActiveLayers();
+        console.log(`[FeatureControl] Active layers count: ${activeLayers.size}`, Array.from(activeLayers.keys()));
         return activeLayers;
     }
 
-    /**
-     * Check if a layer from config is currently visible on the map
-     */
-    _isLayerVisibleOnMap(layer) {
-        if (!this._map || !layer.id) return false;
-        
-        try {
-            const style = this._map.getStyle();
-            if (!style.layers) return false;
-            
-            // Check for layers that match this config layer
-            let matchingLayers = [];
-            
-            // Strategy 1: Direct ID match
-            matchingLayers = style.layers.filter(l => l.id === layer.id);
-            
-            // Strategy 2: Layers that start with layer ID (common pattern)
-            if (matchingLayers.length === 0) {
-                matchingLayers = style.layers.filter(l => l.id.startsWith(layer.id));
-            }
-            
-            // Strategy 3: Check if this layer has sub-layers defined
-            if (matchingLayers.length === 0 && layer.layers) {
-                // For layer groups, check if any sub-layer is visible
-                matchingLayers = style.layers.filter(l => 
-                    layer.layers.some(subLayer => 
-                        l.id === subLayer.id || l.id.startsWith(subLayer.id)
-                    )
-                );
-            }
-            
-            // Strategy 4: Check for source-based matching
-            if (matchingLayers.length === 0 && layer.source) {
-                matchingLayers = style.layers.filter(l => l.source === layer.source);
-            }
-            
-            if (matchingLayers.length === 0) {
-                return false;
-            }
-            
-            // Check if any matching layer is visible
-            const isVisible = matchingLayers.some(l => {
-                const visibility = this._map.getLayoutProperty(l.id, 'visibility');
-                return visibility !== 'none';
-            });
-            
-            return isVisible;
-        } catch (error) {
-            return false;
-        }
-    }
+
 
     /**
      * Schedule a render to avoid excessive re-rendering
@@ -302,13 +243,11 @@ export class MapFeatureControl {
         if (this._renderScheduled) return;
         
         this._renderScheduled = true;
-        // Add a small delay to ensure map layers are fully loaded
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                this._render();
-                this._renderScheduled = false;
-            });
-        }, 100);
+        // Use immediate requestAnimationFrame for better responsiveness
+        requestAnimationFrame(() => {
+            this._render();
+            this._renderScheduled = false;
+        });
     }
 
     /**
@@ -318,55 +257,27 @@ export class MapFeatureControl {
         return this._getActiveLayersFromConfig();
     }
 
-    /**
-     * Check if a layer is currently visible on the map (fallback method)
-     */
-    _isLayerVisible(layer) {
-        if (!this._map || !layer.id) return false;
-        
-        try {
-            const style = this._map.getStyle();
-            if (!style.layers) return false;
-            
-            // Check for exact layer ID match first
-            let layersWithId = style.layers.filter(l => l.id === layer.id);
-            
-            // If no exact match, check for layers that start with the layer ID
-            if (layersWithId.length === 0) {
-                layersWithId = style.layers.filter(l => l.id.startsWith(layer.id));
-            }
-            
-            // If still no match, check for layers that contain the layer ID
-            if (layersWithId.length === 0) {
-                layersWithId = style.layers.filter(l => l.id.includes(layer.id));
-            }
-            
-            console.log(`[FeatureControl] Checking layer ${layer.id}, found ${layersWithId.length} matching layers:`, layersWithId.map(l => l.id));
-            
-            return layersWithId.some(l => {
-                const visibility = this._map.getLayoutProperty(l.id, 'visibility');
-                const isVisible = visibility !== 'none';
-                console.log(`[FeatureControl] Layer ${l.id} visibility: ${visibility}, isVisible: ${isVisible}`);
-                return isVisible;
-            });
-        } catch (error) {
-            console.warn('Error checking layer visibility:', error);
-            return false;
-        }
-    }
+
 
     /**
-     * Render the control UI - now uses config JSON as source of truth
+     * Render the control UI - uses state manager as single source of truth
      */
     _render() {
         if (!this._layersContainer || !this._stateManager) return;
 
-        // Get active layers from config and map visibility instead of state manager
+        // Get active layers from state manager (single source of truth)
         const activeLayers = this._getActiveLayersFromConfig();
         
+        // Don't show empty state immediately - layers might be loading
         if (activeLayers.size === 0) {
-            this._renderEmptyState();
-            this._lastRenderState.clear();
+            // Only show empty state after a brief delay to avoid flicker during layer loading
+            setTimeout(() => {
+                const currentActiveLayers = this._getActiveLayersFromConfig();
+                if (currentActiveLayers.size === 0) {
+                    this._renderEmptyState();
+                    this._lastRenderState.clear();
+                }
+            }, 500);
             return;
         }
 
