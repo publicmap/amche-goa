@@ -1,522 +1,461 @@
 /**
- * MapFeatureStateManager - A class to handle Mapbox GL feature state management
- * for hover and selection effects across multiple layers
+ * MapFeatureStateManager - Centralized feature state management
+ * 
+ * Single source of truth for all feature interactions across the application.
+ * Uses event-driven architecture to notify components of state changes.
+ * 
+ * This replaces the dual-state management between MapLayerControl and MapFeatureControl
+ * with a single, coordinated state manager that handles all feature interactions.
  */
-class MapFeatureStateManager {
-    /**
-     * @param {Object} map - The Mapbox GL map instance
-     */
+
+export class MapFeatureStateManager extends EventTarget {
     constructor(map) {
-        this.map = map;
-        this.hoveredFeatureId = null;
-        this.hoveredSourceId = null;
-        this.hoveredSourceLayer = null;
-        this.selectedFeatureId = null;
-        this.selectedSourceId = null;
-        this.selectedSourceLayer = null;
-        this.hoverableLayerIds = [];
-        this.selectableLayerIds = [];
-        this.popupContent = null;
-        this.popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-            maxWidth: '300px'
+        super();
+        this._map = map;
+        
+        // Single source of truth for all feature states
+        this._featureStates = new Map(); // featureId -> FeatureState
+        this._activeHoverFeatures = new Map(); // layerId -> Set<featureId>
+        this._selectedFeatures = new Map(); // layerId -> Set<featureId>
+        this._starredFeatures = new Set(); // Set<featureId>
+        
+        // Layer configuration
+        this._layerConfig = new Map(); // layerId -> LayerConfig
+        this._activeInteractiveLayers = new Set();
+        
+        // Performance optimization
+        this._renderScheduled = false;
+        this._cleanupInterval = null;
+        
+        this._setupCleanup();
+        console.log('[StateManager] Initialized');
+    }
+
+    /**
+     * Register a layer for feature interactions
+     */
+    registerLayer(layerConfig) {
+        this._layerConfig.set(layerConfig.id, layerConfig);
+        
+        if (layerConfig.inspect) {
+            this._activeInteractiveLayers.add(layerConfig.id);
+            this._setupLayerEvents(layerConfig);
+            console.log(`[StateManager] Registered interactive layer: ${layerConfig.id}`);
+        }
+        
+        this._emitStateChange('layer-registered', { layerId: layerConfig.id });
+    }
+
+    /**
+     * Unregister a layer (when toggled off)
+     */
+    unregisterLayer(layerId) {
+        console.log(`[StateManager] Unregistering layer: ${layerId}`);
+        
+        // Clean up all features for this layer
+        this._cleanupLayerFeatures(layerId);
+        
+        // Remove layer events
+        this._removeLayerEvents(layerId);
+        
+        this._activeInteractiveLayers.delete(layerId);
+        this._emitStateChange('layer-unregistered', { layerId });
+    }
+
+    /**
+     * Handle feature hover
+     */
+    onFeatureHover(feature, layerId, lngLat) {
+        const featureId = this._getFeatureId(feature);
+        
+        // Clear previous hover for this layer
+        this._clearLayerHover(layerId);
+        
+        // Set new hover
+        if (!this._activeHoverFeatures.has(layerId)) {
+            this._activeHoverFeatures.set(layerId, new Set());
+        }
+        this._activeHoverFeatures.get(layerId).add(featureId);
+        
+        // Update feature state
+        this._updateFeatureState(featureId, {
+            feature,
+            layerId,
+            lngLat,
+            isHovered: true,
+            timestamp: Date.now()
         });
         
-        // Bind methods to maintain 'this' context
-        this._onMouseMove = this._onMouseMove.bind(this);
-        this._onMouseLeave = this._onMouseLeave.bind(this);
-        this._onClick = this._onClick.bind(this);
-        
-        // Debug flag
-        this.debug = false;
+        this._scheduleRender('feature-hover', { featureId, layerId });
     }
 
     /**
-     * Enable or disable debug logging
-     * @param {boolean} enabled - Whether to enable debug logging
+     * Handle feature click
+     */
+    onFeatureClick(feature, layerId, lngLat) {
+        const featureId = this._getFeatureId(feature);
+        console.log(`[StateManager] Feature clicked: ${featureId} on layer ${layerId}`);
+        
+        // Clear all selections (single selection mode)
+        this._clearAllSelections();
+        
+        // Set new selection
+        if (!this._selectedFeatures.has(layerId)) {
+            this._selectedFeatures.set(layerId, new Set());
+        }
+        this._selectedFeatures.get(layerId).add(featureId);
+        
+        // Update feature state
+        this._updateFeatureState(featureId, {
+            feature,
+            layerId,
+            lngLat,
+            isSelected: true,
+            timestamp: Date.now()
+        });
+        
+        this._scheduleRender('feature-click', { featureId, layerId });
+    }
+
+    /**
+     * Handle feature leave
+     */
+    onFeatureLeave(layerId) {
+        this._clearLayerHover(layerId);
+        this._scheduleRender('feature-leave', { layerId });
+    }
+
+    /**
+     * Toggle feature starred state
+     */
+    toggleFeatureStar(featureId) {
+        const featureState = this._featureStates.get(featureId);
+        if (!featureState) return;
+        
+        const isStarred = this._starredFeatures.has(featureId);
+        
+        if (isStarred) {
+            this._starredFeatures.delete(featureId);
+        } else {
+            this._starredFeatures.add(featureId);
+        }
+        
+        this._updateFeatureState(featureId, { isStarred: !isStarred });
+        this._scheduleRender('feature-star-toggle', { featureId, isStarred: !isStarred });
+    }
+
+    /**
+     * Close/remove a selected feature
+     */
+    closeSelectedFeature(featureId) {
+        const featureState = this._featureStates.get(featureId);
+        if (!featureState) return;
+        
+        // Remove from selected features
+        const layerId = featureState.layerId;
+        const selectedSet = this._selectedFeatures.get(layerId);
+        if (selectedSet) {
+            selectedSet.delete(featureId);
+            if (selectedSet.size === 0) {
+                this._selectedFeatures.delete(layerId);
+            }
+        }
+        
+        // Remove feature state if not hovered or starred
+        if (!featureState.isHovered && !this._starredFeatures.has(featureId)) {
+            this._featureStates.delete(featureId);
+        } else {
+            this._updateFeatureState(featureId, { isSelected: false });
+        }
+        
+        this._scheduleRender('feature-close', { featureId, layerId });
+    }
+
+    /**
+     * Get all features for a layer
+     */
+    getLayerFeatures(layerId) {
+        const features = new Map();
+        
+        this._featureStates.forEach((state, featureId) => {
+            if (state.layerId === layerId) {
+                // Enhance state with computed properties
+                const enhancedState = {
+                    ...state,
+                    isStarred: this._starredFeatures.has(featureId),
+                    isSelected: this._selectedFeatures.get(layerId)?.has(featureId) || false
+                };
+                features.set(featureId, enhancedState);
+            }
+        });
+        
+        return features;
+    }
+
+    /**
+     * Get all active layers with features
+     */
+    getActiveLayers() {
+        const activeLayers = new Map();
+        
+        this._activeInteractiveLayers.forEach(layerId => {
+            const layerConfig = this._layerConfig.get(layerId);
+            const features = this.getLayerFeatures(layerId);
+            
+            if (layerConfig && features.size > 0) {
+                activeLayers.set(layerId, {
+                    config: layerConfig,
+                    features
+                });
+            }
+        });
+        
+        return activeLayers;
+    }
+
+    /**
+     * Get the layer configuration for a layer ID
+     */
+    getLayerConfig(layerId) {
+        return this._layerConfig.get(layerId);
+    }
+
+    /**
+     * Check if a layer is currently interactive
+     */
+    isLayerInteractive(layerId) {
+        return this._activeInteractiveLayers.has(layerId);
+    }
+
+    /**
+     * Set debug mode (for backwards compatibility with search control)
      */
     setDebug(enabled) {
-        this.debug = enabled;
-    }
-
-    /**
-     * Log debug information if debug mode is enabled
-     * @private
-     * @param {...any} args - Arguments to log
-     */
-    _debugLog(...args) {
-        if (this.debug) {
-            console.log('[FeatureStateManager]', ...args);
+        this._debug = enabled;
+        if (enabled) {
+            console.log('[StateManager] Debug mode enabled');
         }
     }
 
     /**
-     * Register layers for hover interactivity
-     * @param {Array} layerConfigs - Array of layer configuration objects
-     * Each config should have: { id, source, sourceLayer, idProperty }
+     * Register selectable layers (for backwards compatibility with search control)
      */
-    registerHoverableLayers(layerConfigs) {
-        this.hoverableLayerIds = layerConfigs.map(config => ({
-            id: config.id,
-            source: config.source || config.id,
-            sourceLayer: config.sourceLayer,
-            idProperty: config.idProperty || 'id'
-        }));
-        
-        this._debugLog('Registered hoverable layers:', this.hoverableLayerIds);
-        
-        // Set up event listeners if not already
-        if (this.hoverableLayerIds.length > 0) {
-            this._setupEventListeners();
-        }
+    registerSelectableLayers(layers) {
+        console.log('[StateManager] registerSelectableLayers called (compatibility method):', layers);
+        // This method is kept for backwards compatibility but the new architecture
+        // handles layer registration differently through the layer control
     }
 
     /**
-     * Register layers for selection interactivity
-     * @param {Array} layerConfigs - Array of layer configuration objects
-     * Each config should have: { id, source, sourceLayer, idProperty }
+     * Register hoverable layers (for backwards compatibility with search control)
      */
-    registerSelectableLayers(layerConfigs) {
-        this.selectableLayerIds = layerConfigs.map(config => ({
-            id: config.id,
-            source: config.source || config.id,
-            sourceLayer: config.sourceLayer,
-            idProperty: config.idProperty || 'id'
-        }));
-        
-        this._debugLog('Registered selectable layers:', this.selectableLayerIds);
-        
-        // Set up event listeners if not already
-        if (this.selectableLayerIds.length > 0) {
-            this._setupEventListeners();
-        }
+    registerHoverableLayers(layers) {
+        console.log('[StateManager] registerHoverableLayers called (compatibility method):', layers);
+        // This method is kept for backwards compatibility but the new architecture
+        // handles layer registration differently through the layer control
     }
 
     /**
-     * Check if a layer exists in the map
-     * @private
-     * @param {string} layerId - The ID of the layer to check
-     * @returns {boolean} - Whether the layer exists
+     * Watch for layer additions (for backwards compatibility with search control)
      */
-    _layerExists(layerId) {
-        try {
-            return !!this.map.getLayer(layerId);
-        } catch (e) {
-            return false;
-        }
+    watchLayerAdditions() {
+        console.log('[StateManager] watchLayerAdditions called (compatibility method)');
+        // This method is kept for backwards compatibility but the new architecture
+        // handles layer events differently
     }
 
-    /**
-     * Get a list of currently available layers from the registered layer IDs
-     * @private
-     * @param {Array} registeredLayers - Array of registered layer configs
-     * @returns {Array} - Array of layer IDs that currently exist in the map
-     */
-    _getAvailableLayers(registeredLayers) {
-        return registeredLayers
-            .filter(config => this._layerExists(config.id))
-            .map(config => config.id);
-    }
-
-    /**
-     * Set up the necessary mouse event listeners on the map
-     * @private
-     */
-    _setupEventListeners() {
-        // Remove any existing event listeners first
-        this._removeEventListeners();
+    // Private methods
+    _setupLayerEvents(layerConfig) {
+        const layerId = layerConfig.id;
         
-        // Add the new event listeners
-        this.map.on('mousemove', this._onMouseMove);
-        this.map.on('mouseleave', this._onMouseLeave);
-        this.map.on('click', this._onClick);
+        // Remove existing listeners first
+        this._removeLayerEvents(layerId);
         
-        this._debugLog('Event listeners set up');
-    }
-
-    /**
-     * Remove event listeners from the map
-     * @private
-     */
-    _removeEventListeners() {
-        this.map.off('mousemove', this._onMouseMove);
-        this.map.off('mouseleave', this._onMouseLeave);
-        this.map.off('click', this._onClick);
+        // Check if layer actually exists on map
+        const style = this._map.getStyle();
+        const layerExists = style.layers && style.layers.some(l => 
+            l.id === layerId || l.id.startsWith(layerId)
+        );
         
-        this._debugLog('Event listeners removed');
-    }
-
-    /**
-     * Handle mousemove event to update hover states
-     * @private
-     * @param {Object} e - The mousemove event object
-     */
-    _onMouseMove(e) {
-        // Clear current hover state
-        this._resetHoverState();
-        
-        // Change the cursor style
-        this.map.getCanvas().style.cursor = '';
-        
-        // Get only layers that currently exist in the map
-        const availableLayers = this._getAvailableLayers(this.hoverableLayerIds);
-        
-        
-        try {
-            // Query features from available layers
-            const features = this.map.queryRenderedFeatures(e.point, { layers: availableLayers });
-            
-            if (!features.length) {
-                this._debugLog('No features found at point');
-                return;
-            }
-            
-            // Get the top feature
-            const feature = features[0];
-            const layerConfig = this.hoverableLayerIds.find(layer => layer.id === feature.layer.id);
-            
-            if (!layerConfig) {
-                this._debugLog('Layer config not found for feature', feature);
-                return;
-            }
-            
-            // Get the appropriate ID for the feature
-            const sourceId = layerConfig.source;
-            const sourceLayer = layerConfig.sourceLayer;
-            const idProperty = layerConfig.idProperty;
-            const featureId = feature.properties[idProperty] || feature.id;
-            
-            if (!featureId) {
-                this._debugLog('Feature missing ID property:', feature, idProperty);
-                return;
-            }
-            
-            // Set the hover state
-            this.hoveredFeatureId = featureId;
-            this.hoveredSourceId = sourceId;
-            this.hoveredSourceLayer = sourceLayer;
-            
-            this._debugLog('Setting hover state for feature', featureId, 'in source', sourceId, sourceLayer ? `(sourceLayer: ${sourceLayer})` : '');
-            
-            this.map.setFeatureState(
-                {
-                    source: sourceId,
-                    sourceLayer: sourceLayer,
-                    id: featureId
-                },
-                { hover: true }
-            );
-            
-            // Change cursor style
-            this.map.getCanvas().style.cursor = 'pointer';
-            
-            // If we have a popupContent function, use it
-            if (this.popupContent) {
-                const content = this.popupContent(feature, false);
-                if (content) {
-                    this.popup
-                        .setLngLat(e.lngLat)
-                        .setHTML(content)
-                        .addTo(this.map);
-                }
-            }
-        } catch (err) {
-            // Just log the error without breaking
-            console.error('Error in feature hover handling:', err);
-        }
-    }
-
-    /**
-     * Handle mouseleave event to clear hover states
-     * @private
-     */
-    _onMouseLeave() {
-        this._resetHoverState();
-        this.map.getCanvas().style.cursor = '';
-        this.popup.remove();
-        
-        this._debugLog('Mouse left map, reset hover state');
-    }
-
-    /**
-     * Handle click event to update selection states
-     * @private
-     * @param {Object} e - The click event object
-     */
-    _onClick(e) {
-        // Get only layers that currently exist in the map
-        const availableLayers = this._getAvailableLayers(this.selectableLayerIds);
-        
-        if (availableLayers.length === 0) {
-            this._debugLog('No selectable layers currently available in the map');
+        if (!layerExists) {
+            console.warn(`[StateManager] Layer ${layerId} not found on map, skipping event setup`);
             return;
         }
         
+        // Add new listeners
+        this._map.on('mousemove', layerId, (e) => {
+            if (e.features.length > 0) {
+                this.onFeatureHover(e.features[0], layerId, e.lngLat);
+            }
+        });
+        
+        this._map.on('mouseleave', layerId, () => {
+            this.onFeatureLeave(layerId);
+        });
+        
+        this._map.on('click', layerId, (e) => {
+            if (e.features.length > 0) {
+                this.onFeatureClick(e.features[0], layerId, e.lngLat);
+            }
+        });
+        
+        console.log(`[StateManager] Set up events for layer: ${layerId}`);
+    }
+
+    _removeLayerEvents(layerId) {
         try {
-            // Check if we clicked on any selectable layer
-            const features = this.map.queryRenderedFeatures(e.point, { layers: availableLayers });
-            
-            // If we're not clicking on a feature, and there's no selected feature, do nothing
-            if (!features.length && !this.selectedFeatureId) {
-                this._debugLog('No features clicked, no features selected');
-                return;
-            }
-            
-            // If we're not clicking on a feature, but there is a selected feature, clear it
-            if (!features.length) {
-                this._debugLog('No features clicked, clearing selection');
-                this._resetSelectionState();
-                return;
-            }
-            
-            // Get the top feature
-            const feature = features[0];
-            const layerConfig = this.selectableLayerIds.find(layer => layer.id === feature.layer.id);
-            
-            if (!layerConfig) {
-                this._debugLog('Layer config not found for clicked feature', feature);
-                return;
-            }
-            
-            // Get the appropriate ID for the feature
-            const sourceId = layerConfig.source;
-            const sourceLayer = layerConfig.sourceLayer;
-            const idProperty = layerConfig.idProperty;
-            const featureId = feature.properties[idProperty] || feature.id;
-            
-            if (!featureId) {
-                this._debugLog('Feature missing ID property:', feature, idProperty);
-                return;
-            }
-            
-            // If we're clicking on the currently selected feature, deselect it
-            if (
-                featureId === this.selectedFeatureId && 
-                sourceId === this.selectedSourceId && 
-                sourceLayer === this.selectedSourceLayer
-            ) {
-                this._debugLog('Clicking on selected feature, deselecting');
-                this._resetSelectionState();
-                return;
-            }
-            
-            // Clear any existing selection
-            this._resetSelectionState();
-            
-            // Set the new selection
-            this.selectedFeatureId = featureId;
-            this.selectedSourceId = sourceId;
-            this.selectedSourceLayer = sourceLayer;
-            
-            this._debugLog('Setting selection state for feature', featureId, 'in source', sourceId, sourceLayer ? `(sourceLayer: ${sourceLayer})` : '');
-            
-            this.map.setFeatureState(
-                {
-                    source: sourceId,
-                    sourceLayer: sourceLayer,
-                    id: featureId
-                },
-                { selected: true }
-            );
-            
-            // Show a detailed popup if we have the content function
-            if (this.popupContent) {
-                const content = this.popupContent(feature, true);
-                if (content) {
-                    this.popup
-                        .setLngLat(e.lngLat)
-                        .setHTML(content)
-                        .addTo(this.map);
+            this._map.off('mousemove', layerId);
+            this._map.off('mouseleave', layerId);
+            this._map.off('click', layerId);
+        } catch (error) {
+            // Layer might not exist, ignore errors
+            console.warn(`[StateManager] Could not remove events for layer ${layerId}:`, error);
+        }
+    }
+
+    _updateFeatureState(featureId, updates) {
+        const existing = this._featureStates.get(featureId) || {};
+        this._featureStates.set(featureId, { ...existing, ...updates });
+    }
+
+    _clearLayerHover(layerId) {
+        const hoveredFeatures = this._activeHoverFeatures.get(layerId);
+        if (hoveredFeatures) {
+            hoveredFeatures.forEach(featureId => {
+                const state = this._featureStates.get(featureId);
+                if (state && !state.isSelected && !this._starredFeatures.has(featureId)) {
+                    this._featureStates.delete(featureId);
+                } else if (state) {
+                    this._updateFeatureState(featureId, { isHovered: false });
                 }
-            }
-        } catch (err) {
-            console.error('Error in feature selection handling:', err);
+            });
+            this._activeHoverFeatures.delete(layerId);
         }
     }
 
-    /**
-     * Reset the hover state for the currently hovered feature
-     * @private
-     */
-    _resetHoverState() {
-        if (this.hoveredFeatureId) {
-            try {
-                this._debugLog('Resetting hover state for feature', this.hoveredFeatureId);
-                
-                this.map.setFeatureState(
-                    {
-                        source: this.hoveredSourceId,
-                        sourceLayer: this.hoveredSourceLayer,
-                        id: this.hoveredFeatureId
-                    },
-                    { hover: false }
-                );
-            } catch (err) {
-                console.error('Error resetting hover state:', err);
-            }
-            
-            this.hoveredFeatureId = null;
-            this.hoveredSourceId = null;
-            this.hoveredSourceLayer = null;
-        }
+    _clearAllSelections() {
+        this._selectedFeatures.forEach((features, layerId) => {
+            features.forEach(featureId => {
+                const state = this._featureStates.get(featureId);
+                if (state && !state.isHovered && !this._starredFeatures.has(featureId)) {
+                    this._featureStates.delete(featureId);
+                } else if (state) {
+                    this._updateFeatureState(featureId, { isSelected: false });
+                }
+            });
+        });
+        this._selectedFeatures.clear();
     }
 
-    /**
-     * Reset the selection state for the currently selected feature
-     * @private
-     */
-    _resetSelectionState() {
-        if (this.selectedFeatureId) {
-            try {
-                this._debugLog('Resetting selection state for feature', this.selectedFeatureId);
-                
-                this.map.setFeatureState(
-                    {
-                        source: this.selectedSourceId,
-                        sourceLayer: this.selectedSourceLayer,
-                        id: this.selectedFeatureId
-                    },
-                    { selected: false }
-                );
-            } catch (err) {
-                console.error('Error resetting selection state:', err);
-            }
-            
-            this.selectedFeatureId = null;
-            this.selectedSourceId = null;
-            this.selectedSourceLayer = null;
-            
-            // Remove popup when deselecting
-            this.popup.remove();
-        }
-    }
-
-    /**
-     * Set a function to generate popup content
-     * @param {Function} contentFn - Function that takes a feature and isSelected flag
-     * and returns HTML string for popup content
-     */
-    setPopupContentFunction(contentFn) {
-        this.popupContent = contentFn;
-        this._debugLog('Popup content function set');
-    }
-
-    /**
-     * Clean up all event listeners and state
-     */
-    cleanup() {
-        this._debugLog('Cleaning up feature state manager');
-        this._resetHoverState();
-        this._resetSelectionState();
-        this._removeEventListeners();
-        this.popup.remove();
-    }
-
-    /**
-     * Check if sources for all registered layers exist
-     * @returns {Object} - Report with source status for each layer
-     */
-    checkSourceStatus() {
-        const report = {
-            hoverable: [],
-            selectable: [],
-            missingLayers: [],
-            missingSources: []
-        };
+    _cleanupLayerFeatures(layerId) {
+        const featuresToDelete = [];
         
-        // Check hoverable layers
-        this.hoverableLayerIds.forEach(config => {
-            const layerExists = this._layerExists(config.id);
-            let sourceExists = false;
-            
-            if (layerExists) {
-                try {
-                    sourceExists = !!this.map.getSource(config.source);
-                } catch (e) {
-                    sourceExists = false;
-                }
-            }
-            
-            report.hoverable.push({
-                id: config.id,
-                layerExists,
-                sourceExists,
-                sourceId: config.source,
-                sourceLayer: config.sourceLayer || 'N/A'
-            });
-            
-            if (!layerExists) report.missingLayers.push(config.id);
-            if (!sourceExists) report.missingSources.push(config.source);
-        });
-
-        // Check selectable layers
-        this.selectableLayerIds.forEach(config => {
-            const layerExists = this._layerExists(config.id);
-            let sourceExists = false;
-            
-            if (layerExists) {
-                try {
-                    sourceExists = !!this.map.getSource(config.source);
-                } catch (e) {
-                    sourceExists = false;
-                }
-            }
-            
-            report.selectable.push({
-                id: config.id,
-                layerExists,
-                sourceExists,
-                sourceId: config.source,
-                sourceLayer: config.sourceLayer || 'N/A'
-            });
-            
-            if (!layerExists && !report.missingLayers.includes(config.id)) 
-                report.missingLayers.push(config.id);
-            if (!sourceExists && !report.missingSources.includes(config.source)) 
-                report.missingSources.push(config.source);
-        });
-
-        return report;
-    }
-
-    /**
-     * Start watching for layers being added to the map
-     * This helps with layers that load after the feature state manager is initialized
-     */
-    watchLayerAdditions() {
-        // Watch for changes in the style
-        this.map.on('styledata', () => {
-            this._debugLog('Style data changed, rechecking available layers');
-            
-            // Check if any previously unavailable layers are now available
-            const report = this.checkSourceStatus();
-            
-            if (report.missingLayers.length === 0 && report.missingSources.length === 0) {
-                this._debugLog('All registered layers and sources are now available!');
-            } else {
-                this._debugLog(`Still missing: ${report.missingLayers.length} layers, ${report.missingSources.length} sources`);
+        this._featureStates.forEach((state, featureId) => {
+            if (state.layerId === layerId) {
+                featuresToDelete.push(featureId);
             }
         });
         
-        // Also watch for source additions
-        this.map.on('sourcedata', (e) => {
-            if (e.isSourceLoaded && e.sourceId) {
-                // Check if this source is one we're watching
-                const hoverableWithSource = this.hoverableLayerIds.find(config => config.source === e.sourceId);
-                const selectableWithSource = this.selectableLayerIds.find(config => config.source === e.sourceId);
-                
-                if (hoverableWithSource || selectableWithSource) {
-                    this._debugLog(`Source ${e.sourceId} has loaded, rechecking available layers`);
-                    const report = this.checkSourceStatus();
-                    if (report.missingLayers.length === 0 && report.missingSources.length === 0) {
-                        this._debugLog('All registered layers and sources are now available!');
-                    }
-                }
+        featuresToDelete.forEach(featureId => {
+            this._featureStates.delete(featureId);
+            this._starredFeatures.delete(featureId);
+        });
+        
+        this._activeHoverFeatures.delete(layerId);
+        this._selectedFeatures.delete(layerId);
+    }
+
+    _scheduleRender(eventType, data) {
+        if (!this._renderScheduled) {
+            this._renderScheduled = true;
+            requestAnimationFrame(() => {
+                this._emitStateChange(eventType, data);
+                this._renderScheduled = false;
+            });
+        }
+    }
+
+    _emitStateChange(eventType, data) {
+        this.dispatchEvent(new CustomEvent('state-change', {
+            detail: { eventType, data, timestamp: Date.now() }
+        }));
+    }
+
+    _getFeatureId(feature) {
+        if (feature.id !== undefined) return feature.id;
+        if (feature.properties?.id) return feature.properties.id;
+        if (feature.properties?.fid) return feature.properties.fid;
+        
+        // Fallback to geometry hash
+        const geomStr = JSON.stringify(feature.geometry);
+        return this._hashCode(geomStr);
+    }
+
+    _hashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return hash.toString();
+    }
+
+    _setupCleanup() {
+        this._cleanupInterval = setInterval(() => {
+            this._cleanupStaleFeatures();
+        }, 30000); // Clean up every 30 seconds
+    }
+
+    _cleanupStaleFeatures() {
+        const now = Date.now();
+        const maxAge = 60000; // 1 minute
+        
+        const featuresToDelete = [];
+        
+        this._featureStates.forEach((state, featureId) => {
+            if (!state.isSelected && 
+                !this._starredFeatures.has(featureId) && 
+                !state.isHovered &&
+                (now - state.timestamp) > maxAge) {
+                featuresToDelete.push(featureId);
             }
         });
+        
+        featuresToDelete.forEach(featureId => {
+            this._featureStates.delete(featureId);
+        });
+        
+        if (featuresToDelete.length > 0) {
+            console.log(`[StateManager] Cleaned up ${featuresToDelete.length} stale features`);
+            this._emitStateChange('cleanup', { removedFeatures: featuresToDelete });
+        }
+    }
+
+    dispose() {
+        console.log('[StateManager] Disposing...');
+        
+        if (this._cleanupInterval) {
+            clearInterval(this._cleanupInterval);
+        }
+        
+        this._activeInteractiveLayers.forEach(layerId => {
+            this._removeLayerEvents(layerId);
+        });
+        
+        this._featureStates.clear();
+        this._activeHoverFeatures.clear();
+        this._selectedFeatures.clear();
+        this._starredFeatures.clear();
+        this._layerConfig.clear();
+        this._activeInteractiveLayers.clear();
     }
 }
 
-// Make the class available globally
-window.MapFeatureStateManager = MapFeatureStateManager; 
+// Export for both ES6 modules and global usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = MapFeatureStateManager;
+}
+if (typeof window !== 'undefined') {
+    window.MapFeatureStateManager = MapFeatureStateManager;
+} 

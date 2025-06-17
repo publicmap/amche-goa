@@ -1,11 +1,11 @@
 /**
- * MapFeatureControl - A Mapbox GL JS control for displaying feature information
+ * MapFeatureControl - Enhanced version using event-driven architecture
  * 
  * This control displays a list of active layers in the bottom right corner of the map.
  * When users interact with features, it shows the feature information under the relevant layer
  * instead of using overlapping popups.
  * 
- * Architecture follows the mapbox-choropleth plugin pattern.
+ * Now uses centralized MapFeatureStateManager for all state management.
  */
 
 export class MapFeatureControl {
@@ -16,19 +16,20 @@ export class MapFeatureControl {
             maxWidth: '350px',
             minWidth: '250px',
             collapsed: false,
-            showActiveLayersOnly: true,
             ...options
         };
 
         this._map = null;
-        this._layerControl = null;
+        this._stateManager = null;
         this._container = null;
         this._layersContainer = null;
-        this._activeLayers = new Map();
         this._isCollapsed = this.options.collapsed;
         
-        // Feature state management
-        this._featureStates = new Map(); // featureId -> { state: 'title'|'full'|'raw', starred: boolean, selected: boolean }
+        // UI optimization - only re-render changed layers
+        this._lastRenderState = new Map();
+        this._stateChangeListener = null;
+        
+        console.log('[FeatureControl] Initialized with event-driven architecture');
     }
 
     /**
@@ -49,6 +50,7 @@ export class MapFeatureControl {
             this._container.parentNode.removeChild(this._container);
         }
         this._map = null;
+        this._stateManager = null;
     }
 
     /**
@@ -67,25 +69,21 @@ export class MapFeatureControl {
     }
 
     /**
-     * Initialize the control with layer configuration and layer control instance
+     * Initialize the control with the centralized state manager
      */
-    initialize(layerConfig, layerControl) {
-        this._layerConfig = layerConfig || [];
-        this._layerControl = layerControl;
+    initialize(stateManager) {
+        this._stateManager = stateManager;
         
-        console.log('[FeatureControl] Initialized with config:', layerConfig);
-        console.log('[FeatureControl] Layer control:', layerControl);
+        console.log('[FeatureControl] Initialized with state manager');
         
-        // Initial sync after layer control is ready
-        setTimeout(() => {
-            this._updateActiveLayers();
-            this._render();
-        }, 500);
+        // Listen to state changes from the centralized manager
+        this._stateChangeListener = (event) => {
+            this._handleStateChange(event.detail);
+        };
+        this._stateManager.addEventListener('state-change', this._stateChangeListener);
         
-        // Set up periodic cleanup of old features
-        this._cleanupInterval = setInterval(() => {
-            this._cleanupOldFeatures();
-        }, 10000); // Clean up every 10 seconds
+        // Initial render
+        this._render();
         
         return this;
     }
@@ -168,32 +166,33 @@ export class MapFeatureControl {
     }
 
     /**
-     * Update the list of active layers based on layer visibility
+     * Handle state changes from the state manager
      */
-    _updateActiveLayers() {
-        if (!this._layerConfig) return;
-
-        this._activeLayers.clear();
+    _handleStateChange(detail) {
+        const { eventType, data } = detail;
         
-        // Get the current layer states directly from the layer control
-        const currentlyActiveLayers = this._getCurrentlyActiveLayers();
-        console.log('[FeatureControl] Currently active layers from layer control:', currentlyActiveLayers);
-        console.log('[FeatureControl] Layer config IDs:', this._layerConfig.map(l => l.id));
+        console.log(`[FeatureControl] Handling state change: ${eventType}`, data);
         
-        // Only add layers that are explicitly in the active list
-        this._layerConfig.forEach(layer => {
-            const isActive = currentlyActiveLayers.includes(layer.id);
-            console.log(`[FeatureControl] Layer ${layer.id} is ${isActive ? 'active' : 'inactive'}`);
-            
-            if (isActive) {
-                this._activeLayers.set(layer.id, {
-                    ...layer,
-                    features: new Map()
-                });
-            }
-        });
-
-        console.log('[FeatureControl] Active layers:', Array.from(this._activeLayers.keys()));
+        // Optimize rendering based on event type
+        switch (eventType) {
+            case 'feature-hover':
+            case 'feature-click':
+            case 'feature-star-toggle':
+            case 'feature-close':
+                this._renderLayer(data.layerId);
+                break;
+            case 'feature-leave':
+            case 'layer-registered':
+            case 'layer-unregistered':
+                this._render();
+                break;
+            case 'cleanup':
+                // Only re-render if visible features were cleaned up
+                if (this._hasVisibleFeatures(data.removedFeatures)) {
+                    this._render();
+                }
+                break;
+        }
     }
 
     /**
@@ -278,17 +277,37 @@ export class MapFeatureControl {
      * Render the control UI
      */
     _render() {
-        if (!this._layersContainer) return;
+        if (!this._layersContainer || !this._stateManager) return;
 
-        this._layersContainer.innerHTML = '';
-
-        if (this._activeLayers.size === 0) {
+        const activeLayers = this._stateManager.getActiveLayers();
+        
+        if (activeLayers.size === 0) {
             this._renderEmptyState();
+            this._lastRenderState.clear();
             return;
         }
 
-        this._activeLayers.forEach((layer, layerId) => {
-            this._renderLayer(layer);
+        // Track what needs updating
+        const currentLayerIds = new Set(activeLayers.keys());
+        const previousLayerIds = new Set(this._lastRenderState.keys());
+        
+        // Remove layers that are no longer active
+        previousLayerIds.forEach(layerId => {
+            if (!currentLayerIds.has(layerId)) {
+                this._removeLayerElement(layerId);
+                this._lastRenderState.delete(layerId);
+            }
+        });
+
+        // Add or update layers
+        activeLayers.forEach((layerData, layerId) => {
+            const layerHash = this._getLayerDataHash(layerData);
+            const previousHash = this._lastRenderState.get(layerId);
+            
+            if (layerHash !== previousHash) {
+                this._renderSingleLayer(layerId, layerData);
+                this._lastRenderState.set(layerId, layerHash);
+            }
         });
     }
 
@@ -309,15 +328,63 @@ export class MapFeatureControl {
     }
 
     /**
-     * Render a single layer in the control
+     * Render a single layer (optimized for selective updates)
      */
-    _renderLayer(layer) {
+    _renderSingleLayer(layerId, layerData) {
+        const { config, features } = layerData;
+        
+        // Remove existing layer element
+        this._removeLayerElement(layerId);
+        
         const layerElement = document.createElement('div');
         layerElement.className = 'feature-control-layer';
-        layerElement.setAttribute('data-layer-id', layer.id);
+        layerElement.setAttribute('data-layer-id', layerId);
         layerElement.style.cssText = `border-bottom: 1px solid #eee;`;
 
-        // Create layer header with background image support
+        // Create layer header
+        const layerHeader = this._createLayerHeader(config);
+        layerElement.appendChild(layerHeader);
+
+        // Create features container
+        if (config.inspect && features.size > 0) {
+            const featuresContainer = document.createElement('div');
+            featuresContainer.className = 'feature-control-features';
+            featuresContainer.style.cssText = `
+                max-height: 200px;
+                overflow-y: auto;
+            `;
+
+            // Sort and render features
+            const sortedFeatures = this._getSortedFeatures(features);
+            sortedFeatures.forEach(([featureId, featureState]) => {
+                this._renderFeature(featuresContainer, featureState, config);
+            });
+
+            layerElement.appendChild(featuresContainer);
+        }
+        
+        this._layersContainer.appendChild(layerElement);
+    }
+
+    /**
+     * Render a single layer by ID (for selective updates)
+     */
+    _renderLayer(layerId) {
+        if (!this._stateManager) return;
+        
+        const activeLayers = this._stateManager.getActiveLayers();
+        const layerData = activeLayers.get(layerId);
+        
+        if (layerData) {
+            this._renderSingleLayer(layerId, layerData);
+            this._lastRenderState.set(layerId, this._getLayerDataHash(layerData));
+        }
+    }
+
+    /**
+     * Create layer header with background image support
+     */
+    _createLayerHeader(config) {
         const layerHeader = document.createElement('div');
         layerHeader.className = 'feature-control-layer-header';
         
@@ -332,16 +399,14 @@ export class MapFeatureControl {
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
         `;
         
-        // Add background image if available
-        if (layer.headerImage) {
+        if (config.headerImage) {
             headerStyle += `
-                background-image: url('${layer.headerImage}');
+                background-image: url('${config.headerImage}');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
             `;
             
-            // Add overlay for better text readability
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position: absolute;
@@ -359,36 +424,10 @@ export class MapFeatureControl {
         
         const headerText = document.createElement('span');
         headerText.style.cssText = 'position: relative; z-index: 2;';
-        headerText.textContent = layer.title || layer.id;
+        headerText.textContent = config.title || config.id;
         layerHeader.appendChild(headerText);
 
-        // Only show features container if layer has inspect configuration
-        if (layer.inspect) {
-            const featuresContainer = document.createElement('div');
-            featuresContainer.className = 'feature-control-features';
-            featuresContainer.style.cssText = `
-                max-height: 200px;
-                overflow-y: auto;
-            `;
-
-            if (layer.features.size === 0) {
-                // No features to show
-            } else {
-                // Sort features by priority: hovered first, then selected, then starred
-                const sortedFeatures = this._getSortedFeatures(layer.features);
-                sortedFeatures.forEach(([featureId, featureData]) => {
-                    this._renderFeature(featuresContainer, featureData, layer);
-                });
-            }
-
-            layerElement.appendChild(layerHeader);
-            layerElement.appendChild(featuresContainer);
-        } else {
-            // If no inspect config, just show the header
-            layerElement.appendChild(layerHeader);
-        }
-        
-        this._layersContainer.appendChild(layerElement);
+        return layerHeader;
     }
 
     /**
@@ -419,35 +458,21 @@ export class MapFeatureControl {
     }
 
     /**
-     * Render a feature's information with state management
+     * Render feature with improved interaction handling
      */
-    _renderFeature(container, featureData, layer) {
-        const featureId = this._getFeatureId(featureData.feature);
-        const featureState = this._featureStates.get(featureId) || { 
-            state: 'raw',  // Default to 'raw' state
-            starred: false, 
-            selected: false 
-        };
-        
-        // Determine current display state
-        let currentState = featureState.state;
-        if (featureData.isHover && !featureState.selected) {
-            currentState = 'title'; // Hover always shows title unless selected
-        }
-        
-        // Selected features always show raw data
-        if (featureState.selected) {
-            currentState = 'raw';
-        }
-
+    _renderFeature(container, featureState, layerConfig) {
         const featureElement = document.createElement('div');
-        featureElement.className = `feature-control-feature ${featureData.isHover ? 'hover' : 'click'} state-${currentState}`;
+        const featureId = this._getFeatureId(featureState.feature);
+        
+        const displayClass = featureState.isHovered ? 'hover' : (featureState.isSelected ? 'selected' : 'normal');
+        featureElement.className = `feature-control-feature ${displayClass}`;
         featureElement.setAttribute('data-feature-id', featureId);
         
+        // Dynamic styling based on state
         let backgroundColor = '#fff';
-        if (featureData.isHover) backgroundColor = '#f0f8ff';
-        if (featureState.selected) backgroundColor = '#fff3cd';
-        if (featureState.starred) backgroundColor = '#fff8e1';
+        if (featureState.isHovered) backgroundColor = '#f0f8ff';
+        if (featureState.isSelected) backgroundColor = '#fff3cd';
+        if (featureState.isStarred) backgroundColor = '#fff8e1';
         
         featureElement.style.cssText = `
             border-bottom: 1px solid #f0f0f0;
@@ -456,47 +481,43 @@ export class MapFeatureControl {
             cursor: pointer;
         `;
 
-        // Render based on current state (only title or raw)
-        switch (currentState) {
-            case 'title':
-                this._renderFeatureTitle(featureElement, featureData, layer, featureState);
-                break;
-            case 'raw':
-                this._renderFeatureRaw(featureElement, featureData, layer, featureState);
-                break;
-        }
-
-        // Add click handler for state changes
-        if (currentState === 'title') {
-            featureElement.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this._toggleFeatureState(featureId, 'raw', true);
-            });
+        // Render content based on state
+        if (featureState.isHovered && !featureState.isSelected) {
+            this._renderFeatureTitle(featureElement, featureState, layerConfig);
+        } else {
+            this._renderFeatureDetails(featureElement, featureState, layerConfig);
         }
 
         container.appendChild(featureElement);
     }
 
     /**
-     * Render feature in title state (compact)
+     * Render compact feature title
      */
-    _renderFeatureTitle(container, featureData, layer, featureState) {
+    _renderFeatureTitle(container, featureState, layerConfig) {
         container.style.padding = '8px 12px';
         
         const titleText = document.createElement('div');
         titleText.style.cssText = 'font-weight: 600; color: #333;';
         
-        const labelField = layer.inspect?.label;
-        const titleValue = labelField ? featureData.feature.properties[labelField] : 'Feature';
+        const labelField = layerConfig.inspect?.label;
+        const titleValue = labelField ? featureState.feature.properties[labelField] : 'Feature';
         titleText.textContent = titleValue || 'Unnamed Feature';
         
         container.appendChild(titleText);
+        
+        // Click to expand
+        container.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const featureId = this._getFeatureId(featureState.feature);
+            this._stateManager.onFeatureClick(featureState.feature, featureState.layerId, featureState.lngLat);
+        });
     }
 
     /**
-     * Render feature in raw state (combined formatted and raw data)
+     * Render detailed feature information
      */
-    _renderFeatureRaw(container, featureData, layer, featureState) {
+    _renderFeatureDetails(container, featureState, layerConfig) {
         container.style.padding = '0';
         
         // Header with feature info
@@ -515,47 +536,53 @@ export class MapFeatureControl {
         headerTitle.textContent = 'Feature Data';
         headerTitle.style.cssText = 'font-weight: 600; font-size: 10px; color: #333;';
         
-        let actionButton;
-        
-        if (featureState.selected) {
-            // Show close button for selected features
-            actionButton = document.createElement('sl-icon-button');
-            actionButton.setAttribute('name', 'x-lg');
-            actionButton.style.cssText = `
-                --sl-color-primary-600: #ef4444;
-                font-size: 14px;
-            `;
-        } else {
-            // Show star button for non-selected features
-            actionButton = document.createElement('sl-icon-button');
-            actionButton.setAttribute('name', featureState.starred ? 'star-fill' : 'star');
-            actionButton.style.cssText = `
-                --sl-color-primary-600: ${featureState.starred ? '#fbbf24' : '#6b7280'};
-                font-size: 14px;
-            `;
-        }
+        const actionButton = this._createActionButton(featureState);
         
         header.appendChild(headerTitle);
         header.appendChild(actionButton);
         
-        // Add click handlers
-        const featureId = this._getFeatureId(featureData.feature);
+        // Content area
+        const content = this._createFeatureContent(featureState, layerConfig);
         
-        if (featureState.selected) {
-            // Close button handler - removes selected state and feature
+        container.appendChild(header);
+        container.appendChild(content);
+    }
+
+    /**
+     * Create action button (star/close)
+     */
+    _createActionButton(featureState) {
+        const actionButton = document.createElement('sl-icon-button');
+        const featureId = this._getFeatureId(featureState.feature);
+        
+        if (featureState.isSelected) {
+            actionButton.setAttribute('name', 'x-lg');
+            actionButton.style.cssText = `--sl-color-primary-600: #ef4444; font-size: 14px;`;
+            
             actionButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this._closeSelectedFeature(featureId);
+                this._stateManager.closeSelectedFeature(featureId);
             });
         } else {
-            // Star button handler
+            actionButton.setAttribute('name', featureState.isStarred ? 'star-fill' : 'star');
+            actionButton.style.cssText = `
+                --sl-color-primary-600: ${featureState.isStarred ? '#fbbf24' : '#6b7280'};
+                font-size: 14px;
+            `;
+            
             actionButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this._toggleFeatureStar(featureId);
+                this._stateManager.toggleFeatureStar(featureId);
             });
         }
         
-        // Content area with intelligently formatted properties table
+        return actionButton;
+    }
+
+    /**
+     * Create feature content with properties table
+     */
+    _createFeatureContent(featureState, layerConfig) {
         const content = document.createElement('div');
         content.style.cssText = 'padding: 8px 12px; max-height: 250px; overflow-y: auto;';
         
@@ -568,8 +595,8 @@ export class MapFeatureControl {
             margin-bottom: 8px;
         `;
         
-        const properties = featureData.feature.properties || {};
-        const inspect = layer.inspect || {};
+        const properties = featureState.feature.properties || {};
+        const inspect = layerConfig.inspect || {};
         
         // Get field configuration
         const priorityFields = inspect.fields || [];
@@ -701,14 +728,13 @@ export class MapFeatureControl {
         
         exportButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            this._exportFeatureKML(featureData.feature, layer);
+            this._exportFeatureKML(featureState.feature, layerConfig);
         });
         
         content.appendChild(table);
         content.appendChild(exportButton);
         
-        container.appendChild(header);
-        container.appendChild(content);
+        return content;
     }
 
     /**
@@ -854,122 +880,7 @@ export class MapFeatureControl {
         }
     }
 
-    /**
-     * Public method to handle feature hover events
-     */
-    onFeatureHover(feature, layer, lngLat) {
-        if (!feature || !layer) return;
-
-        const layerData = this._activeLayers.get(layer.id);
-        if (!layerData) return;
-
-        const newFeatureId = this._getFeatureId(feature);
-
-        // Clear only previous hover features that are not selected
-        const keysToDelete = [];
-        layerData.features.forEach((featureData, featureId) => {
-            if (featureData.isHover && featureId !== newFeatureId) {
-                const featureStateId = this._getFeatureId(featureData.feature);
-                const featureState = this._featureStates.get(featureStateId);
-                
-                // Only remove if not selected or starred
-                if (!featureState || (!featureState.selected && !featureState.starred)) {
-                    keysToDelete.push(featureId);
-                }
-            }
-        });
-        keysToDelete.forEach(key => layerData.features.delete(key));
-
-        // Add or update the hover feature
-        const existingFeature = layerData.features.get(newFeatureId);
-        if (existingFeature) {
-            // Update existing feature to mark as hovered
-            layerData.features.set(newFeatureId, {
-                ...existingFeature,
-                isHover: true,
-                timestamp: Date.now()
-            });
-        } else {
-            // Add new hover feature
-            layerData.features.set(newFeatureId, {
-                feature,
-                layer,
-                lngLat,
-                isHover: true,
-                timestamp: Date.now()
-            });
-        }
-
-        this._render();
-    }
-
-    /**
-     * Public method to handle feature click events
-     */
-    onFeatureClick(feature, layer, lngLat) {
-        if (!feature || !layer) return;
-
-        const layerData = this._activeLayers.get(layer.id);
-        if (!layerData) return;
-
-        const featureId = this._getFeatureId(feature);
-        
-        // Add or update the feature in the layer
-        layerData.features.set(featureId, {
-            feature,
-            layer,
-            lngLat,
-            isHover: false,
-            timestamp: Date.now()
-        });
-
-        // Toggle to full state and mark as selected
-        this._toggleFeatureState(featureId, 'full', true);
-    }
-
-    /**
-     * Public method to handle feature leave events
-     */
-    onFeatureLeave(feature, layer) {
-        if (!layer) return;
-
-        const layerData = this._activeLayers.get(layer.id);
-        if (!layerData) return;
-
-        const leftFeatureId = feature ? this._getFeatureId(feature) : null;
-
-        // Clear hover features but preserve starred or selected features
-        let hasChanges = false;
-        const keysToDelete = [];
-        
-        layerData.features.forEach((featureData, featureId) => {
-            // Only process if this is the feature being left or if no specific feature was provided
-            if (!leftFeatureId || this._getFeatureId(featureData.feature) === leftFeatureId) {
-                if (featureData.isHover) {
-                    const featureStateId = this._getFeatureId(featureData.feature);
-                    const featureState = this._featureStates.get(featureStateId);
-                    
-                    // Only remove if not starred or selected
-                    if (!featureState || (!featureState.starred && !featureState.selected)) {
-                        keysToDelete.push(featureId);
-                        hasChanges = true;
-                    } else {
-                        // Keep the feature but mark it as not hovered
-                        layerData.features.set(featureId, {
-                            ...featureData,
-                            isHover: false
-                        });
-                        hasChanges = true;
-                    }
-                }
-            }
-        });
-        
-        if (hasChanges) {
-            keysToDelete.forEach(key => layerData.features.delete(key));
-            this._render();
-        }
-    }
+    // The old public methods are no longer needed as the state manager handles all interactions
 
     /**
      * Get a unique identifier for a feature
@@ -1025,68 +936,42 @@ export class MapFeatureControl {
         });
     }
 
+    // Helper methods for new architecture
+    _removeLayerElement(layerId) {
+        const existing = this._layersContainer.querySelector(`[data-layer-id="${layerId}"]`);
+        if (existing) {
+            existing.remove();
+        }
+    }
+
+    _getLayerDataHash(layerData) {
+        // Simple hash to detect changes
+        const featureIds = Array.from(layerData.features.keys()).sort();
+        const timestamps = Array.from(layerData.features.values()).map(f => f.timestamp);
+        return JSON.stringify({ featureIds, timestamps });
+    }
+
+    _hasVisibleFeatures(removedFeatures) {
+        // Check if any of the removed features were currently visible
+        return removedFeatures.some(featureId => {
+            return this._layersContainer.querySelector(`[data-feature-id="${featureId}"]`);
+        });
+    }
+
     /**
      * Clean up event listeners and references
      */
     _cleanup() {
-        this._activeLayers.clear();
-        this._featureStates.clear();
-        if (this._cleanupInterval) {
-            clearInterval(this._cleanupInterval);
+        if (this._stateManager && this._stateChangeListener) {
+            this._stateManager.removeEventListener('state-change', this._stateChangeListener);
         }
+        this._lastRenderState.clear();
     }
 
-    /**
-     * Public method to clear all feature interactions
-     */
-    clearFeatures() {
-        this._activeLayers.forEach(layer => {
-            layer.features.clear();
-        });
-        this._render();
-    }
-
-    /**
-     * Public method to update layer configuration
-     */
-    updateLayers(layerConfig) {
-        this._layerConfig = layerConfig;
-        this._updateActiveLayers();
-        this._render();
-    }
-
-    /**
-     * Public method to refresh active layers (called when layer visibility changes)
-     */
-    refreshLayers() {
-        console.log('[FeatureControl] Refreshing layers...');
-        
-        // Store previous active layers for comparison
-        const previousActiveLayers = new Set(this._activeLayers.keys());
-        
-        // Update active layers
-        this._updateActiveLayers();
-        
-        // Check if active layers changed
-        const currentActiveLayers = new Set(this._activeLayers.keys());
-        const layersChanged = previousActiveLayers.size !== currentActiveLayers.size ||
-            !Array.from(previousActiveLayers).every(id => currentActiveLayers.has(id));
-        
-        if (layersChanged) {
-            console.log('[FeatureControl] Active layers changed, re-rendering');
-            console.log('[FeatureControl] Previous layers:', Array.from(previousActiveLayers));
-            console.log('[FeatureControl] Current layers:', Array.from(currentActiveLayers));
-            this._render();
-        } else {
-            console.log('[FeatureControl] No layer changes detected, skipping render');
-        }
-    }
+    // These public methods are no longer needed - the state manager handles layer management
 }
 
-// Export for both ES6 modules and global usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MapFeatureControl;
-}
+// Make available globally for backwards compatibility
 if (typeof window !== 'undefined') {
     window.MapFeatureControl = MapFeatureControl;
 } 

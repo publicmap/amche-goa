@@ -1,5 +1,6 @@
 import { MapLayerControl } from './map-layer-controls.js';
 import { MapFeatureControl } from './map-feature-control.js';
+import { MapFeatureStateManager } from './map-feature-state-manager.js';
 import { configControl } from './config-control.js';
 import { localization } from './localization.js';
 import { URLManager } from './url-api.js';
@@ -483,6 +484,10 @@ async function initializeMap() {
         // Add view control
         map.addControl(new ViewControl(), 'top-right');
         
+        // Initialize centralized state manager (NEW ARCHITECTURE)
+        const stateManager = new MapFeatureStateManager(map);
+        console.log('[MapInit] Initialized centralized feature state manager');
+        
         // Initialize layer control
         const layerControl = new MapLayerControl(layers);
         const container = document.getElementById('layer-controls-container');
@@ -491,26 +496,27 @@ async function initializeMap() {
         document.getElementById('layer-controls-loader').classList.add('hidden');
         container.classList.remove('hidden');
         
-        // Initialize layer control
+        // Initialize layer control with state manager
         layerControl.renderToContainer(container, map);
+        layerControl.setStateManager(stateManager);
         
         // Make layer control globally accessible
         window.layerControl = layerControl;
         
-        // Initialize the feature control
+        // Initialize the feature control with state manager
         const featureControl = new MapFeatureControl({
             position: 'bottom-right',
             maxHeight: '500px',
             maxWidth: '350px'
         });
         featureControl.addTo(map);
-        featureControl.initialize(layers, layerControl);
+        featureControl.initialize(stateManager);
         
-        // Make feature control globally accessible
+        // Make components globally accessible
         window.featureControl = featureControl;
+        window.stateManager = stateManager;
         
-        // Set up bidirectional reference for synchronization
-        layerControl.setFeatureControl(featureControl);
+        console.log('[MapInit] Initialized event-driven architecture');
         
         // Initialize URL manager after layer control is ready
         const urlManager = new URLManager(layerControl, map);
