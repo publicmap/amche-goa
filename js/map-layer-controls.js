@@ -961,7 +961,6 @@ export class MapLayerControl {
     _registerLayerWithStateManager(layerConfig) {
         if (this._stateManager && layerConfig.inspect) {
             this._stateManager.registerLayer(layerConfig);
-            console.log(`[LayerControl] Registered layer ${layerConfig.id} with state manager`);
         }
     }
 
@@ -971,7 +970,6 @@ export class MapLayerControl {
     _unregisterLayerWithStateManager(layerId) {
         if (this._stateManager) {
             this._stateManager.unregisterLayer(layerId);
-            console.log(`[LayerControl] Unregistered layer ${layerId} with state manager`);
         }
     }
 

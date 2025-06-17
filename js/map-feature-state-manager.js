@@ -28,7 +28,6 @@ export class MapFeatureStateManager extends EventTarget {
         this._cleanupInterval = null;
         
         this._setupCleanup();
-        console.log('[StateManager] Initialized');
     }
 
     /**
@@ -40,7 +39,6 @@ export class MapFeatureStateManager extends EventTarget {
         if (layerConfig.inspect) {
             this._activeInteractiveLayers.add(layerConfig.id);
             this._setupLayerEvents(layerConfig);
-            console.log(`[StateManager] Registered interactive layer: ${layerConfig.id}`);
         }
         
         this._emitStateChange('layer-registered', { layerId: layerConfig.id });
@@ -50,8 +48,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Unregister a layer (when toggled off)
      */
     unregisterLayer(layerId) {
-        console.log(`[StateManager] Unregistering layer: ${layerId}`);
-        
         // Clean up all features for this layer
         this._cleanupLayerFeatures(layerId);
         
@@ -94,7 +90,6 @@ export class MapFeatureStateManager extends EventTarget {
      */
     onFeatureClick(feature, layerId, lngLat) {
         const featureId = this._getFeatureId(feature);
-        console.log(`[StateManager] Feature clicked: ${featureId} on layer ${layerId}`);
         
         // Clear all selections (single selection mode)
         this._clearAllSelections();
@@ -232,16 +227,12 @@ export class MapFeatureStateManager extends EventTarget {
      */
     setDebug(enabled) {
         this._debug = enabled;
-        if (enabled) {
-            console.log('[StateManager] Debug mode enabled');
-        }
     }
 
     /**
      * Register selectable layers (for backwards compatibility with search control)
      */
     registerSelectableLayers(layers) {
-        console.log('[StateManager] registerSelectableLayers called (compatibility method):', layers);
         // This method is kept for backwards compatibility but the new architecture
         // handles layer registration differently through the layer control
     }
@@ -250,7 +241,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Register hoverable layers (for backwards compatibility with search control)
      */
     registerHoverableLayers(layers) {
-        console.log('[StateManager] registerHoverableLayers called (compatibility method):', layers);
         // This method is kept for backwards compatibility but the new architecture
         // handles layer registration differently through the layer control
     }
@@ -259,7 +249,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Watch for layer additions (for backwards compatibility with search control)
      */
     watchLayerAdditions() {
-        console.log('[StateManager] watchLayerAdditions called (compatibility method)');
         // This method is kept for backwards compatibility but the new architecture
         // handles layer events differently
     }
@@ -278,7 +267,6 @@ export class MapFeatureStateManager extends EventTarget {
         );
         
         if (!layerExists) {
-            console.warn(`[StateManager] Layer ${layerId} not found on map, skipping event setup`);
             return;
         }
         
@@ -298,8 +286,6 @@ export class MapFeatureStateManager extends EventTarget {
                 this.onFeatureClick(e.features[0], layerId, e.lngLat);
             }
         });
-        
-        console.log(`[StateManager] Set up events for layer: ${layerId}`);
     }
 
     _removeLayerEvents(layerId) {
@@ -309,7 +295,6 @@ export class MapFeatureStateManager extends EventTarget {
             this._map.off('click', layerId);
         } catch (error) {
             // Layer might not exist, ignore errors
-            console.warn(`[StateManager] Could not remove events for layer ${layerId}:`, error);
         }
     }
 
@@ -427,14 +412,11 @@ export class MapFeatureStateManager extends EventTarget {
         });
         
         if (featuresToDelete.length > 0) {
-            console.log(`[StateManager] Cleaned up ${featuresToDelete.length} stale features`);
             this._emitStateChange('cleanup', { removedFeatures: featuresToDelete });
         }
     }
 
     dispose() {
-        console.log('[StateManager] Disposing...');
-        
         if (this._cleanupInterval) {
             clearInterval(this._cleanupInterval);
         }

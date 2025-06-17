@@ -503,14 +503,14 @@ async function initializeMap() {
         // Make layer control globally accessible
         window.layerControl = layerControl;
         
-        // Initialize the feature control with state manager
+        // Initialize the feature control with state manager and config
         const featureControl = new MapFeatureControl({
             position: 'bottom-right',
             maxHeight: '500px',
             maxWidth: '350px'
         });
         featureControl.addTo(map);
-        featureControl.initialize(stateManager);
+        featureControl.initialize(stateManager, config);
         
         // Make components globally accessible
         window.featureControl = featureControl;

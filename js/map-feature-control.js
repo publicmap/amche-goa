@@ -6,6 +6,7 @@
  * instead of using overlapping popups.
  * 
  * Now uses centralized MapFeatureStateManager for all state management.
+ * Updated to use config JSON as source of truth for active layers.
  */
 
 export class MapFeatureControl {
@@ -24,12 +25,14 @@ export class MapFeatureControl {
         this._container = null;
         this._layersContainer = null;
         this._isCollapsed = this.options.collapsed;
+        this._config = null; // Store config reference
         
         // UI optimization - only re-render changed layers
         this._lastRenderState = new Map();
         this._stateChangeListener = null;
+        this._renderScheduled = false;
         
-        console.log('[FeatureControl] Initialized with event-driven architecture');
+        // Initialized
     }
 
     /**
@@ -71,10 +74,16 @@ export class MapFeatureControl {
     /**
      * Initialize the control with the centralized state manager
      */
-    initialize(stateManager) {
+    initialize(stateManager, config = null) {
         this._stateManager = stateManager;
+        this._config = config;
         
-        console.log('[FeatureControl] Initialized with state manager');
+        // If no config provided, try to get it from global state
+        if (!this._config && window.layerControl && window.layerControl._config) {
+            this._config = window.layerControl._config;
+        }
+        
+        // State manager and config set
         
         // Listen to state changes from the centralized manager
         this._stateChangeListener = (event) => {
@@ -86,6 +95,14 @@ export class MapFeatureControl {
         this._render();
         
         return this;
+    }
+
+    /**
+     * Set the configuration reference
+     */
+    setConfig(config) {
+        this._config = config;
+        this._scheduleRender();
     }
 
     /**
@@ -171,8 +188,6 @@ export class MapFeatureControl {
     _handleStateChange(detail) {
         const { eventType, data } = detail;
         
-        console.log(`[FeatureControl] Handling state change: ${eventType}`, data);
-        
         // Optimize rendering based on event type
         switch (eventType) {
             case 'feature-hover':
@@ -182,58 +197,125 @@ export class MapFeatureControl {
                 this._renderLayer(data.layerId);
                 break;
             case 'feature-leave':
+                this._renderLayer(data.layerId);
+                break;
             case 'layer-registered':
-            case 'layer-unregistered':
-                this._render();
+                // Only re-render for registered layers, not unregistered
+                this._scheduleRender();
                 break;
             case 'cleanup':
                 // Only re-render if visible features were cleaned up
                 if (this._hasVisibleFeatures(data.removedFeatures)) {
-                    this._render();
+                    this._scheduleRender();
                 }
                 break;
+            // Don't re-render on layer-unregistered to avoid timing issues
         }
     }
 
     /**
-     * Get currently active layers from the layer control
-     * This is the single source of truth for which layers are currently toggled on
+     * Get active layers from config JSON and map visibility - NEW SOURCE OF TRUTH
      */
-    _getCurrentlyActiveLayers() {
-        const activeLayers = [];
+    _getActiveLayersFromConfig() {
+        const activeLayers = new Map();
         
-        if (!this._layerControl || !this._layerControl._state || !this._layerControl._sourceControls) {
-            console.warn('[FeatureControl] Layer control not properly initialized');
-            return activeLayers;
+        // If no config, fall back to state manager
+        if (!this._config || !this._config.layers) {
+            return this._stateManager.getActiveLayers();
         }
         
-        // Check each group's current toggle state from the DOM
-        this._layerControl._state.groups.forEach((group, index) => {
-            const groupElement = this._layerControl._sourceControls[index];
-            if (!groupElement) return;
-            
-            const toggleInput = groupElement.querySelector('.toggle-switch input[type="checkbox"]');
-            const isCurrentlyChecked = toggleInput && toggleInput.checked;
-            
-            if (isCurrentlyChecked) {
-                console.log(`[FeatureControl] Group ${index} (${group.id}) is currently toggled on`);
+        // Iterate through config layers and check if they're visible on map
+        this._config.layers.forEach(layer => {
+            if (this._isLayerVisibleOnMap(layer)) {
+                // Get features from state manager for this layer
+                const features = this._stateManager.getLayerFeatures(layer.id);
                 
-                if (group.type === 'layer-group') {
-                    // For layer groups, find which radio button is selected
-                    const radioGroup = groupElement.querySelector('.radio-group');
-                    const selectedRadio = radioGroup?.querySelector('input[type="radio"]:checked');
-                    if (selectedRadio) {
-                        activeLayers.push(selectedRadio.value);
-                        console.log(`[FeatureControl] Layer group ${group.id} has selected: ${selectedRadio.value}`);
-                    }
-                } else {
-                    // For regular layers, add the group ID
-                    activeLayers.push(group.id);
-                }
+                // Create layer data structure
+                const layerData = {
+                    config: layer,
+                    features: features
+                };
+                
+                activeLayers.set(layer.id, layerData);
             }
         });
         
         return activeLayers;
+    }
+
+    /**
+     * Check if a layer from config is currently visible on the map
+     */
+    _isLayerVisibleOnMap(layer) {
+        if (!this._map || !layer.id) return false;
+        
+        try {
+            const style = this._map.getStyle();
+            if (!style.layers) return false;
+            
+            // Check for layers that match this config layer
+            let matchingLayers = [];
+            
+            // Strategy 1: Direct ID match
+            matchingLayers = style.layers.filter(l => l.id === layer.id);
+            
+            // Strategy 2: Layers that start with layer ID (common pattern)
+            if (matchingLayers.length === 0) {
+                matchingLayers = style.layers.filter(l => l.id.startsWith(layer.id));
+            }
+            
+            // Strategy 3: Check if this layer has sub-layers defined
+            if (matchingLayers.length === 0 && layer.layers) {
+                // For layer groups, check if any sub-layer is visible
+                matchingLayers = style.layers.filter(l => 
+                    layer.layers.some(subLayer => 
+                        l.id === subLayer.id || l.id.startsWith(subLayer.id)
+                    )
+                );
+            }
+            
+            // Strategy 4: Check for source-based matching
+            if (matchingLayers.length === 0 && layer.source) {
+                matchingLayers = style.layers.filter(l => l.source === layer.source);
+            }
+            
+            if (matchingLayers.length === 0) {
+                return false;
+            }
+            
+            // Check if any matching layer is visible
+            const isVisible = matchingLayers.some(l => {
+                const visibility = this._map.getLayoutProperty(l.id, 'visibility');
+                return visibility !== 'none';
+            });
+            
+            return isVisible;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * Schedule a render to avoid excessive re-rendering
+     */
+    _scheduleRender() {
+        if (this._renderScheduled) return;
+        
+        this._renderScheduled = true;
+        // Add a small delay to ensure map layers are fully loaded
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                this._render();
+                this._renderScheduled = false;
+            });
+        }, 100);
+    }
+
+    /**
+     * Get currently active layers from the layer control (DEPRECATED - kept for compatibility)
+     */
+    _getCurrentlyActiveLayers() {
+        return this._getActiveLayersFromConfig();
     }
 
     /**
@@ -274,17 +356,24 @@ export class MapFeatureControl {
     }
 
     /**
-     * Render the control UI
+     * Render the control UI - now uses config JSON as source of truth
      */
     _render() {
         if (!this._layersContainer || !this._stateManager) return;
 
-        const activeLayers = this._stateManager.getActiveLayers();
+        // Get active layers from config and map visibility instead of state manager
+        const activeLayers = this._getActiveLayersFromConfig();
         
         if (activeLayers.size === 0) {
             this._renderEmptyState();
             this._lastRenderState.clear();
             return;
+        }
+
+        // Clear empty state if it exists
+        const emptyState = this._layersContainer.querySelector('.feature-control-empty');
+        if (emptyState) {
+            emptyState.remove();
         }
 
         // Track what needs updating
@@ -315,6 +404,9 @@ export class MapFeatureControl {
      * Render empty state when no layers are active
      */
     _renderEmptyState() {
+        // Clear existing content first
+        this._layersContainer.innerHTML = '';
+        
         const emptyState = document.createElement('div');
         emptyState.className = 'feature-control-empty';
         emptyState.style.cssText = `
