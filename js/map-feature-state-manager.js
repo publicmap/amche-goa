@@ -23,9 +23,7 @@ export class MapFeatureStateManager extends EventTarget {
         this._renderScheduled = false;
         this._cleanupInterval = null;
         
-        // Click debouncing to handle overlapping features
-        this._clickDebounceTimeout = null;
-        this._pendingClicks = [];
+        // No longer using click debouncing - handle multiple features directly
         
         // Hover debouncing to prevent rapid state changes
         this._hoverDebounceTimeout = null;
@@ -116,83 +114,94 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     /**
-     * Handle feature click
+     * Handle multiple feature clicks directly (no debouncing)
      */
-    onFeatureClick(feature, layerId, lngLat) {
-        const featureId = this._getFeatureId(feature);
+    handleFeatureClicks(clickedFeatures) {
+        if (!clickedFeatures || clickedFeatures.length === 0) return;
         
-        console.log(`[StateManager] Feature clicked: ${featureId} in layer ${layerId}`);
+        console.log(`[StateManager] Processing ${clickedFeatures.length} clicked features directly`);
         
-        // Add this click to pending clicks
-        this._pendingClicks.push({ feature, layerId, lngLat, featureId, timestamp: Date.now() });
+        // Check if any of the clicked features are already selected
+        const alreadySelectedFeatures = [];
+        const newFeatures = [];
         
-        // Clear any existing timeout
-        if (this._clickDebounceTimeout) {
-            clearTimeout(this._clickDebounceTimeout);
+        clickedFeatures.forEach(({ feature, layerId, lngLat }) => {
+            const featureId = this._getFeatureId(feature);
+            const isSelected = this._selectedFeatures.get(layerId)?.has(featureId) || false;
+            
+            if (isSelected) {
+                alreadySelectedFeatures.push({ featureId, layerId });
+            } else {
+                newFeatures.push({ feature, layerId, lngLat, featureId });
+            }
+        });
+        
+        // If any features are already selected, toggle them off
+        if (alreadySelectedFeatures.length > 0) {
+            console.log(`[StateManager] Toggling off ${alreadySelectedFeatures.length} selected features`);
+            
+            // Deselect all features at once
+            const deselectedLayers = new Set();
+            alreadySelectedFeatures.forEach(({ featureId, layerId }) => {
+                this._deselectFeatureInternal(featureId, layerId);
+                deselectedLayers.add(layerId);
+            });
+            
+            // Emit a single batch event for all deselections
+            this._scheduleRender('features-batch-deselected', { 
+                deselectedFeatures: alreadySelectedFeatures,
+                affectedLayers: Array.from(deselectedLayers)
+            });
+            
+            // Don't select new features if we're toggling off existing ones
+            return;
         }
         
-        // Set a new timeout to process clicks after a short delay
-        this._clickDebounceTimeout = setTimeout(() => {
-            this._processPendingClicks();
-        }, 50); // 50ms debounce - allows multiple overlapping clicks to be collected
+        // Otherwise, clear existing selections and select new features
+        if (newFeatures.length > 0) {
+            const clearedFeatures = this._clearAllSelections(true);
+            console.log(`[StateManager] Cleared previous selections, now selecting ${newFeatures.length} new features`);
+            
+            const selectedFeatures = [];
+            newFeatures.forEach(({ feature, layerId, lngLat, featureId }) => {
+                // Set selection for this feature
+                if (!this._selectedFeatures.has(layerId)) {
+                    this._selectedFeatures.set(layerId, new Set());
+                }
+                this._selectedFeatures.get(layerId).add(featureId);
+                
+                // Set Mapbox feature state for selection
+                this._setMapboxFeatureState(featureId, layerId, { selected: true });
+                
+                // Update feature state
+                this._updateFeatureState(featureId, {
+                    feature,
+                    layerId,
+                    lngLat,
+                    isSelected: true,
+                    timestamp: Date.now()
+                });
+                
+                selectedFeatures.push({ featureId, layerId, feature });
+                console.log(`[StateManager] Selected feature: ${featureId} in layer ${layerId}`);
+            });
+            
+            // Emit event for all selections
+            if (selectedFeatures.length === 1) {
+                this._scheduleRender('feature-click', { 
+                    ...selectedFeatures[0],
+                    clearedFeatures 
+                });
+            } else {
+                this._scheduleRender('feature-click-multiple', { 
+                    selectedFeatures,
+                    clearedFeatures 
+                });
+            }
+        }
     }
 
-    /**
-     * Process all pending clicks and select ALL clicked features
-     */
-    _processPendingClicks() {
-        if (this._pendingClicks.length === 0) return;
-        
-        console.log(`[StateManager] Processing ${this._pendingClicks.length} pending clicks`);
-        
-        // Clear all selections FIRST (single action at the beginning)
-        const clearedFeatures = this._clearAllSelections(true);
-        console.log(`[StateManager] Cleared previous selections, now selecting all ${this._pendingClicks.length} clicked features`);
-        
-        // Select ALL clicked features, not just the latest one
-        const selectedFeatures = [];
-        this._pendingClicks.forEach(click => {
-            // Set selection for this feature
-            if (!this._selectedFeatures.has(click.layerId)) {
-                this._selectedFeatures.set(click.layerId, new Set());
-            }
-            this._selectedFeatures.get(click.layerId).add(click.featureId);
-            
-            // Set Mapbox feature state for selection
-            this._setMapboxFeatureState(click.featureId, click.layerId, { selected: true });
-            
-            // Update feature state
-            this._updateFeatureState(click.featureId, {
-                feature: click.feature,
-                layerId: click.layerId,
-                lngLat: click.lngLat,
-                isSelected: true,
-                timestamp: Date.now()
-            });
-            
-            selectedFeatures.push({
-                featureId: click.featureId,
-                layerId: click.layerId,
-                feature: click.feature
-            });
-            
-            console.log(`[StateManager] Selected feature: ${click.featureId} in layer ${click.layerId}`);
-        });
-        
-        console.log(`[StateManager] Current selections after processing all clicks:`, 
-            Array.from(this._selectedFeatures.entries()).map(([layerId, features]) => 
-                ({ layerId, featureIds: Array.from(features) })));
-        
-        // Emit a single event for all the selections
-        this._scheduleRender('feature-click-multiple', { 
-            selectedFeatures,
-            clearedFeatures 
-        });
-        
-        // Clear pending clicks
-        this._pendingClicks = [];
-        this._clickDebounceTimeout = null;
-    }
+
 
     /**
      * Handle feature leave
@@ -216,8 +225,26 @@ export class MapFeatureStateManager extends EventTarget {
         const featureState = this._featureStates.get(featureId);
         if (!featureState) return;
         
+        this._deselectFeature(featureId, featureState.layerId);
+    }
+
+    /**
+     * Deselect a feature (used for close operations - emits individual event)
+     */
+    _deselectFeature(featureId, layerId) {
+        this._deselectFeatureInternal(featureId, layerId);
+        
+        // Emit individual deselection event to update UI
+        this._scheduleRender('feature-deselected', { featureId, layerId });
+    }
+
+    /**
+     * Internal deselection logic without event emission (for batch operations)
+     */
+    _deselectFeatureInternal(featureId, layerId) {
+        console.log(`[StateManager] Deselecting feature: ${featureId} in layer ${layerId}`);
+        
         // Remove from selected features
-        const layerId = featureState.layerId;
         const selectedSet = this._selectedFeatures.get(layerId);
         if (selectedSet) {
             selectedSet.delete(featureId);
@@ -229,14 +256,15 @@ export class MapFeatureStateManager extends EventTarget {
         // Remove Mapbox feature state for selection
         this._removeMapboxFeatureState(featureId, layerId, 'selected');
         
-        // Remove feature state if not hovered
-        if (!featureState.isHovered) {
-            this._featureStates.delete(featureId);
-        } else {
-            this._updateFeatureState(featureId, { isSelected: false });
+        // Update or remove feature state
+        const featureState = this._featureStates.get(featureId);
+        if (featureState) {
+            if (!featureState.isHovered) {
+                this._featureStates.delete(featureId);
+            } else {
+                this._updateFeatureState(featureId, { isSelected: false });
+            }
         }
-        
-        this._scheduleRender('feature-close', { featureId, layerId });
     }
 
     /**
@@ -449,11 +477,8 @@ export class MapFeatureStateManager extends EventTarget {
                 this.onFeatureLeave(layerId);
             });
             
-            this._map.on('click', actualLayerId, (e) => {
-                if (e.features.length > 0) {
-                    this.onFeatureClick(e.features[0], layerId, e.lngLat);
-                }
-            });
+            // Click handling is now done globally by the map-feature-control
+            // to properly handle overlapping features from multiple layers
         });
     }
 
@@ -669,10 +694,6 @@ export class MapFeatureStateManager extends EventTarget {
             clearInterval(this._cleanupInterval);
         }
         
-        if (this._clickDebounceTimeout) {
-            clearTimeout(this._clickDebounceTimeout);
-        }
-        
         if (this._hoverDebounceTimeout) {
             clearTimeout(this._hoverDebounceTimeout);
         }
@@ -686,12 +707,11 @@ export class MapFeatureStateManager extends EventTarget {
         this._selectedFeatures.clear();
         this._layerConfig.clear();
         this._activeInteractiveLayers.clear();
-        this._pendingClicks = [];
         this._layerIdCache.clear();
     }
 
     /**
-     * Set Mapbox feature state on the map
+     * Set Mapbox feature state on the map - optimized to set once per source
      */
     _setMapboxFeatureState(featureId, layerId, state) {
         try {
@@ -701,27 +721,42 @@ export class MapFeatureStateManager extends EventTarget {
 
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
             
+            // Group layers by source to avoid duplicate setFeatureState calls
+            const sourceGroups = new Map();
+            
             matchingLayerIds.forEach(actualLayerId => {
-                try {
-                    // For vector tile layers, we need to specify the source and source-layer
-                    const layer = this._map.getLayer(actualLayerId);
-                    if (layer && layer.source) {
-                        const featureIdentifier = {
+                const layer = this._map.getLayer(actualLayerId);
+                if (layer && layer.source) {
+                    const sourceKey = `${layer.source}:${layer['source-layer'] || 'default'}`;
+                    if (!sourceGroups.has(sourceKey)) {
+                        sourceGroups.set(sourceKey, {
                             source: layer.source,
-                            id: featureId
-                        };
-                        
-                        // Add source-layer if it exists (for vector tiles)
-                        if (layer['source-layer']) {
-                            featureIdentifier.sourceLayer = layer['source-layer'];
-                        }
-                        
-                        this._map.setFeatureState(featureIdentifier, state);
-                        console.log(`[StateManager] Set Mapbox feature state for ${featureId} in layer ${actualLayerId}:`, state);
+                            sourceLayer: layer['source-layer'],
+                            layerIds: []
+                        });
                     }
+                    sourceGroups.get(sourceKey).layerIds.push(actualLayerId);
+                }
+            });
+            
+            // Set feature state once per source
+            sourceGroups.forEach((sourceInfo, sourceKey) => {
+                try {
+                    const featureIdentifier = {
+                        source: sourceInfo.source,
+                        id: featureId
+                    };
+                    
+                    // Add source-layer if it exists (for vector tiles)
+                    if (sourceInfo.sourceLayer) {
+                        featureIdentifier.sourceLayer = sourceInfo.sourceLayer;
+                    }
+                    
+                    this._map.setFeatureState(featureIdentifier, state);
+                    console.log(`[StateManager] Set Mapbox feature state for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers):`, state);
                 } catch (error) {
-                    // Ignore errors for layers that don't support feature state
-                    console.warn(`[StateManager] Could not set feature state for layer ${actualLayerId}:`, error.message);
+                    // Ignore errors for sources that don't support feature state
+                    console.warn(`[StateManager] Could not set feature state for source ${sourceKey}:`, error.message);
                 }
             });
         } catch (error) {
@@ -730,7 +765,7 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     /**
-     * Remove Mapbox feature state from the map
+     * Remove Mapbox feature state from the map - optimized to remove once per source
      */
     _removeMapboxFeatureState(featureId, layerId, stateKey = null) {
         try {
@@ -740,33 +775,48 @@ export class MapFeatureStateManager extends EventTarget {
 
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
             
+            // Group layers by source to avoid duplicate removeFeatureState calls
+            const sourceGroups = new Map();
+            
             matchingLayerIds.forEach(actualLayerId => {
-                try {
-                    // For vector tile layers, we need to specify the source and source-layer
-                    const layer = this._map.getLayer(actualLayerId);
-                    if (layer && layer.source) {
-                        const featureIdentifier = {
+                const layer = this._map.getLayer(actualLayerId);
+                if (layer && layer.source) {
+                    const sourceKey = `${layer.source}:${layer['source-layer'] || 'default'}`;
+                    if (!sourceGroups.has(sourceKey)) {
+                        sourceGroups.set(sourceKey, {
                             source: layer.source,
-                            id: featureId
-                        };
-                        
-                        // Add source-layer if it exists (for vector tiles)
-                        if (layer['source-layer']) {
-                            featureIdentifier.sourceLayer = layer['source-layer'];
-                        }
-                        
-                        // Remove specific state key or all states
-                        if (stateKey) {
-                            this._map.removeFeatureState(featureIdentifier, stateKey);
-                            console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for ${featureId} in layer ${actualLayerId}`);
-                        } else {
-                            this._map.removeFeatureState(featureIdentifier);
-                            console.log(`[StateManager] Removed all Mapbox feature states for ${featureId} in layer ${actualLayerId}`);
-                        }
+                            sourceLayer: layer['source-layer'],
+                            layerIds: []
+                        });
+                    }
+                    sourceGroups.get(sourceKey).layerIds.push(actualLayerId);
+                }
+            });
+            
+            // Remove feature state once per source
+            sourceGroups.forEach((sourceInfo, sourceKey) => {
+                try {
+                    const featureIdentifier = {
+                        source: sourceInfo.source,
+                        id: featureId
+                    };
+                    
+                    // Add source-layer if it exists (for vector tiles)
+                    if (sourceInfo.sourceLayer) {
+                        featureIdentifier.sourceLayer = sourceInfo.sourceLayer;
+                    }
+                    
+                    // Remove specific state key or all states
+                    if (stateKey) {
+                        this._map.removeFeatureState(featureIdentifier, stateKey);
+                        console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers)`);
+                    } else {
+                        this._map.removeFeatureState(featureIdentifier);
+                        console.log(`[StateManager] Removed all Mapbox feature states for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers)`);
                     }
                 } catch (error) {
-                    // Ignore errors for layers that don't support feature state
-                    console.warn(`[StateManager] Could not remove feature state for layer ${actualLayerId}:`, error.message);
+                    // Ignore errors for sources that don't support feature state
+                    console.warn(`[StateManager] Could not remove feature state for source ${sourceKey}:`, error.message);
                 }
             });
         } catch (error) {

@@ -96,6 +96,9 @@ export class MapFeatureControl {
         };
         this._stateManager.addEventListener('state-change', this._stateChangeListener);
         
+        // Set up global click handler for feature interactions
+        this._setupGlobalClickHandler();
+        
         // Initial render
         this._render();
         
@@ -226,6 +229,18 @@ export class MapFeatureControl {
                 break;
             case 'feature-close':
                 this._renderLayer(data.layerId);
+                break;
+            case 'feature-deselected':
+                // Handle feature deselection (toggle off)
+                console.log(`[FeatureControl] Feature deselected: ${data.featureId} in layer ${data.layerId}`);
+                this._renderLayer(data.layerId);
+                break;
+            case 'features-batch-deselected':
+                // Handle batch deselection of multiple features
+                console.log(`[FeatureControl] Batch deselected ${data.deselectedFeatures.length} features from layers:`, data.affectedLayers);
+                data.affectedLayers.forEach(layerId => {
+                    this._renderLayer(layerId);
+                });
                 break;
             case 'feature-leave':
                 this._handleFeatureLeave(data);
@@ -902,6 +917,96 @@ export class MapFeatureControl {
         return removedFeatures.some(featureId => {
             return this._layersContainer.querySelector(`[data-feature-id="${featureId}"]`);
         });
+    }
+
+    /**
+     * Set up global click handler to process all feature clicks at once
+     */
+    _setupGlobalClickHandler() {
+        if (this._globalClickHandlerAdded) return;
+        
+        this._map.on('click', (e) => {
+            // Query all features at the click point
+            const features = this._map.queryRenderedFeatures(e.point);
+            
+            // Filter for interactive features from registered layers
+            const interactiveFeatures = [];
+            
+            features.forEach(feature => {
+                // Find which registered layer this feature belongs to
+                const layerId = this._findLayerIdForFeature(feature);
+                if (layerId && this._stateManager.isLayerInteractive(layerId)) {
+                    interactiveFeatures.push({
+                        feature,
+                        layerId,
+                        lngLat: e.lngLat
+                    });
+                }
+            });
+            
+            // Pass all interactive features to the state manager
+            if (interactiveFeatures.length > 0) {
+                this._stateManager.handleFeatureClicks(interactiveFeatures);
+            } else {
+                // Clear selections if clicking on empty area
+                this._stateManager.clearAllSelections();
+            }
+        });
+        
+        this._globalClickHandlerAdded = true;
+    }
+
+    /**
+     * Find which registered layer a feature belongs to
+     */
+    _findLayerIdForFeature(feature) {
+        if (!feature.layer || !feature.layer.id) return null;
+        
+        const actualLayerId = feature.layer.id;
+        
+        // Check all registered layers to see which one this feature belongs to
+        const activeLayers = this._stateManager.getActiveLayers();
+        for (const [layerId, layerData] of activeLayers) {
+            const layerConfig = layerData.config;
+            const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
+            if (matchingLayerIds.includes(actualLayerId)) {
+                return layerId;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get matching layer IDs (simplified version of state manager's method)
+     */
+    _getMatchingLayerIds(layerConfig) {
+        const style = this._map.getStyle();
+        if (!style.layers) return [];
+        
+        const layerId = layerConfig.id;
+        const matchingIds = [];
+        
+        // Direct ID match
+        if (style.layers.some(l => l.id === layerId)) {
+            matchingIds.push(layerId);
+        }
+        
+        // Source layer matching
+        if (layerConfig.sourceLayer) {
+            const sourceLayerMatches = style.layers
+                .filter(l => l['source-layer'] === layerConfig.sourceLayer)
+                .map(l => l.id);
+            matchingIds.push(...sourceLayerMatches);
+        }
+        
+        // Prefix matching
+        const prefixMatches = style.layers
+            .filter(l => l.id.startsWith(`vector-layer-${layerId}`) || l.id.startsWith(`${layerId}-`))
+            .map(l => l.id);
+        matchingIds.push(...prefixMatches);
+        
+        return [...new Set(matchingIds)];
     }
 
     /**
