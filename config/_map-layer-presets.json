@@ -893,15 +893,63 @@
       "sourceLayer": "vector",
       "maxzoom": 14,
       "attribution": "<a href='https://docs.google.com/spreadsheets/d/19dREaWRkcxG00UmGGCQa_5tdoouuVi5EfCQZ_BmB064/edit?gid=0#gid=0'>Goa Gazettes collected by amche.in community</a> - via <a href='https://www.maphub.co/map/37001657-13b7-4065-8b80-cdb5594f15b1'>Maphub</a>",
+      "filter": ["!=", "match_status", "unmatched"],
       "style": {
-        "fill-opacity": 0.9,
+        "text-field": [
+          "step",
+          [
+            "zoom"
+          ],
+          [
+            "to-string",
+            ["get", "Wetland Name"]
+          ],
+          14,
+          [
+            "concat",
+            [
+              "to-string",
+              ["get", "match_notes"]
+            ],
+            "\n",
+            [
+              "to-string",
+              ["get", "Category"]
+            ]
+          ]
+        ]
+        ,
+        "text-padding": [
+          "step",
+          [
+            "zoom"
+          ],
+          10,
+          14,
+          30
+        ],
+        "text-halo-color":[
+          "match",
+          [
+            "get",
+            "Category"
+          ],
+          ["Wetland","Wetland & Zone of influence"],
+          "#67abee",
+          ["Buffer Zone","Buffer zone"],
+          "#7feeff",
+          ["Zone of Influence","Zone of influence"],
+          "#b2b2c1",
+          "black"
+        ],
+        "fill-opacity": 0.6,
         "fill-color": [
           "match",
           [
             "get",
             "Category"
           ],
-          "Wetland",
+          ["Wetland","Wetland & Zone of influence"],
           "#67abee",
           ["Buffer Zone","Buffer zone"],
           "#7feeff",
@@ -916,7 +964,7 @@
             "match_notes"
           ],
           "Subdivision",
-          5,
+          3,
           0.1
         ],
         "line-color":[
@@ -925,21 +973,33 @@
             "get",
             "Category"
           ],
-          "Wetland",
+          ["Wetland","Wetland & Zone of influence"],
           "#67abee",
           ["Buffer Zone","Buffer zone"],
           "#7feeff",
           ["Zone of Influence","Zone of influence"],
           "#b2b2c1",
           "black"
+        ],
+        "line-sort-key": [
+          "match",
+          [
+            "get",
+            "Category"
+          ],
+          ["Wetland","Wetland & Zone of influence"],
+          5,
+          "Buffer Zone",
+          4,
+          0
         ]
       },
       "inspect": {
         "id": "id",
-        "title": "Wetland Category",
-        "label": "Category",
-        "fields" : ["Wetland Category"],
-        "fieldTitles": ["Category"],
+        "title": "Wetland Name",
+        "label": "Wetland Name",
+        "fields" : ["Category","match_notes"],
+        "fieldTitles": ["Type"," Coverage"],
         "customHtml": "<a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/' target='_blank'>Soil Code Lookup</a> | <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>Soil Unit Lookup</a> | <a href='https://www.fao.org/fileadmin/user_upload/soils/docs/Soil_map_FAOUNESCO/acrobat/South_Asia_VII_II.pdf' target='_blank'>South Asia Soil Unit Map</a>"
       }
     },

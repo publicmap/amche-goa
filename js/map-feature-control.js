@@ -1078,7 +1078,7 @@ export class MapFeatureControl {
         const popupLocation = lngLat || hoveredFeatures[0].featureState.lngLat;
         if (!popupLocation) return;
         
-        const content = this._createMultiFeatureHoverPopupContent(hoveredFeatures);
+        const content = this._createHoverPopupContent(hoveredFeatures);
         if (!content) return;
         
         // Remove existing popup and create new one
@@ -1131,131 +1131,112 @@ export class MapFeatureControl {
     }
 
     /**
-     * Create hover popup content for multiple features
+     * Create hover popup content for single or multiple features
+     * Shows feature title, up to 2 additional fields, and layer name
      */
-    _createMultiFeatureHoverPopupContent(hoveredFeatures) {
+    _createHoverPopupContent(hoveredFeatures) {
         if (hoveredFeatures.length === 0) return null;
         
         const container = document.createElement('div');
-        container.className = 'map-popup p-2 font-sans text-sm';
+        container.className = 'map-popup';
         container.style.cssText = `
-            max-width: 300px;
+            max-width: 280px;
             background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 6px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 11px;
+            line-height: 1.3;
         `;
 
-        // Group features by layer for better organization
-        const featuresByLayer = new Map();
-        hoveredFeatures.forEach(item => {
-            if (!featuresByLayer.has(item.layerId)) {
-                featuresByLayer.set(item.layerId, []);
+        // Render each feature with layer context
+        hoveredFeatures.forEach((item, index) => {
+            const { featureState, layerConfig, layerId } = item;
+            const feature = featureState.feature;
+            
+            // Add separator between features
+            if (index > 0) {
+                const separator = document.createElement('div');
+                separator.style.cssText = 'border-top: 1px solid #e5e7eb; margin: 6px -2px; padding-top: 6px;';
+                container.appendChild(separator);
             }
-            featuresByLayer.get(item.layerId).push(item);
-        });
-
-        // Render each layer's features
-        featuresByLayer.forEach((layerFeatures, layerId) => {
-            const layerConfig = layerFeatures[0].layerConfig;
             
-            // Layer header
-            const layerHeader = document.createElement('div');
-            layerHeader.className = 'text-xs uppercase tracking-wider text-gray-500 font-medium border-b border-gray-200 pb-1 mb-2';
-            layerHeader.textContent = layerConfig.title || layerId;
-            container.appendChild(layerHeader);
+            const featureDiv = document.createElement('div');
+            featureDiv.style.cssText = 'padding: 2px;';
             
-            // Features in this layer
-            layerFeatures.forEach((item, index) => {
-                const featureDiv = this._createSingleFeatureHoverContent(item.featureState.feature, item.layerConfig);
-                if (featureDiv) {
-                    // Add separator between features in the same layer
-                    if (index > 0) {
-                        const separator = document.createElement('div');
-                        separator.style.cssText = 'border-top: 1px solid #e5e7eb; margin: 8px 0; padding-top: 8px;';
-                        container.appendChild(separator);
-                    }
-                    container.appendChild(featureDiv);
-                }
-            });
+            // Get feature title from label field or fallback
+            const inspect = layerConfig.inspect || {};
+            let featureTitle = 'Feature';
             
-            // Add spacing between layers
-            if (featuresByLayer.size > 1) {
-                const layerSeparator = document.createElement('div');
-                layerSeparator.style.cssText = 'margin-bottom: 12px;';
-                container.appendChild(layerSeparator);
+            if (inspect.label && feature.properties[inspect.label]) {
+                featureTitle = String(feature.properties[inspect.label]);
+            } else if (feature.properties.name) {
+                featureTitle = String(feature.properties.name);
+            } else if (feature.properties.title) {
+                featureTitle = String(feature.properties.title);
             }
-        });
-
-        // Add "click for more" hint if there are features
-        if (hoveredFeatures.length > 0) {
-            const hintDiv = document.createElement('div');
-            hintDiv.className = 'text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200 italic text-center';
-            hintDiv.textContent = hoveredFeatures.length === 1 ? 'Click for more details' : `${hoveredFeatures.length} features - click for details`;
-            container.appendChild(hintDiv);
-        }
-
-        return container.children.length > 0 ? container : null;
-    }
-
-    /**
-     * Create content for a single feature in hover popup
-     */
-    _createSingleFeatureHoverContent(feature, layerConfig) {
-        const featureDiv = document.createElement('div');
-        featureDiv.className = 'mb-2';
-
-        const inspect = layerConfig.inspect;
-        
-        // Add label (main title)
-        if (inspect.label) {
-            const labelValue = feature.properties[inspect.label];
-            if (labelValue) {
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'text-base font-medium text-gray-900 mb-1';
-                labelDiv.textContent = labelValue;
-                featureDiv.appendChild(labelDiv);
-            }
-        }
-
-        // Add priority fields (limit to 2 for hover popup compactness)
-        if (inspect.fields && inspect.fields.length > 0) {
-            const fieldsContainer = document.createElement('div');
-            fieldsContainer.className = 'space-y-1';
             
-            let fieldCount = 0;
-            const maxFields = 2; // Limit fields in hover popup to keep it compact
+            // Feature title with emphasis
+            const titleDiv = document.createElement('div');
+            titleDiv.style.cssText = 'font-weight: 700; color: #111827; margin-bottom: 3px; font-size: 12px;';
+            titleDiv.textContent = featureTitle;
+            featureDiv.appendChild(titleDiv);
             
-            inspect.fields.forEach((field, index) => {
-                if (fieldCount >= maxFields) return;
-                if (field === inspect.label) return; // Skip label field as it's already shown
+            // Additional fields (up to 2)
+            if (inspect.fields && inspect.fields.length > 0) {
+                const fieldsContainer = document.createElement('div');
+                fieldsContainer.style.cssText = 'margin-bottom: 3px;';
                 
-                const value = feature.properties[field];
-                if (value !== undefined && value !== null && value !== '') {
-                    const fieldDiv = document.createElement('div');
-                    fieldDiv.className = 'flex justify-between gap-2 text-xs';
+                let fieldCount = 0;
+                const maxFields = 2;
+                
+                inspect.fields.forEach((field, fieldIndex) => {
+                    if (fieldCount >= maxFields) return;
+                    if (field === inspect.label) return; // Skip label field as it's the title
                     
-                    const fieldName = document.createElement('span');
-                    fieldName.className = 'text-gray-600 font-medium';
-                    fieldName.textContent = (inspect.fieldTitles && inspect.fieldTitles[index]) || field;
-                    
-                    const fieldValue = document.createElement('span');
-                    fieldValue.className = 'text-gray-900 text-right';
-                    fieldValue.textContent = String(value);
-                    
-                    fieldDiv.appendChild(fieldName);
-                    fieldDiv.appendChild(fieldValue);
-                    fieldsContainer.appendChild(fieldDiv);
-                    
-                    fieldCount++;
+                    const value = feature.properties[field];
+                    if (value !== undefined && value !== null && value !== '') {
+                        const fieldDiv = document.createElement('div');
+                        fieldDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 1px;';
+                        
+                        const fieldName = document.createElement('span');
+                        fieldName.style.cssText = 'color: #6b7280; font-size: 10px; font-weight: 500; flex-shrink: 0;';
+                        fieldName.textContent = (inspect.fieldTitles && inspect.fieldTitles[fieldIndex]) || field;
+                        
+                        const fieldValue = document.createElement('span');
+                        fieldValue.style.cssText = 'color: #374151; font-size: 10px; text-align: right; word-break: break-word;';
+                        fieldValue.textContent = String(value);
+                        
+                        fieldDiv.appendChild(fieldName);
+                        fieldDiv.appendChild(fieldValue);
+                        fieldsContainer.appendChild(fieldDiv);
+                        
+                        fieldCount++;
+                    }
+                });
+                
+                if (fieldsContainer.children.length > 0) {
+                    featureDiv.appendChild(fieldsContainer);
                 }
-            });
-            
-            if (fieldsContainer.children.length > 0) {
-                featureDiv.appendChild(fieldsContainer);
             }
-        }
+            
+            // Layer name
+            const layerDiv = document.createElement('div');
+            layerDiv.style.cssText = 'font-size: 9px; color: #9ca3af; font-style: italic; margin-top: 2px;';
+            layerDiv.textContent = `from ${layerConfig.title || layerId}`;
+            featureDiv.appendChild(layerDiv);
+            
+            container.appendChild(featureDiv);
+        });
 
-        return featureDiv.children.length > 0 ? featureDiv : null;
+        // Add "click for more" hint
+        const hintDiv = document.createElement('div');
+        hintDiv.style.cssText = 'font-size: 9px; color: #9ca3af; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f3f4f6; text-align: center; font-style: italic;';
+        hintDiv.textContent = hoveredFeatures.length === 1 ? 'Click for details' : `${hoveredFeatures.length} features - click for details`;
+        container.appendChild(hintDiv);
+
+        return container;
     }
 }
 
