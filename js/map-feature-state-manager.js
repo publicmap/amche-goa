@@ -114,6 +114,144 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     /**
+     * Handle batch hover processing (PERFORMANCE OPTIMIZED)
+     * Process all hovered features at once instead of individually
+     */
+    handleFeatureHovers(hoveredFeatures, lngLat) {
+        // Clear previous hover timeout since we're processing a new hover event
+        if (this._hoverDebounceTimeout) {
+            clearTimeout(this._hoverDebounceTimeout);
+        }
+        
+        // Get currently hovered feature identifiers for comparison
+        const currentHoverTargets = new Set();
+        this._activeHoverFeatures.forEach((featureIds, layerId) => {
+            featureIds.forEach(featureId => {
+                currentHoverTargets.add(`${layerId}:${featureId}`);
+            });
+        });
+        
+        // Get new hover targets
+        const newHoverTargets = new Set();
+        const hoveredFeatureMap = new Map(); // Store feature data for processing
+        
+        hoveredFeatures.forEach(({ feature, layerId, lngLat: featureLngLat }) => {
+            const featureId = this._getFeatureId(feature);
+            const hoverTarget = `${layerId}:${featureId}`;
+            newHoverTargets.add(hoverTarget);
+            hoveredFeatureMap.set(hoverTarget, { feature, layerId, featureId, lngLat: featureLngLat || lngLat });
+        });
+        
+        // Check if hover state has actually changed
+        const hoverSetsMatch = currentHoverTargets.size === newHoverTargets.size && 
+            [...currentHoverTargets].every(target => newHoverTargets.has(target));
+        
+        if (hoverSetsMatch) {
+            // No change in hover state, skip processing
+            return;
+        }
+        
+        // Debounce the actual state changes
+        this._hoverDebounceTimeout = setTimeout(() => {
+            // Clear all previous hover states
+            this._clearAllHover();
+            
+            // Process new hover states in batch
+            if (hoveredFeatures.length > 0) {
+                const layersToUpdate = new Set();
+                
+                hoveredFeatures.forEach(({ feature, layerId }) => {
+                    const featureId = this._getFeatureId(feature);
+                    
+                    // Set new hover state
+                    if (!this._activeHoverFeatures.has(layerId)) {
+                        this._activeHoverFeatures.set(layerId, new Set());
+                    }
+                    this._activeHoverFeatures.get(layerId).add(featureId);
+                    
+                    // Set Mapbox feature state for hover
+                    this._setMapboxFeatureState(featureId, layerId, { hover: true });
+                    
+                    // Update feature state with the provided lngLat or use the feature's lngLat
+                    this._updateFeatureState(featureId, {
+                        feature,
+                        layerId,
+                        lngLat: lngLat,
+                        isHovered: true,
+                        timestamp: Date.now()
+                    });
+                    
+                    layersToUpdate.add(layerId);
+                });
+                
+                // Update current hover target for compatibility
+                if (hoveredFeatures.length === 1) {
+                    const { feature, layerId } = hoveredFeatures[0];
+                    const featureId = this._getFeatureId(feature);
+                    this._currentHoverTarget = `${layerId}:${featureId}`;
+                } else {
+                    this._currentHoverTarget = `multiple:${hoveredFeatures.length}`;
+                }
+                
+                // Emit a single batch hover event
+                this._scheduleRender('features-batch-hover', { 
+                    hoveredFeatures: hoveredFeatures.map(({ feature, layerId }) => ({
+                        featureId: this._getFeatureId(feature),
+                        layerId,
+                        feature
+                    })),
+                    lngLat,
+                    affectedLayers: Array.from(layersToUpdate)
+                });
+            } else {
+                // No features to hover
+                this._currentHoverTarget = null;
+                this._scheduleRender('features-hover-cleared', { lngLat });
+            }
+        }, 5); // Shorter debounce for better responsiveness
+    }
+
+    /**
+     * Handle when mouse leaves the entire map
+     */
+    handleMapMouseLeave() {
+        // Clear hover timeout
+        if (this._hoverDebounceTimeout) {
+            clearTimeout(this._hoverDebounceTimeout);
+            this._hoverDebounceTimeout = null;
+        }
+        
+        this._currentHoverTarget = null;
+        this._clearAllHover();
+        this._scheduleRender('map-mouse-leave', {});
+    }
+
+    /**
+     * Clear all hover states (optimized)
+     */
+    _clearAllHover() {
+        const affectedLayers = Array.from(this._activeHoverFeatures.keys());
+        
+        this._activeHoverFeatures.forEach((featureIds, layerId) => {
+            featureIds.forEach(featureId => {
+                // Remove Mapbox feature state for hover
+                this._removeMapboxFeatureState(featureId, layerId, 'hover');
+                
+                const state = this._featureStates.get(featureId);
+                if (state && !state.isSelected) {
+                    this._featureStates.delete(featureId);
+                } else if (state) {
+                    this._updateFeatureState(featureId, { isHovered: false });
+                }
+            });
+        });
+        
+        this._activeHoverFeatures.clear();
+        
+        return affectedLayers;
+    }
+
+    /**
      * Handle multiple feature clicks directly (no debouncing)
      */
     handleFeatureClicks(clickedFeatures) {
@@ -221,8 +359,6 @@ export class MapFeatureStateManager extends EventTarget {
              });
          }
     }
-
-
 
     /**
      * Handle feature leave
@@ -486,20 +622,21 @@ export class MapFeatureStateManager extends EventTarget {
         
         console.log(`[StateManager] Setting up events for ${layerId} on layers:`, matchingLayerIds);
         
-        // Add listeners to all matching layers
+        // Add cursor and hover listeners to all matching layers
+        // Note: mousemove and mouseleave are now handled globally by map-feature-control
+        // for better performance (single queryRenderedFeatures call per mousemove)
         matchingLayerIds.forEach(actualLayerId => {
-            this._map.on('mousemove', actualLayerId, (e) => {
-                if (e.features.length > 0) {
-                    this.onFeatureHover(e.features[0], layerId, e.lngLat);
-                }
+            // Add pointer cursor for better UX
+            this._map.on('mouseenter', actualLayerId, () => {
+                this._map.getCanvas().style.cursor = 'pointer';
             });
             
             this._map.on('mouseleave', actualLayerId, () => {
-                this.onFeatureLeave(layerId);
+                this._map.getCanvas().style.cursor = '';
             });
             
-            // Click handling is now done globally by the map-feature-control
-            // to properly handle overlapping features from multiple layers
+            // Click handling is done globally by the map-feature-control
+            // Hover handling is done globally by the map-feature-control
         });
     }
 
@@ -587,8 +724,12 @@ export class MapFeatureStateManager extends EventTarget {
             const matchingIds = this._getMatchingLayerIds(layerConfig);
             matchingIds.forEach(actualLayerId => {
                 try {
-                    this._map.off('mousemove', actualLayerId);
+                    // Clean up cursor events
+                    this._map.off('mouseenter', actualLayerId);
                     this._map.off('mouseleave', actualLayerId);
+                    
+                    // Clean up old event listeners (in case they exist)
+                    this._map.off('mousemove', actualLayerId);
                     this._map.off('click', actualLayerId);
                 } catch (error) {
                     // Layer might not exist, ignore errors
@@ -598,8 +739,9 @@ export class MapFeatureStateManager extends EventTarget {
         
         // Also try to remove events for the original layer ID (fallback)
         try {
-            this._map.off('mousemove', layerId);
+            this._map.off('mouseenter', layerId);
             this._map.off('mouseleave', layerId);
+            this._map.off('mousemove', layerId);
             this._map.off('click', layerId);
         } catch (error) {
             // Layer might not exist, ignore errors

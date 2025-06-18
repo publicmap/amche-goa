@@ -919,15 +919,6 @@
           ]
         ]
         ,
-        "text-padding": [
-          "step",
-          [
-            "zoom"
-          ],
-          10,
-          14,
-          30
-        ],
         "text-halo-color":[
           "match",
           [

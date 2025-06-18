@@ -203,6 +203,19 @@ export class MapFeatureControl {
                 // Only update layer header styling for hover, don't render features
                 this._updateLayerHeaderHoverState(data.layerId, true);
                 break;
+            case 'features-batch-hover':
+                // Handle batch hover events (PERFORMANCE OPTIMIZED)
+                this._handleBatchFeatureHover(data);
+                // Update layer header styling for all affected layers
+                data.affectedLayers.forEach(layerId => {
+                    this._updateLayerHeaderHoverState(layerId, true);
+                });
+                break;
+            case 'features-hover-cleared':
+            case 'map-mouse-leave':
+                // Clear all hover states
+                this._handleAllFeaturesLeave();
+                break;
             case 'feature-click':
                 // Handle cleared features first if they exist, then the new selection
                 if (data.clearedFeatures && data.clearedFeatures.length > 0) {
@@ -796,10 +809,6 @@ export class MapFeatureControl {
         return content;
     }
 
-
-
-
-
     /**
      * Export feature as KML
      */
@@ -841,8 +850,6 @@ export class MapFeatureControl {
         }
     }
 
-    // The old public methods are no longer needed as the state manager handles all interactions
-
     /**
      * Get a unique identifier for a feature
      */
@@ -853,6 +860,32 @@ export class MapFeatureControl {
         
         const geomStr = JSON.stringify(feature.geometry);
         return this._hashCode(geomStr);
+    }
+
+    /**
+     * Get a feature ID specifically for deduplication purposes
+     * Uses a more comprehensive approach to identify unique features
+     */
+    _getFeatureIdForDeduplication(feature) {
+        // Try standard ID fields first
+        if (feature.id !== undefined) return feature.id;
+        if (feature.properties?.id) return feature.properties.id;
+        if (feature.properties?.fid) return feature.properties.fid;
+        
+        // For features without explicit IDs, use a combination of key properties
+        const props = feature.properties || {};
+        
+        // Try common identifying properties
+        const identifyingProps = ['name', 'title', 'label', 'gid', 'objectid', 'osm_id'];
+        for (const prop of identifyingProps) {
+            if (props[prop] !== undefined && props[prop] !== null) {
+                return `${prop}:${props[prop]}`;
+            }
+        }
+        
+        // Fallback to geometry hash for features without identifying properties
+        const geomStr = JSON.stringify(feature.geometry);
+        return `geom:${this._hashCode(geomStr)}`;
     }
 
     /**
@@ -867,8 +900,6 @@ export class MapFeatureControl {
         }
         return hash.toString();
     }
-
-
 
     // Helper methods for new architecture
     _removeLayerElement(layerId) {
@@ -937,6 +968,20 @@ export class MapFeatureControl {
             }
         });
         
+        // Set up global mousemove handler for better performance
+        this._map.on('mousemove', (e) => {
+            // Use queryRenderedFeatures with deduplication for optimal performance
+            this._handleMouseMoveWithQueryRendered(e);
+            
+            // Update hover popup position to follow mouse smoothly
+            this._updateHoverPopupPosition(e.lngLat);
+        });
+        
+        // Set up global mouseleave handler for the entire map
+        this._map.on('mouseleave', () => {
+            this._stateManager.handleMapMouseLeave();
+        });
+        
         this._globalClickHandlerAdded = true;
     }
 
@@ -1001,7 +1046,7 @@ export class MapFeatureControl {
             this._stateManager.removeEventListener('state-change', this._stateChangeListener);
         }
         
-        // Clean up hover popup
+        // Clean up hover popup completely on cleanup
         this._removeHoverPopup();
         this._currentHoveredFeature = null;
         
@@ -1027,6 +1072,47 @@ export class MapFeatureControl {
     }
 
     /**
+     * Handle batch feature hover (PERFORMANCE OPTIMIZED)
+     */
+    _handleBatchFeatureHover(data) {
+        const { hoveredFeatures, lngLat, affectedLayers } = data;
+        
+        // Skip if hover popups are disabled
+        if (!this.options.showHoverPopups) return;
+        
+        // Skip on mobile devices to avoid conflicts with touch interactions
+        if ('ontouchstart' in window) return;
+        
+        // Update popup with all currently hovered features in a single operation
+        this._updateHoverPopupFromBatch(hoveredFeatures, lngLat);
+    }
+
+    /**
+     * Handle all features leaving (map mouse leave or hover cleared)
+     */
+    _handleAllFeaturesLeave() {
+        // Clear all layer header hover states
+        this._clearAllLayerHeaderHoverStates();
+        
+        // Hide hover popup smoothly instead of removing it
+        this._hideHoverPopup();
+        this._currentHoveredFeature = null;
+    }
+
+    /**
+     * Clear hover states from all layer headers
+     */
+    _clearAllLayerHeaderHoverStates() {
+        const layerElements = this._layersContainer.querySelectorAll('.feature-control-layer');
+        layerElements.forEach(layerElement => {
+            const headerElement = layerElement.querySelector('.feature-control-layer-header');
+            if (headerElement) {
+                headerElement.style.borderColor = 'transparent';
+            }
+        });
+    }
+
+    /**
      * Handle feature leave - update or remove hover popup
      */
     _handleFeatureLeave(data) {
@@ -1034,8 +1120,8 @@ export class MapFeatureControl {
         const hasHoveredFeatures = this._hasAnyHoveredFeatures();
         
         if (!hasHoveredFeatures) {
-            // No more hovered features, remove popup
-            this._removeHoverPopup();
+            // No more hovered features, hide popup smoothly
+            this._hideHoverPopup();
             this._currentHoveredFeature = null;
         } else {
             // Still have hovered features, update popup content
@@ -1121,7 +1207,7 @@ export class MapFeatureControl {
     }
 
     /**
-     * Remove hover popup
+     * Remove hover popup completely (for cleanup)
      */
     _removeHoverPopup() {
         if (this._hoverPopup) {
@@ -1237,6 +1323,190 @@ export class MapFeatureControl {
         container.appendChild(hintDiv);
 
         return container;
+    }
+
+    /**
+     * Update hover popup with batch hover data (PERFORMANCE OPTIMIZED)
+     */
+    _updateHoverPopupFromBatch(hoveredFeatures, lngLat) {
+        if (!this._map) return;
+        
+        // If no features to show, hide popup but keep it alive for smooth transitions
+        if (!hoveredFeatures || hoveredFeatures.length === 0) {
+            this._hideHoverPopup();
+            return;
+        }
+        
+        // Convert batch data to format expected by popup creation
+        const formattedFeatures = hoveredFeatures.map(({ featureId, layerId, feature }) => {
+            const layerConfig = this._stateManager.getLayerConfig(layerId);
+            return {
+                featureId,
+                layerId,
+                layerConfig,
+                featureState: {
+                    feature,
+                    layerId,
+                    lngLat,
+                    isHovered: true
+                }
+            };
+        }).filter(item => item.layerConfig && item.layerConfig.inspect);
+        
+        if (formattedFeatures.length === 0) {
+            this._hideHoverPopup();
+            return;
+        }
+        
+        const content = this._createHoverPopupContent(formattedFeatures);
+        if (!content) {
+            this._hideHoverPopup();
+            return;
+        }
+        
+        // Create popup if it doesn't exist, or update existing popup
+        if (!this._hoverPopup) {
+            this._createHoverPopup(lngLat, content);
+        } else {
+            // Update existing popup content and position
+            this._hoverPopup.setDOMContent(content);
+            this._hoverPopup.setLngLat(lngLat);
+        }
+        
+        // Show popup if it was hidden
+        this._showHoverPopup();
+    }
+
+    /**
+     * Create a persistent hover popup that follows the mouse
+     */
+    _createHoverPopup(lngLat, content) {
+        this._hoverPopup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            closeOnMove: false, // Don't close when map moves
+            className: 'hover-popup',
+            maxWidth: '280px',
+            offset: [0, -2] // Position 2px above the cursor as requested
+        })
+        .setLngLat(lngLat)
+        .setDOMContent(content)
+        .addTo(this._map);
+        
+        // Make popup non-interactive so it doesn't interfere with mouse events
+        const popupElement = this._hoverPopup.getElement();
+        if (popupElement) {
+            popupElement.style.pointerEvents = 'none';
+            popupElement.style.userSelect = 'none';
+            // Add smooth transitions
+            popupElement.style.transition = 'opacity 0.15s ease-in-out';
+        }
+    }
+
+    /**
+     * Show hover popup with smooth fade-in
+     */
+    _showHoverPopup() {
+        if (!this._hoverPopup) return;
+        
+        const popupElement = this._hoverPopup.getElement();
+        if (popupElement) {
+            popupElement.style.opacity = '1';
+            popupElement.style.visibility = 'visible';
+        }
+    }
+
+    /**
+     * Hide hover popup with smooth fade-out (but keep it alive)
+     */
+    _hideHoverPopup() {
+        if (!this._hoverPopup) return;
+        
+        const popupElement = this._hoverPopup.getElement();
+        if (popupElement) {
+            popupElement.style.opacity = '0';
+            popupElement.style.visibility = 'hidden';
+        }
+    }
+
+    /**
+     * Handle mousemove using queryRenderedFeatures with deduplication
+     */
+    _handleMouseMoveWithQueryRendered(e) {
+        // Query all features at the mouse point once
+        const features = this._map.queryRenderedFeatures(e.point);
+        
+        // Group features by source + feature ID to handle fill vs line layer priority
+        const featureGroups = new Map(); // key: sourceId:featureId, value: features array
+        
+        features.forEach(feature => {
+            // Find which registered layer this feature belongs to
+            const layerId = this._findLayerIdForFeature(feature);
+            if (layerId && this._stateManager.isLayerInteractive(layerId)) {
+                const sourceId = feature.source || 'unknown';
+                const featureId = this._getFeatureIdForDeduplication(feature);
+                const groupKey = `${sourceId}:${featureId}`;
+                
+                if (!featureGroups.has(groupKey)) {
+                    featureGroups.set(groupKey, []);
+                }
+                
+                // Get the actual map layer to check its type
+                const mapLayer = this._map.getLayer(feature.layer.id);
+                const layerType = mapLayer?.type;
+                
+                featureGroups.get(groupKey).push({
+                    feature,
+                    layerId,
+                    layerType,
+                    lngLat: e.lngLat
+                });
+            }
+        });
+        
+        // Process each feature group to prioritize fill over line
+        const interactiveFeatures = [];
+        const seenFeatures = new Set(); // Track unique features by layer
+        
+        featureGroups.forEach((featuresInGroup, groupKey) => {
+            // Check if we have both fill and line layers for this feature
+            const fillFeatures = featuresInGroup.filter(f => f.layerType === 'fill');
+            const lineFeatures = featuresInGroup.filter(f => f.layerType === 'line');
+            
+            let featuresToUse = featuresInGroup;
+            
+            // If we have both fill and line, prioritize fill layers
+            if (fillFeatures.length > 0 && lineFeatures.length > 0) {
+                console.log(`[FeatureControl] Prioritizing fill over line for feature group: ${groupKey}`);
+                featuresToUse = fillFeatures;
+            }
+            
+            // Add to final list with deduplication by layerId
+            featuresToUse.forEach(({ feature, layerId, lngLat }) => {
+                const uniqueKey = `${groupKey}:${layerId}`;
+                
+                if (!seenFeatures.has(uniqueKey)) {
+                    seenFeatures.add(uniqueKey);
+                    interactiveFeatures.push({
+                        feature,
+                        layerId,
+                        lngLat
+                    });
+                }
+            });
+        });
+        
+        // Pass all interactive features to the state manager for batch processing
+        this._stateManager.handleFeatureHovers(interactiveFeatures, e.lngLat);
+    }
+
+    /**
+     * Update hover popup position to follow mouse smoothly
+     */
+    _updateHoverPopupPosition(lngLat) {
+        if (!this._hoverPopup) return;
+        
+        this._hoverPopup.setLngLat(lngLat);
     }
 }
 
