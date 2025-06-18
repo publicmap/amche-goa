@@ -894,27 +894,52 @@
       "maxzoom": 14,
       "attribution": "<a href='https://docs.google.com/spreadsheets/d/19dREaWRkcxG00UmGGCQa_5tdoouuVi5EfCQZ_BmB064/edit?gid=0#gid=0'>Goa Gazettes collected by amche.in community</a> - via <a href='https://www.maphub.co/map/37001657-13b7-4065-8b80-cdb5594f15b1'>Maphub</a>",
       "style": {
+        "fill-opacity": 0.9,
         "fill-color": [
+          "match",
+          [
+            "get",
+            "Category"
+          ],
+          "Wetland",
+          "#67abee",
+          ["Buffer Zone","Buffer zone"],
+          "#7feeff",
+          ["Zone of Influence","Zone of influence"],
+          "#b2b2c1",
+          "black"
+        ], 
+        "line-width": [
           "match",
           [
             "get",
             "match_notes"
           ],
+          "Subdivision",
+          5,
+          0.1
+        ],
+        "line-color":[
+          "match",
           [
-            "Subdivision"
+            "get",
+            "Category"
           ],
-          "#67abab",
-          "cyan"
-        ], 
-        
-        "line-color":"cyan"
+          "Wetland",
+          "#67abee",
+          ["Buffer Zone","Buffer zone"],
+          "#7feeff",
+          ["Zone of Influence","Zone of influence"],
+          "#b2b2c1",
+          "black"
+        ]
       },
       "inspect": {
         "id": "id",
         "title": "Wetland Category",
         "label": "Category",
-        "fields" : ["DOMSOI","COUNTRY"],
-        "fieldTitles": ["Soil Unit", "Country"],
+        "fields" : ["Wetland Category"],
+        "fieldTitles": ["Category"],
         "customHtml": "<a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/' target='_blank'>Soil Code Lookup</a> | <a href='https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/faounesco-soil-map-of-the-world/en/'>Soil Unit Lookup</a> | <a href='https://www.fao.org/fileadmin/user_upload/soils/docs/Soil_map_FAOUNESCO/acrobat/South_Asia_VII_II.pdf' target='_blank'>South Asia Soil Unit Map</a>"
       }
     },
