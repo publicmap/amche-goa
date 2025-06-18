@@ -1436,26 +1436,22 @@ export class MapFeatureControl {
         // Query all features at the mouse point once
         const features = this._map.queryRenderedFeatures(e.point);
         
-        // Group features by source + feature ID to handle fill vs line layer priority
-        const featureGroups = new Map(); // key: sourceId:featureId, value: features array
+        // Group features by layerId to ensure only one feature per layer
+        const layerGroups = new Map(); // key: layerId, value: features array
         
         features.forEach(feature => {
             // Find which registered layer this feature belongs to
             const layerId = this._findLayerIdForFeature(feature);
             if (layerId && this._stateManager.isLayerInteractive(layerId)) {
-                const sourceId = feature.source || 'unknown';
-                const featureId = this._getFeatureIdForDeduplication(feature);
-                const groupKey = `${sourceId}:${featureId}`;
-                
-                if (!featureGroups.has(groupKey)) {
-                    featureGroups.set(groupKey, []);
+                if (!layerGroups.has(layerId)) {
+                    layerGroups.set(layerId, []);
                 }
                 
                 // Get the actual map layer to check its type
                 const mapLayer = this._map.getLayer(feature.layer.id);
                 const layerType = mapLayer?.type;
                 
-                featureGroups.get(groupKey).push({
+                layerGroups.get(layerId).push({
                     feature,
                     layerId,
                     layerType,
@@ -1464,37 +1460,39 @@ export class MapFeatureControl {
             }
         });
         
-        // Process each feature group to prioritize fill over line
+        // Process each layer group to select only the first/topmost feature per layer
         const interactiveFeatures = [];
-        const seenFeatures = new Set(); // Track unique features by layer
         
-        featureGroups.forEach((featuresInGroup, groupKey) => {
-            // Check if we have both fill and line layers for this feature
-            const fillFeatures = featuresInGroup.filter(f => f.layerType === 'fill');
-            const lineFeatures = featuresInGroup.filter(f => f.layerType === 'line');
+        layerGroups.forEach((featuresInLayer, layerId) => {
+            // Prioritize fill over line layers if both exist
+            const fillFeatures = featuresInLayer.filter(f => f.layerType === 'fill');
+            const lineFeatures = featuresInLayer.filter(f => f.layerType === 'line');
             
-            let featuresToUse = featuresInGroup;
+            let selectedFeature = null;
             
-            // If we have both fill and line, prioritize fill layers
-            if (fillFeatures.length > 0 && lineFeatures.length > 0) {
-                console.log(`[FeatureControl] Prioritizing fill over line for feature group: ${groupKey}`);
-                featuresToUse = fillFeatures;
+            // Strategy: Pick the first fill feature if available, otherwise first line feature, otherwise first of any type
+            if (fillFeatures.length > 0) {
+                selectedFeature = fillFeatures[0]; // First (topmost) fill feature
+                console.log(`[FeatureControl] Selected first fill feature for layer: ${layerId}`);
+            } else if (lineFeatures.length > 0) {
+                selectedFeature = lineFeatures[0]; // First (topmost) line feature
+                console.log(`[FeatureControl] Selected first line feature for layer: ${layerId}`);
+            } else {
+                selectedFeature = featuresInLayer[0]; // First feature of any type
+                console.log(`[FeatureControl] Selected first feature of any type for layer: ${layerId}`);
             }
             
-            // Add to final list with deduplication by layerId
-            featuresToUse.forEach(({ feature, layerId, lngLat }) => {
-                const uniqueKey = `${groupKey}:${layerId}`;
-                
-                if (!seenFeatures.has(uniqueKey)) {
-                    seenFeatures.add(uniqueKey);
-                    interactiveFeatures.push({
-                        feature,
-                        layerId,
-                        lngLat
-                    });
-                }
-            });
+            // Add the single selected feature for this layer
+            if (selectedFeature) {
+                interactiveFeatures.push({
+                    feature: selectedFeature.feature,
+                    layerId: selectedFeature.layerId,
+                    lngLat: selectedFeature.lngLat
+                });
+            }
         });
+        
+        console.log(`[FeatureControl] Processed ${layerGroups.size} layers, selected ${interactiveFeatures.length} features (1 per layer)`);
         
         // Pass all interactive features to the state manager for batch processing
         this._stateManager.handleFeatureHovers(interactiveFeatures, e.lngLat);
