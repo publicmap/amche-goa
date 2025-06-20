@@ -103,7 +103,8 @@ export class MapFeatureStateManager extends EventTarget {
                 layerId,
                 lngLat,
                 isHovered: true,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                rawFeatureId: this._getRawFeatureIdFromFeature(feature) // Store raw ID for Mapbox
             });
             
             this._currentHoverTarget = hoverTarget;
@@ -176,7 +177,8 @@ export class MapFeatureStateManager extends EventTarget {
                         layerId,
                         lngLat: lngLat,
                         isHovered: true,
-                        timestamp: Date.now()
+                        timestamp: Date.now(),
+                        rawFeatureId: this._getRawFeatureIdFromFeature(feature) // Store raw ID for Mapbox
                     });
                     
                     layersToUpdate.add(layerId);
@@ -334,7 +336,8 @@ export class MapFeatureStateManager extends EventTarget {
                  layerId,
                  lngLat,
                  isSelected: true,
-                 timestamp: Date.now()
+                 timestamp: Date.now(),
+                 rawFeatureId: this._getRawFeatureIdFromFeature(feature) // Store raw ID for Mapbox
              });
              
              selectedFeatures.push({ featureId, layerId, feature });
@@ -790,13 +793,43 @@ export class MapFeatureStateManager extends EventTarget {
     }
 
     _getFeatureId(feature) {
-        if (feature.id !== undefined) return feature.id;
-        if (feature.properties?.id) return feature.properties.id;
-        if (feature.properties?.fid) return feature.properties.fid;
+        // STANDARDIZED: Use the same ID generation logic as map-feature-control
+        // Priority 1: Use feature.id if available (most reliable)
+        if (feature.id !== undefined && feature.id !== null) {
+            return `feature-${feature.id}`;
+        }
         
-        // Fallback to geometry hash
+        // Priority 2: Use properties.id
+        if (feature.properties?.id !== undefined && feature.properties?.id !== null) {
+            return `feature-${feature.properties.id}`;
+        }
+        
+        // Priority 3: Use properties.fid (common in vector tiles)
+        if (feature.properties?.fid !== undefined && feature.properties?.fid !== null) {
+            return `feature-${feature.properties.fid}`;
+        }
+        
+        // Priority 4: Use layer-specific identifiers from the sample
+        if (feature.properties?.giscode) {
+            return `feature-${feature.properties.giscode}`;
+        }
+        
+        // Priority 5: Combination approach using layer metadata + properties
+        if (feature.layer?.metadata?.groupId && feature.properties) {
+            const layerId = feature.layer.metadata.groupId;
+            // Try common identifying properties
+            const identifiers = ['survey', 'plot', 'village', 'name', 'title'];
+            for (const prop of identifiers) {
+                if (feature.properties[prop] !== undefined && feature.properties[prop] !== null) {
+                    return `feature-${layerId}-${feature.properties[prop]}`.replace(/[^a-zA-Z0-9-_]/g, '-');
+                }
+            }
+        }
+        
+        // Fallback: Geometry hash with layer prefix for consistency
+        const layerId = feature.layer?.metadata?.groupId || 'unknown';
         const geomStr = JSON.stringify(feature.geometry);
-        return this._hashCode(geomStr);
+        return `feature-${layerId}-${this._hashCode(geomStr)}`;
     }
 
     _hashCode(str) {
@@ -807,6 +840,81 @@ export class MapFeatureStateManager extends EventTarget {
             hash = hash & hash;
         }
         return hash.toString();
+    }
+
+    /**
+     * Extract the raw feature ID that Mapbox recognizes from our internal prefixed format
+     * CRITICAL: Mapbox setFeatureState needs the original feature ID, not our internal prefixed version
+     */
+    _extractRawFeatureId(internalFeatureId) {
+        // Handle different internal ID formats:
+        
+        // 1. "feature-123" -> "123"
+        if (internalFeatureId.startsWith('feature-')) {
+            const rawId = internalFeatureId.substring(8); // Remove "feature-" prefix
+            
+            // Try to convert to number if it's numeric
+            const numericId = Number(rawId);
+            if (!isNaN(numericId) && isFinite(numericId)) {
+                return numericId;
+            }
+            return rawId;
+        }
+        
+        // 2. "feature-layerId-something" -> extract the meaningful part
+        // Look for patterns like "feature-plot-274" where the last part might be the ID
+        const parts = internalFeatureId.split('-');
+        if (parts.length >= 3 && parts[0] === 'feature') {
+            // Take the last part as the potential ID
+            const lastPart = parts[parts.length - 1];
+            const numericId = Number(lastPart);
+            if (!isNaN(numericId) && isFinite(numericId)) {
+                return numericId;
+            }
+            
+            // If not numeric, might be a composite ID - return the meaningful part
+            // For cases like "feature-plot-274/0", return "274/0"
+            return parts.slice(2).join('-');
+        }
+        
+        // 3. Raw ID without prefix (already compatible)
+        const numericId = Number(internalFeatureId);
+        if (!isNaN(numericId) && isFinite(numericId)) {
+            return numericId;
+        }
+        
+        // 4. Return as-is for other formats
+        return internalFeatureId;
+    }
+
+    /**
+     * Get the raw feature ID directly from a feature object (for Mapbox setFeatureState)
+     * This bypasses our internal ID generation and gets the ID Mapbox expects
+     */
+    _getRawFeatureIdFromFeature(feature) {
+        // Priority 1: Use feature.id if available (most reliable)
+        if (feature.id !== undefined && feature.id !== null) {
+            return feature.id;
+        }
+        
+        // Priority 2: Use properties.id
+        if (feature.properties?.id !== undefined && feature.properties?.id !== null) {
+            return feature.properties.id;
+        }
+        
+        // Priority 3: Use properties.fid (common in vector tiles)
+        if (feature.properties?.fid !== undefined && feature.properties?.fid !== null) {
+            return feature.properties.fid;
+        }
+        
+        // Priority 4: Use layer-specific identifiers
+        if (feature.properties?.giscode) {
+            return feature.properties.giscode;
+        }
+        
+        // Fallback: Use geometry hash (less reliable for feature state)
+        const geomStr = JSON.stringify(feature.geometry);
+        return this._hashCode(geomStr);
     }
 
     _setupCleanup() {
@@ -860,6 +968,7 @@ export class MapFeatureStateManager extends EventTarget {
 
     /**
      * Set Mapbox feature state on the map - optimized to set once per source
+     * FIXED: Extract raw feature ID for Mapbox (remove our internal prefix)
      */
     _setMapboxFeatureState(featureId, layerId, state) {
         try {
@@ -867,6 +976,19 @@ export class MapFeatureStateManager extends EventTarget {
             const layerConfig = this._layerConfig.get(layerId);
             if (!layerConfig) return;
 
+            // CRITICAL FIX: Get the raw feature ID that Mapbox knows about
+            // Try to get it from stored feature state first (most reliable)
+            const featureState = this._featureStates.get(featureId);
+            let rawFeatureId;
+            
+            if (featureState && featureState.rawFeatureId !== undefined) {
+                // Use the stored raw ID (most reliable)
+                rawFeatureId = featureState.rawFeatureId;
+            } else {
+                // Fallback: Extract from our internal prefixed format
+                rawFeatureId = this._extractRawFeatureId(featureId);
+            }
+            
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
             
             // Group layers by source to avoid duplicate setFeatureState calls
@@ -892,7 +1014,7 @@ export class MapFeatureStateManager extends EventTarget {
                 try {
                     const featureIdentifier = {
                         source: sourceInfo.source,
-                        id: featureId
+                        id: rawFeatureId  // Use raw ID for Mapbox
                     };
                     
                     // Add source-layer if it exists (for vector tiles)
@@ -901,7 +1023,7 @@ export class MapFeatureStateManager extends EventTarget {
                     }
                     
                     this._map.setFeatureState(featureIdentifier, state);
-                    console.log(`[StateManager] Set Mapbox feature state for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers):`, state);
+                    console.log(`[StateManager] Set Mapbox feature state for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}:`, state);
                 } catch (error) {
                     // Ignore errors for sources that don't support feature state
                     console.warn(`[StateManager] Could not set feature state for source ${sourceKey}:`, error.message);
@@ -914,12 +1036,26 @@ export class MapFeatureStateManager extends EventTarget {
 
     /**
      * Remove Mapbox feature state from the map - optimized to remove once per source
+     * FIXED: Extract raw feature ID for Mapbox (remove our internal prefix)
      */
     _removeMapboxFeatureState(featureId, layerId, stateKey = null) {
         try {
             // Get the layer config to find the source information
             const layerConfig = this._layerConfig.get(layerId);
             if (!layerConfig) return;
+
+            // CRITICAL FIX: Get the raw feature ID that Mapbox knows about
+            // Try to get it from stored feature state first (most reliable)
+            const featureState = this._featureStates.get(featureId);
+            let rawFeatureId;
+            
+            if (featureState && featureState.rawFeatureId !== undefined) {
+                // Use the stored raw ID (most reliable)
+                rawFeatureId = featureState.rawFeatureId;
+            } else {
+                // Fallback: Extract from our internal prefixed format
+                rawFeatureId = this._extractRawFeatureId(featureId);
+            }
 
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
             
@@ -946,7 +1082,7 @@ export class MapFeatureStateManager extends EventTarget {
                 try {
                     const featureIdentifier = {
                         source: sourceInfo.source,
-                        id: featureId
+                        id: rawFeatureId  // Use raw ID for Mapbox
                     };
                     
                     // Add source-layer if it exists (for vector tiles)
@@ -957,10 +1093,10 @@ export class MapFeatureStateManager extends EventTarget {
                     // Remove specific state key or all states
                     if (stateKey) {
                         this._map.removeFeatureState(featureIdentifier, stateKey);
-                        console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers)`);
+                        console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}`);
                     } else {
                         this._map.removeFeatureState(featureIdentifier);
-                        console.log(`[StateManager] Removed all Mapbox feature states for ${featureId} on source ${sourceKey} (affects ${sourceInfo.layerIds.length} layers)`);
+                        console.log(`[StateManager] Removed all Mapbox feature states for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}`);
                     }
                 } catch (error) {
                     // Ignore errors for sources that don't support feature state

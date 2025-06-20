@@ -469,6 +469,8 @@ export class MapFeatureControl {
             const featuresContainer = document.createElement('div');
             featuresContainer.className = 'feature-control-features';
             featuresContainer.setAttribute('data-layer-features', layerId);
+            // Add standardized ID for direct targeting
+            featuresContainer.id = `features-container-${layerId}`;
             
             // Check if this layer is collapsed
             const isLayerCollapsed = this._layerCollapseStates.get(layerId) || false;
@@ -483,7 +485,7 @@ export class MapFeatureControl {
             // Sort and render only selected features
             const sortedFeatures = this._getSortedFeatures(selectedFeatures);
             sortedFeatures.forEach(([featureId, featureState]) => {
-                this._renderFeature(featuresContainer, featureState, config);
+                this._renderFeature(featuresContainer, featureState, config, layerId);
             });
 
             layerElement.appendChild(featuresContainer);
@@ -696,14 +698,18 @@ export class MapFeatureControl {
     }
 
     /**
-     * Render feature with improved interaction handling
+     * Render feature with improved interaction handling and standardized IDs
      */
-    _renderFeature(container, featureState, layerConfig) {
+    _renderFeature(container, featureState, layerConfig, layerId) {
         const featureElement = document.createElement('div');
         const featureId = this._getFeatureId(featureState.feature);
         
         featureElement.className = 'feature-control-feature selected';
         featureElement.setAttribute('data-feature-id', featureId);
+        featureElement.setAttribute('data-layer-id', layerId);
+        
+        // Add standardized ID for direct targeting: inspector-{layerId}-{featureId}
+        featureElement.id = `inspector-${layerId}-${featureId}`;
         
         // Selected feature styling
         featureElement.style.cssText = `
@@ -715,28 +721,31 @@ export class MapFeatureControl {
         `;
 
         // Render detailed content for selected features
-        const content = this._createFeatureContent(featureState, layerConfig);
+        const content = this._createFeatureContent(featureState, layerConfig, layerId, featureId);
         featureElement.appendChild(content);
 
         container.appendChild(featureElement);
     }
 
     /**
-     * Create feature content with properties table
+     * Create feature content with properties table and standardized IDs
      */
-    _createFeatureContent(featureState, layerConfig) {
+    _createFeatureContent(featureState, layerConfig, layerId, featureId) {
         const content = document.createElement('div');
+        content.className = 'feature-inspector-content';
+        content.id = `content-${layerId}-${featureId}`;
         content.style.cssText = 'padding: 0;';
-        
-        // Header with feature info
-
         
         // Properties table content
         const tableContent = document.createElement('div');
+        tableContent.className = 'feature-inspector-table-content';
+        tableContent.id = `table-content-${layerId}-${featureId}`;
         tableContent.style.cssText = 'padding: 12px; max-height: 250px; overflow-y: auto;';
         
         // Build the properties table with intelligent formatting
         const table = document.createElement('table');
+        table.className = 'feature-inspector-properties-table';
+        table.id = `properties-table-${layerId}-${featureId}`;
         table.style.cssText = `
             width: 100%;
             border-collapse: collapse;
@@ -913,8 +922,10 @@ export class MapFeatureControl {
             table.appendChild(row);
         });
         
-        // KML export button
+        // KML export button with standardized ID
         const exportButton = document.createElement('button');
+        exportButton.className = 'feature-inspector-export-button';
+        exportButton.id = `export-button-${layerId}-${featureId}`;
         exportButton.style.cssText = `
             display: flex;
             align-items: center;
@@ -990,15 +1001,46 @@ export class MapFeatureControl {
     }
 
     /**
-     * Get a unique identifier for a feature
+     * Get a unique identifier for a feature (STANDARDIZED)
+     * Creates consistent IDs that can be used for DOM targeting
      */
     _getFeatureId(feature) {
-        if (feature.id !== undefined) return feature.id;
-        if (feature.properties?.id) return feature.properties.id;
-        if (feature.properties?.fid) return feature.properties.fid;
+        // Priority 1: Use feature.id if available (most reliable)
+        if (feature.id !== undefined && feature.id !== null) {
+            return `feature-${feature.id}`;
+        }
         
+        // Priority 2: Use properties.id
+        if (feature.properties?.id !== undefined && feature.properties?.id !== null) {
+            return `feature-${feature.properties.id}`;
+        }
+        
+        // Priority 3: Use properties.fid (common in vector tiles)
+        if (feature.properties?.fid !== undefined && feature.properties?.fid !== null) {
+            return `feature-${feature.properties.fid}`;
+        }
+        
+        // Priority 4: Use layer-specific identifiers from the sample
+        if (feature.properties?.giscode) {
+            return `feature-${feature.properties.giscode}`;
+        }
+        
+        // Priority 5: Combination approach using layer metadata + properties
+        if (feature.layer?.metadata?.groupId && feature.properties) {
+            const layerId = feature.layer.metadata.groupId;
+            // Try common identifying properties
+            const identifiers = ['survey', 'plot', 'village', 'name', 'title'];
+            for (const prop of identifiers) {
+                if (feature.properties[prop] !== undefined && feature.properties[prop] !== null) {
+                    return `feature-${layerId}-${feature.properties[prop]}`.replace(/[^a-zA-Z0-9-_]/g, '-');
+                }
+            }
+        }
+        
+        // Fallback: Geometry hash with layer prefix for consistency
+        const layerId = feature.layer?.metadata?.groupId || 'unknown';
         const geomStr = JSON.stringify(feature.geometry);
-        return this._hashCode(geomStr);
+        return `feature-${layerId}-${this._hashCode(geomStr)}`;
     }
 
     /**
@@ -1046,6 +1088,68 @@ export class MapFeatureControl {
         if (existing) {
             existing.remove();
         }
+    }
+
+    /**
+     * UTILITY METHODS FOR DIRECT DOM TARGETING
+     * These methods provide consistent ways to target elements using the standardized ID schema
+     */
+
+    /**
+     * Get a feature inspector element by layer and feature ID
+     * @param {string} layerId - The layer ID
+     * @param {string} featureId - The feature ID (with or without 'feature-' prefix)
+     * @returns {HTMLElement|null} The feature inspector element
+     */
+    getFeatureInspectorElement(layerId, featureId) {
+        // Ensure featureId has proper prefix
+        const normalizedFeatureId = featureId.startsWith('feature-') ? featureId : `feature-${featureId}`;
+        return document.getElementById(`inspector-${layerId}-${normalizedFeatureId}`);
+    }
+
+    /**
+     * Get a feature's properties table by layer and feature ID
+     * @param {string} layerId - The layer ID
+     * @param {string} featureId - The feature ID (with or without 'feature-' prefix)
+     * @returns {HTMLElement|null} The properties table element
+     */
+    getFeaturePropertiesTable(layerId, featureId) {
+        const normalizedFeatureId = featureId.startsWith('feature-') ? featureId : `feature-${featureId}`;
+        return document.getElementById(`properties-table-${layerId}-${normalizedFeatureId}`);
+    }
+
+    /**
+     * Get a layer's features container
+     * @param {string} layerId - The layer ID
+     * @returns {HTMLElement|null} The features container element
+     */
+    getLayerFeaturesContainer(layerId) {
+        return document.getElementById(`features-container-${layerId}`);
+    }
+
+    /**
+     * Get a feature's export button by layer and feature ID
+     * @param {string} layerId - The layer ID
+     * @param {string} featureId - The feature ID (with or without 'feature-' prefix)
+     * @returns {HTMLElement|null} The export button element
+     */
+    getFeatureExportButton(layerId, featureId) {
+        const normalizedFeatureId = featureId.startsWith('feature-') ? featureId : `feature-${featureId}`;
+        return document.getElementById(`export-button-${layerId}-${normalizedFeatureId}`);
+    }
+
+    /**
+     * Get a feature inspector element using feature object directly
+     * @param {Object} feature - The feature object
+     * @returns {HTMLElement|null} The feature inspector element
+     */
+    getFeatureInspectorElementByFeature(feature) {
+        const layerId = feature.layer?.metadata?.groupId;
+        const featureId = this._getFeatureId(feature);
+        
+        if (!layerId || !featureId) return null;
+        
+        return this.getFeatureInspectorElement(layerId, featureId);
     }
 
     _getLayerDataHash(layerData) {
@@ -1125,11 +1229,24 @@ export class MapFeatureControl {
     }
 
     /**
-     * Find which registered layer a feature belongs to
+     * Find which registered layer a feature belongs to (OPTIMIZED)
+     * Uses feature metadata directly when available, falling back to layer matching
      */
     _findLayerIdForFeature(feature) {
         if (!feature.layer || !feature.layer.id) return null;
         
+        // OPTIMIZATION: Use metadata.groupId directly if available
+        // This avoids expensive layer matching loops
+        if (feature.layer.metadata && feature.layer.metadata.groupId) {
+            const groupId = feature.layer.metadata.groupId;
+            
+            // Verify this layer is actually registered and interactive
+            if (this._stateManager.isLayerInteractive(groupId)) {
+                return groupId;
+            }
+        }
+        
+        // Fallback to original method if metadata is not available or layer not registered
         const actualLayerId = feature.layer.id;
         
         // Check all registered layers to see which one this feature belongs to
@@ -1137,14 +1254,11 @@ export class MapFeatureControl {
         for (const [layerId, layerData] of activeLayers) {
             const layerConfig = layerData.config;
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
-            console.log(`[FeatureControl] Checking layer ${layerId} (type: ${layerConfig.type}), matching IDs:`, matchingLayerIds, `against actual: ${actualLayerId}`);
             if (matchingLayerIds.includes(actualLayerId)) {
-                console.log(`[FeatureControl] Found match! ${actualLayerId} belongs to ${layerId}`);
                 return layerId;
             }
         }
         
-        console.log(`[FeatureControl] No match found for feature layer: ${actualLayerId}`);
         return null;
     }
 
@@ -1675,7 +1789,7 @@ export class MapFeatureControl {
         
         // Group features by layerId to ensure only one feature per layer
         const layerGroups = new Map(); // key: layerId, value: features array
-        
+        console.log(features)
         features.forEach(feature => {
             // Find which registered layer this feature belongs to
             const layerId = this._findLayerIdForFeature(feature);
