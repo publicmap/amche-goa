@@ -56,9 +56,11 @@
     <!-- Application Scripts -->
     <script src="js/geolocation-control.js"></script>
     <script src="js/mapbox-gl-view-control.js"></script>
-    <script src="js/map-feature-state-manager.js"></script>
+    <script type="module" src="js/map-feature-state-manager.js"></script>
     <script src="js/map-search-control.js"></script>
+    <script type="module" src="js/map-layer-controls.js"></script>
     <script type="module" src="js/config-control.js"></script>
+    <script type="module" src="js/map-feature-control.js"></script>
     <script type="module" src="js/map-init.js"></script>
     <!-- Service Worker Registration -->
     <script src="js/pwa/register-sw.js"></script>
@@ -100,7 +102,7 @@
 
 </head>
 
-<body class="flex flex-col h-screen">
+<body class="flex flex-col full-viewport-height">
     <!-- Header -->
     <header class="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
@@ -237,7 +239,7 @@
                 <div id="layer-controls-container" class="hidden"></div>
             </sl-drawer>
 
-            <div id="edit-mode-control"
+            <div id="edit-mode-control" style="display: none;"
                 class="mapboxgl-ctrl mapboxgl-ctrl-group absolute bottom-10 right-0 z-10 bg-white rounded shadow-md mr-2">
                 <button id="edit-mode-toggle"
                     class="px-2 py-1 text-sm flex items-center justify-center hover:bg-blue-500"

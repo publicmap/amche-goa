@@ -6,6 +6,15 @@ import { fixLayerOrdering } from './layer-order-manager.js';
 import { localization } from './localization.js';
 import { fetchTileJSON } from './map-utils.js';
 
+/**
+ * MapLayerControl - Controls layer visibility and interaction for a Mapbox GL JS map
+ * 
+ * Configuration options:
+ * - showPopupsOnHover: boolean (default: true) - Controls whether popups are shown on feature hover
+ * - showPopupsOnClick: boolean (default: false) - Controls whether popups are shown on feature click
+ * - groups: Array of layer group configurations
+ * - sourceLayerLinks: Array of link objects for specific source layers
+ */
 export class MapLayerControl {
     constructor(options) {
         // Handle options structure for groups and configuration
@@ -22,6 +31,10 @@ export class MapLayerControl {
             this._state = { groups: [options] };
             this._config = {};
         }
+
+        // Set popup configuration with default values
+        this._config.showPopupsOnHover = this._config.showPopupsOnHover !== undefined ? this._config.showPopupsOnHover : true;
+        this._config.showPopupsOnClick = this._config.showPopupsOnClick !== undefined ? this._config.showPopupsOnClick : false;
 
         // Store sourceLayerLinks from config or set default
         /**
@@ -155,8 +168,7 @@ export class MapLayerControl {
         this._sourceControls = [];
         this._editMode = false;
 
-        // Add global selected feature tracking
-        this._selectedFeatures = new Map(); // Store selected features across all layers
+        // Global click handler tracking (selected features now managed by state manager)
         this._globalClickHandlerAdded = false; // Track if global handler is added
 
         // Initialize edit mode toggle
@@ -168,8 +180,8 @@ export class MapLayerControl {
         // Add modal container
         this._initializeSettingsModal();
 
-        this._activeHoverFeatures = new Map(); // Store currently hovered features across layers
         this._consolidatedHoverPopup = null;
+        this._stateManager = null; // Reference to the centralized state manager
 
         // Load default styles
         this._loadDefaultStyles();
@@ -313,6 +325,13 @@ export class MapLayerControl {
 
         // Categorize each property in the style object
         Object.keys(style).forEach(property => {
+            // First check if this property is valid for this layer type
+            const isValidForLayerType = this._isPropertyValidForLayerType(property, layerType);
+            if (!isValidForLayerType) {
+                // Skip invalid properties completely - don't add them to either paint or layout
+                return;
+            }
+
             if (layoutProps.includes(property)) {
                 layout[property] = style[property];
             } else if (paintProps.includes(property)) {
@@ -327,13 +346,7 @@ export class MapLayerControl {
                     property.includes('-cap') || property.includes('-join')) {
                     layout[property] = style[property];
                 } else {
-                    // Only add to paint if it's not clearly invalid for this layer type
-                    // Skip invalid properties like fill-* and line-* for symbol layers
-                    const isValidForLayerType = this._isPropertyValidForLayerType(property, layerType);
-                    if (isValidForLayerType) {
-                        paint[property] = style[property];
-                    }
-                    // Otherwise, silently ignore invalid properties
+                    paint[property] = style[property];
                 }
             }
         });
@@ -917,6 +930,169 @@ export class MapLayerControl {
         });
 
         return visibleLayers;
+    }
+
+    /**
+     * Set the state manager reference for layer registration
+     */
+    setStateManager(stateManager) {
+        this._stateManager = stateManager;
+        
+        // Register all currently active layers with the state manager
+        this._registerAllActiveLayers();
+    }
+
+    /**
+     * Register all currently active layers with the state manager
+     */
+    _registerAllActiveLayers() {
+        if (!this._stateManager) return;
+        
+        this._state.groups.forEach(group => {
+            if (group.inspect && group.initiallyChecked) {
+                // Use the same validation as individual layer registration
+                this._registerLayerWithStateManager(group);
+            }
+        });
+    }
+
+    /**
+     * Register a layer with the state manager when it becomes active
+     */
+    _registerLayerWithStateManager(layerConfig) {
+        if (!this._stateManager) {
+            return;
+        }
+        
+        // Only register interactive layer types (geojson, vector, csv) that can have features
+        // Even if they don't have inspect properties, they should be registered for consistency
+        const interactiveTypes = ['geojson', 'vector', 'csv'];
+        if (!layerConfig.inspect && !interactiveTypes.includes(layerConfig.type)) {
+            return;
+        }
+        
+        // Pre-validate that this layer has matching layers in the map style
+        // to avoid unnecessary registrations and console noise
+        if (!this._hasMatchingLayers(layerConfig)) {
+            return;
+        }
+        
+        this._stateManager.registerLayer(layerConfig);
+    }
+
+    /**
+     * Check if a layer config has matching layers in the current map style
+     */
+    _hasMatchingLayers(layerConfig) {
+        const style = this._map.getStyle();
+        if (!style.layers) return false;
+        
+        const layerId = layerConfig.id;
+        
+        // Strategy 1: Direct ID match
+        if (style.layers.some(l => l.id === layerId)) {
+            return true;
+        }
+        
+        // Strategy 2: Prefix matches (for geojson layers)
+        if (style.layers.some(l => l.id.startsWith(layerId + '-') || l.id.startsWith(layerId + ' '))) {
+            return true;
+        }
+        
+        // Strategy 3: Source layer matches (for vector layers)
+        if (layerConfig.sourceLayer) {
+            if (style.layers.some(l => l['source-layer'] === layerConfig.sourceLayer)) {
+                return true;
+            }
+        }
+        
+        // Strategy 4: Source matches (for vector tile sources)
+        if (layerConfig.source) {
+            if (style.layers.some(l => l.source === layerConfig.source)) {
+                return true;
+            }
+        }
+        
+        // Strategy 5: Legacy source layers array
+        if (layerConfig.sourceLayers && Array.isArray(layerConfig.sourceLayers)) {
+            if (style.layers.some(l => l['source-layer'] && layerConfig.sourceLayers.includes(l['source-layer']))) {
+                return true;
+            }
+        }
+        
+        // Strategy 6: Grouped layers
+        if (layerConfig.layers && Array.isArray(layerConfig.layers)) {
+            return layerConfig.layers.some(subLayer => {
+                if (subLayer.sourceLayer) {
+                    return style.layers.some(l => l['source-layer'] === subLayer.sourceLayer);
+                }
+                return false;
+            });
+        }
+        
+        // Strategy 7: GeoJSON source matching (enhanced)
+        if (layerConfig.type === 'geojson') {
+            const sourceId = `geojson-${layerId}`;
+            
+            // Check for source match
+            if (style.layers.some(l => l.source === sourceId)) {
+                return true;
+            }
+            
+            // Check for specific geojson layer patterns
+            const geojsonLayerPatterns = [
+                `${sourceId}-fill`,
+                `${sourceId}-line`,
+                `${sourceId}-circle`,
+                `${sourceId}-symbol`
+            ];
+            
+            if (geojsonLayerPatterns.some(pattern => 
+                style.layers.some(l => l.id === pattern)
+            )) {
+                return true;
+            }
+        }
+        
+        // Strategy 8: CSV layer matching
+        if (layerConfig.type === 'csv') {
+            const sourceId = `csv-${layerId}`;
+            if (style.layers.some(l => l.source === sourceId || l.id === `${sourceId}-circle`)) {
+                return true;
+            }
+        }
+        
+        // Strategy 9: Vector layer matching (enhanced)
+        if (layerConfig.type === 'vector') {
+            const sourceId = `vector-${layerId}`;
+            const vectorLayerPatterns = [
+                `vector-layer-${layerId}`,
+                `vector-layer-${layerId}-outline`,
+                `vector-layer-${layerId}-text`
+            ];
+            
+            if (style.layers.some(l => l.source === sourceId) || 
+                vectorLayerPatterns.some(pattern => 
+                    style.layers.some(l => l.id === pattern)
+                )) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Unregister a layer with the state manager when it becomes inactive
+     */
+    _unregisterLayerWithStateManager(layerId) {
+        if (this._stateManager) {
+            // Only unregister if the layer is actually registered
+            // Check using the state manager's isLayerInteractive method
+            if (this._stateManager.isLayerInteractive(layerId)) {
+                this._stateManager.unregisterLayer(layerId);
+            }
+        }
     }
 
     _initializeControl($container) {
@@ -2014,6 +2190,9 @@ export class MapLayerControl {
                                 );
                             }
                         });
+
+                        // Notify feature control about layer visibility changes
+                        // Layer visibility changed - register/unregister with state manager
                     });
 
                     // Create a clickable label that will toggle the switch
@@ -2167,6 +2346,14 @@ export class MapLayerControl {
         const group = this._state.groups[groupIndex];
         this._currentGroup = group;
 
+        // For non-visible layers, unregister immediately
+        if (!visible) {
+            this._unregisterLayerWithStateManager(group.id);
+        }
+        
+        // For visible layers, register AFTER the layers are added to the map
+        // (this will be done at the end of this method)
+
         if (group.type === 'style') {
             // Get all style layers
             const styleLayers = this._map.getStyle().layers;
@@ -2246,10 +2433,44 @@ export class MapLayerControl {
 
             // Only add source and layers if they don't exist yet and should be visible
             if (visible && !this._map.getSource(sourceId)) {
+                // Determine data source - use inline data if available, otherwise use URL
+                let dataSource;
+                if (group.data) {
+                    // Use inline data - handle both FeatureCollection and individual features
+                    if (group.data.type === 'FeatureCollection') {
+                        dataSource = group.data;
+                    } else if (group.data.type === 'Feature') {
+                        // Wrap individual feature in FeatureCollection
+                        dataSource = {
+                            type: 'FeatureCollection',
+                            features: [group.data]
+                        };
+                    } else if (group.data.type && group.data.coordinates) {
+                        // Handle raw geometry - wrap in Feature and FeatureCollection
+                        dataSource = {
+                            type: 'FeatureCollection',
+                            features: [{
+                                type: 'Feature',
+                                geometry: group.data,
+                                properties: {}
+                            }]
+                        };
+                    } else {
+                        console.error('Invalid GeoJSON data format in group:', group.id);
+                        return;
+                    }
+                } else if (group.url) {
+                    // Use URL as before
+                    dataSource = group.url;
+                } else {
+                    console.error('GeoJSON layer missing both data and URL:', group.id);
+                    return;
+                }
+
                 // Add source
                 this._map.addSource(sourceId, {
                     type: 'geojson',
-                    data: group.url,
+                    data: dataSource,
                     promoteId: group.inspect?.id
                 });
 
@@ -2427,8 +2648,8 @@ export class MapLayerControl {
                 // Just update visibility for existing layer
                 this._map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
 
-                // Reset refresh timer when toggling visibility
-                if (visible && group.refresh && !group._refreshTimer) {
+                // Reset refresh timer when toggling visibility (only for URL-based data)
+                if (visible && group.refresh && group.url && !group._refreshTimer) {
                     this._setupCsvRefresh(group);
                 } else if (!visible && group._refreshTimer) {
                     clearInterval(group._refreshTimer);
@@ -2667,17 +2888,19 @@ export class MapLayerControl {
                                 });
 
                                 this._map.on('click', layerId, (e) => {
-                                    if (e.features.length > 0) {
+                                    if (e.features.length > 0 && this._config.showPopupsOnClick) {
                                         const feature = e.features[0];
                                         const coordinates = feature.geometry.coordinates.slice();
                                         const content = this._createPopupContent(feature, group, false, {
                                             lng: coordinates[0],
                                             lat: coordinates[1]
                                         });
-                                        new mapboxgl.Popup()
-                                            .setLngLat(coordinates)
-                                            .setDOMContent(content)
-                                            .addTo(this._map);
+                                        if (content) {
+                                            new mapboxgl.Popup()
+                                                .setLngLat(coordinates)
+                                                .setDOMContent(content)
+                                                .addTo(this._map);
+                                        }
                                     }
                                 });
                             }
@@ -2824,6 +3047,17 @@ export class MapLayerControl {
                 'star-intensity': 0.1
             } : null);
         }
+
+        // Register with state manager AFTER layers are added to the map
+        // This ensures _hasMatchingLayers() can find the newly added layers
+        if (visible && group.inspect) {
+            // Use a small delay to ensure layers are fully added to the map style
+            requestAnimationFrame(() => {
+                this._registerLayerWithStateManager(group);
+            });
+        }
+
+        // Feature control notifications no longer needed - state manager handles interactions
     }
 
     _handleLayerChange(selectedLayerId, layers) {
@@ -2870,6 +3104,8 @@ export class MapLayerControl {
                 }
             }
         });
+
+        // Feature control notifications no longer needed - state manager handles interactions
     }
 
     async _flyToLocation(location) {
@@ -2917,6 +3153,8 @@ export class MapLayerControl {
             toggleInput.dispatchEvent(new Event('change'));
         });
 
+        // Feature control notifications no longer needed - state manager handles interactions
+
         if (!this._initialized) {
             // Add no-transition class initially
             this._container.classList.add('no-transition');
@@ -2943,6 +3181,15 @@ export class MapLayerControl {
     }
 
     _createPopupContent(feature, group, isHover = false, lngLat = null) {
+        // Check configuration settings for popup display
+        if (isHover && !this._config.showPopupsOnHover) {
+            return null;
+        }
+        
+        if (!isHover && !this._config.showPopupsOnClick) {
+            return null;
+        }
+
         // Disable hover popups on mobile devices
         if (isHover && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
             return null;
@@ -3129,7 +3376,6 @@ export class MapLayerControl {
             const sourceLayerLinksHTML = relevantSourceLayerLinks.map(link => {
                 // Check if link has renderHTML function - if so, use it instead of URL generation
                 if (typeof link.renderHTML === 'function') {
-                    console.log('[MapLayerControl] Using renderHTML function for link:', link.name);
                     return link.renderHTML({ feature, group, lat, lng, zoom, mercatorCoords });
                 }
 
@@ -3314,6 +3560,8 @@ export class MapLayerControl {
                 );
             }
         });
+
+        // Feature control notifications no longer needed - state manager handles interactions
     }
 
     _cleanup() {
@@ -3327,10 +3575,7 @@ export class MapLayerControl {
             this._consolidatedHoverPopup.remove();
             this._consolidatedHoverPopup = null;
         }
-        this._activeHoverFeatures.clear();
-
-        // Clear all selected features
-        this._clearAllSelectedFeatures();
+        // Selected features now managed by state manager
     }
 
     _setupLayerInteractivity(group, layerIds, sourceId) {
@@ -3362,120 +3607,59 @@ export class MapLayerControl {
             return params;
         };
 
-        // Helper function to update consolidated hover popup
+        // Helper function to update consolidated hover popup (now simplified since state manager handles features)
         const updateConsolidatedHoverPopup = (e) => {
-            if (this._activeHoverFeatures.size > 0) {
-                const content = this._createConsolidatedHoverContent();
-                if (content) {
-                    this._consolidatedHoverPopup
-                        .setLngLat(e ? e.lngLat : Array.from(this._activeHoverFeatures.values())[0].lngLat)
-                        .setDOMContent(content)
-                        .addTo(this._map);
-                }
-            } else {
-                this._consolidatedHoverPopup.remove();
+            // Consolidated hover popup functionality simplified - state manager handles feature tracking
+            if (e && e.lngLat) {
+                // Simple hover popup could be implemented here if needed
+                // For now, the state manager handles all feature interactions
             }
         };
 
         layerIds.forEach(layerId => {
-            // Mousemove handler
+            // Mousemove handler - state manager handles hover states
             this._map.on('mousemove', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
 
-                    // Clear hover state for previous feature
-                    if (hoveredFeatureId !== null) {
-                        this._map.setFeatureState(
-                            getFeatureStateParams(hoveredFeatureId),
-                            { hover: false }
-                        );
-                    }
-
-                    // Set hover state for new feature
-                    if (feature.id !== undefined) {
-                        hoveredFeatureId = feature.id;
-                        this._map.setFeatureState(
-                            getFeatureStateParams(hoveredFeatureId),
-                            { hover: true }
-                        );
-                    }
-
                     // Handle hover popup content
-                    if (group.inspect?.label) {
-                        // First remove any existing features for this layer
-                        const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key =>
-                            key.includes(`${sourceId}:${layerId}:`));
-
-                        layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
-
-                        // Now add the current feature
-                        const featureKey = `${sourceId}:${layerId}:${feature.id}`;
-                        this._activeHoverFeatures.set(featureKey, {
-                            feature,
-                            group,
-                            lngLat: e.lngLat
-                        });
-
+                    if (group.inspect?.label && this._config.showPopupsOnHover) {
                         // Update the consolidated hover popup
                         updateConsolidatedHoverPopup(e);
                     }
+                    
+                    // Feature hover state now fully managed by state manager
                 }
             });
 
-            // Mouseleave handler
+            // Mouseleave handler - state manager handles hover states
             this._map.on('mouseleave', layerId, () => {
-                if (hoveredFeatureId !== null) {
-                    this._map.setFeatureState(
-                        getFeatureStateParams(hoveredFeatureId),
-                        { hover: false }
-                    );
-                    hoveredFeatureId = null;
-                }
-
-                // Remove this layer's features from active features
-                const layerFeatureKeys = Array.from(this._activeHoverFeatures.keys()).filter(key =>
-                    key.includes(`${sourceId}:${layerId}:`));
-
-                layerFeatureKeys.forEach(key => this._activeHoverFeatures.delete(key));
-
                 // Update consolidated popup (will be removed if no features remain)
                 updateConsolidatedHoverPopup();
+
+                // Feature leave interactions now fully managed by state manager
             });
 
-            // Click handler
+            // Click handler - state manager handles selection states
             this._map.on('click', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
 
                     // Remove hover popup
                     this._consolidatedHoverPopup.remove();
-                    this._activeHoverFeatures.clear();
 
-                    // Clear all previous selections
-                    this._clearAllSelectedFeatures();
-
-                    // Set new selection
-                    if (feature.id !== undefined) {
-                        selectedFeatureId = feature.id;
-                        const featureStateParams = getFeatureStateParams(selectedFeatureId);
-                        this._map.setFeatureState(featureStateParams, { selected: true });
-
-                        // Store in global selected features map
-                        this._selectedFeatures.set(`${sourceId}:${layerId}:${selectedFeatureId}`, {
-                            sourceId,
-                            layerId,
-                            featureId: selectedFeatureId,
-                            featureStateParams
-                        });
+                    // Only show click popup if enabled
+                    if (this._config.showPopupsOnClick) {
+                        const content = this._createPopupContent(feature, group, false, e.lngLat);
+                        if (content) {
+                            popup
+                                .setLngLat(e.lngLat)
+                                .setDOMContent(content)
+                                .addTo(this._map);
+                        }
                     }
 
-                    const content = this._createPopupContent(feature, group, false, e.lngLat);
-                    if (content) {
-                        popup
-                            .setLngLat(e.lngLat)
-                            .setDOMContent(content)
-                            .addTo(this._map);
-                    }
+                    // Feature click interactions and selection state now fully managed by state manager
                 }
             });
 
@@ -4300,58 +4484,15 @@ export class MapLayerControl {
     }
 
     _createConsolidatedHoverContent() {
-        if (this._activeHoverFeatures.size === 0) return null;
+        // Consolidated hover content now handled by state manager
+        return null;
 
-        const container = document.createElement('div');
-        container.className = 'map-popup consolidated-popup p-1 font-sans';
 
-        // Group features by layer and keep track of the most recent feature for each layer
-        const groupedFeatures = new Map();
-
-        // Process each hovered feature
-        this._activeHoverFeatures.forEach(({ feature, group }) => {
-            const groupTitle = group.title || 'Unknown Layer';
-
-            if (group.inspect?.label) {
-                const labelValue = feature.properties[group.inspect.label];
-                if (labelValue) {
-                    // Store feature information for this layer
-                    groupedFeatures.set(groupTitle, {
-                        labelValue,
-                        groupId: group.id,
-                        // Find the index of this group in the original config
-                        index: this._state.groups.findIndex(g => g.id === group.id)
-                    });
-                }
-            }
-        });
-
-        // Sort the entries based on their index in the original config
-        // Lower index (appearing earlier in config) should come first
-        const sortedEntries = Array.from(groupedFeatures.entries())
-            .sort((a, b) => a[1].index - b[1].index);
-
-        // Create content from grouped features in the correct order
-        sortedEntries.forEach(([groupTitle, { labelValue }]) => {
-            // Add layer name
-            const layerDiv = document.createElement('div');
-            layerDiv.className = 'text-xs uppercase tracking-wider text-gray-500 mt-1';
-            layerDiv.textContent = groupTitle;
-            container.appendChild(layerDiv);
-
-            // Add feature label
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'text-sm font-medium ml-1';
-            labelDiv.textContent = labelValue;
-            container.appendChild(labelDiv);
-        });
-
-        return container;
     }
 
     async _setupCsvLayer(group) {
-        if (!group.url) {
-            console.error('CSV layer missing URL:', group);
+        if (!group.data && !group.url) {
+            console.error('CSV layer missing both data and URL:', group);
             return;
         }
 
@@ -4359,20 +4500,42 @@ export class MapLayerControl {
         const layerId = `${sourceId}-circle`;
 
         try {
-            // Fetch CSV data
-            const response = await fetch(group.url);
-            let csvText = await response.text();
-
-            // Parse CSV data
-            let rows;
-            if (group.csvParser) {
-                rows = group.csvParser(csvText);
+            let geojson;
+            
+            if (group.data) {
+                // Use inline data
+                if (Array.isArray(group.data)) {
+                    // Data is already parsed rows - convert directly to GeoJSON
+                    geojson = rowsToGeoJSON(group.data);
+                } else if (typeof group.data === 'string') {
+                    // Data is CSV text - parse it first
+                    let rows;
+                    if (group.csvParser) {
+                        rows = group.csvParser(group.data);
+                    } else {
+                        rows = parseCSV(group.data);
+                    }
+                    geojson = rowsToGeoJSON(rows);
+                } else {
+                    console.error('Invalid CSV data format in group:', group.id, 'Expected array of objects or CSV string');
+                    return;
+                }
             } else {
-                rows = parseCSV(csvText);
-            }
+                // Fetch CSV data from URL
+                const response = await fetch(group.url);
+                let csvText = await response.text();
 
-            // Convert to GeoJSON
-            const geojson = rowsToGeoJSON(rows);
+                // Parse CSV data
+                let rows;
+                if (group.csvParser) {
+                    rows = group.csvParser(csvText);
+                } else {
+                    rows = parseCSV(csvText);
+                }
+
+                // Convert to GeoJSON
+                geojson = rowsToGeoJSON(rows);
+            }
 
             // Add source if it doesn't exist
             if (!this._map.getSource(sourceId)) {
@@ -4428,8 +4591,8 @@ export class MapLayerControl {
                 this._map.getSource(sourceId).setData(geojson);
             }
 
-            // Set up refresh interval if specified
-            if (group.refresh) {
+            // Set up refresh interval if specified (only for URL-based data)
+            if (group.refresh && group.url) {
                 this._setupCsvRefresh(group);
             }
 
@@ -4608,14 +4771,8 @@ export class MapLayerControl {
     }
 
     _clearAllSelectedFeatures() {
-        this._selectedFeatures.forEach((selectedFeature, key) => {
-            try {
-                this._map.setFeatureState(selectedFeature.featureStateParams, { selected: false });
-            } catch (error) {
-                console.warn('Error clearing feature state:', error);
-            }
-        });
-        this._selectedFeatures.clear();
+        // Selected features are now managed by the state manager
+        // This method is kept for backwards compatibility but simplified
     }
 
     _addGlobalClickHandler() {
@@ -4641,7 +4798,10 @@ export class MapLayerControl {
 
                 // If no custom features were clicked (empty area), clear all selections
                 if (customFeatures.length === 0) {
-                    this._clearAllSelectedFeatures();
+                    // Use state manager to clear selections if available
+                    if (this._stateManager) {
+                        this._stateManager.clearAllSelections();
+                    }
 
                     // Also close any open popups
                     this._map.getCanvas().style.cursor = '';
@@ -4660,4 +4820,7 @@ export class MapLayerControl {
     }
 }
 
-window.MapLayerControl = MapLayerControl; 
+// Make available globally for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.MapLayerControl = MapLayerControl;
+} 

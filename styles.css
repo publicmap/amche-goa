@@ -102,15 +102,27 @@
     margin-bottom: 0;
 }
 
-/* Add these styles to fix mobile viewport height */
+/* Add these styles to fix mobile viewport height including iOS Safari */
 html,
 body {
-    height: 100%;
+    height: 100vh; /* Fallback for older browsers */
+    height: 100dvh; /* Dynamic viewport height for iOS Safari */
     margin: 0;
     padding: 0;
     overflow: hidden;
     position: relative;
     width: 100%;
+}
+
+/* Full viewport height class for iOS Safari compatibility */
+.full-viewport-height {
+    height: 100vh; /* Fallback for older browsers */
+}
+
+@supports (height: 100dvh) {
+    .full-viewport-height {
+        height: 100dvh; /* Dynamic viewport height for iOS Safari */
+    }
 }
 
 /* Update the map container positioning */
