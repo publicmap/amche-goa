@@ -578,8 +578,7 @@ export class MapFeatureControl {
             font-size: 10px;
             font-weight: 600;
             color: #fff;
-            // border-bottom: 1px solid #eee;
-            border: 2px solid black;
+            border: 1px solid black;
             border-radius: 4px;
             position: relative;
             background: #333;
@@ -1227,6 +1226,14 @@ export class MapFeatureControl {
             this._stateManager.handleMapMouseLeave();
         });
         
+        // Set up mouseout handler to ensure hover states are cleared when mouse moves to other DOM elements
+        // mouseout is more reliable than mouseleave for detecting mouse leaving map area
+        this._map.on('mouseout', () => {
+            this._stateManager.handleMapMouseLeave();
+            // Force clear hover popup immediately when mouse leaves map area
+            this._removeHoverPopup();
+        });
+        
         this._globalClickHandlerAdded = true;
     }
 
@@ -1376,8 +1383,9 @@ export class MapFeatureControl {
         // Clear all layer header hover states
         this._clearAllLayerHeaderHoverStates();
         
-        // Hide hover popup smoothly instead of removing it
-        this._hideHoverPopup();
+        // Remove hover popup completely when all features leave
+        // This ensures clean state when mouse moves off map
+        this._removeHoverPopup();
         this._currentHoveredFeature = null;
     }
 
