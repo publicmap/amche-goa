@@ -1206,6 +1206,9 @@ export class MapFeatureControl {
             // Pass all interactive features to the state manager
             if (interactiveFeatures.length > 0) {
                 this._stateManager.handleFeatureClicks(interactiveFeatures);
+                
+                // Ease map to center on clicked location with mobile offset
+                this._easeToCenterWithOffset(e.lngLat);
             } else {
                 // Clear selections if clicking on empty area
                 this._stateManager.clearAllSelections();
@@ -1860,6 +1863,48 @@ export class MapFeatureControl {
         if (!this._hoverPopup) return;
         
         this._hoverPopup.setLngLat(lngLat);
+    }
+
+    /**
+     * Ease map to center on location with mobile-specific offset
+     * On mobile, centers at 25% from top to account for inspector panel
+     */
+    _easeToCenterWithOffset(lngLat) {
+        if (!this._map || !lngLat) return;
+        
+        // Detect mobile/small screens
+        const isMobile = this._isMobileScreen();
+        
+        // Calculate offset based on screen type
+        let offsetY = 0; // Default: center of screen (50%)
+        
+        if (isMobile) {
+            // On mobile, offset upward so content centers at ~25% from top
+            // This accounts for the inspector panel covering bottom half
+            const mapHeight = this._map.getContainer().clientHeight;
+            offsetY = -mapHeight * 0.25; // Negative offset moves center point UP
+        }
+        
+        // Ease to the clicked location with smooth animation
+        this._map.easeTo({
+            center: lngLat,
+            offset: [0, offsetY], // [x, y] offset in pixels
+            duration: 600, // Smooth 600ms animation
+            essential: true // Ensures animation runs even if user prefers reduced motion
+        });
+    }
+
+    /**
+     * Detect if we're on a mobile or small screen device
+     */
+    _isMobileScreen() {
+        // Check multiple indicators for mobile/small screens
+        const hasTouch = 'ontouchstart' in window;
+        const smallScreen = window.innerWidth <= 768; // Common mobile breakpoint
+        const userAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Consider it mobile if any of these conditions are true
+        return hasTouch || smallScreen || userAgent;
     }
 }
 
