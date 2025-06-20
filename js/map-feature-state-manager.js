@@ -1023,7 +1023,6 @@ export class MapFeatureStateManager extends EventTarget {
                     }
                     
                     this._map.setFeatureState(featureIdentifier, state);
-                    console.log(`[StateManager] Set Mapbox feature state for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}:`, state);
                 } catch (error) {
                     // Ignore errors for sources that don't support feature state
                     console.warn(`[StateManager] Could not set feature state for source ${sourceKey}:`, error.message);
@@ -1093,10 +1092,8 @@ export class MapFeatureStateManager extends EventTarget {
                     // Remove specific state key or all states
                     if (stateKey) {
                         this._map.removeFeatureState(featureIdentifier, stateKey);
-                        console.log(`[StateManager] Removed Mapbox feature state key '${stateKey}' for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}`);
                     } else {
                         this._map.removeFeatureState(featureIdentifier);
-                        console.log(`[StateManager] Removed all Mapbox feature states for raw ID ${rawFeatureId} (internal: ${featureId}) on source ${sourceKey}`);
                     }
                 } catch (error) {
                     // Ignore errors for sources that don't support feature state

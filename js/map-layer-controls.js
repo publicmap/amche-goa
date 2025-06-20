@@ -325,6 +325,13 @@ export class MapLayerControl {
 
         // Categorize each property in the style object
         Object.keys(style).forEach(property => {
+            // First check if this property is valid for this layer type
+            const isValidForLayerType = this._isPropertyValidForLayerType(property, layerType);
+            if (!isValidForLayerType) {
+                // Skip invalid properties completely - don't add them to either paint or layout
+                return;
+            }
+
             if (layoutProps.includes(property)) {
                 layout[property] = style[property];
             } else if (paintProps.includes(property)) {
@@ -339,13 +346,7 @@ export class MapLayerControl {
                     property.includes('-cap') || property.includes('-join')) {
                     layout[property] = style[property];
                 } else {
-                    // Only add to paint if it's not clearly invalid for this layer type
-                    // Skip invalid properties like fill-* and line-* for symbol layers
-                    const isValidForLayerType = this._isPropertyValidForLayerType(property, layerType);
-                    if (isValidForLayerType) {
-                        paint[property] = style[property];
-                    }
-                    // Otherwise, silently ignore invalid properties
+                    paint[property] = style[property];
                 }
             }
         });

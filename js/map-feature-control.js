@@ -363,8 +363,10 @@ export class MapFeatureControl {
         // Don't show empty state immediately - layers might be loading
         if (activeLayers.size === 0) {
             // Only show empty state after a brief delay to avoid flicker during layer loading
+            // Avoid duplicate logging by not calling _getActiveLayersFromConfig again
             setTimeout(() => {
-                const currentActiveLayers = this._getActiveLayersFromConfig();
+                // Check state manager directly to avoid duplicate logging
+                const currentActiveLayers = this._stateManager.getActiveLayers();
                 if (currentActiveLayers.size === 0) {
                     this._renderEmptyState();
                     this._lastRenderState.clear();
@@ -572,12 +574,12 @@ export class MapFeatureControl {
         layerHeader.className = 'feature-control-layer-header';
         
         let headerStyle = `
-            padding: 8px 12px;
-            font-size: 11px;
+            padding: 0px 12px;
+            font-size: 10px;
             font-weight: 600;
             color: #fff;
-            border-bottom: 1px solid #eee;
-            border: 2px solid transparent;
+            // border-bottom: 1px solid #eee;
+            border: 2px solid black;
             border-radius: 4px;
             position: relative;
             background: #333;
@@ -1784,16 +1786,13 @@ export class MapFeatureControl {
                 sourceId: f.source,
                 sourceLayer: f.sourceLayer
             }));
-            console.log(`[FeatureControl] Found ${features.length} features:`, featureInfo);
         }
         
         // Group features by layerId to ensure only one feature per layer
         const layerGroups = new Map(); // key: layerId, value: features array
-        console.log(features)
         features.forEach(feature => {
             // Find which registered layer this feature belongs to
             const layerId = this._findLayerIdForFeature(feature);
-            console.log(`[FeatureControl] Feature from layer ${feature.layer.id} matched to registered layer: ${layerId}`);
             
             if (layerId && this._stateManager.isLayerInteractive(layerId)) {
                 if (!layerGroups.has(layerId)) {
@@ -1826,13 +1825,10 @@ export class MapFeatureControl {
             // Strategy: Pick the first fill feature if available, otherwise first line feature, otherwise first of any type
             if (fillFeatures.length > 0) {
                 selectedFeature = fillFeatures[0]; // First (topmost) fill feature
-                console.log(`[FeatureControl] Selected first fill feature for layer: ${layerId}`);
             } else if (lineFeatures.length > 0) {
                 selectedFeature = lineFeatures[0]; // First (topmost) line feature
-                console.log(`[FeatureControl] Selected first line feature for layer: ${layerId}`);
             } else {
                 selectedFeature = featuresInLayer[0]; // First feature of any type
-                console.log(`[FeatureControl] Selected first feature of any type for layer: ${layerId}`);
             }
             
             // Add the single selected feature for this layer
@@ -1844,9 +1840,7 @@ export class MapFeatureControl {
                 });
             }
         });
-        
-        console.log(`[FeatureControl] Processed ${layerGroups.size} layers, selected ${interactiveFeatures.length} features (1 per layer)`);
-        
+                
         // Pass all interactive features to the state manager for batch processing
         this._stateManager.handleFeatureHovers(interactiveFeatures, e.lngLat);
     }
