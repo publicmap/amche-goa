@@ -39,7 +39,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Register a layer for feature interactions
      */
     registerLayer(layerConfig) {
-        console.log(`[StateManager] Registering layer: ${layerConfig.id}`);
         this._layerConfig.set(layerConfig.id, layerConfig);
         
         if (layerConfig.inspect) {
@@ -54,7 +53,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Unregister a layer (when toggled off)
      */
     unregisterLayer(layerId) {
-        console.log(`[StateManager] Unregistering layer: ${layerId}`);
         // Clean up all features for this layer
         this._cleanupLayerFeatures(layerId);
         
@@ -257,7 +255,6 @@ export class MapFeatureStateManager extends EventTarget {
     handleFeatureClicks(clickedFeatures) {
         if (!clickedFeatures || clickedFeatures.length === 0) return;
         
-        console.log(`[StateManager] Processing ${clickedFeatures.length} clicked features directly`);
         
         // Check if any of the clicked features are already selected
         const alreadySelectedFeatures = [];
@@ -292,7 +289,6 @@ export class MapFeatureStateManager extends EventTarget {
                 [...clickedSet].every(item => selectedSet.has(item));
             
             if (setsAreIdentical) {
-                console.log(`[StateManager] Toggling off ${alreadySelectedFeatures.length} selected features (identical selection)`);
                 
                 // Deselect all features at once
                 const deselectedLayers = new Set();
@@ -318,7 +314,6 @@ export class MapFeatureStateManager extends EventTarget {
          // In both cases, clear existing selections and select the new clicked features
          
          const clearedFeatures = this._clearAllSelections(true);
-         console.log(`[StateManager] Cleared previous selections, now selecting ${clickedFeatures.length} clicked features`);
          
          const selectedFeatures = [];
          clickedFeatures.forEach(({ feature, layerId, lngLat }) => {
@@ -343,7 +338,6 @@ export class MapFeatureStateManager extends EventTarget {
              });
              
              selectedFeatures.push({ featureId, layerId, feature });
-             console.log(`[StateManager] Selected feature: ${featureId} in layer ${layerId}`);
          });
          
          // Emit event for all selections
@@ -399,7 +393,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Internal deselection logic without event emission (for batch operations)
      */
     _deselectFeatureInternal(featureId, layerId) {
-        console.log(`[StateManager] Deselecting feature: ${featureId} in layer ${layerId}`);
         
         // Remove from selected features
         const selectedSet = this._selectedFeatures.get(layerId);
@@ -428,7 +421,6 @@ export class MapFeatureStateManager extends EventTarget {
      * Clear all selected features (public method)
      */
     clearAllSelections(suppressEvent = false) {
-        console.log('[StateManager] Manually clearing all selections');
         const clearedFeatures = this._clearAllSelections(suppressEvent);
         
         // Force immediate re-render for manual clears (only if not suppressed)
@@ -443,12 +435,7 @@ export class MapFeatureStateManager extends EventTarget {
 
     _clearAllSelections(suppressEvent = false) {
         const clearedFeatures = [];
-        
-        console.log('[StateManager] Clearing all selections');
-        console.log('[StateManager] Current selected features before clearing:', 
-            Array.from(this._selectedFeatures.entries()).map(([layerId, features]) => 
-                ({ layerId, featureIds: Array.from(features) })));
-        
+     
         this._selectedFeatures.forEach((features, layerId) => {
             features.forEach(featureId => {
                 const state = this._featureStates.get(featureId);
@@ -619,9 +606,7 @@ export class MapFeatureStateManager extends EventTarget {
             console.warn(`[StateManager] No matching layers found for ${layerId}`);
             return;
         }
-        
-        console.log(`[StateManager] Setting up events for ${layerId} on layers:`, matchingLayerIds);
-        
+                
         // Add cursor and hover listeners to all matching layers
         // Note: mousemove and mouseleave are now handled globally by map-feature-control
         // for better performance (single queryRenderedFeatures call per mousemove)

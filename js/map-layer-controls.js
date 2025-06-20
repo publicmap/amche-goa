@@ -936,7 +936,6 @@ export class MapLayerControl {
      */
     setStateManager(stateManager) {
         this._stateManager = stateManager;
-        console.log('[LayerControl] State manager reference set');
         
         // Register all currently active layers with the state manager
         this._registerAllActiveLayers();
@@ -960,18 +959,23 @@ export class MapLayerControl {
      * Register a layer with the state manager when it becomes active
      */
     _registerLayerWithStateManager(layerConfig) {
-        if (!this._stateManager || !layerConfig.inspect) {
+        if (!this._stateManager) {
+            return;
+        }
+        
+        // Only register interactive layer types (geojson, vector, csv) that can have features
+        // Even if they don't have inspect properties, they should be registered for consistency
+        const interactiveTypes = ['geojson', 'vector', 'csv'];
+        if (!layerConfig.inspect && !interactiveTypes.includes(layerConfig.type)) {
             return;
         }
         
         // Pre-validate that this layer has matching layers in the map style
         // to avoid unnecessary registrations and console noise
         if (!this._hasMatchingLayers(layerConfig)) {
-            console.log(`[LayerControl] Skipping registration for ${layerConfig.id} - no matching layers found`);
             return;
         }
         
-        console.log(`[LayerControl] Registering ${layerConfig.id} with state manager`);
         this._stateManager.registerLayer(layerConfig);
     }
 
@@ -1025,10 +1029,51 @@ export class MapLayerControl {
             });
         }
         
-        // Strategy 7: GeoJSON source matching
+        // Strategy 7: GeoJSON source matching (enhanced)
         if (layerConfig.type === 'geojson') {
             const sourceId = `geojson-${layerId}`;
+            
+            // Check for source match
             if (style.layers.some(l => l.source === sourceId)) {
+                return true;
+            }
+            
+            // Check for specific geojson layer patterns
+            const geojsonLayerPatterns = [
+                `${sourceId}-fill`,
+                `${sourceId}-line`,
+                `${sourceId}-circle`,
+                `${sourceId}-symbol`
+            ];
+            
+            if (geojsonLayerPatterns.some(pattern => 
+                style.layers.some(l => l.id === pattern)
+            )) {
+                return true;
+            }
+        }
+        
+        // Strategy 8: CSV layer matching
+        if (layerConfig.type === 'csv') {
+            const sourceId = `csv-${layerId}`;
+            if (style.layers.some(l => l.source === sourceId || l.id === `${sourceId}-circle`)) {
+                return true;
+            }
+        }
+        
+        // Strategy 9: Vector layer matching (enhanced)
+        if (layerConfig.type === 'vector') {
+            const sourceId = `vector-${layerId}`;
+            const vectorLayerPatterns = [
+                `vector-layer-${layerId}`,
+                `vector-layer-${layerId}-outline`,
+                `vector-layer-${layerId}-text`
+            ];
+            
+            if (style.layers.some(l => l.source === sourceId) || 
+                vectorLayerPatterns.some(pattern => 
+                    style.layers.some(l => l.id === pattern)
+                )) {
                 return true;
             }
         }
@@ -1041,7 +1086,11 @@ export class MapLayerControl {
      */
     _unregisterLayerWithStateManager(layerId) {
         if (this._stateManager) {
-            this._stateManager.unregisterLayer(layerId);
+            // Only unregister if the layer is actually registered
+            // Check using the state manager's isLayerInteractive method
+            if (this._stateManager.isLayerInteractive(layerId)) {
+                this._stateManager.unregisterLayer(layerId);
+            }
         }
     }
 
@@ -2296,12 +2345,13 @@ export class MapLayerControl {
         const group = this._state.groups[groupIndex];
         this._currentGroup = group;
 
-        // Register/unregister with state manager for interactive layers
-        if (visible) {
-            this._registerLayerWithStateManager(group);
-        } else {
+        // For non-visible layers, unregister immediately
+        if (!visible) {
             this._unregisterLayerWithStateManager(group.id);
         }
+        
+        // For visible layers, register AFTER the layers are added to the map
+        // (this will be done at the end of this method)
 
         if (group.type === 'style') {
             // Get all style layers
@@ -2997,6 +3047,15 @@ export class MapLayerControl {
             } : null);
         }
 
+        // Register with state manager AFTER layers are added to the map
+        // This ensures _hasMatchingLayers() can find the newly added layers
+        if (visible && group.inspect) {
+            // Use a small delay to ensure layers are fully added to the map style
+            requestAnimationFrame(() => {
+                this._registerLayerWithStateManager(group);
+            });
+        }
+
         // Feature control notifications no longer needed - state manager handles interactions
     }
 
@@ -3316,7 +3375,6 @@ export class MapLayerControl {
             const sourceLayerLinksHTML = relevantSourceLayerLinks.map(link => {
                 // Check if link has renderHTML function - if so, use it instead of URL generation
                 if (typeof link.renderHTML === 'function') {
-                    console.log('[MapLayerControl] Using renderHTML function for link:', link.name);
                     return link.renderHTML({ feature, group, lat, lng, zoom, mercatorCoords });
                 }
 

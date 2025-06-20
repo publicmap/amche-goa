@@ -222,7 +222,6 @@ export class MapFeatureControl {
             case 'feature-click':
                 // Handle cleared features first if they exist, then the new selection
                 if (data.clearedFeatures && data.clearedFeatures.length > 0) {
-                    console.log('[FeatureControl] Processing cleared features from click event:', data.clearedFeatures);
                     this._handleSelectionsCleared(data.clearedFeatures);
                 }
                 // Then render the clicked feature's layer
@@ -231,7 +230,6 @@ export class MapFeatureControl {
             case 'feature-click-multiple':
                 // Handle multiple feature selections from overlapping click
                 if (data.clearedFeatures && data.clearedFeatures.length > 0) {
-                    console.log('[FeatureControl] Processing cleared features from multiple click event:', data.clearedFeatures);
                     this._handleSelectionsCleared(data.clearedFeatures);
                 }
                 // Render all affected layers
@@ -248,12 +246,10 @@ export class MapFeatureControl {
                 break;
             case 'feature-deselected':
                 // Handle feature deselection (toggle off)
-                console.log(`[FeatureControl] Feature deselected: ${data.featureId} in layer ${data.layerId}`);
                 this._renderLayer(data.layerId);
                 break;
             case 'features-batch-deselected':
                 // Handle batch deselection of multiple features
-                console.log(`[FeatureControl] Batch deselected ${data.deselectedFeatures.length} features from layers:`, data.affectedLayers);
                 data.affectedLayers.forEach(layerId => {
                     this._renderLayer(layerId);
                 });
@@ -265,13 +261,11 @@ export class MapFeatureControl {
                 break;
             case 'layer-registered':
                 // Re-render when layers are registered (turned on)
-                console.log(`[FeatureControl] Layer registered: ${data.layerId}`);
                 this._scheduleRender();
                 break;
             case 'layer-unregistered':
                 // Re-render when layers are unregistered (turned off)
                 // This ensures the feature control stays in sync with layer toggles
-                console.log(`[FeatureControl] Layer unregistered: ${data.layerId}`);
                 this._scheduleRender();
                 break;
             case 'cleanup':
@@ -304,7 +298,6 @@ export class MapFeatureControl {
      * Handle cleared selections - update UI for all cleared features
      */
     _handleSelectionsCleared(clearedFeatures) {
-        console.log('[FeatureControl] Handling cleared selections:', clearedFeatures);
         
         // Get unique layer IDs that had selections cleared
         const affectedLayerIds = [...new Set(clearedFeatures.map(item => item.layerId))];
@@ -424,8 +417,15 @@ export class MapFeatureControl {
         }
         
         // Return layers in the order they appear in config
+        // Include all interactive layers (geojson, vector, etc.), even if they don't have inspect properties
         return this._config.groups
-            .filter(group => group.inspect && this._stateManager.isLayerInteractive(group.id))
+            .filter(group => {
+                // Include all interactive layers that are registered with the state manager
+                return this._stateManager.isLayerInteractive(group.id) && 
+                       // Only include layers that are vector-based or geojson (can have features)
+                       (group.type === 'geojson' || group.type === 'vector' || 
+                        group.type === 'csv' || group.inspect);
+            })
             .map(group => group.id);
     }
 
@@ -462,10 +462,10 @@ export class MapFeatureControl {
             }
         });
 
-        console.log(`[FeatureControl] Layer ${layerId}: ${selectedFeatures.size} selected features (${features.size} total)`);
-
-        // Create features container only if there are selected features
-        if (config.inspect && selectedFeatures.size > 0) {
+        // Create features container if there are selected features
+        // Show all layers (geojson, vector, csv) even if they don't have inspect properties
+        if (selectedFeatures.size > 0 && (config.inspect || 
+            config.type === 'geojson' || config.type === 'vector' || config.type === 'csv')) {
             const featuresContainer = document.createElement('div');
             featuresContainer.className = 'feature-control-features';
             featuresContainer.setAttribute('data-layer-features', layerId);
@@ -789,15 +789,22 @@ export class MapFeatureControl {
             }
         });
         
-        // 3. Add remaining fields
+        // 3. Add remaining fields (for layers without inspect, show all non-empty properties)
         Object.entries(properties).forEach(([key, value]) => {
             // Skip if already added as label or priority field
             if (key === labelField || priorityFields.includes(key)) {
                 return;
             }
             
-            // Skip empty values
+            // For layers without inspect properties, be more inclusive
+            // Skip empty values and internal/system fields
             if (value === undefined || value === null || value === '') {
+                return;
+            }
+            
+            // Skip common internal/system fields that aren't useful to display
+            const systemFields = ['id', 'fid', '_id', 'objectid', 'gid', 'osm_id', 'way_id'];
+            if (systemFields.includes(key.toLowerCase())) {
                 return;
             }
             
@@ -808,6 +815,33 @@ export class MapFeatureControl {
                 displayName: key
             });
         });
+        
+        // For layers without inspect properties, show at least some basic info if no fields were found
+        if (organizedFields.length === 0 && !layerConfig.inspect) {
+            // Show the first few properties or a generic message
+            const basicFields = Object.entries(properties)
+                .filter(([key, value]) => value !== undefined && value !== null && value !== '')
+                .slice(0, 5); // Show first 5 non-empty properties
+            
+            if (basicFields.length > 0) {
+                basicFields.forEach(([key, value]) => {
+                    organizedFields.push({
+                        key: key,
+                        value: value,
+                        isOther: true,
+                        displayName: key
+                    });
+                });
+            } else {
+                // Show generic feature info if no properties available
+                organizedFields.push({
+                    key: 'type',
+                    value: featureState.feature.geometry?.type || 'Feature',
+                    isOther: true,
+                    displayName: 'Geometry Type'
+                });
+            }
+        }
         
         // Render the organized fields
         organizedFields.forEach(field => {
@@ -1103,11 +1137,14 @@ export class MapFeatureControl {
         for (const [layerId, layerData] of activeLayers) {
             const layerConfig = layerData.config;
             const matchingLayerIds = this._getMatchingLayerIds(layerConfig);
+            console.log(`[FeatureControl] Checking layer ${layerId} (type: ${layerConfig.type}), matching IDs:`, matchingLayerIds, `against actual: ${actualLayerId}`);
             if (matchingLayerIds.includes(actualLayerId)) {
+                console.log(`[FeatureControl] Found match! ${actualLayerId} belongs to ${layerId}`);
                 return layerId;
             }
         }
         
+        console.log(`[FeatureControl] No match found for feature layer: ${actualLayerId}`);
         return null;
     }
 
@@ -1126,7 +1163,7 @@ export class MapFeatureControl {
             matchingIds.push(layerId);
         }
         
-        // Source layer matching
+        // Source layer matching (for vector layers)
         if (layerConfig.sourceLayer) {
             const sourceLayerMatches = style.layers
                 .filter(l => l['source-layer'] === layerConfig.sourceLayer)
@@ -1134,9 +1171,33 @@ export class MapFeatureControl {
             matchingIds.push(...sourceLayerMatches);
         }
         
-        // Prefix matching
+        // GeoJSON layer matching
+        if (layerConfig.type === 'geojson') {
+            const geojsonMatches = style.layers
+                .filter(l => l.id.startsWith(`geojson-${layerId}-`))
+                .map(l => l.id);
+            matchingIds.push(...geojsonMatches);
+        }
+        
+        // Vector layer matching
+        if (layerConfig.type === 'vector') {
+            const vectorMatches = style.layers
+                .filter(l => l.id.startsWith(`vector-layer-${layerId}`))
+                .map(l => l.id);
+            matchingIds.push(...vectorMatches);
+        }
+        
+        // CSV layer matching
+        if (layerConfig.type === 'csv') {
+            const csvMatches = style.layers
+                .filter(l => l.id.startsWith(`csv-${layerId}-`))
+                .map(l => l.id);
+            matchingIds.push(...csvMatches);
+        }
+        
+        // Generic prefix matching (fallback)
         const prefixMatches = style.layers
-            .filter(l => l.id.startsWith(`vector-layer-${layerId}`) || l.id.startsWith(`${layerId}-`))
+            .filter(l => l.id.startsWith(`${layerId}-`))
             .map(l => l.id);
         matchingIds.push(...prefixMatches);
         
@@ -1303,7 +1364,9 @@ export class MapFeatureControl {
             
             const layerConfig = layerData.config;
             layerData.features.forEach((featureState, featureId) => {
-                if (featureState.isHovered && layerConfig.inspect) {
+                // Show hover popup for all interactive layers (geojson, vector, csv), not just those with inspect
+                if (featureState.isHovered && (layerConfig.inspect || 
+                    layerConfig.type === 'geojson' || layerConfig.type === 'vector' || layerConfig.type === 'csv')) {
                     hoveredFeatures.push({
                         featureId,
                         layerId,
@@ -1380,14 +1443,15 @@ export class MapFeatureControl {
             titleDiv.textContent = featureTitle;
             featureDiv.appendChild(titleDiv);
             
-            // Additional fields (up to 2)
+            // Additional fields (up to 2) - handle layers with or without inspect properties
+            const fieldsContainer = document.createElement('div');
+            fieldsContainer.style.cssText = 'margin-bottom: 3px;';
+            
+            let fieldCount = 0;
+            const maxFields = 2;
+            
             if (inspect.fields && inspect.fields.length > 0) {
-                const fieldsContainer = document.createElement('div');
-                fieldsContainer.style.cssText = 'margin-bottom: 3px;';
-                
-                let fieldCount = 0;
-                const maxFields = 2;
-                
+                // Use configured fields if available
                 inspect.fields.forEach((field, fieldIndex) => {
                     if (fieldCount >= maxFields) return;
                     if (field === inspect.label) return; // Skip label field as it's the title
@@ -1412,10 +1476,47 @@ export class MapFeatureControl {
                         fieldCount++;
                     }
                 });
+            } else {
+                // For layers without inspect, show first few meaningful properties
+                const properties = feature.properties || {};
+                const systemFields = ['id', 'fid', '_id', 'objectid', 'gid', 'osm_id', 'way_id'];
                 
-                if (fieldsContainer.children.length > 0) {
-                    featureDiv.appendChild(fieldsContainer);
-                }
+                Object.entries(properties).forEach(([field, value]) => {
+                    if (fieldCount >= maxFields) return;
+                    
+                    // Skip system fields and empty values
+                    if (systemFields.includes(field.toLowerCase()) || 
+                        value === undefined || value === null || value === '') {
+                        return;
+                    }
+                    
+                    // Skip if this is the field used as title
+                    if ((field === 'name' && featureTitle === String(value)) ||
+                        (field === 'title' && featureTitle === String(value))) {
+                        return;
+                    }
+                    
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 1px;';
+                    
+                    const fieldName = document.createElement('span');
+                    fieldName.style.cssText = 'color: #6b7280; font-size: 10px; font-weight: 500; flex-shrink: 0;';
+                    fieldName.textContent = field;
+                    
+                    const fieldValue = document.createElement('span');
+                    fieldValue.style.cssText = 'color: #374151; font-size: 10px; text-align: right; word-break: break-word;';
+                    fieldValue.textContent = String(value);
+                    
+                    fieldDiv.appendChild(fieldName);
+                    fieldDiv.appendChild(fieldValue);
+                    fieldsContainer.appendChild(fieldDiv);
+                    
+                    fieldCount++;
+                });
+            }
+            
+            if (fieldsContainer.children.length > 0) {
+                featureDiv.appendChild(fieldsContainer);
             }
             
             // Layer name
@@ -1452,7 +1553,9 @@ export class MapFeatureControl {
         const featuresByLayer = new Map();
         hoveredFeatures.forEach(({ featureId, layerId, feature }) => {
             const layerConfig = this._stateManager.getLayerConfig(layerId);
-            if (layerConfig && layerConfig.inspect) {
+            // Include all interactive layers (geojson, vector, csv), not just those with inspect
+            if (layerConfig && (layerConfig.inspect || 
+                layerConfig.type === 'geojson' || layerConfig.type === 'vector' || layerConfig.type === 'csv')) {
                 featuresByLayer.set(layerId, {
                     featureId,
                     layerId,
@@ -1560,12 +1663,24 @@ export class MapFeatureControl {
         // Query all features at the mouse point once
         const features = this._map.queryRenderedFeatures(e.point);
         
+        // Debug: Log all features found
+        if (features.length > 0) {
+            const featureInfo = features.map(f => ({
+                layerId: f.layer.id,
+                sourceId: f.source,
+                sourceLayer: f.sourceLayer
+            }));
+            console.log(`[FeatureControl] Found ${features.length} features:`, featureInfo);
+        }
+        
         // Group features by layerId to ensure only one feature per layer
         const layerGroups = new Map(); // key: layerId, value: features array
         
         features.forEach(feature => {
             // Find which registered layer this feature belongs to
             const layerId = this._findLayerIdForFeature(feature);
+            console.log(`[FeatureControl] Feature from layer ${feature.layer.id} matched to registered layer: ${layerId}`);
+            
             if (layerId && this._stateManager.isLayerInteractive(layerId)) {
                 if (!layerGroups.has(layerId)) {
                     layerGroups.set(layerId, []);
