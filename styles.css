@@ -102,10 +102,13 @@
     margin-bottom: 0;
 }
 
-/* Add these styles to fix mobile viewport height */
+/* iOS Safari viewport height fixes */
 html,
 body {
     height: 100%;
+    /* iOS Safari dynamic viewport height support */
+    height: 100dvh; /* Dynamic viewport height for modern browsers */
+    height: -webkit-fill-available; /* Fallback for older iOS Safari */
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -113,44 +116,24 @@ body {
     width: 100%;
 }
 
-/* Update the map container positioning */
-#map {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-
-/* Ensure attribution is visible */
-.mapboxgl-ctrl-bottom-right {
-    bottom: 0 !important;
-    z-index: 2;
-}
-
-/* Update these styles */
-html,
+/* Ensure body uses full available height on iOS */
 body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
 }
 
-/* Update main container */
+/* Update main container with iOS Safari fixes */
 main {
     height: calc(100% - 56px);
+    height: calc(100dvh - 56px); /* For modern browsers */
+    height: calc(-webkit-fill-available - 56px); /* For iOS Safari */
     width: 100%;
     position: relative;
     overflow: hidden;
 }
 
-/* Update map container */
+/* Update map container with safe area support */
 #map {
     width: 100%;
     height: 100%;
@@ -159,6 +142,46 @@ main {
     left: 0;
     right: 0;
     bottom: 0;
+    /* Ensure map respects safe areas on iOS */
+    bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Ensure attribution and controls are visible above iOS Safari UI */
+.mapboxgl-ctrl-bottom-right {
+    bottom: env(safe-area-inset-bottom, 10px) !important;
+    z-index: 2;
+    padding-bottom: 10px;
+}
+
+.mapboxgl-ctrl-bottom-left {
+    bottom: env(safe-area-inset-bottom, 10px) !important;
+    z-index: 2;
+    padding-bottom: 10px;
+}
+
+/* Fix MapFeatureControl positioning for iOS Safari */
+.map-feature-control {
+    bottom: env(safe-area-inset-bottom, 10px) !important;
+    margin-bottom: 10px !important;
+}
+
+/* Additional iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    body {
+        height: -webkit-fill-available;
+    }
+    
+    main {
+        height: calc(-webkit-fill-available - 56px);
+    }
+    
+    /* Ensure controls are properly positioned */
+    .mapboxgl-ctrl-bottom-right,
+    .mapboxgl-ctrl-bottom-left,
+    .map-feature-control {
+        bottom: max(env(safe-area-inset-bottom, 0px), 20px) !important;
+    }
 }
 
 

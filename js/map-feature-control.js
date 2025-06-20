@@ -123,7 +123,7 @@ export class MapFeatureControl {
         this._container = document.createElement('div');
         this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group map-feature-control';
         
-        // Add custom styles
+        // Add custom styles with iOS Safari viewport fixes
         this._container.style.cssText = `
             background: #666;
             box-shadow: 0 0 0 2px rgba(0,0,0,.1);
@@ -133,6 +133,8 @@ export class MapFeatureControl {
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+            margin-bottom: 10px;
         `;
 
         this._createHeader();
@@ -143,6 +145,8 @@ export class MapFeatureControl {
             flex: 1;
             overflow-y: auto;
             max-height: calc(${this.options.maxHeight} - 50px);
+            max-height: calc(100dvh - 200px); /* iOS Safari dynamic viewport height */
+            max-height: calc(-webkit-fill-available - 200px); /* iOS Safari fallback */
             display: ${this._isCollapsed ? 'none' : 'block'};
         `;
         
