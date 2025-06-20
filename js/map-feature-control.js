@@ -1287,14 +1287,20 @@ export class MapFeatureControl {
 
     /**
      * Get all currently hovered features from the state manager
+     * Returns features ordered by config layer order to match map information display
      */
     _getAllHoveredFeatures() {
         if (!this._stateManager) return [];
         
-        const hoveredFeatures = [];
         const activeLayers = this._stateManager.getActiveLayers();
+        const configOrder = this._getConfigLayerOrder();
+        const hoveredFeatures = [];
         
-        activeLayers.forEach((layerData, layerId) => {
+        // Process layers in config order to maintain consistent ordering with main display
+        configOrder.forEach(layerId => {
+            const layerData = activeLayers.get(layerId);
+            if (!layerData) return;
+            
             const layerConfig = layerData.config;
             layerData.features.forEach((featureState, featureId) => {
                 if (featureState.isHovered && layerConfig.inspect) {
@@ -1443,20 +1449,33 @@ export class MapFeatureControl {
         }
         
         // Convert batch data to format expected by popup creation
-        const formattedFeatures = hoveredFeatures.map(({ featureId, layerId, feature }) => {
+        const featuresByLayer = new Map();
+        hoveredFeatures.forEach(({ featureId, layerId, feature }) => {
             const layerConfig = this._stateManager.getLayerConfig(layerId);
-            return {
-                featureId,
-                layerId,
-                layerConfig,
-                featureState: {
-                    feature,
+            if (layerConfig && layerConfig.inspect) {
+                featuresByLayer.set(layerId, {
+                    featureId,
                     layerId,
-                    lngLat,
-                    isHovered: true
-                }
-            };
-        }).filter(item => item.layerConfig && item.layerConfig.inspect);
+                    layerConfig,
+                    featureState: {
+                        feature,
+                        layerId,
+                        lngLat,
+                        isHovered: true
+                    }
+                });
+            }
+        });
+        
+        // Order features by config layer order to match main display
+        const configOrder = this._getConfigLayerOrder();
+        const formattedFeatures = [];
+        
+        configOrder.forEach(layerId => {
+            if (featuresByLayer.has(layerId)) {
+                formattedFeatures.push(featuresByLayer.get(layerId));
+            }
+        });
         
         if (formattedFeatures.length === 0) {
             this._hideHoverPopup();

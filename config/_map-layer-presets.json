@@ -881,6 +881,11 @@
         "line-color": "Magenta",
         "line-width": 2,
         "fill-opacity": 0.5
+      },
+      "inspect": {
+        "id": "id",
+        "title": "Occupant",
+        "label": "owner"
       }
     },
     {
@@ -933,7 +938,16 @@
           "#b2b2c1",
           "black"
         ],
-        "fill-opacity": 0.6,
+        "fill-opacity": [
+          "match",
+          [
+            "get",
+            "match_notes"
+          ],
+          "Subdivision",
+          0.9,
+          0.7
+        ],
         "fill-color": [
           "match",
           [
