@@ -33,6 +33,9 @@ export class MapFeatureControl {
         this._stateChangeListener = null;
         this._renderScheduled = false;
         
+        // Layer collapse state management
+        this._layerCollapseStates = new Map(); // Track collapsed state for each layer
+        
         // Hover popup management
         this._hoverPopup = null;
         this._currentHoveredFeature = null;
@@ -447,8 +450,8 @@ export class MapFeatureControl {
         // Clear existing content
         layerElement.innerHTML = '';
 
-        // Create layer header
-        const layerHeader = this._createLayerHeader(config);
+        // Create layer header with collapse functionality
+        const layerHeader = this._createLayerHeader(config, layerId);
         layerElement.appendChild(layerHeader);
 
         // Only show selected features in inspector
@@ -465,9 +468,16 @@ export class MapFeatureControl {
         if (config.inspect && selectedFeatures.size > 0) {
             const featuresContainer = document.createElement('div');
             featuresContainer.className = 'feature-control-features';
+            featuresContainer.setAttribute('data-layer-features', layerId);
+            
+            // Check if this layer is collapsed
+            const isLayerCollapsed = this._layerCollapseStates.get(layerId) || false;
+            
             featuresContainer.style.cssText = `
                 max-height: 200px;
                 overflow-y: auto;
+                display: ${isLayerCollapsed ? 'none' : 'block'};
+                transition: all 0.2s ease;
             `;
 
             // Sort and render only selected features
@@ -553,9 +563,9 @@ export class MapFeatureControl {
     }
 
     /**
-     * Create layer header with background image support
+     * Create layer header with background image support and collapse functionality
      */
-    _createLayerHeader(config) {
+    _createLayerHeader(config, layerId) {
         const layerHeader = document.createElement('div');
         layerHeader.className = 'feature-control-layer-header';
         
@@ -570,6 +580,11 @@ export class MapFeatureControl {
             position: relative;
             background: #333;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
         `;
         
         if (config.headerImage) {
@@ -595,10 +610,75 @@ export class MapFeatureControl {
         
         layerHeader.style.cssText = headerStyle;
         
+        // Header text container
         const headerText = document.createElement('span');
-        headerText.style.cssText = 'position: relative; z-index: 2;';
+        headerText.style.cssText = 'position: relative; z-index: 2; flex: 1;';
         headerText.textContent = config.title || config.id;
         layerHeader.appendChild(headerText);
+
+        // Toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'layer-toggle-btn';
+        const isCollapsed = this._layerCollapseStates.get(layerId) || false;
+        toggleBtn.innerHTML = isCollapsed ? '▲' : '▼';
+        toggleBtn.style.cssText = `
+            background: none;
+            border: none;
+            font-size: 10px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            position: relative;
+            z-index: 2;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s ease;
+        `;
+
+        // Hover effect for toggle button
+        toggleBtn.addEventListener('mouseenter', () => {
+            toggleBtn.style.backgroundColor = 'rgba(255,255,255,0.2)';
+        });
+        
+        toggleBtn.addEventListener('mouseleave', () => {
+            toggleBtn.style.backgroundColor = 'transparent';
+        });
+
+        layerHeader.appendChild(toggleBtn);
+
+        // Add click handler for collapse functionality
+        layerHeader.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            
+            // Toggle collapse state
+            const currentState = this._layerCollapseStates.get(layerId) || false;
+            const newState = !currentState;
+            this._layerCollapseStates.set(layerId, newState);
+            
+            // Update toggle button
+            toggleBtn.innerHTML = newState ? '▲' : '▼';
+            
+            // Find and toggle the features container
+            const layerElement = layerHeader.closest('.feature-control-layer');
+            const featuresContainer = layerElement.querySelector(`[data-layer-features="${layerId}"]`);
+            
+            if (featuresContainer) {
+                featuresContainer.style.display = newState ? 'none' : 'block';
+            }
+        });
+
+        // Add hover effect for the entire header
+        layerHeader.addEventListener('mouseenter', () => {
+            if (!config.headerImage) {
+                layerHeader.style.backgroundColor = '#404040';
+            }
+        });
+        
+        layerHeader.addEventListener('mouseleave', () => {
+            if (!config.headerImage) {
+                layerHeader.style.backgroundColor = '#333';
+            }
+        });
 
         return layerHeader;
     }
@@ -653,15 +733,19 @@ export class MapFeatureControl {
         
         // Properties table content
         const tableContent = document.createElement('div');
-        tableContent.style.cssText = 'padding: 8px 12px; max-height: 250px; overflow-y: auto;';
+        tableContent.style.cssText = 'padding: 12px; max-height: 250px; overflow-y: auto;';
         
         // Build the properties table with intelligent formatting
         const table = document.createElement('table');
         table.style.cssText = `
             width: 100%;
-            font-size: 9px;
             border-collapse: collapse;
             margin-bottom: 8px;
+            font-family: inherit;
+            background-color: #ffffff;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         `;
         
         const properties = featureState.feature.properties || {};
@@ -728,44 +812,65 @@ export class MapFeatureControl {
         // Render the organized fields
         organizedFields.forEach(field => {
             const row = document.createElement('tr');
-            row.style.cssText = 'border-bottom: 1px solid #f0f0f0;';
+            
+            // Set row background based on field type
+            let rowBackgroundColor = '#ffffff'; // Default white background
+            if (field.isLabel) {
+                rowBackgroundColor = '#f8fafc'; // Very light blue-gray for label
+            } else if (field.isPriority) {
+                rowBackgroundColor = '#f9fafb'; // Very light gray for priority fields
+            }
+            
+            row.style.cssText = `
+                border-bottom: 1px solid #e5e7eb;
+                background-color: ${rowBackgroundColor};
+                transition: background-color 0.1s ease;
+            `;
+            
+            // Add subtle hover effect for better UX
+            row.addEventListener('mouseenter', () => {
+                if (field.isLabel) {
+                    row.style.backgroundColor = '#f1f5f9';
+                } else if (field.isPriority) {
+                    row.style.backgroundColor = '#f3f4f6';
+                } else {
+                    row.style.backgroundColor = '#f9fafb';
+                }
+            });
+            
+            row.addEventListener('mouseleave', () => {
+                row.style.backgroundColor = rowBackgroundColor;
+            });
             
             const keyCell = document.createElement('td');
             keyCell.style.cssText = `
-                padding: ${field.isLabel ? '6px 4px' : '4px 4px'};
+                padding: 6px 8px;
                 font-weight: 600;
-                color: ${field.isLabel ? '#111' : field.isPriority ? '#444' : '#666'};
+                color: ${field.isLabel ? '#1f2937' : field.isPriority ? '#374151' : '#6b7280'};
                 width: 40%;
                 vertical-align: top;
-                line-height: 1.2;
+                line-height: 1.3;
+                font-size: ${field.isLabel ? '11px' : '10px'};
             `;
             
-            // Create field name display with alias emphasis
+            // Simplified field name display - show only field title, add tooltip for original field name
             if (field.displayName !== field.key) {
-                // Show alias prominently with raw field name below (for all fields including label)
-                const aliasDiv = document.createElement('div');
-                aliasDiv.style.cssText = `font-weight: 600; margin-bottom: 1px; ${field.isLabel ? 'font-size: 12px;' : ''}`;
-                aliasDiv.textContent = field.displayName;
-                
-                const rawDiv = document.createElement('div');
-                rawDiv.style.cssText = `font-size: 8px; font-weight: 400; color: #9ca3af; font-style: italic; ${field.isLabel ? 'color: #6366f1;' : ''}`;
-                rawDiv.textContent = field.key;
-                
-                keyCell.appendChild(aliasDiv);
-                keyCell.appendChild(rawDiv);
+                keyCell.textContent = field.displayName;
+                keyCell.title = `Original field: ${field.key}`; // Tooltip showing original field name
+                keyCell.style.cursor = 'help';
             } else {
                 keyCell.textContent = field.displayName;
             }
             
             const valueCell = document.createElement('td');
             valueCell.style.cssText = `
-                padding: ${field.isLabel ? '6px 4px' : '4px 4px'};
+                padding: 6px 8px;
                 word-break: break-word;
-                font-size: ${field.isLabel ? '13px' : '9px'};
-                font-weight: ${field.isLabel ? '700' : '400'};
-                color: ${field.isLabel ? '#111' : '#333'};
-                line-height: 1.2;
-                ${field.isLabel ? 'background: #fff;' : ''}
+                font-size: ${field.isLabel ? '12px' : '10px'};
+                font-weight: ${field.isLabel ? '600' : '400'};
+                color: ${field.isLabel ? '#1f2937' : '#374151'};
+                line-height: 1.3;
+                vertical-align: top;
             `;
             valueCell.textContent = String(field.value);
             
